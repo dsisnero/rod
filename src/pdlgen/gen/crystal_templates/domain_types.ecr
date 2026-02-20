@@ -1,0 +1,63 @@
+<%# domain_types.ecr - Template for generating domain types %>
+<%- # Variables: d (Pdl::Domain), domains (Array(Pdl::Domain)), base_pkg (String), referenced_domains (Array(String)) -%>
+require "../<%= d.domain.downcase %>/<%= d.domain.downcase %>"
+require "json"
+require "time"
+
+<%- referenced_domains.each do |ref_domain| -%>
+<%- next if ref_domain == d.domain.downcase -%>
+require "../<%= ref_domain %>/<%= ref_domain %>"
+<%- end -%>
+
+module <%= base_pkg %>::<%= d.domain.camelcase %>
+  <%- d.types.each do |t| -%>
+    <%- next if t.is_circular_dep || t.deprecated && !t.always_emit -%>
+    <%- if t.deprecated -%>
+  @[Deprecated]
+    <%- end -%>
+    <%- if t.experimental -%>
+  @[Experimental]
+    <%- end -%>
+    <%- case t.type -%>
+    <%- when Pdl::TypeEnum::Object -%>
+      <%- if (enum_values = t.enum) && !enum_values.empty? -%>
+  enum <%= type_name_for_domain(t, d) %>
+        <%- enum_values.each do |value| -%>
+    <%= value.camelcase %>
+        <%- end -%>
+  end
+      <%- else -%>
+  struct <%= type_name_for_domain(t, d) %>
+    include JSON::Serializable
+        <%- if t.properties && !t.properties.empty? -%>
+          <%- t.properties.each do |p| -%>
+            <%- next if p.deprecated && !p.always_emit -%>
+            <%- next if p.name.empty? -%>
+            <%- type_str = crystal_type(p, d, domains) -%>
+    @[JSON::Field(emit_null: false)]<%= "?" if p.optional %>
+    property <%= p.name.underscore %> : <%= type_str %><%= "?" if p.optional %>
+          <%- end -%>
+        <%- end -%>
+  end
+      <%- end -%>
+    <%- when Pdl::TypeEnum::String -%>
+  alias <%= type_name_for_domain(t, d) %> = String
+    <%- when Pdl::TypeEnum::Integer -%>
+  alias <%= type_name_for_domain(t, d) %> = Int64
+    <%- when Pdl::TypeEnum::Boolean -%>
+  alias <%= type_name_for_domain(t, d) %> = Bool
+    <%- when Pdl::TypeEnum::Number -%>
+  alias <%= type_name_for_domain(t, d) %> = Float64
+    <%- when Pdl::TypeEnum::Any -%>
+  alias <%= type_name_for_domain(t, d) %> = JSON::Any
+    <%- when Pdl::TypeEnum::Timestamp -%>
+  alias <%= type_name_for_domain(t, d) %> = Time
+    <%- when Pdl::TypeEnum::Binary -%>
+  alias <%= type_name_for_domain(t, d) %> = String
+    <%- else -%>
+  # TODO: Implement type <%= t.type %> for <%= t.name %>
+  alias <%= type_name_for_domain(t, d) %> = JSON::Any
+    <%- end -%>
+  
+  <%- end -%>
+end

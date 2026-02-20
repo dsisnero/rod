@@ -1,0 +1,60 @@
+<%# domain.ecr - Template for generating a Crystal domain module %>
+<%# Variables: d (Pdl::Domain), domains (Array(Pdl::Domain)), base_pkg (String) %>
+module <%= d.domain.camelcase %>
+  # <%= d.description %>
+  <%- if d.deprecated -%>
+  @[Deprecated("This domain is deprecated")]
+  <%- end -%>
+  <%- if d.experimental -%>
+  @[Experimental]
+  <%- end -%>
+
+  <%- if !d.types.empty? -%>
+  # Types
+  <%- d.types.each do |t| -%>
+  <%- if t.is_circular_dep -%>
+  # Circular dependency type: <%= t.name %>
+  <%- end -%>
+  <%- end -%>
+  <%- end -%>
+
+  <%- if !d.commands.empty? -%>
+  # Commands
+  <%- d.commands.each do |c| -%>
+  <%- if c.deprecated -%>
+  @[Deprecated]
+  <%- end -%>
+  <%- if c.experimental -%>
+  @[Experimental]
+  <%- end -%>
+  struct <%= c.name.camelcase %>Params
+    <%- c.parameters.each do |p| -%>
+    property <%= p.name.underscore %> : <%= crystal_type(p, d, domains) %><%= "?" if p.optional %>
+    <%- end -%>
+
+    def initialize(<%= c.parameters.map { |p| "@#{p.name.underscore} : #{crystal_type(p, d, domains)}#{'?' if p.optional}" }.join(", ") %>)
+    end
+  end
+  <%- end -%>
+  <%- end -%>
+
+  <%- if !d.events.empty? -%>
+  # Events
+  <%- d.events.each do |e| -%>
+  <%- if e.deprecated -%>
+  @[Deprecated]
+  <%- end -%>
+  <%- if e.experimental -%>
+  @[Experimental]
+  <%- end -%>
+  struct <%= e.name.camelcase %>Event
+    <%- e.parameters.each do |p| -%>
+    property <%= p.name.underscore %> : <%= crystal_type(p, d, domains) %><%= "?" if p.optional %>
+    <%- end -%>
+
+    def initialize(<%= e.parameters.map { |p| "@#{p.name.underscore} : #{crystal_type(p, d, domains)}#{'?' if p.optional}" }.join(", ") %>)
+    end
+  end
+  <%- end -%>
+  <%- end -%>
+end

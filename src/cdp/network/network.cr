@@ -1,0 +1,867 @@
+require "json"
+require "../cdp"
+require "../io/io"
+require "../page/page"
+require "./types"
+
+# Network domain allows tracking network activities of the page. It exposes information about http,
+# file, data and other requests and responses, their headers, bodies, timing, etc.
+module Cdp::Network
+  # Commands
+  @[Experimental]
+  struct SetAcceptedEncodings
+    include JSON::Serializable
+    include Cdp::Request
+
+    property encodings : Array(ContentEncoding)
+
+    def initialize(@encodings : Array(ContentEncoding))
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.setAcceptedEncodings"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
+  struct ClearAcceptedEncodingsOverride
+    include JSON::Serializable
+    include Cdp::Request
+
+    def initialize
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.clearAcceptedEncodingsOverride"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct ClearBrowserCache
+    include JSON::Serializable
+    include Cdp::Request
+
+    def initialize
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.clearBrowserCache"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct ClearBrowserCookies
+    include JSON::Serializable
+    include Cdp::Request
+
+    def initialize
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.clearBrowserCookies"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct DeleteCookies
+    include JSON::Serializable
+    include Cdp::Request
+
+    property name : String
+    @[JSON::Field(emit_null: false)]
+    property url : String?
+    @[JSON::Field(emit_null: false)]
+    property domain : String?
+    @[JSON::Field(emit_null: false)]
+    property path : String?
+    @[JSON::Field(emit_null: false)]
+    property partition_key : CookiePartitionKey?
+
+    def initialize(@name : String, @url : String?, @domain : String?, @path : String?, @partition_key : CookiePartitionKey?)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.deleteCookies"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct Disable
+    include JSON::Serializable
+    include Cdp::Request
+
+    def initialize
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.disable"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
+  struct EmulateNetworkConditionsByRule
+    include JSON::Serializable
+    include Cdp::Request
+
+    property offline : Bool
+    property matched_network_conditions : Array(NetworkConditions)
+
+    def initialize(@offline : Bool, @matched_network_conditions : Array(NetworkConditions))
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.emulateNetworkConditionsByRule"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : EmulateNetworkConditionsByRuleResult
+      res = EmulateNetworkConditionsByRuleResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  @[Experimental]
+  struct EmulateNetworkConditionsByRuleResult
+    include JSON::Serializable
+
+    property rule_ids : Array(String)
+
+    def initialize(@rule_ids : Array(String))
+    end
+  end
+
+  @[Experimental]
+  struct OverrideNetworkState
+    include JSON::Serializable
+    include Cdp::Request
+
+    property offline : Bool
+    property latency : Float64
+    property download_throughput : Float64
+    property upload_throughput : Float64
+    @[JSON::Field(emit_null: false)]
+    property connection_type : ConnectionType?
+
+    def initialize(@offline : Bool, @latency : Float64, @download_throughput : Float64, @upload_throughput : Float64, @connection_type : ConnectionType?)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.overrideNetworkState"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct Enable
+    include JSON::Serializable
+    include Cdp::Request
+
+    @[JSON::Field(emit_null: false)]
+    property max_total_buffer_size : Int64?
+    @[JSON::Field(emit_null: false)]
+    property max_resource_buffer_size : Int64?
+    @[JSON::Field(emit_null: false)]
+    property max_post_data_size : Int64?
+    @[JSON::Field(emit_null: false)]
+    property report_direct_socket_traffic : Bool?
+    @[JSON::Field(emit_null: false)]
+    property enable_durable_messages : Bool?
+
+    def initialize(@max_total_buffer_size : Int64?, @max_resource_buffer_size : Int64?, @max_post_data_size : Int64?, @report_direct_socket_traffic : Bool?, @enable_durable_messages : Bool?)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.enable"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
+  struct ConfigureDurableMessages
+    include JSON::Serializable
+    include Cdp::Request
+
+    @[JSON::Field(emit_null: false)]
+    property max_total_buffer_size : Int64?
+    @[JSON::Field(emit_null: false)]
+    property max_resource_buffer_size : Int64?
+
+    def initialize(@max_total_buffer_size : Int64?, @max_resource_buffer_size : Int64?)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.configureDurableMessages"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
+  struct GetCertificate
+    include JSON::Serializable
+    include Cdp::Request
+
+    property origin : String
+
+    def initialize(@origin : String)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.getCertificate"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : GetCertificateResult
+      res = GetCertificateResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  @[Experimental]
+  struct GetCertificateResult
+    include JSON::Serializable
+
+    property table_names : Array(String)
+
+    def initialize(@table_names : Array(String))
+    end
+  end
+
+  struct GetCookies
+    include JSON::Serializable
+    include Cdp::Request
+
+    @[JSON::Field(emit_null: false)]
+    property urls : Array(String)?
+
+    def initialize(@urls : Array(String)?)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.getCookies"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : GetCookiesResult
+      res = GetCookiesResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  struct GetCookiesResult
+    include JSON::Serializable
+
+    property cookies : Array(Cookie)
+
+    def initialize(@cookies : Array(Cookie))
+    end
+  end
+
+  struct GetResponseBody
+    include JSON::Serializable
+    include Cdp::Request
+
+    property request_id : RequestId
+
+    def initialize(@request_id : RequestId)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.getResponseBody"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : GetResponseBodyResult
+      res = GetResponseBodyResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  struct GetResponseBodyResult
+    include JSON::Serializable
+
+    property body : String
+    property base64_encoded : Bool
+
+    def initialize(@body : String, @base64_encoded : Bool)
+    end
+  end
+
+  struct GetRequestPostData
+    include JSON::Serializable
+    include Cdp::Request
+
+    property request_id : RequestId
+
+    def initialize(@request_id : RequestId)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.getRequestPostData"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : GetRequestPostDataResult
+      res = GetRequestPostDataResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  struct GetRequestPostDataResult
+    include JSON::Serializable
+
+    property post_data : String
+    property base64_encoded : Bool
+
+    def initialize(@post_data : String, @base64_encoded : Bool)
+    end
+  end
+
+  @[Experimental]
+  struct GetResponseBodyForInterception
+    include JSON::Serializable
+    include Cdp::Request
+
+    property interception_id : InterceptionId
+
+    def initialize(@interception_id : InterceptionId)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.getResponseBodyForInterception"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : GetResponseBodyForInterceptionResult
+      res = GetResponseBodyForInterceptionResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  @[Experimental]
+  struct GetResponseBodyForInterceptionResult
+    include JSON::Serializable
+
+    property body : String
+    property base64_encoded : Bool
+
+    def initialize(@body : String, @base64_encoded : Bool)
+    end
+  end
+
+  @[Experimental]
+  struct TakeResponseBodyForInterceptionAsStream
+    include JSON::Serializable
+    include Cdp::Request
+
+    property interception_id : InterceptionId
+
+    def initialize(@interception_id : InterceptionId)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.takeResponseBodyForInterceptionAsStream"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : TakeResponseBodyForInterceptionAsStreamResult
+      res = TakeResponseBodyForInterceptionAsStreamResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  @[Experimental]
+  struct TakeResponseBodyForInterceptionAsStreamResult
+    include JSON::Serializable
+
+    property stream : Cdp::IO::StreamHandle
+
+    def initialize(@stream : Cdp::IO::StreamHandle)
+    end
+  end
+
+  @[Experimental]
+  struct ReplayXHR
+    include JSON::Serializable
+    include Cdp::Request
+
+    property request_id : RequestId
+
+    def initialize(@request_id : RequestId)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.replayXHR"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
+  struct SearchInResponseBody
+    include JSON::Serializable
+    include Cdp::Request
+
+    property request_id : RequestId
+    property query : String
+    @[JSON::Field(emit_null: false)]
+    property case_sensitive : Bool?
+    @[JSON::Field(emit_null: false)]
+    property is_regex : Bool?
+
+    def initialize(@request_id : RequestId, @query : String, @case_sensitive : Bool?, @is_regex : Bool?)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.searchInResponseBody"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : SearchInResponseBodyResult
+      res = SearchInResponseBodyResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  @[Experimental]
+  struct SearchInResponseBodyResult
+    include JSON::Serializable
+
+    property result : Array(Cdp::Debugger::SearchMatch)
+
+    def initialize(@result : Array(Cdp::Debugger::SearchMatch))
+    end
+  end
+
+  @[Experimental]
+  struct SetBlockedURLs
+    include JSON::Serializable
+    include Cdp::Request
+
+    @[JSON::Field(emit_null: false)]
+    property url_patterns : Array(BlockPattern)?
+
+    def initialize(@url_patterns : Array(BlockPattern)?)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.setBlockedURLs"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct SetBypassServiceWorker
+    include JSON::Serializable
+    include Cdp::Request
+
+    property bypass : Bool
+
+    def initialize(@bypass : Bool)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.setBypassServiceWorker"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct SetCacheDisabled
+    include JSON::Serializable
+    include Cdp::Request
+
+    property cache_disabled : Bool
+
+    def initialize(@cache_disabled : Bool)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.setCacheDisabled"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct SetCookie
+    include JSON::Serializable
+    include Cdp::Request
+
+    property name : String
+    property value : String
+    @[JSON::Field(emit_null: false)]
+    property url : String?
+    @[JSON::Field(emit_null: false)]
+    property domain : String?
+    @[JSON::Field(emit_null: false)]
+    property path : String?
+    @[JSON::Field(emit_null: false)]
+    property secure : Bool?
+    @[JSON::Field(emit_null: false)]
+    property http_only : Bool?
+    @[JSON::Field(emit_null: false)]
+    property same_site : CookieSameSite?
+    @[JSON::Field(emit_null: false)]
+    property expires : TimeSinceEpoch?
+    @[JSON::Field(emit_null: false)]
+    property priority : CookiePriority?
+    @[JSON::Field(emit_null: false)]
+    property source_scheme : CookieSourceScheme?
+    @[JSON::Field(emit_null: false)]
+    property source_port : Int64?
+    @[JSON::Field(emit_null: false)]
+    property partition_key : CookiePartitionKey?
+
+    def initialize(@name : String, @value : String, @url : String?, @domain : String?, @path : String?, @secure : Bool?, @http_only : Bool?, @same_site : CookieSameSite?, @expires : TimeSinceEpoch?, @priority : CookiePriority?, @source_scheme : CookieSourceScheme?, @source_port : Int64?, @partition_key : CookiePartitionKey?)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.setCookie"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct SetCookies
+    include JSON::Serializable
+    include Cdp::Request
+
+    property cookies : Array(CookieParam)
+
+    def initialize(@cookies : Array(CookieParam))
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.setCookies"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct SetExtraHTTPHeaders
+    include JSON::Serializable
+    include Cdp::Request
+
+    property headers : Headers
+
+    def initialize(@headers : Headers)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.setExtraHTTPHeaders"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
+  struct SetAttachDebugStack
+    include JSON::Serializable
+    include Cdp::Request
+
+    property enabled : Bool
+
+    def initialize(@enabled : Bool)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.setAttachDebugStack"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
+  struct StreamResourceContent
+    include JSON::Serializable
+    include Cdp::Request
+
+    property request_id : RequestId
+
+    def initialize(@request_id : RequestId)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.streamResourceContent"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : StreamResourceContentResult
+      res = StreamResourceContentResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  @[Experimental]
+  struct StreamResourceContentResult
+    include JSON::Serializable
+
+    property buffered_data : String
+
+    def initialize(@buffered_data : String)
+    end
+  end
+
+  @[Experimental]
+  struct GetSecurityIsolationStatus
+    include JSON::Serializable
+    include Cdp::Request
+
+    @[JSON::Field(emit_null: false)]
+    property frame_id : Cdp::Page::FrameId?
+
+    def initialize(@frame_id : Cdp::Page::FrameId?)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.getSecurityIsolationStatus"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : GetSecurityIsolationStatusResult
+      res = GetSecurityIsolationStatusResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  @[Experimental]
+  struct GetSecurityIsolationStatusResult
+    include JSON::Serializable
+
+    property status : SecurityIsolationStatus
+
+    def initialize(@status : SecurityIsolationStatus)
+    end
+  end
+
+  @[Experimental]
+  struct EnableReportingApi
+    include JSON::Serializable
+    include Cdp::Request
+
+    property enable : Bool
+
+    def initialize(@enable : Bool)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.enableReportingApi"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
+  struct EnableDeviceBoundSessions
+    include JSON::Serializable
+    include Cdp::Request
+
+    property enable : Bool
+
+    def initialize(@enable : Bool)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.enableDeviceBoundSessions"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
+  struct FetchSchemefulSite
+    include JSON::Serializable
+    include Cdp::Request
+
+    property origin : String
+
+    def initialize(@origin : String)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.fetchSchemefulSite"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : FetchSchemefulSiteResult
+      res = FetchSchemefulSiteResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  @[Experimental]
+  struct FetchSchemefulSiteResult
+    include JSON::Serializable
+
+    property schemeful_site : String
+
+    def initialize(@schemeful_site : String)
+    end
+  end
+
+  @[Experimental]
+  struct LoadNetworkResource
+    include JSON::Serializable
+    include Cdp::Request
+
+    @[JSON::Field(emit_null: false)]
+    property frame_id : Cdp::Page::FrameId?
+    property url : String
+    property options : LoadNetworkResourceOptions
+
+    def initialize(@frame_id : Cdp::Page::FrameId?, @url : String, @options : LoadNetworkResourceOptions)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.loadNetworkResource"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : LoadNetworkResourceResult
+      res = LoadNetworkResourceResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  @[Experimental]
+  struct LoadNetworkResourceResult
+    include JSON::Serializable
+
+    property resource : LoadNetworkResourcePageResult
+
+    def initialize(@resource : LoadNetworkResourcePageResult)
+    end
+  end
+
+  @[Experimental]
+  struct SetCookieControls
+    include JSON::Serializable
+    include Cdp::Request
+
+    property enable_third_party_cookie_restriction : Bool
+    property disable_third_party_cookie_metadata : Bool
+    property disable_third_party_cookie_heuristics : Bool
+
+    def initialize(@enable_third_party_cookie_restriction : Bool, @disable_third_party_cookie_metadata : Bool, @disable_third_party_cookie_heuristics : Bool)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.setCookieControls"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+end

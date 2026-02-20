@@ -1,0 +1,66 @@
+require "../bluetoothemulation/bluetoothemulation"
+require "json"
+require "time"
+
+module Cdp::BluetoothEmulation
+  alias CentralState = String
+
+  alias GATTOperationType = String
+
+  alias CharacteristicWriteType = String
+
+  alias CharacteristicOperationType = String
+
+  alias DescriptorOperationType = String
+
+  struct ManufacturerData
+    include JSON::Serializable
+
+    property key : Int64
+    property data : String
+  end
+
+  struct ScanRecord
+    include JSON::Serializable
+
+    @[JSON::Field(emit_null: false)]
+    property name : String?
+    @[JSON::Field(emit_null: false)]
+    property uuids : Array(String)?
+    @[JSON::Field(emit_null: false)]
+    property appearance : Int64?
+    @[JSON::Field(emit_null: false)]
+    property tx_power : Int64?
+    @[JSON::Field(emit_null: false)]
+    property manufacturer_data : Array(ManufacturerData)?
+  end
+
+  struct ScanEntry
+    include JSON::Serializable
+
+    property device_address : String
+    property rssi : Int64
+    property scan_record : ScanRecord
+  end
+
+  struct CharacteristicProperties
+    include JSON::Serializable
+
+    @[JSON::Field(emit_null: false)]
+    property broadcast : Bool?
+    @[JSON::Field(emit_null: false)]
+    property read : Bool?
+    @[JSON::Field(emit_null: false)]
+    property write_without_response : Bool?
+    @[JSON::Field(emit_null: false)]
+    property write : Bool?
+    @[JSON::Field(emit_null: false)]
+    property notify : Bool?
+    @[JSON::Field(emit_null: false)]
+    property indicate : Bool?
+    @[JSON::Field(emit_null: false)]
+    property authenticated_signed_writes : Bool?
+    @[JSON::Field(emit_null: false)]
+    property extended_properties : Bool?
+  end
+end

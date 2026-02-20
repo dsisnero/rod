@@ -1,0 +1,138 @@
+require "json"
+require "../cdp"
+require "./types"
+
+# Query and modify DOM storage.
+@[Experimental]
+module Cdp::DOMStorage
+  # Commands
+  struct Clear
+    include JSON::Serializable
+    include Cdp::Request
+
+    property storage_id : StorageId
+
+    def initialize(@storage_id : StorageId)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "DOMStorage.clear"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct Disable
+    include JSON::Serializable
+    include Cdp::Request
+
+    def initialize
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "DOMStorage.disable"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct Enable
+    include JSON::Serializable
+    include Cdp::Request
+
+    def initialize
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "DOMStorage.enable"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct GetDOMStorageItems
+    include JSON::Serializable
+    include Cdp::Request
+
+    property storage_id : StorageId
+
+    def initialize(@storage_id : StorageId)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "DOMStorage.getDOMStorageItems"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : GetDOMStorageItemsResult
+      res = GetDOMStorageItemsResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  struct GetDOMStorageItemsResult
+    include JSON::Serializable
+
+    property entries : Array(Item)
+
+    def initialize(@entries : Array(Item))
+    end
+  end
+
+  struct RemoveDOMStorageItem
+    include JSON::Serializable
+    include Cdp::Request
+
+    property storage_id : StorageId
+    property key : String
+
+    def initialize(@storage_id : StorageId, @key : String)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "DOMStorage.removeDOMStorageItem"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct SetDOMStorageItem
+    include JSON::Serializable
+    include Cdp::Request
+
+    property storage_id : StorageId
+    property key : String
+    property value : String
+
+    def initialize(@storage_id : StorageId, @key : String, @value : String)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "DOMStorage.setDOMStorageItem"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+end

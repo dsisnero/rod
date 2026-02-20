@@ -1,0 +1,677 @@
+require "json"
+require "../cdp"
+require "./types"
+
+# Runtime domain exposes JavaScript runtime by means of remote evaluation and mirror objects.
+# Evaluation results are returned as mirror object that expose object type, string representation
+# and unique identifier that can be used for further object reference. Original objects are
+# maintained in memory unless they are either explicitly released or are released along with the
+# other objects in their object group.
+module Cdp::Runtime
+  # Commands
+  struct AwaitPromise
+    include JSON::Serializable
+    include Cdp::Request
+
+    property promise_object_id : RemoteObjectId
+    @[JSON::Field(emit_null: false)]
+    property return_by_value : Bool?
+    @[JSON::Field(emit_null: false)]
+    property generate_preview : Bool?
+
+    def initialize(@promise_object_id : RemoteObjectId, @return_by_value : Bool?, @generate_preview : Bool?)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.awaitPromise"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : AwaitPromiseResult
+      res = AwaitPromiseResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  struct AwaitPromiseResult
+    include JSON::Serializable
+
+    property result : RemoteObject
+    @[JSON::Field(emit_null: false)]
+    property exception_details : ExceptionDetails?
+
+    def initialize(@result : RemoteObject, @exception_details : ExceptionDetails?)
+    end
+  end
+
+  struct CallFunctionOn
+    include JSON::Serializable
+    include Cdp::Request
+
+    property function_declaration : String
+    @[JSON::Field(emit_null: false)]
+    property object_id : RemoteObjectId?
+    @[JSON::Field(emit_null: false)]
+    property arguments : Array(CallArgument)?
+    @[JSON::Field(emit_null: false)]
+    property silent : Bool?
+    @[JSON::Field(emit_null: false)]
+    property return_by_value : Bool?
+    @[JSON::Field(emit_null: false)]
+    property generate_preview : Bool?
+    @[JSON::Field(emit_null: false)]
+    property user_gesture : Bool?
+    @[JSON::Field(emit_null: false)]
+    property await_promise : Bool?
+    @[JSON::Field(emit_null: false)]
+    property execution_context_id : ExecutionContextId?
+    @[JSON::Field(emit_null: false)]
+    property object_group : String?
+    @[JSON::Field(emit_null: false)]
+    property throw_on_side_effect : Bool?
+    @[JSON::Field(emit_null: false)]
+    property unique_context_id : String?
+    @[JSON::Field(emit_null: false)]
+    property serialization_options : SerializationOptions?
+
+    def initialize(@function_declaration : String, @object_id : RemoteObjectId?, @arguments : Array(CallArgument)?, @silent : Bool?, @return_by_value : Bool?, @generate_preview : Bool?, @user_gesture : Bool?, @await_promise : Bool?, @execution_context_id : ExecutionContextId?, @object_group : String?, @throw_on_side_effect : Bool?, @unique_context_id : String?, @serialization_options : SerializationOptions?)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.callFunctionOn"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : CallFunctionOnResult
+      res = CallFunctionOnResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  struct CallFunctionOnResult
+    include JSON::Serializable
+
+    property result : RemoteObject
+    @[JSON::Field(emit_null: false)]
+    property exception_details : ExceptionDetails?
+
+    def initialize(@result : RemoteObject, @exception_details : ExceptionDetails?)
+    end
+  end
+
+  struct CompileScript
+    include JSON::Serializable
+    include Cdp::Request
+
+    property expression : String
+    property source_url : String
+    property persist_script : Bool
+    @[JSON::Field(emit_null: false)]
+    property execution_context_id : ExecutionContextId?
+
+    def initialize(@expression : String, @source_url : String, @persist_script : Bool, @execution_context_id : ExecutionContextId?)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.compileScript"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : CompileScriptResult
+      res = CompileScriptResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  struct CompileScriptResult
+    include JSON::Serializable
+
+    @[JSON::Field(emit_null: false)]
+    property script_id : ScriptId?
+    @[JSON::Field(emit_null: false)]
+    property exception_details : ExceptionDetails?
+
+    def initialize(@script_id : ScriptId?, @exception_details : ExceptionDetails?)
+    end
+  end
+
+  struct Disable
+    include JSON::Serializable
+    include Cdp::Request
+
+    def initialize
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.disable"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct DiscardConsoleEntries
+    include JSON::Serializable
+    include Cdp::Request
+
+    def initialize
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.discardConsoleEntries"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct Enable
+    include JSON::Serializable
+    include Cdp::Request
+
+    def initialize
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.enable"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct Evaluate
+    include JSON::Serializable
+    include Cdp::Request
+
+    property expression : String
+    @[JSON::Field(emit_null: false)]
+    property object_group : String?
+    @[JSON::Field(emit_null: false)]
+    property include_command_line_api : Bool?
+    @[JSON::Field(emit_null: false)]
+    property silent : Bool?
+    @[JSON::Field(emit_null: false)]
+    property context_id : ExecutionContextId?
+    @[JSON::Field(emit_null: false)]
+    property return_by_value : Bool?
+    @[JSON::Field(emit_null: false)]
+    property generate_preview : Bool?
+    @[JSON::Field(emit_null: false)]
+    property user_gesture : Bool?
+    @[JSON::Field(emit_null: false)]
+    property await_promise : Bool?
+    @[JSON::Field(emit_null: false)]
+    property throw_on_side_effect : Bool?
+    @[JSON::Field(emit_null: false)]
+    property timeout : TimeDelta?
+    @[JSON::Field(emit_null: false)]
+    property disable_breaks : Bool?
+    @[JSON::Field(emit_null: false)]
+    property repl_mode : Bool?
+    @[JSON::Field(emit_null: false)]
+    property allow_unsafe_eval_blocked_by_csp : Bool?
+    @[JSON::Field(emit_null: false)]
+    property unique_context_id : String?
+    @[JSON::Field(emit_null: false)]
+    property serialization_options : SerializationOptions?
+
+    def initialize(@expression : String, @object_group : String?, @include_command_line_api : Bool?, @silent : Bool?, @context_id : ExecutionContextId?, @return_by_value : Bool?, @generate_preview : Bool?, @user_gesture : Bool?, @await_promise : Bool?, @throw_on_side_effect : Bool?, @timeout : TimeDelta?, @disable_breaks : Bool?, @repl_mode : Bool?, @allow_unsafe_eval_blocked_by_csp : Bool?, @unique_context_id : String?, @serialization_options : SerializationOptions?)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.evaluate"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : EvaluateResult
+      res = EvaluateResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  struct EvaluateResult
+    include JSON::Serializable
+
+    property result : RemoteObject
+    @[JSON::Field(emit_null: false)]
+    property exception_details : ExceptionDetails?
+
+    def initialize(@result : RemoteObject, @exception_details : ExceptionDetails?)
+    end
+  end
+
+  @[Experimental]
+  struct GetIsolateId
+    include JSON::Serializable
+    include Cdp::Request
+
+    def initialize
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.getIsolateId"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : GetIsolateIdResult
+      res = GetIsolateIdResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  @[Experimental]
+  struct GetIsolateIdResult
+    include JSON::Serializable
+
+    property id : String
+
+    def initialize(@id : String)
+    end
+  end
+
+  @[Experimental]
+  struct GetHeapUsage
+    include JSON::Serializable
+    include Cdp::Request
+
+    def initialize
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.getHeapUsage"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : GetHeapUsageResult
+      res = GetHeapUsageResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  @[Experimental]
+  struct GetHeapUsageResult
+    include JSON::Serializable
+
+    property used_size : Float64
+    property total_size : Float64
+    property embedder_heap_used_size : Float64
+    property backing_storage_size : Float64
+
+    def initialize(@used_size : Float64, @total_size : Float64, @embedder_heap_used_size : Float64, @backing_storage_size : Float64)
+    end
+  end
+
+  struct GetProperties
+    include JSON::Serializable
+    include Cdp::Request
+
+    property object_id : RemoteObjectId
+    @[JSON::Field(emit_null: false)]
+    property own_properties : Bool?
+    @[JSON::Field(emit_null: false)]
+    property accessor_properties_only : Bool?
+    @[JSON::Field(emit_null: false)]
+    property generate_preview : Bool?
+    @[JSON::Field(emit_null: false)]
+    property non_indexed_properties_only : Bool?
+
+    def initialize(@object_id : RemoteObjectId, @own_properties : Bool?, @accessor_properties_only : Bool?, @generate_preview : Bool?, @non_indexed_properties_only : Bool?)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.getProperties"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : GetPropertiesResult
+      res = GetPropertiesResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  struct GetPropertiesResult
+    include JSON::Serializable
+
+    property result : Array(PropertyDescriptor)
+    @[JSON::Field(emit_null: false)]
+    property internal_properties : Array(InternalPropertyDescriptor)?
+    @[JSON::Field(emit_null: false)]
+    property private_properties : Array(PrivatePropertyDescriptor)?
+    @[JSON::Field(emit_null: false)]
+    property exception_details : ExceptionDetails?
+
+    def initialize(@result : Array(PropertyDescriptor), @internal_properties : Array(InternalPropertyDescriptor)?, @private_properties : Array(PrivatePropertyDescriptor)?, @exception_details : ExceptionDetails?)
+    end
+  end
+
+  struct GlobalLexicalScopeNames
+    include JSON::Serializable
+    include Cdp::Request
+
+    @[JSON::Field(emit_null: false)]
+    property execution_context_id : ExecutionContextId?
+
+    def initialize(@execution_context_id : ExecutionContextId?)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.globalLexicalScopeNames"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : GlobalLexicalScopeNamesResult
+      res = GlobalLexicalScopeNamesResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  struct GlobalLexicalScopeNamesResult
+    include JSON::Serializable
+
+    property names : Array(String)
+
+    def initialize(@names : Array(String))
+    end
+  end
+
+  struct QueryObjects
+    include JSON::Serializable
+    include Cdp::Request
+
+    property prototype_object_id : RemoteObjectId
+    @[JSON::Field(emit_null: false)]
+    property object_group : String?
+
+    def initialize(@prototype_object_id : RemoteObjectId, @object_group : String?)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.queryObjects"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : QueryObjectsResult
+      res = QueryObjectsResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  struct QueryObjectsResult
+    include JSON::Serializable
+
+    property objects : RemoteObject
+
+    def initialize(@objects : RemoteObject)
+    end
+  end
+
+  struct ReleaseObject
+    include JSON::Serializable
+    include Cdp::Request
+
+    property object_id : RemoteObjectId
+
+    def initialize(@object_id : RemoteObjectId)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.releaseObject"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct ReleaseObjectGroup
+    include JSON::Serializable
+    include Cdp::Request
+
+    property object_group : String
+
+    def initialize(@object_group : String)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.releaseObjectGroup"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct RunIfWaitingForDebugger
+    include JSON::Serializable
+    include Cdp::Request
+
+    def initialize
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.runIfWaitingForDebugger"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct RunScript
+    include JSON::Serializable
+    include Cdp::Request
+
+    property script_id : ScriptId
+    @[JSON::Field(emit_null: false)]
+    property execution_context_id : ExecutionContextId?
+    @[JSON::Field(emit_null: false)]
+    property object_group : String?
+    @[JSON::Field(emit_null: false)]
+    property silent : Bool?
+    @[JSON::Field(emit_null: false)]
+    property include_command_line_api : Bool?
+    @[JSON::Field(emit_null: false)]
+    property return_by_value : Bool?
+    @[JSON::Field(emit_null: false)]
+    property generate_preview : Bool?
+    @[JSON::Field(emit_null: false)]
+    property await_promise : Bool?
+
+    def initialize(@script_id : ScriptId, @execution_context_id : ExecutionContextId?, @object_group : String?, @silent : Bool?, @include_command_line_api : Bool?, @return_by_value : Bool?, @generate_preview : Bool?, @await_promise : Bool?)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.runScript"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : RunScriptResult
+      res = RunScriptResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  struct RunScriptResult
+    include JSON::Serializable
+
+    property result : RemoteObject
+    @[JSON::Field(emit_null: false)]
+    property exception_details : ExceptionDetails?
+
+    def initialize(@result : RemoteObject, @exception_details : ExceptionDetails?)
+    end
+  end
+
+  @[Experimental]
+  struct SetCustomObjectFormatterEnabled
+    include JSON::Serializable
+    include Cdp::Request
+
+    property enabled : Bool
+
+    def initialize(@enabled : Bool)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.setCustomObjectFormatterEnabled"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
+  struct SetMaxCallStackSizeToCapture
+    include JSON::Serializable
+    include Cdp::Request
+
+    property size : Int64
+
+    def initialize(@size : Int64)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.setMaxCallStackSizeToCapture"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
+  struct TerminateExecution
+    include JSON::Serializable
+    include Cdp::Request
+
+    def initialize
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.terminateExecution"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct AddBinding
+    include JSON::Serializable
+    include Cdp::Request
+
+    property name : String
+    @[JSON::Field(emit_null: false)]
+    property execution_context_name : String?
+
+    def initialize(@name : String, @execution_context_name : String?)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.addBinding"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct RemoveBinding
+    include JSON::Serializable
+    include Cdp::Request
+
+    property name : String
+
+    def initialize(@name : String)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.removeBinding"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
+  struct GetExceptionDetails
+    include JSON::Serializable
+    include Cdp::Request
+
+    property error_object_id : RemoteObjectId
+
+    def initialize(@error_object_id : RemoteObjectId)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Runtime.getExceptionDetails"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : GetExceptionDetailsResult
+      res = GetExceptionDetailsResult.new
+      Cdp.call(proto_req, self, res, c)
+      res
+    end
+  end
+
+  @[Experimental]
+  struct GetExceptionDetailsResult
+    include JSON::Serializable
+
+    @[JSON::Field(emit_null: false)]
+    property exception_details : ExceptionDetails?
+
+    def initialize(@exception_details : ExceptionDetails?)
+    end
+  end
+end

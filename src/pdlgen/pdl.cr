@@ -1,6 +1,7 @@
 require "./pdl/parser"
 require "./pdl/har"
 require "file"
+require "json"
 
 module Pdlgen
   module Pdl

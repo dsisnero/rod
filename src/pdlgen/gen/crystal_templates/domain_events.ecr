@@ -1,0 +1,42 @@
+<%# domain_events.ecr - Template for generating domain events %>
+<%- # Variables: d (Pdl::Domain), domains (Array(Pdl::Domain)), base_pkg (String), referenced_domains (Array(String)) -%>
+require "../<%= d.domain.downcase %>/<%= d.domain.downcase %>"
+require "json"
+require "time"
+
+<%- referenced_domains.each do |ref_domain| -%>
+<%- next if ref_domain == d.domain.downcase -%>
+require "../<%= ref_domain %>/<%= ref_domain %>"
+<%- end -%>
+
+module <%= base_pkg %>::<%= d.domain.camelcase %>
+  <%- d.events.each do |e| -%>
+    <%- next if e.deprecated && !e.always_emit -%>
+    <%- if e.deprecated -%>
+  @[Deprecated]
+    <%- end -%>
+    <%- if e.experimental -%>
+  @[Experimental]
+    <%- end -%>
+  struct <%= e.name.camelcase %>Event
+    include JSON::Serializable
+    include <%= base_pkg %>::Event
+    <%- e.parameters.each do |p| -%>
+      <%- next if p.deprecated && !p.always_emit -%>
+      <%- next if p.name.empty? -%>
+      <%- type_str = crystal_type(p, d, domains) -%>
+    @[JSON::Field(emit_null: false)]<%= "?" if p.optional %>
+    property <%= p.name.underscore %> : <%= type_str %><%= "?" if p.optional %>
+    <%- end -%>
+    
+    def initialize(<%= e.parameters.map { |p| next if p.deprecated && !p.always_emit; next if p.name.empty?; "@#{p.name.underscore} : #{crystal_type(p, d, domains)}#{'?' if p.optional}" }.compact.join(", ") %>)
+    end
+    
+    # ProtoEvent returns the protocol event name.
+    def proto_event : String
+      "<%= d.domain %>.<%= e.name %>"
+    end
+  end
+  
+  <%- end -%>
+end

@@ -34,6 +34,7 @@ module Pdlgen
     end
 
     def run
+      Util.logf("starting pdlgen")
       parse_options
 
       # Set cache path
@@ -214,16 +215,20 @@ module Pdlgen
 
       # Load Chromium protocol
       load = ->(url : String, typ : String, ver : String) do
+        full_url = (url + "?format=TEXT") % ver
         cache = Util::Cache.new(
-          url: (url + "?format=TEXT") % ver,
+          url: full_url,
           path: File.join(@cache, "pdl", typ, ver + ".pdl"),
           ttl: @ttl,
           decode: true
         )
         buf = Util.get(cache)
 
+        # Resolve includes
+        resolved_buf = resolve_includes(buf, full_url, typ, ver, @cache)
+
         # Parse
-        proto_def = Pdl.parse(buf)
+        proto_def = Pdl.parse(resolved_buf)
         proto_defs << proto_def
       end
 
@@ -377,6 +382,33 @@ module Pdlgen
       end
     end
 
+    private def resolve_includes(buf : Bytes, url : String, typ : String, ver : String, cache_dir : String) : Bytes
+      lines = String.new(buf).lines
+      base_url = url[0...url.rindex('/')]? || url
+      result = [] of String
+      lines.each do |line|
+        if match = line.match(Pdl::INCLUDE_RE)
+          include_path = match[1]
+          include_url = "#{base_url}/#{include_path}?format=TEXT"
+          cache_path = File.join(cache_dir, "pdl", typ, "domains", include_path)
+          Util.logf("INCLUDE: %s", include_path)
+          cache = Util::Cache.new(
+            url: include_url,
+            path: cache_path,
+            ttl: @ttl,
+            decode: true
+          )
+          included_buf = Util.get(cache)
+          # recursively resolve includes in the included file
+          resolved = resolve_includes(included_buf, include_url, typ, ver, cache_dir)
+          result << String.new(resolved)
+        else
+          result << line
+        end
+      end
+      result.join("\n").to_slice
+    end
+
     private def write_files(files : Hash(String, String))
       files.each do |path, content|
         full_path = @out.empty? ? path : File.join(@out, path)
@@ -388,4 +420,8 @@ module Pdlgen
       end
     end
   end
+end
+
+if PROGRAM_NAME == __FILE__
+  Pdlgen::CLI.run
 end

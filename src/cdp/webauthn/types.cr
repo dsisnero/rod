@@ -1,0 +1,65 @@
+require "../webauthn/webauthn"
+require "json"
+require "time"
+
+module Cdp::WebAuthn
+  alias AuthenticatorId = String
+
+  alias AuthenticatorProtocol = String
+
+  alias Ctap2Version = String
+
+  alias AuthenticatorTransport = String
+
+  struct VirtualAuthenticatorOptions
+    include JSON::Serializable
+
+    property protocol : AuthenticatorProtocol
+    @[JSON::Field(emit_null: false)]
+    property ctap2_version : Ctap2Version?
+    property transport : AuthenticatorTransport
+    @[JSON::Field(emit_null: false)]
+    property has_resident_key : Bool?
+    @[JSON::Field(emit_null: false)]
+    property has_user_verification : Bool?
+    @[JSON::Field(emit_null: false)]
+    property has_large_blob : Bool?
+    @[JSON::Field(emit_null: false)]
+    property has_cred_blob : Bool?
+    @[JSON::Field(emit_null: false)]
+    property has_min_pin_length : Bool?
+    @[JSON::Field(emit_null: false)]
+    property has_prf : Bool?
+    @[JSON::Field(emit_null: false)]
+    property automatic_presence_simulation : Bool?
+    @[JSON::Field(emit_null: false)]
+    property is_user_verified : Bool?
+    @[JSON::Field(emit_null: false)]
+    property default_backup_eligibility : Bool?
+    @[JSON::Field(emit_null: false)]
+    property default_backup_state : Bool?
+  end
+
+  struct Credential
+    include JSON::Serializable
+
+    property credential_id : String
+    property is_resident_credential : Bool
+    @[JSON::Field(emit_null: false)]
+    property rp_id : String?
+    property private_key : String
+    @[JSON::Field(emit_null: false)]
+    property user_handle : String?
+    property sign_count : Int64
+    @[JSON::Field(emit_null: false)]
+    property large_blob : String?
+    @[JSON::Field(emit_null: false)]
+    property backup_eligibility : Bool?
+    @[JSON::Field(emit_null: false)]
+    property backup_state : Bool?
+    @[JSON::Field(emit_null: false)]
+    property user_name : String?
+    @[JSON::Field(emit_null: false)]
+    property user_display_name : String?
+  end
+end
