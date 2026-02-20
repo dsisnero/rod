@@ -1,0 +1,30 @@
+name: rod
+version: 0.1.0
+
+authors:
+  - Dominic Sisneros <dsisnero@gmail.com>
+
+crystal: '>= 1.19.1'
+
+license: MIT
+
+executables:
+  - pdlgen
+
+dependencies:
+  protobuf:
+    github: jeromegn/protobuf.cr
+  similar:
+    github: dsisnero/similar.cr
+  event_handler:
+    github: crystallabs/event_handler
+    version: ~> 1.0
+  goob:
+    path: lib/goob
+  gson:
+    path: lib/gson
+
+development_dependencies:
+  ameba:
+    github: crystal-ameba/ameba
+    version: ~> 1.0
