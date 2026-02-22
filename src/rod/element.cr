@@ -23,13 +23,13 @@ module Rod
     end
 
     # Get session ID from parent page
-    def session_id : SessionID?
+    def session_id : String?
       @page.session_id
     end
 
     # Context implementation
     def context : Nil
-      @ctx
+      @ctx # ameba:disable Lint/UnusedExpression
     end
 
     # String representation
@@ -119,7 +119,7 @@ module Rod
                  style.visibility !== 'hidden' &&
                  style.opacity !== '0';
         }
-      JS
+        JS
       )
       result.value.as_bool? || false
     end
@@ -153,7 +153,7 @@ module Rod
 
     # Release the remote object
     def release : Nil
-      if object_id = @object.object_id
+      if @object.object_id
         # TODO: Call Runtime.releaseObject
       end
     end
@@ -170,8 +170,118 @@ module Rod
       @page.evaluate(js, params.to_a)
     end
 
+    # Find element using JavaScript function with this element as context.
+    def element_by_js(opts : EvalOptions) : Element
+      opts_with_this = opts.this(@object)
+      @page.element_by_js(opts_with_this)
+    end
+
+    # Check if child element exists matching the CSS selector.
+    # Returns tuple of {found, element} where element is nil if not found.
+    def has(selector : String) : Tuple(Bool, Element?)
+      el = element(selector)
+      {true, el}
+    rescue NotFoundError
+      {false, nil}
+    end
+
+    # Check if child element exists matching the XPath selector.
+    # Returns tuple of {found, element} where element is nil if not found.
+    def has_x(xpath : String) : Tuple(Bool, Element?)
+      el = element_x(xpath)
+      {true, el}
+    rescue NotFoundError
+      {false, nil}
+    end
+
+    # Check if child element exists matching the CSS selector and text regex.
+    # Returns tuple of {found, element} where element is nil if not found.
+    def has_r(selector : String, regex : String) : Tuple(Bool, Element?)
+      el = element_r(selector, regex)
+      {true, el}
+    rescue NotFoundError
+      {false, nil}
+    end
+
+    # Find single child element by CSS selector.
+    # Raises NotFoundError if element not found.
+    def element(selector : String) : Element
+      opts = EvalOptions.new(js: "function(selector) { return this.querySelector(selector) }", js_args: [selector])
+      element_by_js(opts)
+    end
+
+    # Find single child element by XPath selector.
+    # Raises NotFoundError if element not found.
+    def element_x(xpath : String) : Element
+      opts = EvalOptions.new(js: "function(xpath) { return document.evaluate(xpath, this, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue }", js_args: [xpath])
+      element_by_js(opts)
+    end
+
+    # Find single child element by CSS selector with text matching regex.
+    # Raises NotFoundError if element not found.
+    def element_r(selector : String, regex : String) : Element
+      opts = EvalOptions.new(js: "function(selector, regex) { const els = this.querySelectorAll(selector); const re = new RegExp(regex); for (const el of els) { if (re.test(el.textContent || el.innerText || '')) return el; } return null; }", js_args: [selector, regex])
+      element_by_js(opts)
+    end
+
+    # Find all child elements matching CSS selector.
+    # Returns empty Elements if none found.
+    def elements(selector : String) : Elements
+      opts = EvalOptions.new(js: "function(selector) { return Array.from(this.querySelectorAll(selector)) }", js_args: [selector])
+      @page.elements_by_js(opts)
+    end
+
+    # Get parent element, or nil if no parent.
+    def parent : Element?
+      opts = EvalOptions.new(js: "function() { return this.parentElement }")
+      begin
+        element_by_js(opts)
+      rescue NotFoundError
+        nil
+      end
+    end
+
+    # Get ancestor elements, optionally filtered by selector.
+    def parents(selector : String? = nil) : Elements
+      js = <<-JS
+        function(selector) {
+          let parents = [];
+          let elem = this;
+          while (elem = elem.parentElement) {
+            parents.push(elem);
+          }
+          if (selector) {
+            return parents.filter(el => el.matches(selector));
+          }
+          return parents;
+        }
+        JS
+      opts = EvalOptions.new(js: js, js_args: selector ? [selector] : [] of String)
+      @page.elements_by_js(opts)
+    end
+
+    # Get next sibling element, or nil if none.
+    def next : Element?
+      opts = EvalOptions.new(js: "function() { return this.nextElementSibling }")
+      begin
+        element_by_js(opts)
+      rescue NotFoundError
+        nil
+      end
+    end
+
+    # Get previous sibling element, or nil if none.
+    def previous : Element?
+      opts = EvalOptions.new(js: "function() { return this.previousElementSibling }")
+      begin
+        element_by_js(opts)
+      rescue NotFoundError
+        nil
+      end
+    end
+
     # Call CDP method
-    def call(context : Nil, session_id : SessionID?, method : String, params : JSON::Any) : Bytes
+    def call(context : Nil, session_id : String?, method : String, params : JSON::Any) : Bytes
       @page.call(context, session_id, method, params)
     end
 

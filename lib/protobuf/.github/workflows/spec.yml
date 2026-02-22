@@ -1,0 +1,33 @@
+name: Spec
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        crystal:
+          - 1.14.0
+          - 1.13.3
+          - 1.13.2
+          - 1.13.1
+          - 1.13.0
+          - 1.12.2
+          - 1.12.1
+          - 1.12.0
+
+    container:
+      image: crystallang/crystal:${{ matrix.crystal }}
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install unzip
+      run: apt-get update && apt-get install -y unzip
+    - name: Install Protoc
+      uses: arduino/setup-protoc@v3
+    - name: Install dependencies and build codegen
+      run: shards build
+    - name: Run crystal spec
+      run: make spec

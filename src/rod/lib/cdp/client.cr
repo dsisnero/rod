@@ -1,5 +1,6 @@
 require "json"
 require "channel"
+require "../../../cdp/cdp"
 
 module Rod::Lib::Cdp
   # Request to send to browser.
@@ -57,10 +58,10 @@ module Rod::Lib::Cdp
     @pending_lock = Mutex.new
     @event_channel = Channel(Event).new
     @ws : WebSocket?
-    @logger : ::Logger?
+    @logger : ::Log?
 
     # New creates a cdp connection, all messages from Client.event must be received or they will block the client.
-    def initialize(@logger : ::Logger? = nil)
+    def initialize(@logger : ::Log? = nil)
     end
 
     # Start to browser.

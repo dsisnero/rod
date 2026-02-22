@@ -9,9 +9,6 @@ module Rod::Lib::Utils
     end
   end
 
-  # Logger type alias
-  alias Logger = ::Logger
-
   # Random string generator.
   def self.rand_string(length : Int32 = 8) : String
     chars = ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a

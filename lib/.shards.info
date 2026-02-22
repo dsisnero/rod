@@ -1,0 +1,9 @@
+---
+version: 1.0
+shards:
+  protobuf:
+    git: https://github.com/jeromegn/protobuf.cr.git
+    version: 2.3.1
+  ameba:
+    git: https://github.com/crystal-ameba/ameba.git
+    version: 1.6.4

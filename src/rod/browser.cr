@@ -1,5 +1,6 @@
 require "goob"
 require "gson"
+require "http"
 require "./lib/cdp"
 require "./lib/proto"
 require "./lib/defaults"
@@ -9,17 +10,16 @@ require "./lib/utils"
 
 module Rod
   # Browser implements these interfaces.
-  class Browser
-    include Cdp::Client
+  class Browser < ::Cdp::Client
     include Cdp::Contextable
 
     # BrowserContextID is the id for incognito window
-    property browser_context_id : Proto::Browser::BrowserContextID?
+    property browser_context_id : BrowserContextID?
 
-    @e : EFunc
-    @ctx : ::HTTP::Client::Context?
+    @e : EFunc?
+    @ctx : Nil
     @sleeper : Proc(::Utils::Sleeper)
-    @logger : ::Utils::Logger
+    @logger : ::Log
     @slow_motion : Time::Span
     @trace : Bool
     @monitor : String?
@@ -29,10 +29,23 @@ module Rod
     @event : Goob::Observable(Message)
 
     # New creates a browser instance.
-    def initialize(@ctx : ::HTTP::Client::Context? = nil, @sleeper = ->{ ::Utils::Sleeper.new }, @logger = ::Defaults.logger, @slow_motion = ::Defaults.slow, @trace = ::Defaults.trace, @monitor = nil)
+    def initialize(@ctx : Nil = nil, @sleeper = -> { ::Utils::Sleeper.new }, @logger = ::Defaults.logger, @slow_motion = ::Defaults.slow, @trace = ::Defaults.trace, @monitor = nil)
+      @e = nil
       @targets = {} of String => TargetInfo
       @targets_lock = Mutex.new
       @event = Goob::Observable(Message).new(ctx)
+    end
+
+    # Context implements Cdp::Contextable.
+    def context : Nil
+      @ctx # ameba:disable Lint/UnusedExpression
+    end
+
+    # Call implements Cdp::Client.
+    def call(context : HTTP::Client::Context?, session_id : String?, method : String, params : JSON::Any) : Bytes
+      client = @client
+      raise "Browser not connected" unless client
+      client.call(context, session_id, method, params)
     end
 
     # Connect to browser via websocket URL.
@@ -57,8 +70,8 @@ module Rod
 
   # TargetInfo represents a browser target.
   struct TargetInfo
-    property target_id : Proto::Target::TargetID
-    property session_id : Proto::Target::SessionID?
+    property target_id : TargetID
+    property session_id : SessionID?
     property page : Page?
 
     def initialize(@target_id, @session_id = nil, @page = nil)
@@ -67,7 +80,7 @@ module Rod
 
   # Message represents a CDP event message.
   class Message
-    property session_id : Proto::Target::SessionID?
+    property session_id : SessionID?
     property method : String
     property lock : Mutex
     property data : JSON::Any?
@@ -78,5 +91,5 @@ module Rod
   end
 
   # EFunc is an internal function type.
-  alias EFunc = Proc(Proto::Target::TargetID, Page)
+  alias EFunc = Proc(TargetID, Page)
 end

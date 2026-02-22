@@ -30,11 +30,11 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
     @[JSON::Field(emit_null: false)]<%= "?" if r.optional %>
     property <%= r.name.underscore %> : <%= type_str %><%= "?" if r.optional %>
     <%- end -%>
-    
+
     def initialize(<%= c.returns.map { |r| next if r.deprecated && !r.always_emit; "@#{r.name.underscore} : #{crystal_type(r, d, domains)}#{'?' if r.optional}" }.compact.join(", ") %>)
     end
   end
-  
+
     <%- end -%>
   <%- end -%>
 
@@ -58,15 +58,15 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
     @[JSON::Field(emit_null: false)]<%= "?" if p.optional %>
     property <%= p.name.underscore %> : <%= type_str %><%= "?" if p.optional %>
     <%- end -%>
-    
+
     def initialize(<%= c.parameters.map { |p| next if p.deprecated && !p.always_emit; next if p.name.empty?; "@#{p.name.underscore} : #{crystal_type(p, d, domains)}#{'?' if p.optional}" }.compact.join(", ") %>)
     end
-    
+
     # ProtoReq returns the protocol method name.
     def proto_req : String
       "<%= d.domain %>.<%= c.name %>"
     end
-    
+
     <%- if !c.returns.empty? -%>
     # Call sends the request and returns the result.
     def call(c : <%= base_pkg %>::Client) : <%= command_returns_type(c) %>
@@ -81,7 +81,7 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
     end
     <%- end -%>
   end
-  
+
     <%- end -%>
   <%- end -%>
 end

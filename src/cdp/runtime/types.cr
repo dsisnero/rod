@@ -204,7 +204,7 @@ module Cdp::Runtime
     property column_number : Int64
   end
 
-  struct StackTrace
+  class StackTrace
     include JSON::Serializable
 
     @[JSON::Field(emit_null: false)]
@@ -214,6 +214,9 @@ module Cdp::Runtime
     property parent : StackTrace?
     @[JSON::Field(emit_null: false)]
     property parent_id : StackTraceId?
+
+    def initialize(@description : String? = nil, @call_frames : Array(CallFrame) = [] of CallFrame, @parent : StackTrace? = nil, @parent_id : StackTraceId? = nil)
+    end
   end
 
   @[Experimental]

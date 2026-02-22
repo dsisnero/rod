@@ -28,15 +28,15 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
     @[JSON::Field(emit_null: false)]<%= "?" if p.optional %>
     property <%= p.name.underscore %> : <%= type_str %><%= "?" if p.optional %>
     <%- end -%>
-    
+
     def initialize(<%= e.parameters.map { |p| next if p.deprecated && !p.always_emit; next if p.name.empty?; "@#{p.name.underscore} : #{crystal_type(p, d, domains)}#{'?' if p.optional}" }.compact.join(", ") %>)
     end
-    
+
     # ProtoEvent returns the protocol event name.
     def proto_event : String
       "<%= d.domain %>.<%= e.name %>"
     end
   end
-  
+
   <%- end -%>
 end

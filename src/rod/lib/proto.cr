@@ -1,1 +1,1 @@
-module Proto = Cdp
+alias Proto = Cdp
