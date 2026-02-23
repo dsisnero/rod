@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -11,6 +10,8 @@ module Cdp::Fetch
   alias RequestId = String
 
   alias RequestStage = String
+  RequestStageRequest  = "Request"
+  RequestStageResponse = "Response"
 
   struct RequestPattern
     include JSON::Serializable
@@ -53,7 +54,11 @@ module Cdp::Fetch
   end
 
   alias AuthChallengeSource = String
+  AuthChallengeSourceServer = "Server"
+  AuthChallengeSourceProxy  = "Proxy"
 
   alias AuthChallengeResponseResponse = String
-
-   end
+  AuthChallengeResponseResponseDefault            = "Default"
+  AuthChallengeResponseResponseCancelAuth         = "CancelAuth"
+  AuthChallengeResponseResponseProvideCredentials = "ProvideCredentials"
+end

@@ -45,7 +45,7 @@ module Cdp::Tracing
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property data_loss_occurred : Bool
+    property? data_loss_occurred : Bool
     @[JSON::Field(emit_null: false)]
     property stream : Cdp::IO::StreamHandle?
     @[JSON::Field(emit_null: false)]

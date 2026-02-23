@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -11,13 +10,12 @@ require "./events"
 # This domain allows detailed inspection of media elements.
 @[Experimental]
 module Cdp::Media
-
   # Commands
   struct Enable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -35,7 +33,7 @@ module Cdp::Media
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -48,5 +46,4 @@ module Cdp::Media
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -21,5 +20,4 @@ module Cdp::Security
       "Security.visibleSecurityStateChanged"
     end
   end
-
 end

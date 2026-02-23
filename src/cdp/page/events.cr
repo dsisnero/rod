@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -134,7 +133,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize()
+    def initialize
     end
 
     # ProtoEvent returns the protocol event name.
@@ -223,7 +222,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize()
+    def initialize
     end
 
     # ProtoEvent returns the protocol event name.
@@ -236,7 +235,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize()
+    def initialize
     end
 
     # ProtoEvent returns the protocol event name.
@@ -251,7 +250,7 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property frame_id : FrameId
     @[JSON::Field(emit_null: false)]
-    property result : Bool
+    property? result : Bool
     @[JSON::Field(emit_null: false)]
     property user_input : String
 
@@ -276,7 +275,7 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property type : DialogType
     @[JSON::Field(emit_null: false)]
-    property has_browser_handler : Bool
+    property? has_browser_handler : Bool
     @[JSON::Field(emit_null: false)]
     property default_prompt : String?
 
@@ -392,7 +391,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property visible : Bool
+    property? visible : Bool
 
     def initialize(@visible : Bool)
     end
@@ -413,7 +412,7 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property window_features : Array(String)
     @[JSON::Field(emit_null: false)]
-    property user_gesture : Bool
+    property? user_gesture : Bool
 
     def initialize(@url : String, @window_name : String, @window_features : Array(String), @user_gesture : Bool)
     end
@@ -441,5 +440,4 @@ module Cdp::Page
       "Page.compilationCacheProduced"
     end
   end
-
 end

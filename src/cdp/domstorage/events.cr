@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::DOMStorage
   struct DomStorageItemAddedEvent
@@ -76,5 +74,4 @@ module Cdp::DOMStorage
       "DOMStorage.domStorageItemsCleared"
     end
   end
-
 end

@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -15,12 +14,22 @@ module Cdp::ServiceWorker
     @[JSON::Field(emit_null: false)]
     property scope_url : String
     @[JSON::Field(emit_null: false)]
-    property is_deleted : Bool
+    property? is_deleted : Bool
   end
 
   alias ServiceWorkerVersionRunningStatus = String
+  ServiceWorkerVersionRunningStatusStopped  = "stopped"
+  ServiceWorkerVersionRunningStatusStarting = "starting"
+  ServiceWorkerVersionRunningStatusRunning  = "running"
+  ServiceWorkerVersionRunningStatusStopping = "stopping"
 
   alias ServiceWorkerVersionStatus = String
+  ServiceWorkerVersionStatusNew        = "new"
+  ServiceWorkerVersionStatusInstalling = "installing"
+  ServiceWorkerVersionStatusInstalled  = "installed"
+  ServiceWorkerVersionStatusActivating = "activating"
+  ServiceWorkerVersionStatusActivated  = "activated"
+  ServiceWorkerVersionStatusRedundant  = "redundant"
 
   struct ServiceWorkerVersion
     include JSON::Serializable
@@ -61,5 +70,4 @@ module Cdp::ServiceWorker
     @[JSON::Field(emit_null: false)]
     property column_number : Int64
   end
-
-   end
+end

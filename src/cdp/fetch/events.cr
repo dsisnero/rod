@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -63,5 +62,4 @@ module Cdp::Fetch
       "Fetch.authRequired"
     end
   end
-
 end

@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -47,7 +46,6 @@ module Cdp::HeapProfiler
     end
   end
 
-
   # Commands
   struct AddInspectedHeapObject
     include JSON::Serializable
@@ -73,7 +71,7 @@ module Cdp::HeapProfiler
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -91,7 +89,7 @@ module Cdp::HeapProfiler
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -109,7 +107,7 @@ module Cdp::HeapProfiler
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -173,7 +171,7 @@ module Cdp::HeapProfiler
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -197,9 +195,9 @@ module Cdp::HeapProfiler
     @[JSON::Field(emit_null: false)]
     property stack_depth : Float64?
     @[JSON::Field(emit_null: false)]
-    property include_objects_collected_by_major_gc : Bool?
+    property? include_objects_collected_by_major_gc : Bool?
     @[JSON::Field(emit_null: false)]
-    property include_objects_collected_by_minor_gc : Bool?
+    property? include_objects_collected_by_minor_gc : Bool?
 
     def initialize(@sampling_interval : Float64?, @stack_depth : Float64?, @include_objects_collected_by_major_gc : Bool?, @include_objects_collected_by_minor_gc : Bool?)
     end
@@ -219,7 +217,7 @@ module Cdp::HeapProfiler
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property track_allocations : Bool?
+    property? track_allocations : Bool?
 
     def initialize(@track_allocations : Bool?)
     end
@@ -239,7 +237,7 @@ module Cdp::HeapProfiler
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -259,11 +257,11 @@ module Cdp::HeapProfiler
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property report_progress : Bool?
+    property? report_progress : Bool?
     @[JSON::Field(emit_null: false)]
-    property capture_numeric_value : Bool?
+    property? capture_numeric_value : Bool?
     @[JSON::Field(emit_null: false)]
-    property expose_internals : Bool?
+    property? expose_internals : Bool?
 
     def initialize(@report_progress : Bool?, @capture_numeric_value : Bool?, @expose_internals : Bool?)
     end
@@ -283,11 +281,11 @@ module Cdp::HeapProfiler
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property report_progress : Bool?
+    property? report_progress : Bool?
     @[JSON::Field(emit_null: false)]
-    property capture_numeric_value : Bool?
+    property? capture_numeric_value : Bool?
     @[JSON::Field(emit_null: false)]
-    property expose_internals : Bool?
+    property? expose_internals : Bool?
 
     def initialize(@report_progress : Bool?, @capture_numeric_value : Bool?, @expose_internals : Bool?)
     end
@@ -302,5 +300,4 @@ module Cdp::HeapProfiler
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

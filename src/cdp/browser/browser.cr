@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -80,7 +79,6 @@ module Cdp::Browser
     end
   end
 
-
   # Commands
   @[Experimental]
   struct SetPermission
@@ -142,7 +140,7 @@ module Cdp::Browser
     @[JSON::Field(emit_null: false)]
     property download_path : String?
     @[JSON::Field(emit_null: false)]
-    property events_enabled : Bool?
+    property? events_enabled : Bool?
 
     def initialize(@behavior : SetDownloadBehaviorBehavior, @browser_context_id : BrowserContextID?, @download_path : String?, @events_enabled : Bool?)
     end
@@ -185,7 +183,7 @@ module Cdp::Browser
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -204,7 +202,7 @@ module Cdp::Browser
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -223,7 +221,7 @@ module Cdp::Browser
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -241,7 +239,7 @@ module Cdp::Browser
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -262,7 +260,7 @@ module Cdp::Browser
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -285,7 +283,7 @@ module Cdp::Browser
     @[JSON::Field(emit_null: false)]
     property query : String?
     @[JSON::Field(emit_null: false)]
-    property delta : Bool?
+    property? delta : Bool?
 
     def initialize(@query : String?, @delta : Bool?)
     end
@@ -310,7 +308,7 @@ module Cdp::Browser
     @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
-    property delta : Bool?
+    property? delta : Bool?
 
     def initialize(@name : String, @delta : Bool?)
     end
@@ -511,5 +509,4 @@ module Cdp::Browser
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

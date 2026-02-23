@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -12,11 +11,11 @@ module Cdp::IO
   struct ReadResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property base64_encoded : Bool?
+    property? base64_encoded : Bool?
     @[JSON::Field(emit_null: false)]
     property data : String
     @[JSON::Field(emit_null: false)]
-    property eof : Bool
+    property? eof : Bool
 
     def initialize(@base64_encoded : Bool?, @data : String, @eof : Bool)
     end
@@ -30,7 +29,6 @@ module Cdp::IO
     def initialize(@uuid : String)
     end
   end
-
 
   # Commands
   struct Close
@@ -100,5 +98,4 @@ module Cdp::IO
       res
     end
   end
-
 end

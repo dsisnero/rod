@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -12,7 +11,6 @@ require "./events"
 # Defines events for background web platform features.
 @[Experimental]
 module Cdp::BackgroundService
-
   # Commands
   struct StartObserving
     include JSON::Serializable
@@ -58,7 +56,7 @@ module Cdp::BackgroundService
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property should_record : Bool
+    property? should_record : Bool
     @[JSON::Field(emit_null: false)]
     property service : ServiceName
 
@@ -95,5 +93,4 @@ module Cdp::BackgroundService
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -9,18 +8,31 @@ module Cdp::WebAudio
   alias GraphObjectId = String
 
   alias ContextType = String
+  ContextTypeRealtime = "realtime"
+  ContextTypeOffline  = "offline"
 
   alias ContextState = String
+  ContextStateSuspended   = "suspended"
+  ContextStateRunning     = "running"
+  ContextStateClosed      = "closed"
+  ContextStateInterrupted = "interrupted"
 
   alias NodeType = String
 
   alias ChannelCountMode = String
+  ChannelCountModeClampedMax = "clamped-max"
+  ChannelCountModeExplicit   = "explicit"
+  ChannelCountModeMax        = "max"
 
   alias ChannelInterpretation = String
+  ChannelInterpretationDiscrete = "discrete"
+  ChannelInterpretationSpeakers = "speakers"
 
   alias ParamType = String
 
   alias AutomationRate = String
+  AutomationRateARate = "a-rate"
+  AutomationRateKRate = "k-rate"
 
   struct ContextRealtimeData
     include JSON::Serializable
@@ -99,5 +111,4 @@ module Cdp::WebAudio
     @[JSON::Field(emit_null: false)]
     property max_value : Float64
   end
-
-   end
+end

@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -14,9 +13,15 @@ module Cdp::Page
 
   @[Experimental]
   alias AdFrameType = String
+  AdFrameTypeNone  = "none"
+  AdFrameTypeChild = "child"
+  AdFrameTypeRoot  = "root"
 
   @[Experimental]
   alias AdFrameExplanation = String
+  AdFrameExplanationParentIsAd          = "ParentIsAd"
+  AdFrameExplanationCreatedByAdScript   = "CreatedByAdScript"
+  AdFrameExplanationMatchedBlockingRule = "MatchedBlockingRule"
 
   @[Experimental]
   struct AdFrameStatus
@@ -47,18 +52,143 @@ module Cdp::Page
 
   @[Experimental]
   alias SecureContextType = String
+  SecureContextTypeSecure           = "Secure"
+  SecureContextTypeSecureLocalhost  = "SecureLocalhost"
+  SecureContextTypeInsecureScheme   = "InsecureScheme"
+  SecureContextTypeInsecureAncestor = "InsecureAncestor"
 
   @[Experimental]
   alias CrossOriginIsolatedContextType = String
+  CrossOriginIsolatedContextTypeIsolated                   = "Isolated"
+  CrossOriginIsolatedContextTypeNotIsolated                = "NotIsolated"
+  CrossOriginIsolatedContextTypeNotIsolatedFeatureDisabled = "NotIsolatedFeatureDisabled"
 
   @[Experimental]
   alias GatedAPIFeatures = String
+  GatedAPIFeaturesSharedArrayBuffers                = "SharedArrayBuffers"
+  GatedAPIFeaturesSharedArrayBuffersTransferAllowed = "SharedArrayBuffersTransferAllowed"
+  GatedAPIFeaturesPerformanceMeasureMemory          = "PerformanceMeasureMemory"
+  GatedAPIFeaturesPerformanceProfile                = "PerformanceProfile"
 
   @[Experimental]
   alias PermissionsPolicyFeature = String
+  PermissionsPolicyFeatureAccelerometer                  = "accelerometer"
+  PermissionsPolicyFeatureAllScreensCapture              = "all-screens-capture"
+  PermissionsPolicyFeatureAmbientLightSensor             = "ambient-light-sensor"
+  PermissionsPolicyFeatureAriaNotify                     = "aria-notify"
+  PermissionsPolicyFeatureAttributionReporting           = "attribution-reporting"
+  PermissionsPolicyFeatureAutofill                       = "autofill"
+  PermissionsPolicyFeatureAutoplay                       = "autoplay"
+  PermissionsPolicyFeatureBluetooth                      = "bluetooth"
+  PermissionsPolicyFeatureBrowsingTopics                 = "browsing-topics"
+  PermissionsPolicyFeatureCamera                         = "camera"
+  PermissionsPolicyFeatureCapturedSurfaceControl         = "captured-surface-control"
+  PermissionsPolicyFeatureChDpr                          = "ch-dpr"
+  PermissionsPolicyFeatureChDeviceMemory                 = "ch-device-memory"
+  PermissionsPolicyFeatureChDownlink                     = "ch-downlink"
+  PermissionsPolicyFeatureChEct                          = "ch-ect"
+  PermissionsPolicyFeatureChPrefersColorScheme           = "ch-prefers-color-scheme"
+  PermissionsPolicyFeatureChPrefersReducedMotion         = "ch-prefers-reduced-motion"
+  PermissionsPolicyFeatureChPrefersReducedTransparency   = "ch-prefers-reduced-transparency"
+  PermissionsPolicyFeatureChRtt                          = "ch-rtt"
+  PermissionsPolicyFeatureChSaveData                     = "ch-save-data"
+  PermissionsPolicyFeatureChUa                           = "ch-ua"
+  PermissionsPolicyFeatureChUaArch                       = "ch-ua-arch"
+  PermissionsPolicyFeatureChUaBitness                    = "ch-ua-bitness"
+  PermissionsPolicyFeatureChUaHighEntropyValues          = "ch-ua-high-entropy-values"
+  PermissionsPolicyFeatureChUaPlatform                   = "ch-ua-platform"
+  PermissionsPolicyFeatureChUaModel                      = "ch-ua-model"
+  PermissionsPolicyFeatureChUaMobile                     = "ch-ua-mobile"
+  PermissionsPolicyFeatureChUaFormFactors                = "ch-ua-form-factors"
+  PermissionsPolicyFeatureChUaFullVersion                = "ch-ua-full-version"
+  PermissionsPolicyFeatureChUaFullVersionList            = "ch-ua-full-version-list"
+  PermissionsPolicyFeatureChUaPlatformVersion            = "ch-ua-platform-version"
+  PermissionsPolicyFeatureChUaWow64                      = "ch-ua-wow64"
+  PermissionsPolicyFeatureChViewportHeight               = "ch-viewport-height"
+  PermissionsPolicyFeatureChViewportWidth                = "ch-viewport-width"
+  PermissionsPolicyFeatureChWidth                        = "ch-width"
+  PermissionsPolicyFeatureClipboardRead                  = "clipboard-read"
+  PermissionsPolicyFeatureClipboardWrite                 = "clipboard-write"
+  PermissionsPolicyFeatureComputePressure                = "compute-pressure"
+  PermissionsPolicyFeatureControlledFrame                = "controlled-frame"
+  PermissionsPolicyFeatureCrossOriginIsolated            = "cross-origin-isolated"
+  PermissionsPolicyFeatureDeferredFetch                  = "deferred-fetch"
+  PermissionsPolicyFeatureDeferredFetchMinimal           = "deferred-fetch-minimal"
+  PermissionsPolicyFeatureDeviceAttributes               = "device-attributes"
+  PermissionsPolicyFeatureDigitalCredentialsCreate       = "digital-credentials-create"
+  PermissionsPolicyFeatureDigitalCredentialsGet          = "digital-credentials-get"
+  PermissionsPolicyFeatureDirectSockets                  = "direct-sockets"
+  PermissionsPolicyFeatureDirectSocketsMulticast         = "direct-sockets-multicast"
+  PermissionsPolicyFeatureDirectSocketsPrivate           = "direct-sockets-private"
+  PermissionsPolicyFeatureDisplayCapture                 = "display-capture"
+  PermissionsPolicyFeatureDocumentDomain                 = "document-domain"
+  PermissionsPolicyFeatureEncryptedMedia                 = "encrypted-media"
+  PermissionsPolicyFeatureExecutionWhileOutOfViewport    = "execution-while-out-of-viewport"
+  PermissionsPolicyFeatureExecutionWhileNotRendered      = "execution-while-not-rendered"
+  PermissionsPolicyFeatureFencedUnpartitionedStorageRead = "fenced-unpartitioned-storage-read"
+  PermissionsPolicyFeatureFocusWithoutUserActivation     = "focus-without-user-activation"
+  PermissionsPolicyFeatureFullscreen                     = "fullscreen"
+  PermissionsPolicyFeatureFrobulate                      = "frobulate"
+  PermissionsPolicyFeatureGamepad                        = "gamepad"
+  PermissionsPolicyFeatureGeolocation                    = "geolocation"
+  PermissionsPolicyFeatureGyroscope                      = "gyroscope"
+  PermissionsPolicyFeatureHid                            = "hid"
+  PermissionsPolicyFeatureIdentityCredentialsGet         = "identity-credentials-get"
+  PermissionsPolicyFeatureIdleDetection                  = "idle-detection"
+  PermissionsPolicyFeatureInterestCohort                 = "interest-cohort"
+  PermissionsPolicyFeatureJoinAdInterestGroup            = "join-ad-interest-group"
+  PermissionsPolicyFeatureKeyboardMap                    = "keyboard-map"
+  PermissionsPolicyFeatureLanguageDetector               = "language-detector"
+  PermissionsPolicyFeatureLanguageModel                  = "language-model"
+  PermissionsPolicyFeatureLocalFonts                     = "local-fonts"
+  PermissionsPolicyFeatureLocalNetwork                   = "local-network"
+  PermissionsPolicyFeatureLocalNetworkAccess             = "local-network-access"
+  PermissionsPolicyFeatureLoopbackNetwork                = "loopback-network"
+  PermissionsPolicyFeatureMagnetometer                   = "magnetometer"
+  PermissionsPolicyFeatureManualText                     = "manual-text"
+  PermissionsPolicyFeatureMediaPlaybackWhileNotVisible   = "media-playback-while-not-visible"
+  PermissionsPolicyFeatureMicrophone                     = "microphone"
+  PermissionsPolicyFeatureMidi                           = "midi"
+  PermissionsPolicyFeatureOnDeviceSpeechRecognition      = "on-device-speech-recognition"
+  PermissionsPolicyFeatureOtpCredentials                 = "otp-credentials"
+  PermissionsPolicyFeaturePayment                        = "payment"
+  PermissionsPolicyFeaturePictureInPicture               = "picture-in-picture"
+  PermissionsPolicyFeaturePrivateAggregation             = "private-aggregation"
+  PermissionsPolicyFeaturePrivateStateTokenIssuance      = "private-state-token-issuance"
+  PermissionsPolicyFeaturePrivateStateTokenRedemption    = "private-state-token-redemption"
+  PermissionsPolicyFeaturePublickeyCredentialsCreate     = "publickey-credentials-create"
+  PermissionsPolicyFeaturePublickeyCredentialsGet        = "publickey-credentials-get"
+  PermissionsPolicyFeatureRecordAdAuctionEvents          = "record-ad-auction-events"
+  PermissionsPolicyFeatureRewriter                       = "rewriter"
+  PermissionsPolicyFeatureRunAdAuction                   = "run-ad-auction"
+  PermissionsPolicyFeatureScreenWakeLock                 = "screen-wake-lock"
+  PermissionsPolicyFeatureSerial                         = "serial"
+  PermissionsPolicyFeatureSharedStorage                  = "shared-storage"
+  PermissionsPolicyFeatureSharedStorageSelectUrl         = "shared-storage-select-url"
+  PermissionsPolicyFeatureSmartCard                      = "smart-card"
+  PermissionsPolicyFeatureSpeakerSelection               = "speaker-selection"
+  PermissionsPolicyFeatureStorageAccess                  = "storage-access"
+  PermissionsPolicyFeatureSubApps                        = "sub-apps"
+  PermissionsPolicyFeatureSummarizer                     = "summarizer"
+  PermissionsPolicyFeatureSyncXhr                        = "sync-xhr"
+  PermissionsPolicyFeatureTranslator                     = "translator"
+  PermissionsPolicyFeatureUnload                         = "unload"
+  PermissionsPolicyFeatureUsb                            = "usb"
+  PermissionsPolicyFeatureUsbUnrestricted                = "usb-unrestricted"
+  PermissionsPolicyFeatureVerticalScroll                 = "vertical-scroll"
+  PermissionsPolicyFeatureWebAppInstallation             = "web-app-installation"
+  PermissionsPolicyFeatureWebPrinting                    = "web-printing"
+  PermissionsPolicyFeatureWebShare                       = "web-share"
+  PermissionsPolicyFeatureWindowManagement               = "window-management"
+  PermissionsPolicyFeatureWriter                         = "writer"
+  PermissionsPolicyFeatureXrSpatialTracking              = "xr-spatial-tracking"
 
   @[Experimental]
   alias PermissionsPolicyBlockReason = String
+  PermissionsPolicyBlockReasonHeader            = "Header"
+  PermissionsPolicyBlockReasonIframeAttribute   = "IframeAttribute"
+  PermissionsPolicyBlockReasonInFencedFrameTree = "InFencedFrameTree"
+  PermissionsPolicyBlockReasonInIsolatedApp     = "InIsolatedApp"
 
   @[Experimental]
   struct PermissionsPolicyBlockLocator
@@ -75,19 +205,37 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property feature : PermissionsPolicyFeature
     @[JSON::Field(emit_null: false)]
-    property allowed : Bool
+    property? allowed : Bool
     @[JSON::Field(emit_null: false)]
     property locator : PermissionsPolicyBlockLocator?
   end
 
   @[Experimental]
   alias OriginTrialTokenStatus = String
+  OriginTrialTokenStatusSuccess                = "Success"
+  OriginTrialTokenStatusNotSupported           = "NotSupported"
+  OriginTrialTokenStatusInsecure               = "Insecure"
+  OriginTrialTokenStatusExpired                = "Expired"
+  OriginTrialTokenStatusWrongOrigin            = "WrongOrigin"
+  OriginTrialTokenStatusInvalidSignature       = "InvalidSignature"
+  OriginTrialTokenStatusMalformed              = "Malformed"
+  OriginTrialTokenStatusWrongVersion           = "WrongVersion"
+  OriginTrialTokenStatusFeatureDisabled        = "FeatureDisabled"
+  OriginTrialTokenStatusTokenDisabled          = "TokenDisabled"
+  OriginTrialTokenStatusFeatureDisabledForUser = "FeatureDisabledForUser"
+  OriginTrialTokenStatusUnknownTrial           = "UnknownTrial"
 
   @[Experimental]
   alias OriginTrialStatus = String
+  OriginTrialStatusEnabled               = "Enabled"
+  OriginTrialStatusValidTokenNotProvided = "ValidTokenNotProvided"
+  OriginTrialStatusOSNotSupported        = "OSNotSupported"
+  OriginTrialStatusTrialNotAllowed       = "TrialNotAllowed"
 
   @[Experimental]
   alias OriginTrialUsageRestriction = String
+  OriginTrialUsageRestrictionNone   = "None"
+  OriginTrialUsageRestrictionSubset = "Subset"
 
   @[Experimental]
   struct OriginTrialToken
@@ -95,13 +243,13 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property origin : String
     @[JSON::Field(emit_null: false)]
-    property match_sub_domains : Bool
+    property? match_sub_domains : Bool
     @[JSON::Field(emit_null: false)]
     property trial_name : String
     @[JSON::Field(emit_null: false)]
     property expiry_time : Cdp::Network::TimeSinceEpoch
     @[JSON::Field(emit_null: false)]
-    property is_third_party : Bool
+    property? is_third_party : Bool
     @[JSON::Field(emit_null: false)]
     property usage_restriction : OriginTrialUsageRestriction
   end
@@ -132,7 +280,7 @@ module Cdp::Page
   struct SecurityOriginDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property is_localhost : Bool
+    property? is_localhost : Bool
   end
 
   struct Frame
@@ -176,21 +324,21 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property mutex : Mutex
   end
+
   # FrameState is the state of a Frame.
-@[Flags]
-enum FrameState : UInt16
-  # Frame state flags
-  FrameDOMContentEventFired = 1 << 15
-  FrameLoadEventFired       = 1 << 14
-  FrameAttached             = 1 << 13
-  FrameNavigated            = 1 << 12
-  FrameLoading              = 1 << 11
-  FrameScheduledNavigation  = 1 << 10
-end
+  @[Flags]
+  enum FrameState : UInt16
+    # Frame state flags
+    FrameDOMContentEventFired = 1 << 15
+    FrameLoadEventFired       = 1 << 14
+    FrameAttached             = 1 << 13
+    FrameNavigated            = 1 << 12
+    FrameLoading              = 1 << 11
+    FrameScheduledNavigation  = 1 << 10
+  end
 
-# EmptyFrameID is the "non-existent" frame id.
-EMPTY_FRAME_ID = FrameId.new("")
-
+  # EmptyFrameID is the "non-existent" frame id.
+  EMPTY_FRAME_ID = FrameId.new("")
 
   @[Experimental]
   struct FrameResource
@@ -206,9 +354,9 @@ EMPTY_FRAME_ID = FrameId.new("")
     @[JSON::Field(emit_null: false)]
     property content_size : Float64?
     @[JSON::Field(emit_null: false)]
-    property failed : Bool?
+    property? failed : Bool?
     @[JSON::Field(emit_null: false)]
-    property canceled : Bool?
+    property? canceled : Bool?
   end
 
   @[Experimental]
@@ -233,6 +381,19 @@ EMPTY_FRAME_ID = FrameId.new("")
   alias ScriptIdentifier = String
 
   alias TransitionType = String
+  TransitionTypeLink             = "link"
+  TransitionTypeTyped            = "typed"
+  TransitionTypeAddressBar       = "address_bar"
+  TransitionTypeAutoBookmark     = "auto_bookmark"
+  TransitionTypeAutoSubframe     = "auto_subframe"
+  TransitionTypeManualSubframe   = "manual_subframe"
+  TransitionTypeGenerated        = "generated"
+  TransitionTypeAutoToplevel     = "auto_toplevel"
+  TransitionTypeFormSubmit       = "form_submit"
+  TransitionTypeReload           = "reload"
+  TransitionTypeKeyword          = "keyword"
+  TransitionTypeKeywordGenerated = "keyword_generated"
+  TransitionTypeOther            = "other"
 
   struct NavigationEntry
     include JSON::Serializable
@@ -268,6 +429,10 @@ EMPTY_FRAME_ID = FrameId.new("")
   end
 
   alias DialogType = String
+  DialogTypeAlert        = "alert"
+  DialogTypeConfirm      = "confirm"
+  DialogTypePrompt       = "prompt"
+  DialogTypeBeforeunload = "beforeunload"
 
   struct AppManifestError
     include JSON::Serializable
@@ -373,9 +538,23 @@ EMPTY_FRAME_ID = FrameId.new("")
 
   @[Experimental]
   alias ClientNavigationReason = String
+  ClientNavigationReasonAnchorClick            = "anchorClick"
+  ClientNavigationReasonFormSubmissionGet      = "formSubmissionGet"
+  ClientNavigationReasonFormSubmissionPost     = "formSubmissionPost"
+  ClientNavigationReasonHttpHeaderRefresh      = "httpHeaderRefresh"
+  ClientNavigationReasonInitialFrameNavigation = "initialFrameNavigation"
+  ClientNavigationReasonMetaTagRefresh         = "metaTagRefresh"
+  ClientNavigationReasonOther                  = "other"
+  ClientNavigationReasonPageBlockInterstitial  = "pageBlockInterstitial"
+  ClientNavigationReasonReload                 = "reload"
+  ClientNavigationReasonScriptInitiated        = "scriptInitiated"
 
   @[Experimental]
   alias ClientNavigationDisposition = String
+  ClientNavigationDispositionCurrentTab = "currentTab"
+  ClientNavigationDispositionNewTab     = "newTab"
+  ClientNavigationDispositionNewWindow  = "newWindow"
+  ClientNavigationDispositionDownload   = "download"
 
   @[Experimental]
   struct InstallabilityErrorArgument
@@ -397,6 +576,14 @@ EMPTY_FRAME_ID = FrameId.new("")
 
   @[Experimental]
   alias ReferrerPolicy = String
+  ReferrerPolicyNoReferrer                  = "noReferrer"
+  ReferrerPolicyNoReferrerWhenDowngrade     = "noReferrerWhenDowngrade"
+  ReferrerPolicyOrigin                      = "origin"
+  ReferrerPolicyOriginWhenCrossOrigin       = "originWhenCrossOrigin"
+  ReferrerPolicySameOrigin                  = "sameOrigin"
+  ReferrerPolicyStrictOrigin                = "strictOrigin"
+  ReferrerPolicyStrictOriginWhenCrossOrigin = "strictOriginWhenCrossOrigin"
+  ReferrerPolicyUnsafeUrl                   = "unsafeUrl"
 
   @[Experimental]
   struct CompilationCacheParams
@@ -404,7 +591,7 @@ EMPTY_FRAME_ID = FrameId.new("")
     @[JSON::Field(emit_null: false)]
     property url : String
     @[JSON::Field(emit_null: false)]
-    property eager : Bool?
+    property? eager : Bool?
   end
 
   @[Experimental]
@@ -473,7 +660,7 @@ EMPTY_FRAME_ID = FrameId.new("")
     @[JSON::Field(emit_null: false)]
     property origin : String
     @[JSON::Field(emit_null: false)]
-    property has_origin_wildcard : Bool
+    property? has_origin_wildcard : Bool
   end
 
   @[Experimental]
@@ -543,7 +730,7 @@ EMPTY_FRAME_ID = FrameId.new("")
     @[JSON::Field(emit_null: false)]
     property orientation : String?
     @[JSON::Field(emit_null: false)]
-    property prefer_related_applications : Bool?
+    property? prefer_related_applications : Bool?
     @[JSON::Field(emit_null: false)]
     property protocol_handlers : Array(ProtocolHandler)?
     @[JSON::Field(emit_null: false)]
@@ -568,12 +755,163 @@ EMPTY_FRAME_ID = FrameId.new("")
 
   @[Experimental]
   alias NavigationType = String
+  NavigationTypeNavigation              = "Navigation"
+  NavigationTypeBackForwardCacheRestore = "BackForwardCacheRestore"
 
   @[Experimental]
   alias BackForwardCacheNotRestoredReason = String
+  BackForwardCacheNotRestoredReasonNotPrimaryMainFrame                                      = "NotPrimaryMainFrame"
+  BackForwardCacheNotRestoredReasonBackForwardCacheDisabled                                 = "BackForwardCacheDisabled"
+  BackForwardCacheNotRestoredReasonRelatedActiveContentsExist                               = "RelatedActiveContentsExist"
+  BackForwardCacheNotRestoredReasonHTTPStatusNotOK                                          = "HTTPStatusNotOK"
+  BackForwardCacheNotRestoredReasonSchemeNotHTTPOrHTTPS                                     = "SchemeNotHTTPOrHTTPS"
+  BackForwardCacheNotRestoredReasonLoading                                                  = "Loading"
+  BackForwardCacheNotRestoredReasonWasGrantedMediaAccess                                    = "WasGrantedMediaAccess"
+  BackForwardCacheNotRestoredReasonDisableForRenderFrameHostCalled                          = "DisableForRenderFrameHostCalled"
+  BackForwardCacheNotRestoredReasonDomainNotAllowed                                         = "DomainNotAllowed"
+  BackForwardCacheNotRestoredReasonHTTPMethodNotGET                                         = "HTTPMethodNotGET"
+  BackForwardCacheNotRestoredReasonSubframeIsNavigating                                     = "SubframeIsNavigating"
+  BackForwardCacheNotRestoredReasonTimeout                                                  = "Timeout"
+  BackForwardCacheNotRestoredReasonCacheLimit                                               = "CacheLimit"
+  BackForwardCacheNotRestoredReasonJavaScriptExecution                                      = "JavaScriptExecution"
+  BackForwardCacheNotRestoredReasonRendererProcessKilled                                    = "RendererProcessKilled"
+  BackForwardCacheNotRestoredReasonRendererProcessCrashed                                   = "RendererProcessCrashed"
+  BackForwardCacheNotRestoredReasonSchedulerTrackedFeatureUsed                              = "SchedulerTrackedFeatureUsed"
+  BackForwardCacheNotRestoredReasonConflictingBrowsingInstance                              = "ConflictingBrowsingInstance"
+  BackForwardCacheNotRestoredReasonCacheFlushed                                             = "CacheFlushed"
+  BackForwardCacheNotRestoredReasonServiceWorkerVersionActivation                           = "ServiceWorkerVersionActivation"
+  BackForwardCacheNotRestoredReasonSessionRestored                                          = "SessionRestored"
+  BackForwardCacheNotRestoredReasonServiceWorkerPostMessage                                 = "ServiceWorkerPostMessage"
+  BackForwardCacheNotRestoredReasonEnteredBackForwardCacheBeforeServiceWorkerHostAdded      = "EnteredBackForwardCacheBeforeServiceWorkerHostAdded"
+  BackForwardCacheNotRestoredReasonRenderFrameHostReusedSameSite                            = "RenderFrameHostReused_SameSite"
+  BackForwardCacheNotRestoredReasonRenderFrameHostReusedCrossSite                           = "RenderFrameHostReused_CrossSite"
+  BackForwardCacheNotRestoredReasonServiceWorkerClaim                                       = "ServiceWorkerClaim"
+  BackForwardCacheNotRestoredReasonIgnoreEventAndEvict                                      = "IgnoreEventAndEvict"
+  BackForwardCacheNotRestoredReasonHaveInnerContents                                        = "HaveInnerContents"
+  BackForwardCacheNotRestoredReasonTimeoutPuttingInCache                                    = "TimeoutPuttingInCache"
+  BackForwardCacheNotRestoredReasonBackForwardCacheDisabledByLowMemory                      = "BackForwardCacheDisabledByLowMemory"
+  BackForwardCacheNotRestoredReasonBackForwardCacheDisabledByCommandLine                    = "BackForwardCacheDisabledByCommandLine"
+  BackForwardCacheNotRestoredReasonNetworkRequestDatapipeDrainedAsBytesConsumer             = "NetworkRequestDatapipeDrainedAsBytesConsumer"
+  BackForwardCacheNotRestoredReasonNetworkRequestRedirected                                 = "NetworkRequestRedirected"
+  BackForwardCacheNotRestoredReasonNetworkRequestTimeout                                    = "NetworkRequestTimeout"
+  BackForwardCacheNotRestoredReasonNetworkExceedsBufferLimit                                = "NetworkExceedsBufferLimit"
+  BackForwardCacheNotRestoredReasonNavigationCancelledWhileRestoring                        = "NavigationCancelledWhileRestoring"
+  BackForwardCacheNotRestoredReasonNotMostRecentNavigationEntry                             = "NotMostRecentNavigationEntry"
+  BackForwardCacheNotRestoredReasonBackForwardCacheDisabledForPrerender                     = "BackForwardCacheDisabledForPrerender"
+  BackForwardCacheNotRestoredReasonUserAgentOverrideDiffers                                 = "UserAgentOverrideDiffers"
+  BackForwardCacheNotRestoredReasonForegroundCacheLimit                                     = "ForegroundCacheLimit"
+  BackForwardCacheNotRestoredReasonBrowsingInstanceNotSwapped                               = "BrowsingInstanceNotSwapped"
+  BackForwardCacheNotRestoredReasonBackForwardCacheDisabledForDelegate                      = "BackForwardCacheDisabledForDelegate"
+  BackForwardCacheNotRestoredReasonUnloadHandlerExistsInMainFrame                           = "UnloadHandlerExistsInMainFrame"
+  BackForwardCacheNotRestoredReasonUnloadHandlerExistsInSubFrame                            = "UnloadHandlerExistsInSubFrame"
+  BackForwardCacheNotRestoredReasonServiceWorkerUnregistration                              = "ServiceWorkerUnregistration"
+  BackForwardCacheNotRestoredReasonCacheControlNoStore                                      = "CacheControlNoStore"
+  BackForwardCacheNotRestoredReasonCacheControlNoStoreCookieModified                        = "CacheControlNoStoreCookieModified"
+  BackForwardCacheNotRestoredReasonCacheControlNoStoreHTTPOnlyCookieModified                = "CacheControlNoStoreHTTPOnlyCookieModified"
+  BackForwardCacheNotRestoredReasonNoResponseHead                                           = "NoResponseHead"
+  BackForwardCacheNotRestoredReasonUnknown                                                  = "Unknown"
+  BackForwardCacheNotRestoredReasonActivationNavigationsDisallowedForBug1234857             = "ActivationNavigationsDisallowedForBug1234857"
+  BackForwardCacheNotRestoredReasonErrorDocument                                            = "ErrorDocument"
+  BackForwardCacheNotRestoredReasonFencedFramesEmbedder                                     = "FencedFramesEmbedder"
+  BackForwardCacheNotRestoredReasonCookieDisabled                                           = "CookieDisabled"
+  BackForwardCacheNotRestoredReasonHTTPAuthRequired                                         = "HTTPAuthRequired"
+  BackForwardCacheNotRestoredReasonCookieFlushed                                            = "CookieFlushed"
+  BackForwardCacheNotRestoredReasonBroadcastChannelOnMessage                                = "BroadcastChannelOnMessage"
+  BackForwardCacheNotRestoredReasonWebViewSettingsChanged                                   = "WebViewSettingsChanged"
+  BackForwardCacheNotRestoredReasonWebViewJavaScriptObjectChanged                           = "WebViewJavaScriptObjectChanged"
+  BackForwardCacheNotRestoredReasonWebViewMessageListenerInjected                           = "WebViewMessageListenerInjected"
+  BackForwardCacheNotRestoredReasonWebViewSafeBrowsingAllowlistChanged                      = "WebViewSafeBrowsingAllowlistChanged"
+  BackForwardCacheNotRestoredReasonWebViewDocumentStartJavascriptChanged                    = "WebViewDocumentStartJavascriptChanged"
+  BackForwardCacheNotRestoredReasonWebSocket                                                = "WebSocket"
+  BackForwardCacheNotRestoredReasonWebTransport                                             = "WebTransport"
+  BackForwardCacheNotRestoredReasonWebRTC                                                   = "WebRTC"
+  BackForwardCacheNotRestoredReasonMainResourceHasCacheControlNoStore                       = "MainResourceHasCacheControlNoStore"
+  BackForwardCacheNotRestoredReasonMainResourceHasCacheControlNoCache                       = "MainResourceHasCacheControlNoCache"
+  BackForwardCacheNotRestoredReasonSubresourceHasCacheControlNoStore                        = "SubresourceHasCacheControlNoStore"
+  BackForwardCacheNotRestoredReasonSubresourceHasCacheControlNoCache                        = "SubresourceHasCacheControlNoCache"
+  BackForwardCacheNotRestoredReasonContainsPlugins                                          = "ContainsPlugins"
+  BackForwardCacheNotRestoredReasonDocumentLoaded                                           = "DocumentLoaded"
+  BackForwardCacheNotRestoredReasonOutstandingNetworkRequestOthers                          = "OutstandingNetworkRequestOthers"
+  BackForwardCacheNotRestoredReasonRequestedMIDIPermission                                  = "RequestedMIDIPermission"
+  BackForwardCacheNotRestoredReasonRequestedAudioCapturePermission                          = "RequestedAudioCapturePermission"
+  BackForwardCacheNotRestoredReasonRequestedVideoCapturePermission                          = "RequestedVideoCapturePermission"
+  BackForwardCacheNotRestoredReasonRequestedBackForwardCacheBlockedSensors                  = "RequestedBackForwardCacheBlockedSensors"
+  BackForwardCacheNotRestoredReasonRequestedBackgroundWorkPermission                        = "RequestedBackgroundWorkPermission"
+  BackForwardCacheNotRestoredReasonBroadcastChannel                                         = "BroadcastChannel"
+  BackForwardCacheNotRestoredReasonWebXR                                                    = "WebXR"
+  BackForwardCacheNotRestoredReasonSharedWorker                                             = "SharedWorker"
+  BackForwardCacheNotRestoredReasonSharedWorkerMessage                                      = "SharedWorkerMessage"
+  BackForwardCacheNotRestoredReasonSharedWorkerWithNoActiveClient                           = "SharedWorkerWithNoActiveClient"
+  BackForwardCacheNotRestoredReasonWebLocks                                                 = "WebLocks"
+  BackForwardCacheNotRestoredReasonWebLocksContention                                       = "WebLocksContention"
+  BackForwardCacheNotRestoredReasonWebHID                                                   = "WebHID"
+  BackForwardCacheNotRestoredReasonWebBluetooth                                             = "WebBluetooth"
+  BackForwardCacheNotRestoredReasonWebShare                                                 = "WebShare"
+  BackForwardCacheNotRestoredReasonRequestedStorageAccessGrant                              = "RequestedStorageAccessGrant"
+  BackForwardCacheNotRestoredReasonWebNfc                                                   = "WebNfc"
+  BackForwardCacheNotRestoredReasonOutstandingNetworkRequestFetch                           = "OutstandingNetworkRequestFetch"
+  BackForwardCacheNotRestoredReasonOutstandingNetworkRequestXHR                             = "OutstandingNetworkRequestXHR"
+  BackForwardCacheNotRestoredReasonAppBanner                                                = "AppBanner"
+  BackForwardCacheNotRestoredReasonPrinting                                                 = "Printing"
+  BackForwardCacheNotRestoredReasonWebDatabase                                              = "WebDatabase"
+  BackForwardCacheNotRestoredReasonPictureInPicture                                         = "PictureInPicture"
+  BackForwardCacheNotRestoredReasonSpeechRecognizer                                         = "SpeechRecognizer"
+  BackForwardCacheNotRestoredReasonIdleManager                                              = "IdleManager"
+  BackForwardCacheNotRestoredReasonPaymentManager                                           = "PaymentManager"
+  BackForwardCacheNotRestoredReasonSpeechSynthesis                                          = "SpeechSynthesis"
+  BackForwardCacheNotRestoredReasonKeyboardLock                                             = "KeyboardLock"
+  BackForwardCacheNotRestoredReasonWebOTPService                                            = "WebOTPService"
+  BackForwardCacheNotRestoredReasonOutstandingNetworkRequestDirectSocket                    = "OutstandingNetworkRequestDirectSocket"
+  BackForwardCacheNotRestoredReasonInjectedJavascript                                       = "InjectedJavascript"
+  BackForwardCacheNotRestoredReasonInjectedStyleSheet                                       = "InjectedStyleSheet"
+  BackForwardCacheNotRestoredReasonKeepaliveRequest                                         = "KeepaliveRequest"
+  BackForwardCacheNotRestoredReasonIndexedDBEvent                                           = "IndexedDBEvent"
+  BackForwardCacheNotRestoredReasonDummy                                                    = "Dummy"
+  BackForwardCacheNotRestoredReasonJsNetworkRequestReceivedCacheControlNoStoreResource      = "JsNetworkRequestReceivedCacheControlNoStoreResource"
+  BackForwardCacheNotRestoredReasonWebRTCUsedWithCCNS                                       = "WebRTCUsedWithCCNS"
+  BackForwardCacheNotRestoredReasonWebTransportUsedWithCCNS                                 = "WebTransportUsedWithCCNS"
+  BackForwardCacheNotRestoredReasonWebSocketUsedWithCCNS                                    = "WebSocketUsedWithCCNS"
+  BackForwardCacheNotRestoredReasonSmartCard                                                = "SmartCard"
+  BackForwardCacheNotRestoredReasonLiveMediaStreamTrack                                     = "LiveMediaStreamTrack"
+  BackForwardCacheNotRestoredReasonUnloadHandler                                            = "UnloadHandler"
+  BackForwardCacheNotRestoredReasonParserAborted                                            = "ParserAborted"
+  BackForwardCacheNotRestoredReasonContentSecurityHandler                                   = "ContentSecurityHandler"
+  BackForwardCacheNotRestoredReasonContentWebAuthenticationAPI                              = "ContentWebAuthenticationAPI"
+  BackForwardCacheNotRestoredReasonContentFileChooser                                       = "ContentFileChooser"
+  BackForwardCacheNotRestoredReasonContentSerial                                            = "ContentSerial"
+  BackForwardCacheNotRestoredReasonContentFileSystemAccess                                  = "ContentFileSystemAccess"
+  BackForwardCacheNotRestoredReasonContentMediaDevicesDispatcherHost                        = "ContentMediaDevicesDispatcherHost"
+  BackForwardCacheNotRestoredReasonContentWebBluetooth                                      = "ContentWebBluetooth"
+  BackForwardCacheNotRestoredReasonContentWebUSB                                            = "ContentWebUSB"
+  BackForwardCacheNotRestoredReasonContentMediaSessionService                               = "ContentMediaSessionService"
+  BackForwardCacheNotRestoredReasonContentScreenReader                                      = "ContentScreenReader"
+  BackForwardCacheNotRestoredReasonContentDiscarded                                         = "ContentDiscarded"
+  BackForwardCacheNotRestoredReasonEmbedderPopupBlockerTabHelper                            = "EmbedderPopupBlockerTabHelper"
+  BackForwardCacheNotRestoredReasonEmbedderSafeBrowsingTriggeredPopupBlocker                = "EmbedderSafeBrowsingTriggeredPopupBlocker"
+  BackForwardCacheNotRestoredReasonEmbedderSafeBrowsingThreatDetails                        = "EmbedderSafeBrowsingThreatDetails"
+  BackForwardCacheNotRestoredReasonEmbedderAppBannerManager                                 = "EmbedderAppBannerManager"
+  BackForwardCacheNotRestoredReasonEmbedderDomDistillerViewerSource                         = "EmbedderDomDistillerViewerSource"
+  BackForwardCacheNotRestoredReasonEmbedderDomDistillerSelfDeletingRequestDelegate          = "EmbedderDomDistillerSelfDeletingRequestDelegate"
+  BackForwardCacheNotRestoredReasonEmbedderOomInterventionTabHelper                         = "EmbedderOomInterventionTabHelper"
+  BackForwardCacheNotRestoredReasonEmbedderOfflinePage                                      = "EmbedderOfflinePage"
+  BackForwardCacheNotRestoredReasonEmbedderChromePasswordManagerClientBindCredentialManager = "EmbedderChromePasswordManagerClientBindCredentialManager"
+  BackForwardCacheNotRestoredReasonEmbedderPermissionRequestManager                         = "EmbedderPermissionRequestManager"
+  BackForwardCacheNotRestoredReasonEmbedderModalDialog                                      = "EmbedderModalDialog"
+  BackForwardCacheNotRestoredReasonEmbedderExtensions                                       = "EmbedderExtensions"
+  BackForwardCacheNotRestoredReasonEmbedderExtensionMessaging                               = "EmbedderExtensionMessaging"
+  BackForwardCacheNotRestoredReasonEmbedderExtensionMessagingForOpenPort                    = "EmbedderExtensionMessagingForOpenPort"
+  BackForwardCacheNotRestoredReasonEmbedderExtensionSentMessageToCachedFrame                = "EmbedderExtensionSentMessageToCachedFrame"
+  BackForwardCacheNotRestoredReasonRequestedByWebViewClient                                 = "RequestedByWebViewClient"
+  BackForwardCacheNotRestoredReasonPostMessageByWebViewClient                               = "PostMessageByWebViewClient"
+  BackForwardCacheNotRestoredReasonCacheControlNoStoreDeviceBoundSessionTerminated          = "CacheControlNoStoreDeviceBoundSessionTerminated"
+  BackForwardCacheNotRestoredReasonCacheLimitPrunedOnModerateMemoryPressure                 = "CacheLimitPrunedOnModerateMemoryPressure"
+  BackForwardCacheNotRestoredReasonCacheLimitPrunedOnCriticalMemoryPressure                 = "CacheLimitPrunedOnCriticalMemoryPressure"
 
   @[Experimental]
   alias BackForwardCacheNotRestoredReasonType = String
+  BackForwardCacheNotRestoredReasonTypeSupportPending    = "SupportPending"
+  BackForwardCacheNotRestoredReasonTypePageSupportNeeded = "PageSupportNeeded"
+  BackForwardCacheNotRestoredReasonTypeCircumstantial    = "Circumstantial"
 
   @[Experimental]
   struct BackForwardCacheBlockingDetails
@@ -613,29 +951,67 @@ EMPTY_FRAME_ID = FrameId.new("")
   end
 
   alias FileChooserOpenedMode = String
+  FileChooserOpenedModeSelectSingle   = "selectSingle"
+  FileChooserOpenedModeSelectMultiple = "selectMultiple"
 
   alias FrameDetachedReason = String
+  FrameDetachedReasonRemove = "remove"
+  FrameDetachedReasonSwap   = "swap"
 
   alias FrameStartedNavigatingNavigationType = String
+  FrameStartedNavigatingNavigationTypeReload                   = "reload"
+  FrameStartedNavigatingNavigationTypeReloadBypassingCache     = "reloadBypassingCache"
+  FrameStartedNavigatingNavigationTypeRestore                  = "restore"
+  FrameStartedNavigatingNavigationTypeRestoreWithPost          = "restoreWithPost"
+  FrameStartedNavigatingNavigationTypeHistorySameDocument      = "historySameDocument"
+  FrameStartedNavigatingNavigationTypeHistoryDifferentDocument = "historyDifferentDocument"
+  FrameStartedNavigatingNavigationTypeSameDocument             = "sameDocument"
+  FrameStartedNavigatingNavigationTypeDifferentDocument        = "differentDocument"
 
   alias DownloadProgressState = String
+  DownloadProgressStateInProgress = "inProgress"
+  DownloadProgressStateCompleted  = "completed"
+  DownloadProgressStateCanceled   = "canceled"
 
   alias NavigatedWithinDocumentNavigationType = String
+  NavigatedWithinDocumentNavigationTypeFragment   = "fragment"
+  NavigatedWithinDocumentNavigationTypeHistoryApi = "historyApi"
+  NavigatedWithinDocumentNavigationTypeOther      = "other"
 
   alias CaptureScreenshotFormat = String
+  CaptureScreenshotFormatJpeg = "jpeg"
+  CaptureScreenshotFormatPng  = "png"
+  CaptureScreenshotFormatWebp = "webp"
 
   alias CaptureSnapshotFormat = String
+  CaptureSnapshotFormatMhtml = "mhtml"
 
   alias PrintToPDFTransferMode = String
+  PrintToPDFTransferModeReturnAsBase64 = "ReturnAsBase64"
+  PrintToPDFTransferModeReturnAsStream = "ReturnAsStream"
 
   alias SetDownloadBehaviorBehavior = String
+  SetDownloadBehaviorBehaviorDeny    = "deny"
+  SetDownloadBehaviorBehaviorAllow   = "allow"
+  SetDownloadBehaviorBehaviorDefault = "default"
 
   alias ScreencastFormat = String
+  ScreencastFormatJpeg = "jpeg"
+  ScreencastFormatPng  = "png"
 
   alias SetWebLifecycleStateState = String
+  SetWebLifecycleStateStateFrozen = "frozen"
+  SetWebLifecycleStateStateActive = "active"
 
   alias SetSPCTransactionModeMode = String
+  SetSPCTransactionModeModeNone                       = "none"
+  SetSPCTransactionModeModeAutoAccept                 = "autoAccept"
+  SetSPCTransactionModeModeAutoChooseToAuthAnotherWay = "autoChooseToAuthAnotherWay"
+  SetSPCTransactionModeModeAutoReject                 = "autoReject"
+  SetSPCTransactionModeModeAutoOptOut                 = "autoOptOut"
 
   alias SetRPHRegistrationModeMode = String
-
-   end
+  SetRPHRegistrationModeModeNone       = "none"
+  SetRPHRegistrationModeModeAutoAccept = "autoAccept"
+  SetRPHRegistrationModeModeAutoReject = "autoReject"
+end

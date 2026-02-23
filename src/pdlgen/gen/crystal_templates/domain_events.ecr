@@ -26,7 +26,11 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
       <%- next if p.name.empty? -%>
       <%- type_str = crystal_type(p, d, domains) -%>
     @[JSON::Field(emit_null: false)]
+    <%- if is_bool_type?(type_str) -%>
+    property? <%= p.name.underscore %> : <%= type_str %><%= "?" if p.optional %>
+    <%- else -%>
     property <%= p.name.underscore %> : <%= type_str %><%= "?" if p.optional %>
+    <%- end -%>
     <%- end -%>
 
     def initialize(<%= e.parameters.map { |p| next if p.deprecated && !p.always_emit; next if p.name.empty?; "@#{p.name.underscore} : #{crystal_type(p, d, domains)}#{'?' if p.optional}" }.compact.join(", ") %>)

@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -9,8 +8,17 @@ module Cdp::Security
   alias CertificateId = Int64
 
   alias MixedContentType = String
+  MixedContentTypeBlockable           = "blockable"
+  MixedContentTypeOptionallyBlockable = "optionally-blockable"
+  MixedContentTypeNone                = "none"
 
   alias SecurityState = String
+  SecurityStateUnknown        = "unknown"
+  SecurityStateNeutral        = "neutral"
+  SecurityStateInsecure       = "insecure"
+  SecurityStateSecure         = "secure"
+  SecurityStateInfo           = "info"
+  SecurityStateInsecureBroken = "insecure-broken"
 
   @[Experimental]
   struct CertificateSecurityState
@@ -38,23 +46,25 @@ module Cdp::Security
     @[JSON::Field(emit_null: false)]
     property certificate_network_error : String?
     @[JSON::Field(emit_null: false)]
-    property certificate_has_weak_signature : Bool
+    property? certificate_has_weak_signature : Bool
     @[JSON::Field(emit_null: false)]
-    property certificate_has_sha1_signature : Bool
+    property? certificate_has_sha1_signature : Bool
     @[JSON::Field(emit_null: false)]
-    property modern_ssl : Bool
+    property? modern_ssl : Bool
     @[JSON::Field(emit_null: false)]
-    property obsolete_ssl_protocol : Bool
+    property? obsolete_ssl_protocol : Bool
     @[JSON::Field(emit_null: false)]
-    property obsolete_ssl_key_exchange : Bool
+    property? obsolete_ssl_key_exchange : Bool
     @[JSON::Field(emit_null: false)]
-    property obsolete_ssl_cipher : Bool
+    property? obsolete_ssl_cipher : Bool
     @[JSON::Field(emit_null: false)]
-    property obsolete_ssl_signature : Bool
+    property? obsolete_ssl_signature : Bool
   end
 
   @[Experimental]
   alias SafetyTipStatus = String
+  SafetyTipStatusBadReputation = "badReputation"
+  SafetyTipStatusLookalike     = "lookalike"
 
   @[Experimental]
   struct SafetyTipInfo
@@ -97,5 +107,6 @@ module Cdp::Security
   end
 
   alias CertificateErrorAction = String
-
-   end
+  CertificateErrorActionContinue = "continue"
+  CertificateErrorActionCancel   = "cancel"
+end

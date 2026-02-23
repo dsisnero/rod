@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 require "./types"
 require "./events"
@@ -137,7 +135,6 @@ module Cdp::Runtime
     end
   end
 
-
   # Commands
   struct AwaitPromise
     include JSON::Serializable
@@ -145,9 +142,9 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property promise_object_id : RemoteObjectId
     @[JSON::Field(emit_null: false)]
-    property return_by_value : Bool?
+    property? return_by_value : Bool?
     @[JSON::Field(emit_null: false)]
-    property generate_preview : Bool?
+    property? generate_preview : Bool?
 
     def initialize(@promise_object_id : RemoteObjectId, @return_by_value : Bool?, @generate_preview : Bool?)
     end
@@ -175,21 +172,21 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property arguments : Array(CallArgument)?
     @[JSON::Field(emit_null: false)]
-    property silent : Bool?
+    property? silent : Bool?
     @[JSON::Field(emit_null: false)]
-    property return_by_value : Bool?
+    property? return_by_value : Bool?
     @[JSON::Field(emit_null: false)]
-    property generate_preview : Bool?
+    property? generate_preview : Bool?
     @[JSON::Field(emit_null: false)]
-    property user_gesture : Bool?
+    property? user_gesture : Bool?
     @[JSON::Field(emit_null: false)]
-    property await_promise : Bool?
+    property? await_promise : Bool?
     @[JSON::Field(emit_null: false)]
     property execution_context_id : ExecutionContextId?
     @[JSON::Field(emit_null: false)]
     property object_group : String?
     @[JSON::Field(emit_null: false)]
-    property throw_on_side_effect : Bool?
+    property? throw_on_side_effect : Bool?
     @[JSON::Field(emit_null: false)]
     property unique_context_id : String?
     @[JSON::Field(emit_null: false)]
@@ -219,7 +216,7 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property source_url : String
     @[JSON::Field(emit_null: false)]
-    property persist_script : Bool
+    property? persist_script : Bool
     @[JSON::Field(emit_null: false)]
     property execution_context_id : ExecutionContextId?
 
@@ -243,7 +240,7 @@ module Cdp::Runtime
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -261,7 +258,7 @@ module Cdp::Runtime
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -279,7 +276,7 @@ module Cdp::Runtime
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -301,29 +298,29 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property object_group : String?
     @[JSON::Field(emit_null: false)]
-    property include_command_line_api : Bool?
+    property? include_command_line_api : Bool?
     @[JSON::Field(emit_null: false)]
-    property silent : Bool?
+    property? silent : Bool?
     @[JSON::Field(emit_null: false)]
     property context_id : ExecutionContextId?
     @[JSON::Field(emit_null: false)]
-    property return_by_value : Bool?
+    property? return_by_value : Bool?
     @[JSON::Field(emit_null: false)]
-    property generate_preview : Bool?
+    property? generate_preview : Bool?
     @[JSON::Field(emit_null: false)]
-    property user_gesture : Bool?
+    property? user_gesture : Bool?
     @[JSON::Field(emit_null: false)]
-    property await_promise : Bool?
+    property? await_promise : Bool?
     @[JSON::Field(emit_null: false)]
-    property throw_on_side_effect : Bool?
+    property? throw_on_side_effect : Bool?
     @[JSON::Field(emit_null: false)]
     property timeout : TimeDelta?
     @[JSON::Field(emit_null: false)]
-    property disable_breaks : Bool?
+    property? disable_breaks : Bool?
     @[JSON::Field(emit_null: false)]
-    property repl_mode : Bool?
+    property? repl_mode : Bool?
     @[JSON::Field(emit_null: false)]
-    property allow_unsafe_eval_blocked_by_csp : Bool?
+    property? allow_unsafe_eval_blocked_by_csp : Bool?
     @[JSON::Field(emit_null: false)]
     property unique_context_id : String?
     @[JSON::Field(emit_null: false)]
@@ -350,7 +347,7 @@ module Cdp::Runtime
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -371,7 +368,7 @@ module Cdp::Runtime
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -393,13 +390,13 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property object_id : RemoteObjectId
     @[JSON::Field(emit_null: false)]
-    property own_properties : Bool?
+    property? own_properties : Bool?
     @[JSON::Field(emit_null: false)]
-    property accessor_properties_only : Bool?
+    property? accessor_properties_only : Bool?
     @[JSON::Field(emit_null: false)]
-    property generate_preview : Bool?
+    property? generate_preview : Bool?
     @[JSON::Field(emit_null: false)]
-    property non_indexed_properties_only : Bool?
+    property? non_indexed_properties_only : Bool?
 
     def initialize(@object_id : RemoteObjectId, @own_properties : Bool?, @accessor_properties_only : Bool?, @generate_preview : Bool?, @non_indexed_properties_only : Bool?)
     end
@@ -507,7 +504,7 @@ module Cdp::Runtime
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -531,15 +528,15 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property object_group : String?
     @[JSON::Field(emit_null: false)]
-    property silent : Bool?
+    property? silent : Bool?
     @[JSON::Field(emit_null: false)]
-    property include_command_line_api : Bool?
+    property? include_command_line_api : Bool?
     @[JSON::Field(emit_null: false)]
-    property return_by_value : Bool?
+    property? return_by_value : Bool?
     @[JSON::Field(emit_null: false)]
-    property generate_preview : Bool?
+    property? generate_preview : Bool?
     @[JSON::Field(emit_null: false)]
-    property await_promise : Bool?
+    property? await_promise : Bool?
 
     def initialize(@script_id : ScriptId, @execution_context_id : ExecutionContextId?, @object_group : String?, @silent : Bool?, @include_command_line_api : Bool?, @return_by_value : Bool?, @generate_preview : Bool?, @await_promise : Bool?)
     end
@@ -562,7 +559,7 @@ module Cdp::Runtime
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enabled : Bool
+    property? enabled : Bool
 
     def initialize(@enabled : Bool)
     end
@@ -604,7 +601,7 @@ module Cdp::Runtime
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -684,5 +681,4 @@ module Cdp::Runtime
       res
     end
   end
-
 end

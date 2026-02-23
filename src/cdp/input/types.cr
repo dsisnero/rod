@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::Input
   struct TouchPoint
@@ -33,8 +31,17 @@ module Cdp::Input
 
   @[Experimental]
   alias GestureSourceType = String
+  Default = "default"
+  Touch   = "touch"
+  Mouse   = "mouse"
 
   alias MouseButton = String
+  None    = "none"
+  Left    = "left"
+  Middle  = "middle"
+  Right   = "right"
+  Back    = "back"
+  Forward = "forward"
 
   alias TimeSinceEpoch = Time
 
@@ -62,24 +69,42 @@ module Cdp::Input
     property drag_operations_mask : Int64
   end
 
-  alias Modifier = Int64
+  @[Flags]
+  enum Modifier : Int64
+    None
+    Alt
+    Ctrl
+    Meta
+    Shift
+  end
   # ModifierCommand is an alias for ModifierMeta.
-const ModifierCommand Modifier = ModifierMeta
-
+  ModifierCommand = Modifier::Meta
 
   alias DispatchDragEventType = String
+  DragEnter  = "dragEnter"
+  DragOver   = "dragOver"
+  Drop       = "drop"
+  DragCancel = "dragCancel"
 
   alias KeyType = String
+  KeyDown    = "keyDown"
+  KeyUp      = "keyUp"
+  RawKeyDown = "rawKeyDown"
+  Char       = "char"
 
   alias MouseType = String
+  MousePressed  = "mousePressed"
+  MouseReleased = "mouseReleased"
+  MouseMoved    = "mouseMoved"
+  MouseWheel    = "mouseWheel"
 
   alias DispatchMouseEventPointerType = String
+  Mouse = "mouse"
+  Pen   = "pen"
 
   alias TouchType = String
-
-  alias Modifier = Int64
-  # ModifierCommand is an alias for ModifierMeta.
-const ModifierCommand Modifier = ModifierMeta
-
-
-   end
+  TouchStart  = "touchStart"
+  TouchEnd    = "touchEnd"
+  TouchMove   = "touchMove"
+  TouchCancel = "touchCancel"
+end

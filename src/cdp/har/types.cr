@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -60,9 +59,9 @@ module Cdp::HAR
     @[JSON::Field(emit_null: false)]
     property expires : String?
     @[JSON::Field(emit_null: false)]
-    property http_only : Bool?
+    property? http_only : Bool?
     @[JSON::Field(emit_null: false)]
-    property secure : Bool?
+    property? secure : Bool?
     @[JSON::Field(emit_null: false)]
     property comment : String?
   end
@@ -250,5 +249,4 @@ module Cdp::HAR
     @[JSON::Field(emit_null: false)]
     property comment : String?
   end
-
-   end
+end

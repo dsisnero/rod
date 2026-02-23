@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -8,6 +7,10 @@ require "../page/page"
 
 module Cdp::CSS
   alias StyleSheetOrigin = String
+  StyleSheetOriginInjected  = "injected"
+  StyleSheetOriginUserAgent = "user-agent"
+  StyleSheetOriginInspector = "inspector"
+  StyleSheetOriginRegular   = "regular"
 
   struct PseudoElementMatches
     include JSON::Serializable
@@ -103,15 +106,15 @@ module Cdp::CSS
     @[JSON::Field(emit_null: false)]
     property owner_node : Cdp::DOM::BackendNodeId?
     @[JSON::Field(emit_null: false)]
-    property disabled : Bool
+    property? disabled : Bool
     @[JSON::Field(emit_null: false)]
-    property has_source_url : Bool?
+    property? has_source_url : Bool?
     @[JSON::Field(emit_null: false)]
-    property is_inline : Bool
+    property? is_inline : Bool
     @[JSON::Field(emit_null: false)]
-    property is_mutable : Bool
+    property? is_mutable : Bool
     @[JSON::Field(emit_null: false)]
-    property is_constructed : Bool
+    property? is_constructed : Bool
     @[JSON::Field(emit_null: false)]
     property start_line : Float64
     @[JSON::Field(emit_null: false)]
@@ -123,7 +126,7 @@ module Cdp::CSS
     @[JSON::Field(emit_null: false)]
     property end_column : Float64
     @[JSON::Field(emit_null: false)]
-    property loading_failed : Bool?
+    property? loading_failed : Bool?
   end
 
   struct CSSRule
@@ -158,6 +161,13 @@ module Cdp::CSS
 
   @[Experimental]
   alias CSSRuleType = String
+  CSSRuleTypeMediaRule         = "MediaRule"
+  CSSRuleTypeSupportsRule      = "SupportsRule"
+  CSSRuleTypeContainerRule     = "ContainerRule"
+  CSSRuleTypeLayerRule         = "LayerRule"
+  CSSRuleTypeScopeRule         = "ScopeRule"
+  CSSRuleTypeStyleRule         = "StyleRule"
+  CSSRuleTypeStartingStyleRule = "StartingStyleRule"
 
   struct RuleUsage
     include JSON::Serializable
@@ -168,7 +178,7 @@ module Cdp::CSS
     @[JSON::Field(emit_null: false)]
     property end_offset : Float64
     @[JSON::Field(emit_null: false)]
-    property used : Bool
+    property? used : Bool
   end
 
   struct SourceRange
@@ -190,7 +200,7 @@ module Cdp::CSS
     @[JSON::Field(emit_null: false)]
     property value : String
     @[JSON::Field(emit_null: false)]
-    property important : Bool?
+    property? important : Bool?
   end
 
   struct CSSComputedStyleProperty
@@ -205,7 +215,7 @@ module Cdp::CSS
   struct ComputedStyleExtraFields
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property is_appearance_base : Bool
+    property? is_appearance_base : Bool
   end
 
   struct CSSStyle
@@ -229,15 +239,15 @@ module Cdp::CSS
     @[JSON::Field(emit_null: false)]
     property value : String
     @[JSON::Field(emit_null: false)]
-    property important : Bool?
+    property? important : Bool?
     @[JSON::Field(emit_null: false)]
-    property implicit : Bool?
+    property? implicit : Bool?
     @[JSON::Field(emit_null: false)]
     property text : String?
     @[JSON::Field(emit_null: false)]
-    property parsed_ok : Bool?
+    property? parsed_ok : Bool?
     @[JSON::Field(emit_null: false)]
-    property disabled : Bool?
+    property? disabled : Bool?
     @[JSON::Field(emit_null: false)]
     property range : SourceRange?
     @[JSON::Field(emit_null: false)]
@@ -265,7 +275,7 @@ module Cdp::CSS
     @[JSON::Field(emit_null: false)]
     property expressions : Array(MediaQueryExpression)
     @[JSON::Field(emit_null: false)]
-    property active : Bool
+    property? active : Bool
   end
 
   struct MediaQueryExpression
@@ -298,9 +308,9 @@ module Cdp::CSS
     @[JSON::Field(emit_null: false)]
     property logical_axes : Cdp::DOM::LogicalAxes?
     @[JSON::Field(emit_null: false)]
-    property queries_scroll_state : Bool?
+    property? queries_scroll_state : Bool?
     @[JSON::Field(emit_null: false)]
-    property queries_anchored : Bool?
+    property? queries_anchored : Bool?
   end
 
   @[Experimental]
@@ -309,7 +319,7 @@ module Cdp::CSS
     @[JSON::Field(emit_null: false)]
     property text : String
     @[JSON::Field(emit_null: false)]
-    property active : Bool
+    property? active : Bool
     @[JSON::Field(emit_null: false)]
     property range : SourceRange?
     @[JSON::Field(emit_null: false)]
@@ -365,7 +375,7 @@ module Cdp::CSS
     @[JSON::Field(emit_null: false)]
     property post_script_name : String
     @[JSON::Field(emit_null: false)]
-    property is_custom_font : Bool
+    property? is_custom_font : Bool
     @[JSON::Field(emit_null: false)]
     property glyph_count : Float64
   end
@@ -429,7 +439,7 @@ module Cdp::CSS
     @[JSON::Field(emit_null: false)]
     property style : CSSStyle
     @[JSON::Field(emit_null: false)]
-    property active : Bool
+    property? active : Bool
   end
 
   struct CSSKeyframesRule
@@ -447,7 +457,7 @@ module Cdp::CSS
     @[JSON::Field(emit_null: false)]
     property initial_value : Value?
     @[JSON::Field(emit_null: false)]
-    property inherits : Bool
+    property? inherits : Bool
     @[JSON::Field(emit_null: false)]
     property syntax : String
   end
@@ -547,9 +557,21 @@ module Cdp::CSS
   end
 
   alias MediaSource = String
+  MediaSourceMediaRule   = "mediaRule"
+  MediaSourceImportRule  = "importRule"
+  MediaSourceLinkedSheet = "linkedSheet"
+  MediaSourceInlineSheet = "inlineSheet"
 
   alias CSSAtRuleType = String
+  CSSAtRuleTypeFontFace          = "font-face"
+  CSSAtRuleTypeFontFeatureValues = "font-feature-values"
+  CSSAtRuleTypeFontPaletteValues = "font-palette-values"
 
   alias CSSAtRuleSubsection = String
-
-   end
+  CSSAtRuleSubsectionSwash            = "swash"
+  CSSAtRuleSubsectionAnnotation       = "annotation"
+  CSSAtRuleSubsectionOrnaments        = "ornaments"
+  CSSAtRuleSubsectionStylistic        = "stylistic"
+  CSSAtRuleSubsectionStyleset         = "styleset"
+  CSSAtRuleSubsectionCharacterVariant = "character-variant"
+end

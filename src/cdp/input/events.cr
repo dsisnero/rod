@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::Input
   @[Experimental]
@@ -20,5 +18,4 @@ module Cdp::Input
       "Input.dragIntercepted"
     end
   end
-
 end

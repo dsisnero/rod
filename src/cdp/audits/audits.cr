@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -36,7 +35,6 @@ module Cdp::Audits
     end
   end
 
-
   # Commands
   struct GetEncodedResponse
     include JSON::Serializable
@@ -48,7 +46,7 @@ module Cdp::Audits
     @[JSON::Field(emit_null: false)]
     property quality : Float64?
     @[JSON::Field(emit_null: false)]
-    property size_only : Bool?
+    property? size_only : Bool?
 
     def initialize(@request_id : Cdp::Network::RequestId, @encoding : GetEncodedResponseEncoding, @quality : Float64?, @size_only : Bool?)
     end
@@ -70,7 +68,7 @@ module Cdp::Audits
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -88,7 +86,7 @@ module Cdp::Audits
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -106,7 +104,7 @@ module Cdp::Audits
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property report_aaa : Bool?
+    property? report_aaa : Bool?
 
     def initialize(@report_aaa : Bool?)
     end
@@ -126,7 +124,7 @@ module Cdp::Audits
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -141,5 +139,4 @@ module Cdp::Audits
       res
     end
   end
-
 end

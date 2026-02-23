@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -49,7 +48,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property body : String
     @[JSON::Field(emit_null: false)]
-    property base64_encoded : Bool
+    property? base64_encoded : Bool
 
     def initialize(@body : String, @base64_encoded : Bool)
     end
@@ -60,7 +59,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property post_data : String
     @[JSON::Field(emit_null: false)]
-    property base64_encoded : Bool
+    property? base64_encoded : Bool
 
     def initialize(@post_data : String, @base64_encoded : Bool)
     end
@@ -72,7 +71,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property body : String
     @[JSON::Field(emit_null: false)]
-    property base64_encoded : Bool
+    property? base64_encoded : Bool
 
     def initialize(@body : String, @base64_encoded : Bool)
     end
@@ -101,7 +100,7 @@ module Cdp::Network
   struct SetCookieResult
     include JSON::Serializable
 
-    def initialize()
+    def initialize
     end
   end
 
@@ -145,7 +144,6 @@ module Cdp::Network
     end
   end
 
-
   # Commands
   @[Experimental]
   struct SetAcceptedEncodings
@@ -173,7 +171,7 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -191,7 +189,7 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -209,7 +207,7 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -255,7 +253,7 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -274,7 +272,7 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property offline : Bool
+    property? offline : Bool
     @[JSON::Field(emit_null: false)]
     property matched_network_conditions : Array(NetworkConditions)
 
@@ -299,7 +297,7 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property offline : Bool
+    property? offline : Bool
     @[JSON::Field(emit_null: false)]
     property latency : Float64
     @[JSON::Field(emit_null: false)]
@@ -333,9 +331,9 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property max_post_data_size : Int64?
     @[JSON::Field(emit_null: false)]
-    property report_direct_socket_traffic : Bool?
+    property? report_direct_socket_traffic : Bool?
     @[JSON::Field(emit_null: false)]
-    property enable_durable_messages : Bool?
+    property? enable_durable_messages : Bool?
 
     def initialize(@max_total_buffer_size : Int64?, @max_resource_buffer_size : Int64?, @max_post_data_size : Int64?, @report_direct_socket_traffic : Bool?, @enable_durable_messages : Bool?)
     end
@@ -539,9 +537,9 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property query : String
     @[JSON::Field(emit_null: false)]
-    property case_sensitive : Bool?
+    property? case_sensitive : Bool?
     @[JSON::Field(emit_null: false)]
-    property is_regex : Bool?
+    property? is_regex : Bool?
 
     def initialize(@request_id : RequestId, @query : String, @case_sensitive : Bool?, @is_regex : Bool?)
     end
@@ -586,7 +584,7 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property bypass : Bool
+    property? bypass : Bool
 
     def initialize(@bypass : Bool)
     end
@@ -606,7 +604,7 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property cache_disabled : Bool
+    property? cache_disabled : Bool
 
     def initialize(@cache_disabled : Bool)
     end
@@ -636,9 +634,9 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property path : String?
     @[JSON::Field(emit_null: false)]
-    property secure : Bool?
+    property? secure : Bool?
     @[JSON::Field(emit_null: false)]
-    property http_only : Bool?
+    property? http_only : Bool?
     @[JSON::Field(emit_null: false)]
     property same_site : CookieSameSite?
     @[JSON::Field(emit_null: false)]
@@ -713,7 +711,7 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enabled : Bool
+    property? enabled : Bool
 
     def initialize(@enabled : Bool)
     end
@@ -780,7 +778,7 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enable : Bool
+    property? enable : Bool
 
     def initialize(@enable : Bool)
     end
@@ -801,7 +799,7 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enable : Bool
+    property? enable : Bool
 
     def initialize(@enable : Bool)
     end
@@ -872,11 +870,11 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enable_third_party_cookie_restriction : Bool
+    property? enable_third_party_cookie_restriction : Bool
     @[JSON::Field(emit_null: false)]
-    property disable_third_party_cookie_metadata : Bool
+    property? disable_third_party_cookie_metadata : Bool
     @[JSON::Field(emit_null: false)]
-    property disable_third_party_cookie_heuristics : Bool
+    property? disable_third_party_cookie_heuristics : Bool
 
     def initialize(@enable_third_party_cookie_restriction : Bool, @disable_third_party_cookie_metadata : Bool, @disable_third_party_cookie_heuristics : Bool)
     end
@@ -891,5 +889,4 @@ module Cdp::Network
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

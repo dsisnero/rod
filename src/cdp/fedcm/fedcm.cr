@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 require "./types"
 require "./events"
@@ -10,13 +8,12 @@ require "./events"
 # This domain allows interacting with the FedCM dialog.
 @[Experimental]
 module Cdp::FedCm
-
   # Commands
   struct Enable
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property disable_rejection_delay : Bool?
+    property? disable_rejection_delay : Bool?
 
     def initialize(@disable_rejection_delay : Bool?)
     end
@@ -36,7 +33,7 @@ module Cdp::FedCm
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -124,7 +121,7 @@ module Cdp::FedCm
     @[JSON::Field(emit_null: false)]
     property dialog_id : String
     @[JSON::Field(emit_null: false)]
-    property trigger_cooldown : Bool?
+    property? trigger_cooldown : Bool?
 
     def initialize(@dialog_id : String, @trigger_cooldown : Bool?)
     end
@@ -144,7 +141,7 @@ module Cdp::FedCm
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -157,5 +154,4 @@ module Cdp::FedCm
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 require "./types"
 require "./events"
@@ -18,7 +16,6 @@ module Cdp::DOMStorage
     def initialize(@entries : Array(Item))
     end
   end
-
 
   # Commands
   struct Clear
@@ -45,7 +42,7 @@ module Cdp::DOMStorage
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -63,7 +60,7 @@ module Cdp::DOMStorage
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -144,5 +141,4 @@ module Cdp::DOMStorage
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

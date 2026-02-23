@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::Runtime
   alias ScriptId = String
@@ -76,7 +74,7 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property description : String?
     @[JSON::Field(emit_null: false)]
-    property overflow : Bool
+    property? overflow : Bool
     @[JSON::Field(emit_null: false)]
     property properties : Array(PropertyPreview)
     @[JSON::Field(emit_null: false)]
@@ -114,19 +112,19 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property value : RemoteObject?
     @[JSON::Field(emit_null: false)]
-    property writable : Bool?
+    property? writable : Bool?
     @[JSON::Field(emit_null: false)]
     property get : RemoteObject?
     @[JSON::Field(emit_null: false)]
     property set : RemoteObject?
     @[JSON::Field(emit_null: false)]
-    property configurable : Bool
+    property? configurable : Bool
     @[JSON::Field(emit_null: false)]
-    property enumerable : Bool
+    property? enumerable : Bool
     @[JSON::Field(emit_null: false)]
-    property was_thrown : Bool?
+    property? was_thrown : Bool?
     @[JSON::Field(emit_null: false)]
-    property is_own : Bool?
+    property? is_own : Bool?
     @[JSON::Field(emit_null: false)]
     property symbol : RemoteObject?
   end
@@ -201,6 +199,7 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property exception_meta_data : JSON::Any?
   end
+
   # Error satisfies the error interface.
   def error : String
     String.build do |b|
@@ -219,7 +218,6 @@ module Cdp::Runtime
       end
     end
   end
-
 
   alias Timestamp = Time
 
@@ -264,13 +262,86 @@ module Cdp::Runtime
   end
 
   alias SerializationOptionsSerialization = String
+  SerializationOptionsSerializationDeep   = "deep"
+  SerializationOptionsSerializationJson   = "json"
+  SerializationOptionsSerializationIdOnly = "idOnly"
 
   alias DeepSerializedValueType = String
+  DeepSerializedValueTypeUndefined    = "undefined"
+  DeepSerializedValueTypeNull         = "null"
+  DeepSerializedValueTypeStringType   = "string"
+  DeepSerializedValueTypeNumberType   = "number"
+  DeepSerializedValueTypeBooleanType  = "boolean"
+  DeepSerializedValueTypeBigint       = "bigint"
+  DeepSerializedValueTypeRegexp       = "regexp"
+  DeepSerializedValueTypeDate         = "date"
+  DeepSerializedValueTypeSymbolType   = "symbol"
+  DeepSerializedValueTypeArray        = "array"
+  DeepSerializedValueTypeObjectType   = "object"
+  DeepSerializedValueTypeFunctionType = "function"
+  DeepSerializedValueTypeMap          = "map"
+  DeepSerializedValueTypeSet          = "set"
+  DeepSerializedValueTypeWeakmap      = "weakmap"
+  DeepSerializedValueTypeWeakset      = "weakset"
+  DeepSerializedValueTypeError        = "error"
+  DeepSerializedValueTypeProxy        = "proxy"
+  DeepSerializedValueTypePromise      = "promise"
+  DeepSerializedValueTypeTypedarray   = "typedarray"
+  DeepSerializedValueTypeArraybuffer  = "arraybuffer"
+  DeepSerializedValueTypeNode         = "node"
+  DeepSerializedValueTypeWindow       = "window"
+  DeepSerializedValueTypeGenerator    = "generator"
 
   alias Type = String
+  TypeObjectType   = "object"
+  TypeFunctionType = "function"
+  TypeUndefined    = "undefined"
+  TypeStringType   = "string"
+  TypeNumberType   = "number"
+  TypeBooleanType  = "boolean"
+  TypeSymbolType   = "symbol"
+  TypeBigint       = "bigint"
+  TypeAccessor     = "accessor"
 
   alias Subtype = String
+  SubtypeArray             = "array"
+  SubtypeNull              = "null"
+  SubtypeNode              = "node"
+  SubtypeRegexp            = "regexp"
+  SubtypeDate              = "date"
+  SubtypeMap               = "map"
+  SubtypeSet               = "set"
+  SubtypeWeakmap           = "weakmap"
+  SubtypeWeakset           = "weakset"
+  SubtypeIterator          = "iterator"
+  SubtypeGenerator         = "generator"
+  SubtypeError             = "error"
+  SubtypeProxy             = "proxy"
+  SubtypePromise           = "promise"
+  SubtypeTypedarray        = "typedarray"
+  SubtypeArraybuffer       = "arraybuffer"
+  SubtypeDataview          = "dataview"
+  SubtypeWebassemblymemory = "webassemblymemory"
+  SubtypeWasmvalue         = "wasmvalue"
+  SubtypeTrustedtype       = "trustedtype"
 
-  alias APIType = String
-
-   end
+  alias ConsoleAPICalledType = String
+  ConsoleAPICalledTypeLog                 = "log"
+  ConsoleAPICalledTypeDebug               = "debug"
+  ConsoleAPICalledTypeInfo                = "info"
+  ConsoleAPICalledTypeError               = "error"
+  ConsoleAPICalledTypeWarning             = "warning"
+  ConsoleAPICalledTypeDir                 = "dir"
+  ConsoleAPICalledTypeDirxml              = "dirxml"
+  ConsoleAPICalledTypeTable               = "table"
+  ConsoleAPICalledTypeTrace               = "trace"
+  ConsoleAPICalledTypeClear               = "clear"
+  ConsoleAPICalledTypeStartGroup          = "startGroup"
+  ConsoleAPICalledTypeStartGroupCollapsed = "startGroupCollapsed"
+  ConsoleAPICalledTypeEndGroup            = "endGroup"
+  ConsoleAPICalledTypeAssert              = "assert"
+  ConsoleAPICalledTypeProfile             = "profile"
+  ConsoleAPICalledTypeProfileEnd          = "profileEnd"
+  ConsoleAPICalledTypeCount               = "count"
+  ConsoleAPICalledTypeTimeEnd             = "timeEnd"
+end

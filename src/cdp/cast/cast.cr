@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 require "./types"
 require "./events"
@@ -11,7 +9,6 @@ require "./events"
 # functionalities.
 @[Experimental]
 module Cdp::Cast
-
   # Commands
   struct Enable
     include JSON::Serializable
@@ -37,7 +34,7 @@ module Cdp::Cast
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -130,5 +127,4 @@ module Cdp::Cast
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

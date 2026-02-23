@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::Inspector
   struct DetachedEvent
@@ -24,7 +22,7 @@ module Cdp::Inspector
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize()
+    def initialize
     end
 
     # ProtoEvent returns the protocol event name.
@@ -37,7 +35,7 @@ module Cdp::Inspector
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize()
+    def initialize
     end
 
     # ProtoEvent returns the protocol event name.
@@ -51,7 +49,7 @@ module Cdp::Inspector
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize()
+    def initialize
     end
 
     # ProtoEvent returns the protocol event name.
@@ -59,5 +57,4 @@ module Cdp::Inspector
       "Inspector.workerScriptLoaded"
     end
   end
-
 end

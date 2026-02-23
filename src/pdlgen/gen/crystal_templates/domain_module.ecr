@@ -44,7 +44,11 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
       <%- next if r.deprecated && !r.always_emit -%>
       <%- type_str = crystal_type(r, d, domains) -%>
     @[JSON::Field(emit_null: false)]
+    <%- if is_bool_type?(type_str) -%>
+    property? <%= r.name.underscore %> : <%= type_str %><%= "?" if r.optional %>
+    <%- else -%>
     property <%= r.name.underscore %> : <%= type_str %><%= "?" if r.optional %>
+    <%- end -%>
     <%- end -%>
 
     def initialize(<%= c.returns.map { |r| next if r.deprecated && !r.always_emit; "@#{r.name.underscore} : #{crystal_type(r, d, domains)}#{'?' if r.optional}" }.compact.join(", ") %>)
@@ -72,7 +76,11 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
       <%- next if p.name.empty? -%>
       <%- type_str = crystal_type(p, d, domains) -%>
     @[JSON::Field(emit_null: false)]
+    <%- if is_bool_type?(type_str) -%>
+    property? <%= p.name.underscore %> : <%= type_str %><%= "?" if p.optional %>
+    <%- else -%>
     property <%= p.name.underscore %> : <%= type_str %><%= "?" if p.optional %>
+    <%- end -%>
     <%- end -%>
 
     def initialize(<%= c.parameters.map { |p| next if p.deprecated && !p.always_emit; next if p.name.empty?; "@#{p.name.underscore} : #{crystal_type(p, d, domains)}#{'?' if p.optional}" }.compact.join(", ") %>)

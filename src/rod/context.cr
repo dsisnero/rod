@@ -24,12 +24,12 @@ module Rod
     class_getter background : Context { Context.new }
 
     # Absolute deadline when context times out, nil if no deadline.
-    property deadline : Time::Monotonic?
+    property deadline : Time::Span?
     @cancelled = false
     @err : Exception? = nil
     @mutex = Mutex.new
     @done = Channel(Nil).new
-    @values = {} of Object => Object
+    @values = {} of String => String
 
     # Create a new context, optionally with a parent.
     def initialize(@parent : Context? = nil, @cancel_func : ->? = nil)
@@ -87,12 +87,12 @@ module Rod
     end
 
     # Value returns the value for key.
-    def value(key : Object) : Object?
+    def value(key : String) : String?
       @values[key]? || @parent.try(&.value(key))
     end
 
     # Set a value in the context.
-    def set_value(key : Object, val : Object) : Nil
+    def set_value(key : String, val : String) : Nil
       @values[key] = val
     end
 

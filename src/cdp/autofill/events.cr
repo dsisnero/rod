@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -23,5 +22,4 @@ module Cdp::Autofill
       "Autofill.addressFormFilled"
     end
   end
-
 end

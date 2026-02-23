@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -33,7 +32,7 @@ module Cdp::Target
   struct CloseTargetResult
     include JSON::Serializable
 
-    def initialize()
+    def initialize
     end
   end
 
@@ -105,7 +104,6 @@ module Cdp::Target
     end
   end
 
-
   # Commands
   struct ActivateTarget
     include JSON::Serializable
@@ -133,7 +131,7 @@ module Cdp::Target
     @[JSON::Field(emit_null: false)]
     property target_id : TargetID
     @[JSON::Field(emit_null: false)]
-    property flatten : Bool?
+    property? flatten : Bool?
 
     def initialize(@target_id : TargetID, @flatten : Bool?)
     end
@@ -156,7 +154,7 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -203,7 +201,7 @@ module Cdp::Target
     @[JSON::Field(emit_null: false)]
     property binding_name : String?
     @[JSON::Field(emit_null: false)]
-    property inherit_permissions : Bool?
+    property? inherit_permissions : Bool?
 
     def initialize(@target_id : TargetID, @binding_name : String?, @inherit_permissions : Bool?)
     end
@@ -223,7 +221,7 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property dispose_on_detach : Bool?
+    property? dispose_on_detach : Bool?
     @[JSON::Field(emit_null: false)]
     property proxy_server : String?
     @[JSON::Field(emit_null: false)]
@@ -251,7 +249,7 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -285,17 +283,17 @@ module Cdp::Target
     @[JSON::Field(emit_null: false)]
     property browser_context_id : Cdp::Browser::BrowserContextID?
     @[JSON::Field(emit_null: false)]
-    property enable_begin_frame_control : Bool?
+    property? enable_begin_frame_control : Bool?
     @[JSON::Field(emit_null: false)]
-    property new_window : Bool?
+    property? new_window : Bool?
     @[JSON::Field(emit_null: false)]
-    property background : Bool?
+    property? background : Bool?
     @[JSON::Field(emit_null: false)]
-    property for_tab : Bool?
+    property? for_tab : Bool?
     @[JSON::Field(emit_null: false)]
-    property hidden : Bool?
+    property? hidden : Bool?
     @[JSON::Field(emit_null: false)]
-    property focus : Bool?
+    property? focus : Bool?
 
     def initialize(@url : String, @left : Int64?, @top : Int64?, @width : Int64?, @height : Int64?, @window_state : WindowState?, @browser_context_id : Cdp::Browser::BrowserContextID?, @enable_begin_frame_control : Bool?, @new_window : Bool?, @background : Bool?, @for_tab : Bool?, @hidden : Bool?, @focus : Bool?)
     end
@@ -404,11 +402,11 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property auto_attach : Bool
+    property? auto_attach : Bool
     @[JSON::Field(emit_null: false)]
-    property wait_for_debugger_on_start : Bool
+    property? wait_for_debugger_on_start : Bool
     @[JSON::Field(emit_null: false)]
-    property flatten : Bool?
+    property? flatten : Bool?
     @[JSON::Field(emit_null: false)]
     property filter : TargetFilter?
 
@@ -433,7 +431,7 @@ module Cdp::Target
     @[JSON::Field(emit_null: false)]
     property target_id : TargetID
     @[JSON::Field(emit_null: false)]
-    property wait_for_debugger_on_start : Bool
+    property? wait_for_debugger_on_start : Bool
     @[JSON::Field(emit_null: false)]
     property filter : TargetFilter?
 
@@ -455,7 +453,7 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property discover : Bool
+    property? discover : Bool
     @[JSON::Field(emit_null: false)]
     property filter : TargetFilter?
 
@@ -541,5 +539,4 @@ module Cdp::Target
       res
     end
   end
-
 end

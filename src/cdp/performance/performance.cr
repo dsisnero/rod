@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 require "./types"
 require "./events"
@@ -18,13 +16,12 @@ module Cdp::Performance
     end
   end
 
-
   # Commands
   struct Disable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -62,7 +59,7 @@ module Cdp::Performance
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -77,5 +74,4 @@ module Cdp::Performance
       res
     end
   end
-
 end

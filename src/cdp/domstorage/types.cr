@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::DOMStorage
   alias SerializedStorageKey = String
@@ -14,10 +12,9 @@ module Cdp::DOMStorage
     @[JSON::Field(emit_null: false)]
     property storage_key : SerializedStorageKey?
     @[JSON::Field(emit_null: false)]
-    property is_local_storage : Bool
+    property? is_local_storage : Bool
   end
 
   # TODO: Implement type array for DOMStorage.Item
   alias Item = JSON::Any
-
-   end
+end

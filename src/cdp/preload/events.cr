@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -42,15 +41,15 @@ module Cdp::Preload
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property disabled_by_preference : Bool
+    property? disabled_by_preference : Bool
     @[JSON::Field(emit_null: false)]
-    property disabled_by_data_saver : Bool
+    property? disabled_by_data_saver : Bool
     @[JSON::Field(emit_null: false)]
-    property disabled_by_battery_saver : Bool
+    property? disabled_by_battery_saver : Bool
     @[JSON::Field(emit_null: false)]
-    property disabled_by_holdback_prefetch_speculation_rules : Bool
+    property? disabled_by_holdback_prefetch_speculation_rules : Bool
     @[JSON::Field(emit_null: false)]
-    property disabled_by_holdback_prerender_speculation_rules : Bool
+    property? disabled_by_holdback_prerender_speculation_rules : Bool
 
     def initialize(@disabled_by_preference : Bool, @disabled_by_data_saver : Bool, @disabled_by_battery_saver : Bool, @disabled_by_holdback_prefetch_speculation_rules : Bool, @disabled_by_holdback_prerender_speculation_rules : Bool)
     end
@@ -129,5 +128,4 @@ module Cdp::Preload
       "Preload.preloadingAttemptSourcesUpdated"
     end
   end
-
 end

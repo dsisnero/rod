@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -52,5 +51,4 @@ module Cdp::Browser
       "Browser.downloadProgress"
     end
   end
-
 end

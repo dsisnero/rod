@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -145,7 +144,7 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property content : String
     @[JSON::Field(emit_null: false)]
-    property base64_encoded : Bool
+    property? base64_encoded : Bool
 
     def initialize(@content : String, @base64_encoded : Bool)
     end
@@ -170,7 +169,7 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property error_text : String?
     @[JSON::Field(emit_null: false)]
-    property is_download : Bool?
+    property? is_download : Bool?
 
     def initialize(@frame_id : FrameId, @loader_id : Cdp::Network::LoaderId?, @error_text : String?, @is_download : Bool?)
     end
@@ -227,7 +226,6 @@ module Cdp::Page
     end
   end
 
-
   # Commands
   struct AddScriptToEvaluateOnNewDocument
     include JSON::Serializable
@@ -237,9 +235,9 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property world_name : String?
     @[JSON::Field(emit_null: false)]
-    property include_command_line_api : Bool?
+    property? include_command_line_api : Bool?
     @[JSON::Field(emit_null: false)]
-    property run_immediately : Bool?
+    property? run_immediately : Bool?
 
     def initialize(@source : String, @world_name : String?, @include_command_line_api : Bool?, @run_immediately : Bool?)
     end
@@ -261,7 +259,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -285,11 +283,11 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property clip : Viewport?
     @[JSON::Field(emit_null: false)]
-    property from_surface : Bool?
+    property? from_surface : Bool?
     @[JSON::Field(emit_null: false)]
-    property capture_beyond_viewport : Bool?
+    property? capture_beyond_viewport : Bool?
     @[JSON::Field(emit_null: false)]
-    property optimize_for_speed : Bool?
+    property? optimize_for_speed : Bool?
 
     def initialize(@format : CaptureScreenshotFormat?, @quality : Int64?, @clip : Viewport?, @from_surface : Bool?, @capture_beyond_viewport : Bool?, @optimize_for_speed : Bool?)
     end
@@ -338,7 +336,7 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property world_name : String?
     @[JSON::Field(emit_null: false)]
-    property grant_univeral_access : Bool?
+    property? grant_univeral_access : Bool?
 
     def initialize(@frame_id : FrameId, @world_name : String?, @grant_univeral_access : Bool?)
     end
@@ -360,7 +358,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -378,7 +376,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enable_file_chooser_opened_event : Bool?
+    property? enable_file_chooser_opened_event : Bool?
 
     def initialize(@enable_file_chooser_opened_event : Bool?)
     end
@@ -421,7 +419,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -442,7 +440,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -485,7 +483,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -505,7 +503,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -525,7 +523,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -545,7 +543,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -589,7 +587,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -609,7 +607,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property accept : Bool
+    property? accept : Bool
     @[JSON::Field(emit_null: false)]
     property prompt_text : String?
 
@@ -681,11 +679,11 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property landscape : Bool?
+    property? landscape : Bool?
     @[JSON::Field(emit_null: false)]
-    property display_header_footer : Bool?
+    property? display_header_footer : Bool?
     @[JSON::Field(emit_null: false)]
-    property print_background : Bool?
+    property? print_background : Bool?
     @[JSON::Field(emit_null: false)]
     property scale : Float64?
     @[JSON::Field(emit_null: false)]
@@ -707,13 +705,13 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property footer_template : String?
     @[JSON::Field(emit_null: false)]
-    property prefer_css_page_size : Bool?
+    property? prefer_css_page_size : Bool?
     @[JSON::Field(emit_null: false)]
     property transfer_mode : PrintToPDFTransferMode?
     @[JSON::Field(emit_null: false)]
-    property generate_tagged_pdf : Bool?
+    property? generate_tagged_pdf : Bool?
     @[JSON::Field(emit_null: false)]
-    property generate_document_outline : Bool?
+    property? generate_document_outline : Bool?
 
     def initialize(@landscape : Bool?, @display_header_footer : Bool?, @print_background : Bool?, @scale : Float64?, @paper_width : Float64?, @paper_height : Float64?, @margin_top : Float64?, @margin_bottom : Float64?, @margin_left : Float64?, @margin_right : Float64?, @page_ranges : String?, @header_template : String?, @footer_template : String?, @prefer_css_page_size : Bool?, @transfer_mode : PrintToPDFTransferMode?, @generate_tagged_pdf : Bool?, @generate_document_outline : Bool?)
     end
@@ -735,7 +733,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property ignore_cache : Bool?
+    property? ignore_cache : Bool?
     @[JSON::Field(emit_null: false)]
     property script_to_evaluate_on_load : String?
     @[JSON::Field(emit_null: false)]
@@ -807,9 +805,9 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property query : String
     @[JSON::Field(emit_null: false)]
-    property case_sensitive : Bool?
+    property? case_sensitive : Bool?
     @[JSON::Field(emit_null: false)]
-    property is_regex : Bool?
+    property? is_regex : Bool?
 
     def initialize(@frame_id : FrameId, @url : String, @query : String, @case_sensitive : Bool?, @is_regex : Bool?)
     end
@@ -832,7 +830,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enabled : Bool
+    property? enabled : Bool
 
     def initialize(@enabled : Bool)
     end
@@ -852,7 +850,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enabled : Bool
+    property? enabled : Bool
 
     def initialize(@enabled : Bool)
     end
@@ -1008,7 +1006,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enabled : Bool
+    property? enabled : Bool
 
     def initialize(@enabled : Bool)
     end
@@ -1057,7 +1055,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -1076,7 +1074,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -1094,7 +1092,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -1134,7 +1132,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -1197,7 +1195,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -1281,7 +1279,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -1299,9 +1297,9 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enabled : Bool
+    property? enabled : Bool
     @[JSON::Field(emit_null: false)]
-    property cancel : Bool?
+    property? cancel : Bool?
 
     def initialize(@enabled : Bool, @cancel : Bool?)
     end
@@ -1322,7 +1320,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property is_allowed : Bool
+    property? is_allowed : Bool
 
     def initialize(@is_allowed : Bool)
     end
@@ -1343,7 +1341,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property include_actionable_information : Bool?
+    property? include_actionable_information : Bool?
 
     def initialize(@include_actionable_information : Bool?)
     end
@@ -1360,5 +1358,4 @@ module Cdp::Page
       res
     end
   end
-
 end

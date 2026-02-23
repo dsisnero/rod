@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 require "./types"
 
@@ -58,13 +56,12 @@ module Cdp::Memory
     end
   end
 
-
   # Commands
   struct GetDOMCounters
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -84,7 +81,7 @@ module Cdp::Memory
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -104,7 +101,7 @@ module Cdp::Memory
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -122,7 +119,7 @@ module Cdp::Memory
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -140,7 +137,7 @@ module Cdp::Memory
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property suppressed : Bool
+    property? suppressed : Bool
 
     def initialize(@suppressed : Bool)
     end
@@ -182,7 +179,7 @@ module Cdp::Memory
     @[JSON::Field(emit_null: false)]
     property sampling_interval : Int64?
     @[JSON::Field(emit_null: false)]
-    property suppress_randomness : Bool?
+    property? suppress_randomness : Bool?
 
     def initialize(@sampling_interval : Int64?, @suppress_randomness : Bool?)
     end
@@ -202,7 +199,7 @@ module Cdp::Memory
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -220,7 +217,7 @@ module Cdp::Memory
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -240,7 +237,7 @@ module Cdp::Memory
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -260,7 +257,7 @@ module Cdp::Memory
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -275,5 +272,4 @@ module Cdp::Memory
       res
     end
   end
-
 end

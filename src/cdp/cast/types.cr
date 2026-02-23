@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::Cast
   struct Sink
@@ -14,5 +12,4 @@ module Cdp::Cast
     @[JSON::Field(emit_null: false)]
     property session : String?
   end
-
-   end
+end

@@ -23,7 +23,7 @@ module Cdp::IndexedDB
     @[JSON::Field(emit_null: false)]
     property key_path : KeyPath
     @[JSON::Field(emit_null: false)]
-    property auto_increment : Bool
+    property? auto_increment : Bool
     @[JSON::Field(emit_null: false)]
     property indexes : Array(ObjectStoreIndex)
   end
@@ -35,9 +35,9 @@ module Cdp::IndexedDB
     @[JSON::Field(emit_null: false)]
     property key_path : KeyPath
     @[JSON::Field(emit_null: false)]
-    property unique : Bool
+    property? unique : Bool
     @[JSON::Field(emit_null: false)]
-    property multi_entry : Bool
+    property? multi_entry : Bool
   end
 
   struct Key
@@ -61,9 +61,9 @@ module Cdp::IndexedDB
     @[JSON::Field(emit_null: false)]
     property upper : Key?
     @[JSON::Field(emit_null: false)]
-    property lower_open : Bool
+    property? lower_open : Bool
     @[JSON::Field(emit_null: false)]
-    property upper_open : Bool
+    property? upper_open : Bool
   end
 
   struct DataEntry
@@ -87,6 +87,13 @@ module Cdp::IndexedDB
   end
 
   alias KeyType = String
+  KeyTypeNumberType = "number"
+  KeyTypeStringType = "string"
+  KeyTypeDate       = "date"
+  KeyTypeArray      = "array"
 
   alias KeyPathType = String
+  KeyPathTypeNull       = "null"
+  KeyPathTypeStringType = "string"
+  KeyPathTypeArray      = "array"
 end

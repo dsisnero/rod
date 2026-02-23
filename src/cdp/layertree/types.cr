@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -67,9 +66,9 @@ module Cdp::LayerTree
     @[JSON::Field(emit_null: false)]
     property paint_count : Int64
     @[JSON::Field(emit_null: false)]
-    property draws_content : Bool
+    property? draws_content : Bool
     @[JSON::Field(emit_null: false)]
-    property invisible : Bool?
+    property? invisible : Bool?
     @[JSON::Field(emit_null: false)]
     property scroll_rects : Array(ScrollRect)?
     @[JSON::Field(emit_null: false)]
@@ -80,5 +79,7 @@ module Cdp::LayerTree
   alias PaintProfile = JSON::Any
 
   alias ScrollRectType = String
-
-   end
+  ScrollRectTypeRepaintsOnScroll  = "RepaintsOnScroll"
+  ScrollRectTypeTouchEventHandler = "TouchEventHandler"
+  ScrollRectTypeWheelEventHandler = "WheelEventHandler"
+end

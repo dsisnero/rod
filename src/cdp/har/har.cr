@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -10,5 +9,4 @@ require "./types"
 
 # HTTP Archive Format
 module Cdp::HAR
-
 end

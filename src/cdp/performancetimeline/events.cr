@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -22,5 +21,4 @@ module Cdp::PerformanceTimeline
       "PerformanceTimeline.timelineEventAdded"
     end
   end
-
 end

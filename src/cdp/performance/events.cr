@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::Performance
   struct MetricsEvent
@@ -21,5 +19,4 @@ module Cdp::Performance
       "Performance.metrics"
     end
   end
-
 end

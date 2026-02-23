@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -42,11 +41,35 @@ module Cdp::Log
   end
 
   alias Source = String
+  SourceXml            = "xml"
+  SourceJavascript     = "javascript"
+  SourceNetwork        = "network"
+  SourceStorage        = "storage"
+  SourceAppcache       = "appcache"
+  SourceRendering      = "rendering"
+  SourceSecurity       = "security"
+  SourceDeprecation    = "deprecation"
+  SourceWorker         = "worker"
+  SourceViolation      = "violation"
+  SourceIntervention   = "intervention"
+  SourceRecommendation = "recommendation"
+  SourceOther          = "other"
 
   alias Level = String
+  LevelVerbose = "verbose"
+  LevelInfo    = "info"
+  LevelWarning = "warning"
+  LevelError   = "error"
 
   alias LogEntryCategory = String
+  LogEntryCategoryCors = "cors"
 
   alias Violation = String
-
-   end
+  ViolationLongTask          = "longTask"
+  ViolationLongLayout        = "longLayout"
+  ViolationBlockedEvent      = "blockedEvent"
+  ViolationBlockedParser     = "blockedParser"
+  ViolationDiscouragedAPIUse = "discouragedAPIUse"
+  ViolationHandler           = "handler"
+  ViolationRecurringHandler  = "recurringHandler"
+end

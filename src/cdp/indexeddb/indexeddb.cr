@@ -15,7 +15,7 @@ module Cdp::IndexedDB
     @[JSON::Field(emit_null: false)]
     property object_store_data_entries : Array(DataEntry)
     @[JSON::Field(emit_null: false)]
-    property has_more : Bool
+    property? has_more : Bool
 
     def initialize(@object_store_data_entries : Array(DataEntry), @has_more : Bool)
     end

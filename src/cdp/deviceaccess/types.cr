@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::DeviceAccess
   alias RequestId = String
@@ -16,5 +14,4 @@ module Cdp::DeviceAccess
     @[JSON::Field(emit_null: false)]
     property name : String
   end
-
-   end
+end

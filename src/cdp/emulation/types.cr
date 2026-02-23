@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -63,6 +62,9 @@ module Cdp::Emulation
 
   @[Experimental]
   alias VirtualTimePolicy = String
+  VirtualTimePolicyAdvance                      = "advance"
+  VirtualTimePolicyPause                        = "pause"
+  VirtualTimePolicyPauseIfNetworkFetchesPending = "pauseIfNetworkFetchesPending"
 
   @[Experimental]
   struct UserAgentBrandVersion
@@ -89,23 +91,31 @@ module Cdp::Emulation
     @[JSON::Field(emit_null: false)]
     property model : String
     @[JSON::Field(emit_null: false)]
-    property mobile : Bool
+    property? mobile : Bool
     @[JSON::Field(emit_null: false)]
     property bitness : String?
     @[JSON::Field(emit_null: false)]
-    property wow64 : Bool?
+    property? wow64 : Bool?
     @[JSON::Field(emit_null: false)]
     property form_factors : Array(String)?
   end
 
   @[Experimental]
   alias SensorType = String
+  SensorTypeAbsoluteOrientation = "absolute-orientation"
+  SensorTypeAccelerometer       = "accelerometer"
+  SensorTypeAmbientLight        = "ambient-light"
+  SensorTypeGravity             = "gravity"
+  SensorTypeGyroscope           = "gyroscope"
+  SensorTypeLinearAcceleration  = "linear-acceleration"
+  SensorTypeMagnetometer        = "magnetometer"
+  SensorTypeRelativeOrientation = "relative-orientation"
 
   @[Experimental]
   struct SensorMetadata
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property available : Bool?
+    property? available : Bool?
     @[JSON::Field(emit_null: false)]
     property minimum_frequency : Float64?
     @[JSON::Field(emit_null: false)]
@@ -156,15 +166,20 @@ module Cdp::Emulation
 
   @[Experimental]
   alias PressureSource = String
+  PressureSourceCpu = "cpu"
 
   @[Experimental]
   alias PressureState = String
+  PressureStateNominal  = "nominal"
+  PressureStateFair     = "fair"
+  PressureStateSerious  = "serious"
+  PressureStateCritical = "critical"
 
   @[Experimental]
   struct PressureMetadata
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property available : Bool?
+    property? available : Bool?
   end
 
   @[Experimental]
@@ -209,11 +224,11 @@ module Cdp::Emulation
     @[JSON::Field(emit_null: false)]
     property color_depth : Int64
     @[JSON::Field(emit_null: false)]
-    property is_extended : Bool
+    property? is_extended : Bool
     @[JSON::Field(emit_null: false)]
-    property is_internal : Bool
+    property? is_internal : Bool
     @[JSON::Field(emit_null: false)]
-    property is_primary : Bool
+    property? is_primary : Bool
     @[JSON::Field(emit_null: false)]
     property label : String
     @[JSON::Field(emit_null: false)]
@@ -222,15 +237,33 @@ module Cdp::Emulation
 
   @[Experimental]
   alias DisabledImageType = String
+  DisabledImageTypeAvif = "avif"
+  DisabledImageTypeWebp = "webp"
 
   alias OrientationType = String
+  OrientationTypePortraitPrimary    = "portraitPrimary"
+  OrientationTypePortraitSecondary  = "portraitSecondary"
+  OrientationTypeLandscapePrimary   = "landscapePrimary"
+  OrientationTypeLandscapeSecondary = "landscapeSecondary"
 
   alias DisplayFeatureOrientation = String
+  DisplayFeatureOrientationVertical   = "vertical"
+  DisplayFeatureOrientationHorizontal = "horizontal"
 
   alias DevicePostureType = String
+  DevicePostureTypeContinuous = "continuous"
+  DevicePostureTypeFolded     = "folded"
 
   alias SetEmitTouchEventsForMouseConfiguration = String
+  SetEmitTouchEventsForMouseConfigurationMobile  = "mobile"
+  SetEmitTouchEventsForMouseConfigurationDesktop = "desktop"
 
   alias SetEmulatedVisionDeficiencyType = String
-
-   end
+  SetEmulatedVisionDeficiencyTypeNone            = "none"
+  SetEmulatedVisionDeficiencyTypeBlurredVision   = "blurredVision"
+  SetEmulatedVisionDeficiencyTypeReducedContrast = "reducedContrast"
+  SetEmulatedVisionDeficiencyTypeAchromatopsia   = "achromatopsia"
+  SetEmulatedVisionDeficiencyTypeDeuteranopia    = "deuteranopia"
+  SetEmulatedVisionDeficiencyTypeProtanopia      = "protanopia"
+  SetEmulatedVisionDeficiencyTypeTritanopia      = "tritanopia"
+end

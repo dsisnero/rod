@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -12,7 +11,6 @@ require "./events"
 # Defines commands and events for Autofill.
 @[Experimental]
 module Cdp::Autofill
-
   # Commands
   struct Trigger
     include JSON::Serializable
@@ -64,7 +62,7 @@ module Cdp::Autofill
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -82,7 +80,7 @@ module Cdp::Autofill
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -95,5 +93,4 @@ module Cdp::Autofill
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

@@ -17,11 +17,11 @@ module Cdp::Tracing
     @[JSON::Field(emit_null: false)]
     property trace_buffer_size_in_kb : Float64?
     @[JSON::Field(emit_null: false)]
-    property enable_sampling : Bool?
+    property? enable_sampling : Bool?
     @[JSON::Field(emit_null: false)]
-    property enable_systrace : Bool?
+    property? enable_systrace : Bool?
     @[JSON::Field(emit_null: false)]
-    property enable_argument_filter : Bool?
+    property? enable_argument_filter : Bool?
     @[JSON::Field(emit_null: false)]
     property included_categories : Array(String)?
     @[JSON::Field(emit_null: false)]
@@ -34,17 +34,33 @@ module Cdp::Tracing
 
   @[Experimental]
   alias StreamFormat = String
+  StreamFormatJson  = "json"
+  StreamFormatProto = "proto"
 
   @[Experimental]
   alias StreamCompression = String
+  StreamCompressionNone = "none"
+  StreamCompressionGzip = "gzip"
 
   @[Experimental]
   alias MemoryDumpLevelOfDetail = String
+  MemoryDumpLevelOfDetailBackground = "background"
+  MemoryDumpLevelOfDetailLight      = "light"
+  MemoryDumpLevelOfDetailDetailed   = "detailed"
 
   @[Experimental]
   alias TracingBackend = String
+  TracingBackendAuto   = "auto"
+  TracingBackendChrome = "chrome"
+  TracingBackendSystem = "system"
 
   alias RecordMode = String
+  RecordModeRecordUntilFull        = "recordUntilFull"
+  RecordModeRecordContinuously     = "recordContinuously"
+  RecordModeRecordAsMuchAsPossible = "recordAsMuchAsPossible"
+  RecordModeEchoToConsole          = "echoToConsole"
 
   alias TransferMode = String
+  TransferModeReportEvents   = "ReportEvents"
+  TransferModeReturnAsStream = "ReturnAsStream"
 end

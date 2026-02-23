@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -236,5 +235,4 @@ module Cdp::WebAudio
       "WebAudio.nodeParamDisconnected"
     end
   end
-
 end

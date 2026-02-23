@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -11,7 +10,7 @@ module Cdp::BackgroundService
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property is_recording : Bool
+    property? is_recording : Bool
     @[JSON::Field(emit_null: false)]
     property service : ServiceName
 
@@ -38,5 +37,4 @@ module Cdp::BackgroundService
       "BackgroundService.backgroundServiceEventReceived"
     end
   end
-
 end

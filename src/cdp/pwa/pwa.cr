@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -38,7 +37,6 @@ module Cdp::PWA
     def initialize(@target_ids : Array(Cdp::Target::TargetID))
     end
   end
-
 
   # Commands
   struct GetOsAppState
@@ -179,7 +177,7 @@ module Cdp::PWA
     @[JSON::Field(emit_null: false)]
     property manifest_id : String
     @[JSON::Field(emit_null: false)]
-    property link_capturing : Bool?
+    property? link_capturing : Bool?
     @[JSON::Field(emit_null: false)]
     property display_mode : DisplayMode?
 
@@ -196,5 +194,4 @@ module Cdp::PWA
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

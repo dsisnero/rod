@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -48,6 +47,8 @@ module Cdp::Autofill
   end
 
   alias FillingStrategy = String
+  FillingStrategyAutocompleteAttribute = "autocompleteAttribute"
+  FillingStrategyAutofillInferred      = "autofillInferred"
 
   struct FilledField
     include JSON::Serializable
@@ -68,5 +69,4 @@ module Cdp::Autofill
     @[JSON::Field(emit_null: false)]
     property field_id : Cdp::DOM::BackendNodeId
   end
-
-   end
+end

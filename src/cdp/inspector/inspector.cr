@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 require "./types"
 require "./events"
@@ -10,13 +8,12 @@ require "./events"
 #
 @[Experimental]
 module Cdp::Inspector
-
   # Commands
   struct Disable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -34,7 +31,7 @@ module Cdp::Inspector
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -47,5 +44,4 @@ module Cdp::Inspector
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

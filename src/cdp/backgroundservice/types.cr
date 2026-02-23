@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -8,6 +7,12 @@ require "../serviceworker/serviceworker"
 
 module Cdp::BackgroundService
   alias ServiceName = String
+  ServiceNameBackgroundFetch        = "backgroundFetch"
+  ServiceNameBackgroundSync         = "backgroundSync"
+  ServiceNamePushMessaging          = "pushMessaging"
+  ServiceNameNotifications          = "notifications"
+  ServiceNamePaymentHandler         = "paymentHandler"
+  ServiceNamePeriodicBackgroundSync = "periodicBackgroundSync"
 
   struct EventMetadata
     include JSON::Serializable
@@ -36,5 +41,4 @@ module Cdp::BackgroundService
     @[JSON::Field(emit_null: false)]
     property storage_key : String
   end
-
-   end
+end

@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::HeadlessExperimental
   struct ScreenshotParams
@@ -12,9 +10,11 @@ module Cdp::HeadlessExperimental
     @[JSON::Field(emit_null: false)]
     property quality : Int64?
     @[JSON::Field(emit_null: false)]
-    property optimize_for_speed : Bool?
+    property? optimize_for_speed : Bool?
   end
 
   alias ScreenshotParamsFormat = String
-
-   end
+  ScreenshotParamsFormatJpeg = "jpeg"
+  ScreenshotParamsFormatPng  = "png"
+  ScreenshotParamsFormatWebp = "webp"
+end

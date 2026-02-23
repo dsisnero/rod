@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -62,7 +61,7 @@ module Cdp::Profiler
     @[JSON::Field(emit_null: false)]
     property ranges : Array(CoverageRange)
     @[JSON::Field(emit_null: false)]
-    property is_block_coverage : Bool
+    property? is_block_coverage : Bool
   end
 
   struct ScriptCoverage
@@ -74,5 +73,4 @@ module Cdp::Profiler
     @[JSON::Field(emit_null: false)]
     property functions : Array(FunctionCoverage)
   end
-
-   end
+end

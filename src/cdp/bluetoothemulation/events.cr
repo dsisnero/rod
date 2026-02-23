@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::BluetoothEmulation
   struct GattOperationReceivedEvent
@@ -61,5 +59,4 @@ module Cdp::BluetoothEmulation
       "BluetoothEmulation.descriptorOperationReceived"
     end
   end
-
 end

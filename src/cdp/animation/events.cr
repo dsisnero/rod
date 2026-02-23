@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -66,5 +65,4 @@ module Cdp::Animation
       "Animation.animationUpdated"
     end
   end
-
 end

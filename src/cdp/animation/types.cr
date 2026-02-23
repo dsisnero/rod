@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -14,7 +13,7 @@ module Cdp::Animation
     @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
-    property paused_state : Bool
+    property? paused_state : Bool
     @[JSON::Field(emit_null: false)]
     property play_state : String
     @[JSON::Field(emit_null: false)]
@@ -88,5 +87,7 @@ module Cdp::Animation
   end
 
   alias Type = String
-
-   end
+  TypeCSSTransition = "CSSTransition"
+  TypeCSSAnimation  = "CSSAnimation"
+  TypeWebAnimation  = "WebAnimation"
+end

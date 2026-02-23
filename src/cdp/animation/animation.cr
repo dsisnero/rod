@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -39,13 +38,12 @@ module Cdp::Animation
     end
   end
 
-
   # Commands
   struct Disable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -63,7 +61,7 @@ module Cdp::Animation
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -103,7 +101,7 @@ module Cdp::Animation
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -189,7 +187,7 @@ module Cdp::Animation
     @[JSON::Field(emit_null: false)]
     property animations : Array(String)
     @[JSON::Field(emit_null: false)]
-    property paused : Bool
+    property? paused : Bool
 
     def initialize(@animations : Array(String), @paused : Bool)
     end
@@ -248,5 +246,4 @@ module Cdp::Animation
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

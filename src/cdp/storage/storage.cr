@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -40,7 +39,7 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property quota : Float64
     @[JSON::Field(emit_null: false)]
-    property override_active : Bool
+    property? override_active : Bool
     @[JSON::Field(emit_null: false)]
     property usage_breakdown : Array(UsageForType)
 
@@ -62,7 +61,7 @@ module Cdp::Storage
   struct ClearTrustTokensResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property did_delete_tokens : Bool
+    property? did_delete_tokens : Bool
 
     def initialize(@did_delete_tokens : Bool)
     end
@@ -137,7 +136,6 @@ module Cdp::Storage
     def initialize(@matched_urls : Array(String))
     end
   end
-
 
   # Commands
   @[Experimental]
@@ -481,7 +479,7 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -550,7 +548,7 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enable : Bool
+    property? enable : Bool
 
     def initialize(@enable : Bool)
     end
@@ -571,7 +569,7 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enable : Bool
+    property? enable : Bool
 
     def initialize(@enable : Bool)
     end
@@ -644,7 +642,7 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property value : String
     @[JSON::Field(emit_null: false)]
-    property ignore_if_present : Bool?
+    property? ignore_if_present : Bool?
 
     def initialize(@owner_origin : String, @key : String, @value : String, @ignore_if_present : Bool?)
     end
@@ -730,7 +728,7 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enable : Bool
+    property? enable : Bool
 
     def initialize(@enable : Bool)
     end
@@ -753,7 +751,7 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property storage_key : String
     @[JSON::Field(emit_null: false)]
-    property enable : Bool
+    property? enable : Bool
 
     def initialize(@storage_key : String, @enable : Bool)
     end
@@ -795,7 +793,7 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -816,7 +814,7 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enabled : Bool
+    property? enabled : Bool
 
     def initialize(@enabled : Bool)
     end
@@ -837,7 +835,7 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enable : Bool
+    property? enable : Bool
 
     def initialize(@enable : Bool)
     end
@@ -858,7 +856,7 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -879,7 +877,7 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -943,5 +941,4 @@ module Cdp::Storage
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

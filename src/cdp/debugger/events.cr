@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -37,7 +36,7 @@ module Cdp::Debugger
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize()
+    def initialize
     end
 
     # ProtoEvent returns the protocol event name.
@@ -72,9 +71,9 @@ module Cdp::Debugger
     @[JSON::Field(emit_null: false)]
     property source_map_url : String?
     @[JSON::Field(emit_null: false)]
-    property has_source_url : Bool?
+    property? has_source_url : Bool?
     @[JSON::Field(emit_null: false)]
-    property is_module : Bool?
+    property? is_module : Bool?
     @[JSON::Field(emit_null: false)]
     property length : Int64?
     @[JSON::Field(emit_null: false)]
@@ -119,13 +118,13 @@ module Cdp::Debugger
     @[JSON::Field(emit_null: false)]
     property execution_context_aux_data : JSON::Any?
     @[JSON::Field(emit_null: false)]
-    property is_live_edit : Bool?
+    property? is_live_edit : Bool?
     @[JSON::Field(emit_null: false)]
     property source_map_url : String?
     @[JSON::Field(emit_null: false)]
-    property has_source_url : Bool?
+    property? has_source_url : Bool?
     @[JSON::Field(emit_null: false)]
-    property is_module : Bool?
+    property? is_module : Bool?
     @[JSON::Field(emit_null: false)]
     property length : Int64?
     @[JSON::Field(emit_null: false)]
@@ -149,5 +148,4 @@ module Cdp::Debugger
       "Debugger.scriptParsed"
     end
   end
-
 end

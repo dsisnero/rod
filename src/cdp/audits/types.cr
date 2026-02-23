@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -34,12 +33,40 @@ module Cdp::Audits
   end
 
   alias CookieExclusionReason = String
+  CookieExclusionReasonExcludeSameSiteUnspecifiedTreatedAsLax        = "ExcludeSameSiteUnspecifiedTreatedAsLax"
+  CookieExclusionReasonExcludeSameSiteNoneInsecure                   = "ExcludeSameSiteNoneInsecure"
+  CookieExclusionReasonExcludeSameSiteLax                            = "ExcludeSameSiteLax"
+  CookieExclusionReasonExcludeSameSiteStrict                         = "ExcludeSameSiteStrict"
+  CookieExclusionReasonExcludeDomainNonASCII                         = "ExcludeDomainNonASCII"
+  CookieExclusionReasonExcludeThirdPartyCookieBlockedInFirstPartySet = "ExcludeThirdPartyCookieBlockedInFirstPartySet"
+  CookieExclusionReasonExcludeThirdPartyPhaseout                     = "ExcludeThirdPartyPhaseout"
+  CookieExclusionReasonExcludePortMismatch                           = "ExcludePortMismatch"
+  CookieExclusionReasonExcludeSchemeMismatch                         = "ExcludeSchemeMismatch"
 
   alias CookieWarningReason = String
+  CookieWarningReasonWarnSameSiteUnspecifiedCrossSiteContext        = "WarnSameSiteUnspecifiedCrossSiteContext"
+  CookieWarningReasonWarnSameSiteNoneInsecure                       = "WarnSameSiteNoneInsecure"
+  CookieWarningReasonWarnSameSiteUnspecifiedLaxAllowUnsafe          = "WarnSameSiteUnspecifiedLaxAllowUnsafe"
+  CookieWarningReasonWarnSameSiteStrictLaxDowngradeStrict           = "WarnSameSiteStrictLaxDowngradeStrict"
+  CookieWarningReasonWarnSameSiteStrictCrossDowngradeStrict         = "WarnSameSiteStrictCrossDowngradeStrict"
+  CookieWarningReasonWarnSameSiteStrictCrossDowngradeLax            = "WarnSameSiteStrictCrossDowngradeLax"
+  CookieWarningReasonWarnSameSiteLaxCrossDowngradeStrict            = "WarnSameSiteLaxCrossDowngradeStrict"
+  CookieWarningReasonWarnSameSiteLaxCrossDowngradeLax               = "WarnSameSiteLaxCrossDowngradeLax"
+  CookieWarningReasonWarnAttributeValueExceedsMaxSize               = "WarnAttributeValueExceedsMaxSize"
+  CookieWarningReasonWarnDomainNonASCII                             = "WarnDomainNonASCII"
+  CookieWarningReasonWarnThirdPartyPhaseout                         = "WarnThirdPartyPhaseout"
+  CookieWarningReasonWarnCrossSiteRedirectDowngradeChangesInclusion = "WarnCrossSiteRedirectDowngradeChangesInclusion"
+  CookieWarningReasonWarnDeprecationTrialMetadata                   = "WarnDeprecationTrialMetadata"
+  CookieWarningReasonWarnThirdPartyCookieHeuristic                  = "WarnThirdPartyCookieHeuristic"
 
   alias CookieOperation = String
+  CookieOperationSetCookie  = "SetCookie"
+  CookieOperationReadCookie = "ReadCookie"
 
   alias InsightType = String
+  InsightTypeGitHubResource = "GitHubResource"
+  InsightTypeGracePeriod    = "GracePeriod"
+  InsightTypeHeuristics     = "Heuristics"
 
   struct CookieIssueInsight
     include JSON::Serializable
@@ -72,6 +99,7 @@ module Cdp::Audits
   end
 
   alias PerformanceIssueType = String
+  PerformanceIssueTypeDocumentCookie = "DocumentCookie"
 
   struct PerformanceIssueDetails
     include JSON::Serializable
@@ -82,8 +110,40 @@ module Cdp::Audits
   end
 
   alias MixedContentResolutionStatus = String
+  MixedContentResolutionStatusMixedContentBlocked               = "MixedContentBlocked"
+  MixedContentResolutionStatusMixedContentAutomaticallyUpgraded = "MixedContentAutomaticallyUpgraded"
+  MixedContentResolutionStatusMixedContentWarning               = "MixedContentWarning"
 
   alias MixedContentResourceType = String
+  MixedContentResourceTypeAttributionSrc   = "AttributionSrc"
+  MixedContentResourceTypeAudio            = "Audio"
+  MixedContentResourceTypeBeacon           = "Beacon"
+  MixedContentResourceTypeCSPReport        = "CSPReport"
+  MixedContentResourceTypeDownload         = "Download"
+  MixedContentResourceTypeEventSource      = "EventSource"
+  MixedContentResourceTypeFavicon          = "Favicon"
+  MixedContentResourceTypeFont             = "Font"
+  MixedContentResourceTypeForm             = "Form"
+  MixedContentResourceTypeFrame            = "Frame"
+  MixedContentResourceTypeImage            = "Image"
+  MixedContentResourceTypeImport           = "Import"
+  MixedContentResourceTypeJSON             = "JSON"
+  MixedContentResourceTypeManifest         = "Manifest"
+  MixedContentResourceTypePing             = "Ping"
+  MixedContentResourceTypePluginData       = "PluginData"
+  MixedContentResourceTypePluginResource   = "PluginResource"
+  MixedContentResourceTypePrefetch         = "Prefetch"
+  MixedContentResourceTypeResource         = "Resource"
+  MixedContentResourceTypeScript           = "Script"
+  MixedContentResourceTypeServiceWorker    = "ServiceWorker"
+  MixedContentResourceTypeSharedWorker     = "SharedWorker"
+  MixedContentResourceTypeSpeculationRules = "SpeculationRules"
+  MixedContentResourceTypeStylesheet       = "Stylesheet"
+  MixedContentResourceTypeTrack            = "Track"
+  MixedContentResourceTypeVideo            = "Video"
+  MixedContentResourceTypeWorker           = "Worker"
+  MixedContentResourceTypeXMLHttpRequest   = "XMLHttpRequest"
+  MixedContentResourceTypeXSLT             = "XSLT"
 
   struct MixedContentIssueDetails
     include JSON::Serializable
@@ -102,6 +162,14 @@ module Cdp::Audits
   end
 
   alias BlockedByResponseReason = String
+  BlockedByResponseReasonCoepFrameResourceNeedsCoepHeader                        = "CoepFrameResourceNeedsCoepHeader"
+  BlockedByResponseReasonCoopSandboxedIFrameCannotNavigateToCoopPage             = "CoopSandboxedIFrameCannotNavigateToCoopPage"
+  BlockedByResponseReasonCorpNotSameOrigin                                       = "CorpNotSameOrigin"
+  BlockedByResponseReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoep       = "CorpNotSameOriginAfterDefaultedToSameOriginByCoep"
+  BlockedByResponseReasonCorpNotSameOriginAfterDefaultedToSameOriginByDip        = "CorpNotSameOriginAfterDefaultedToSameOriginByDip"
+  BlockedByResponseReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip = "CorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip"
+  BlockedByResponseReasonCorpNotSameSite                                         = "CorpNotSameSite"
+  BlockedByResponseReasonSRIMessageSignatureMismatch                             = "SRIMessageSignatureMismatch"
 
   struct BlockedByResponseIssueDetails
     include JSON::Serializable
@@ -116,8 +184,13 @@ module Cdp::Audits
   end
 
   alias HeavyAdResolutionStatus = String
+  HeavyAdResolutionStatusHeavyAdBlocked = "HeavyAdBlocked"
+  HeavyAdResolutionStatusHeavyAdWarning = "HeavyAdWarning"
 
   alias HeavyAdReason = String
+  HeavyAdReasonNetworkTotalLimit = "NetworkTotalLimit"
+  HeavyAdReasonCpuTotalLimit     = "CpuTotalLimit"
+  HeavyAdReasonCpuPeakLimit      = "CpuPeakLimit"
 
   struct HeavyAdIssueDetails
     include JSON::Serializable
@@ -130,6 +203,13 @@ module Cdp::Audits
   end
 
   alias ContentSecurityPolicyViolationType = String
+  ContentSecurityPolicyViolationTypeKInlineViolation             = "kInlineViolation"
+  ContentSecurityPolicyViolationTypeKEvalViolation               = "kEvalViolation"
+  ContentSecurityPolicyViolationTypeKURLViolation                = "kURLViolation"
+  ContentSecurityPolicyViolationTypeKSRIViolation                = "kSRIViolation"
+  ContentSecurityPolicyViolationTypeKTrustedTypesSinkViolation   = "kTrustedTypesSinkViolation"
+  ContentSecurityPolicyViolationTypeKTrustedTypesPolicyViolation = "kTrustedTypesPolicyViolation"
+  ContentSecurityPolicyViolationTypeKWasmEvalViolation           = "kWasmEvalViolation"
 
   struct SourceCodeLocation
     include JSON::Serializable
@@ -150,7 +230,7 @@ module Cdp::Audits
     @[JSON::Field(emit_null: false)]
     property violated_directive : String
     @[JSON::Field(emit_null: false)]
-    property is_report_only : Bool
+    property? is_report_only : Bool
     @[JSON::Field(emit_null: false)]
     property content_security_policy_violation_type : ContentSecurityPolicyViolationType
     @[JSON::Field(emit_null: false)]
@@ -162,13 +242,15 @@ module Cdp::Audits
   end
 
   alias SharedArrayBufferIssueType = String
+  SharedArrayBufferIssueTypeTransferIssue = "TransferIssue"
+  SharedArrayBufferIssueTypeCreationIssue = "CreationIssue"
 
   struct SharedArrayBufferIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
     property source_code_location : SourceCodeLocation
     @[JSON::Field(emit_null: false)]
-    property is_warning : Bool
+    property? is_warning : Bool
     @[JSON::Field(emit_null: false)]
     property type : SharedArrayBufferIssueType
   end
@@ -196,7 +278,7 @@ module Cdp::Audits
     @[JSON::Field(emit_null: false)]
     property cors_error_status : Cdp::Network::CorsErrorStatus
     @[JSON::Field(emit_null: false)]
-    property is_warning : Bool
+    property? is_warning : Bool
     @[JSON::Field(emit_null: false)]
     property request : AffectedRequest
     @[JSON::Field(emit_null: false)]
@@ -210,14 +292,91 @@ module Cdp::Audits
   end
 
   alias AttributionReportingIssueType = String
+  AttributionReportingIssueTypePermissionPolicyDisabled                             = "PermissionPolicyDisabled"
+  AttributionReportingIssueTypeUntrustworthyReportingOrigin                         = "UntrustworthyReportingOrigin"
+  AttributionReportingIssueTypeInsecureContext                                      = "InsecureContext"
+  AttributionReportingIssueTypeInvalidHeader                                        = "InvalidHeader"
+  AttributionReportingIssueTypeInvalidRegisterTriggerHeader                         = "InvalidRegisterTriggerHeader"
+  AttributionReportingIssueTypeSourceAndTriggerHeaders                              = "SourceAndTriggerHeaders"
+  AttributionReportingIssueTypeSourceIgnored                                        = "SourceIgnored"
+  AttributionReportingIssueTypeTriggerIgnored                                       = "TriggerIgnored"
+  AttributionReportingIssueTypeOsSourceIgnored                                      = "OsSourceIgnored"
+  AttributionReportingIssueTypeOsTriggerIgnored                                     = "OsTriggerIgnored"
+  AttributionReportingIssueTypeInvalidRegisterOsSourceHeader                        = "InvalidRegisterOsSourceHeader"
+  AttributionReportingIssueTypeInvalidRegisterOsTriggerHeader                       = "InvalidRegisterOsTriggerHeader"
+  AttributionReportingIssueTypeWebAndOsHeaders                                      = "WebAndOsHeaders"
+  AttributionReportingIssueTypeNoWebOrOsSupport                                     = "NoWebOrOsSupport"
+  AttributionReportingIssueTypeNavigationRegistrationWithoutTransientUserActivation = "NavigationRegistrationWithoutTransientUserActivation"
+  AttributionReportingIssueTypeInvalidInfoHeader                                    = "InvalidInfoHeader"
+  AttributionReportingIssueTypeNoRegisterSourceHeader                               = "NoRegisterSourceHeader"
+  AttributionReportingIssueTypeNoRegisterTriggerHeader                              = "NoRegisterTriggerHeader"
+  AttributionReportingIssueTypeNoRegisterOsSourceHeader                             = "NoRegisterOsSourceHeader"
+  AttributionReportingIssueTypeNoRegisterOsTriggerHeader                            = "NoRegisterOsTriggerHeader"
+  AttributionReportingIssueTypeNavigationRegistrationUniqueScopeAlreadySet          = "NavigationRegistrationUniqueScopeAlreadySet"
 
   alias SharedDictionaryError = String
+  SharedDictionaryErrorUseErrorCrossOriginNoCorsRequest          = "UseErrorCrossOriginNoCorsRequest"
+  SharedDictionaryErrorUseErrorDictionaryLoadFailure             = "UseErrorDictionaryLoadFailure"
+  SharedDictionaryErrorUseErrorMatchingDictionaryNotUsed         = "UseErrorMatchingDictionaryNotUsed"
+  SharedDictionaryErrorUseErrorUnexpectedContentDictionaryHeader = "UseErrorUnexpectedContentDictionaryHeader"
+  SharedDictionaryErrorWriteErrorCossOriginNoCorsRequest         = "WriteErrorCossOriginNoCorsRequest"
+  SharedDictionaryErrorWriteErrorDisallowedBySettings            = "WriteErrorDisallowedBySettings"
+  SharedDictionaryErrorWriteErrorExpiredResponse                 = "WriteErrorExpiredResponse"
+  SharedDictionaryErrorWriteErrorFeatureDisabled                 = "WriteErrorFeatureDisabled"
+  SharedDictionaryErrorWriteErrorInsufficientResources           = "WriteErrorInsufficientResources"
+  SharedDictionaryErrorWriteErrorInvalidMatchField               = "WriteErrorInvalidMatchField"
+  SharedDictionaryErrorWriteErrorInvalidStructuredHeader         = "WriteErrorInvalidStructuredHeader"
+  SharedDictionaryErrorWriteErrorInvalidTTLField                 = "WriteErrorInvalidTTLField"
+  SharedDictionaryErrorWriteErrorNavigationRequest               = "WriteErrorNavigationRequest"
+  SharedDictionaryErrorWriteErrorNoMatchField                    = "WriteErrorNoMatchField"
+  SharedDictionaryErrorWriteErrorNonIntegerTTLField              = "WriteErrorNonIntegerTTLField"
+  SharedDictionaryErrorWriteErrorNonListMatchDestField           = "WriteErrorNonListMatchDestField"
+  SharedDictionaryErrorWriteErrorNonSecureContext                = "WriteErrorNonSecureContext"
+  SharedDictionaryErrorWriteErrorNonStringIdField                = "WriteErrorNonStringIdField"
+  SharedDictionaryErrorWriteErrorNonStringInMatchDestList        = "WriteErrorNonStringInMatchDestList"
+  SharedDictionaryErrorWriteErrorNonStringMatchField             = "WriteErrorNonStringMatchField"
+  SharedDictionaryErrorWriteErrorNonTokenTypeField               = "WriteErrorNonTokenTypeField"
+  SharedDictionaryErrorWriteErrorRequestAborted                  = "WriteErrorRequestAborted"
+  SharedDictionaryErrorWriteErrorShuttingDown                    = "WriteErrorShuttingDown"
+  SharedDictionaryErrorWriteErrorTooLongIdField                  = "WriteErrorTooLongIdField"
+  SharedDictionaryErrorWriteErrorUnsupportedType                 = "WriteErrorUnsupportedType"
 
   alias SRIMessageSignatureError = String
+  SRIMessageSignatureErrorMissingSignatureHeader                               = "MissingSignatureHeader"
+  SRIMessageSignatureErrorMissingSignatureInputHeader                          = "MissingSignatureInputHeader"
+  SRIMessageSignatureErrorInvalidSignatureHeader                               = "InvalidSignatureHeader"
+  SRIMessageSignatureErrorInvalidSignatureInputHeader                          = "InvalidSignatureInputHeader"
+  SRIMessageSignatureErrorSignatureHeaderValueIsNotByteSequence                = "SignatureHeaderValueIsNotByteSequence"
+  SRIMessageSignatureErrorSignatureHeaderValueIsParameterized                  = "SignatureHeaderValueIsParameterized"
+  SRIMessageSignatureErrorSignatureHeaderValueIsIncorrectLength                = "SignatureHeaderValueIsIncorrectLength"
+  SRIMessageSignatureErrorSignatureInputHeaderMissingLabel                     = "SignatureInputHeaderMissingLabel"
+  SRIMessageSignatureErrorSignatureInputHeaderValueNotInnerList                = "SignatureInputHeaderValueNotInnerList"
+  SRIMessageSignatureErrorSignatureInputHeaderValueMissingComponents           = "SignatureInputHeaderValueMissingComponents"
+  SRIMessageSignatureErrorSignatureInputHeaderInvalidComponentType             = "SignatureInputHeaderInvalidComponentType"
+  SRIMessageSignatureErrorSignatureInputHeaderInvalidComponentName             = "SignatureInputHeaderInvalidComponentName"
+  SRIMessageSignatureErrorSignatureInputHeaderInvalidHeaderComponentParameter  = "SignatureInputHeaderInvalidHeaderComponentParameter"
+  SRIMessageSignatureErrorSignatureInputHeaderInvalidDerivedComponentParameter = "SignatureInputHeaderInvalidDerivedComponentParameter"
+  SRIMessageSignatureErrorSignatureInputHeaderKeyIdLength                      = "SignatureInputHeaderKeyIdLength"
+  SRIMessageSignatureErrorSignatureInputHeaderInvalidParameter                 = "SignatureInputHeaderInvalidParameter"
+  SRIMessageSignatureErrorSignatureInputHeaderMissingRequiredParameters        = "SignatureInputHeaderMissingRequiredParameters"
+  SRIMessageSignatureErrorValidationFailedSignatureExpired                     = "ValidationFailedSignatureExpired"
+  SRIMessageSignatureErrorValidationFailedInvalidLength                        = "ValidationFailedInvalidLength"
+  SRIMessageSignatureErrorValidationFailedSignatureMismatch                    = "ValidationFailedSignatureMismatch"
+  SRIMessageSignatureErrorValidationFailedIntegrityMismatch                    = "ValidationFailedIntegrityMismatch"
 
   alias UnencodedDigestError = String
+  UnencodedDigestErrorMalformedDictionary   = "MalformedDictionary"
+  UnencodedDigestErrorUnknownAlgorithm      = "UnknownAlgorithm"
+  UnencodedDigestErrorIncorrectDigestType   = "IncorrectDigestType"
+  UnencodedDigestErrorIncorrectDigestLength = "IncorrectDigestLength"
 
   alias ConnectionAllowlistError = String
+  ConnectionAllowlistErrorInvalidHeader             = "InvalidHeader"
+  ConnectionAllowlistErrorMoreThanOneList           = "MoreThanOneList"
+  ConnectionAllowlistErrorItemNotInnerList          = "ItemNotInnerList"
+  ConnectionAllowlistErrorInvalidAllowlistItemType  = "InvalidAllowlistItemType"
+  ConnectionAllowlistErrorReportingEndpointNotToken = "ReportingEndpointNotToken"
+  ConnectionAllowlistErrorInvalidUrlPattern         = "InvalidUrlPattern"
 
   struct AttributionReportingIssueDetails
     include JSON::Serializable
@@ -234,7 +393,7 @@ module Cdp::Audits
   struct QuirksModeIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property is_limited_quirks_mode : Bool
+    property? is_limited_quirks_mode : Bool
     @[JSON::Field(emit_null: false)]
     property document_node_id : Cdp::DOM::BackendNodeId
     @[JSON::Field(emit_null: false)]
@@ -282,6 +441,21 @@ module Cdp::Audits
   end
 
   alias GenericIssueErrorType = String
+  GenericIssueErrorTypeFormLabelForNameError                                      = "FormLabelForNameError"
+  GenericIssueErrorTypeFormDuplicateIdForInputError                               = "FormDuplicateIdForInputError"
+  GenericIssueErrorTypeFormInputWithNoLabelError                                  = "FormInputWithNoLabelError"
+  GenericIssueErrorTypeFormAutocompleteAttributeEmptyError                        = "FormAutocompleteAttributeEmptyError"
+  GenericIssueErrorTypeFormEmptyIdAndNameAttributesForInputError                  = "FormEmptyIdAndNameAttributesForInputError"
+  GenericIssueErrorTypeFormAriaLabelledByToNonExistingIdError                     = "FormAriaLabelledByToNonExistingIdError"
+  GenericIssueErrorTypeFormInputAssignedAutocompleteValueToIdOrNameAttributeError = "FormInputAssignedAutocompleteValueToIdOrNameAttributeError"
+  GenericIssueErrorTypeFormLabelHasNeitherForNorNestedInputError                  = "FormLabelHasNeitherForNorNestedInputError"
+  GenericIssueErrorTypeFormLabelForMatchesNonExistingIdError                      = "FormLabelForMatchesNonExistingIdError"
+  GenericIssueErrorTypeFormInputHasWrongButWellIntendedAutocompleteValueError     = "FormInputHasWrongButWellIntendedAutocompleteValueError"
+  GenericIssueErrorTypeResponseWasBlockedByORB                                    = "ResponseWasBlockedByORB"
+  GenericIssueErrorTypeNavigationEntryMarkedSkippable                             = "NavigationEntryMarkedSkippable"
+  GenericIssueErrorTypeAutofillAndManualTextPolicyControlledFeaturesInfo          = "AutofillAndManualTextPolicyControlledFeaturesInfo"
+  GenericIssueErrorTypeAutofillPolicyControlledFeatureInfo                        = "AutofillPolicyControlledFeatureInfo"
+  GenericIssueErrorTypeManualTextPolicyControlledFeatureInfo                      = "ManualTextPolicyControlledFeatureInfo"
 
   struct GenericIssueDetails
     include JSON::Serializable
@@ -320,12 +494,14 @@ module Cdp::Audits
     @[JSON::Field(emit_null: false)]
     property opt_out_percentage : Float64
     @[JSON::Field(emit_null: false)]
-    property is_opt_out_top_level : Bool
+    property? is_opt_out_top_level : Bool
     @[JSON::Field(emit_null: false)]
     property operation : CookieOperation
   end
 
   alias ClientHintIssueReason = String
+  ClientHintIssueReasonMetaTagAllowListInvalidOrigin = "MetaTagAllowListInvalidOrigin"
+  ClientHintIssueReasonMetaTagModifiedHTML           = "MetaTagModifiedHTML"
 
   struct FederatedAuthRequestIssueDetails
     include JSON::Serializable
@@ -334,6 +510,48 @@ module Cdp::Audits
   end
 
   alias FederatedAuthRequestIssueReason = String
+  FederatedAuthRequestIssueReasonShouldEmbargo                    = "ShouldEmbargo"
+  FederatedAuthRequestIssueReasonTooManyRequests                  = "TooManyRequests"
+  FederatedAuthRequestIssueReasonWellKnownHttpNotFound            = "WellKnownHttpNotFound"
+  FederatedAuthRequestIssueReasonWellKnownNoResponse              = "WellKnownNoResponse"
+  FederatedAuthRequestIssueReasonWellKnownInvalidResponse         = "WellKnownInvalidResponse"
+  FederatedAuthRequestIssueReasonWellKnownListEmpty               = "WellKnownListEmpty"
+  FederatedAuthRequestIssueReasonWellKnownInvalidContentType      = "WellKnownInvalidContentType"
+  FederatedAuthRequestIssueReasonConfigNotInWellKnown             = "ConfigNotInWellKnown"
+  FederatedAuthRequestIssueReasonWellKnownTooBig                  = "WellKnownTooBig"
+  FederatedAuthRequestIssueReasonConfigHttpNotFound               = "ConfigHttpNotFound"
+  FederatedAuthRequestIssueReasonConfigNoResponse                 = "ConfigNoResponse"
+  FederatedAuthRequestIssueReasonConfigInvalidResponse            = "ConfigInvalidResponse"
+  FederatedAuthRequestIssueReasonConfigInvalidContentType         = "ConfigInvalidContentType"
+  FederatedAuthRequestIssueReasonIdpNotPotentiallyTrustworthy     = "IdpNotPotentiallyTrustworthy"
+  FederatedAuthRequestIssueReasonDisabledInSettings               = "DisabledInSettings"
+  FederatedAuthRequestIssueReasonDisabledInFlags                  = "DisabledInFlags"
+  FederatedAuthRequestIssueReasonErrorFetchingSignin              = "ErrorFetchingSignin"
+  FederatedAuthRequestIssueReasonInvalidSigninResponse            = "InvalidSigninResponse"
+  FederatedAuthRequestIssueReasonAccountsHttpNotFound             = "AccountsHttpNotFound"
+  FederatedAuthRequestIssueReasonAccountsNoResponse               = "AccountsNoResponse"
+  FederatedAuthRequestIssueReasonAccountsInvalidResponse          = "AccountsInvalidResponse"
+  FederatedAuthRequestIssueReasonAccountsListEmpty                = "AccountsListEmpty"
+  FederatedAuthRequestIssueReasonAccountsInvalidContentType       = "AccountsInvalidContentType"
+  FederatedAuthRequestIssueReasonIdTokenHttpNotFound              = "IdTokenHttpNotFound"
+  FederatedAuthRequestIssueReasonIdTokenNoResponse                = "IdTokenNoResponse"
+  FederatedAuthRequestIssueReasonIdTokenInvalidResponse           = "IdTokenInvalidResponse"
+  FederatedAuthRequestIssueReasonIdTokenIdpErrorResponse          = "IdTokenIdpErrorResponse"
+  FederatedAuthRequestIssueReasonIdTokenCrossSiteIdpErrorResponse = "IdTokenCrossSiteIdpErrorResponse"
+  FederatedAuthRequestIssueReasonIdTokenInvalidRequest            = "IdTokenInvalidRequest"
+  FederatedAuthRequestIssueReasonIdTokenInvalidContentType        = "IdTokenInvalidContentType"
+  FederatedAuthRequestIssueReasonErrorIdToken                     = "ErrorIdToken"
+  FederatedAuthRequestIssueReasonCanceled                         = "Canceled"
+  FederatedAuthRequestIssueReasonRpPageNotVisible                 = "RpPageNotVisible"
+  FederatedAuthRequestIssueReasonSilentMediationFailure           = "SilentMediationFailure"
+  FederatedAuthRequestIssueReasonNotSignedInWithIdp               = "NotSignedInWithIdp"
+  FederatedAuthRequestIssueReasonMissingTransientUserActivation   = "MissingTransientUserActivation"
+  FederatedAuthRequestIssueReasonReplacedByActiveMode             = "ReplacedByActiveMode"
+  FederatedAuthRequestIssueReasonRelyingPartyOriginIsOpaque       = "RelyingPartyOriginIsOpaque"
+  FederatedAuthRequestIssueReasonTypeNotMatching                  = "TypeNotMatching"
+  FederatedAuthRequestIssueReasonUiDismissedNoEmbargo             = "UiDismissedNoEmbargo"
+  FederatedAuthRequestIssueReasonCorsError                        = "CorsError"
+  FederatedAuthRequestIssueReasonSuppressedBySegmentationPlatform = "SuppressedBySegmentationPlatform"
 
   struct FederatedAuthUserInfoRequestIssueDetails
     include JSON::Serializable
@@ -342,6 +560,15 @@ module Cdp::Audits
   end
 
   alias FederatedAuthUserInfoRequestIssueReason = String
+  FederatedAuthUserInfoRequestIssueReasonNotSameOrigin                      = "NotSameOrigin"
+  FederatedAuthUserInfoRequestIssueReasonNotIframe                          = "NotIframe"
+  FederatedAuthUserInfoRequestIssueReasonNotPotentiallyTrustworthy          = "NotPotentiallyTrustworthy"
+  FederatedAuthUserInfoRequestIssueReasonNoApiPermission                    = "NoApiPermission"
+  FederatedAuthUserInfoRequestIssueReasonNotSignedInWithIdp                 = "NotSignedInWithIdp"
+  FederatedAuthUserInfoRequestIssueReasonNoAccountSharingPermission         = "NoAccountSharingPermission"
+  FederatedAuthUserInfoRequestIssueReasonInvalidConfigOrWellKnown           = "InvalidConfigOrWellKnown"
+  FederatedAuthUserInfoRequestIssueReasonInvalidAccountsResponse            = "InvalidAccountsResponse"
+  FederatedAuthUserInfoRequestIssueReasonNoReturningUserFromFetchedAccounts = "NoReturningUserFromFetchedAccounts"
 
   struct ClientHintIssueDetails
     include JSON::Serializable
@@ -362,6 +589,8 @@ module Cdp::Audits
   end
 
   alias PartitioningBlobURLInfo = String
+  PartitioningBlobURLInfoBlockedCrossPartitionFetching = "BlockedCrossPartitionFetching"
+  PartitioningBlobURLInfoEnforceNoopenerForNavigation  = "EnforceNoopenerForNavigation"
 
   struct PartitioningBlobURLIssueDetails
     include JSON::Serializable
@@ -372,6 +601,12 @@ module Cdp::Audits
   end
 
   alias ElementAccessibilityIssueReason = String
+  ElementAccessibilityIssueReasonDisallowedSelectChild               = "DisallowedSelectChild"
+  ElementAccessibilityIssueReasonDisallowedOptGroupChild             = "DisallowedOptGroupChild"
+  ElementAccessibilityIssueReasonNonPhrasingContentOptionChild       = "NonPhrasingContentOptionChild"
+  ElementAccessibilityIssueReasonInteractiveContentOptionChild       = "InteractiveContentOptionChild"
+  ElementAccessibilityIssueReasonInteractiveContentLegendChild       = "InteractiveContentLegendChild"
+  ElementAccessibilityIssueReasonInteractiveContentSummaryDescendant = "InteractiveContentSummaryDescendant"
 
   struct ElementAccessibilityIssueDetails
     include JSON::Serializable
@@ -380,10 +615,12 @@ module Cdp::Audits
     @[JSON::Field(emit_null: false)]
     property element_accessibility_issue_reason : ElementAccessibilityIssueReason
     @[JSON::Field(emit_null: false)]
-    property has_disallowed_attributes : Bool
+    property? has_disallowed_attributes : Bool
   end
 
   alias StyleSheetLoadingIssueReason = String
+  StyleSheetLoadingIssueReasonLateImportRule = "LateImportRule"
+  StyleSheetLoadingIssueReasonRequestFailed  = "RequestFailed"
 
   struct StylesheetLoadingIssueDetails
     include JSON::Serializable
@@ -396,6 +633,10 @@ module Cdp::Audits
   end
 
   alias PropertyRuleIssueReason = String
+  PropertyRuleIssueReasonInvalidSyntax       = "InvalidSyntax"
+  PropertyRuleIssueReasonInvalidInitialValue = "InvalidInitialValue"
+  PropertyRuleIssueReasonInvalidInherits     = "InvalidInherits"
+  PropertyRuleIssueReasonInvalidName         = "InvalidName"
 
   struct PropertyRuleIssueDetails
     include JSON::Serializable
@@ -408,6 +649,9 @@ module Cdp::Audits
   end
 
   alias UserReidentificationIssueType = String
+  UserReidentificationIssueTypeBlockedFrameNavigation = "BlockedFrameNavigation"
+  UserReidentificationIssueTypeBlockedSubresource     = "BlockedSubresource"
+  UserReidentificationIssueTypeNoisedCanvasReadback   = "NoisedCanvasReadback"
 
   struct UserReidentificationIssueDetails
     include JSON::Serializable
@@ -420,6 +664,27 @@ module Cdp::Audits
   end
 
   alias PermissionElementIssueType = String
+  PermissionElementIssueTypeInvalidType               = "InvalidType"
+  PermissionElementIssueTypeFencedFrameDisallowed     = "FencedFrameDisallowed"
+  PermissionElementIssueTypeCspFrameAncestorsMissing  = "CspFrameAncestorsMissing"
+  PermissionElementIssueTypePermissionsPolicyBlocked  = "PermissionsPolicyBlocked"
+  PermissionElementIssueTypePaddingRightUnsupported   = "PaddingRightUnsupported"
+  PermissionElementIssueTypePaddingBottomUnsupported  = "PaddingBottomUnsupported"
+  PermissionElementIssueTypeInsetBoxShadowUnsupported = "InsetBoxShadowUnsupported"
+  PermissionElementIssueTypeRequestInProgress         = "RequestInProgress"
+  PermissionElementIssueTypeUntrustedEvent            = "UntrustedEvent"
+  PermissionElementIssueTypeRegistrationFailed        = "RegistrationFailed"
+  PermissionElementIssueTypeTypeNotSupported          = "TypeNotSupported"
+  PermissionElementIssueTypeInvalidTypeActivation     = "InvalidTypeActivation"
+  PermissionElementIssueTypeSecurityChecksFailed      = "SecurityChecksFailed"
+  PermissionElementIssueTypeActivationDisabled        = "ActivationDisabled"
+  PermissionElementIssueTypeGeolocationDeprecated     = "GeolocationDeprecated"
+  PermissionElementIssueTypeInvalidDisplayStyle       = "InvalidDisplayStyle"
+  PermissionElementIssueTypeNonOpaqueColor            = "NonOpaqueColor"
+  PermissionElementIssueTypeLowContrast               = "LowContrast"
+  PermissionElementIssueTypeFontSizeTooSmall          = "FontSizeTooSmall"
+  PermissionElementIssueTypeFontSizeTooLarge          = "FontSizeTooLarge"
+  PermissionElementIssueTypeInvalidSizeValue          = "InvalidSizeValue"
 
   struct PermissionElementIssueDetails
     include JSON::Serializable
@@ -430,7 +695,7 @@ module Cdp::Audits
     @[JSON::Field(emit_null: false)]
     property node_id : Cdp::DOM::BackendNodeId?
     @[JSON::Field(emit_null: false)]
-    property is_warning : Bool?
+    property? is_warning : Bool?
     @[JSON::Field(emit_null: false)]
     property permission_name : String?
     @[JSON::Field(emit_null: false)]
@@ -442,6 +707,35 @@ module Cdp::Audits
   end
 
   alias InspectorIssueCode = String
+  InspectorIssueCodeCookieIssue                       = "CookieIssue"
+  InspectorIssueCodeMixedContentIssue                 = "MixedContentIssue"
+  InspectorIssueCodeBlockedByResponseIssue            = "BlockedByResponseIssue"
+  InspectorIssueCodeHeavyAdIssue                      = "HeavyAdIssue"
+  InspectorIssueCodeContentSecurityPolicyIssue        = "ContentSecurityPolicyIssue"
+  InspectorIssueCodeSharedArrayBufferIssue            = "SharedArrayBufferIssue"
+  InspectorIssueCodeLowTextContrastIssue              = "LowTextContrastIssue"
+  InspectorIssueCodeCorsIssue                         = "CorsIssue"
+  InspectorIssueCodeAttributionReportingIssue         = "AttributionReportingIssue"
+  InspectorIssueCodeQuirksModeIssue                   = "QuirksModeIssue"
+  InspectorIssueCodePartitioningBlobURLIssue          = "PartitioningBlobURLIssue"
+  InspectorIssueCodeNavigatorUserAgentIssue           = "NavigatorUserAgentIssue"
+  InspectorIssueCodeGenericIssue                      = "GenericIssue"
+  InspectorIssueCodeDeprecationIssue                  = "DeprecationIssue"
+  InspectorIssueCodeClientHintIssue                   = "ClientHintIssue"
+  InspectorIssueCodeFederatedAuthRequestIssue         = "FederatedAuthRequestIssue"
+  InspectorIssueCodeBounceTrackingIssue               = "BounceTrackingIssue"
+  InspectorIssueCodeCookieDeprecationMetadataIssue    = "CookieDeprecationMetadataIssue"
+  InspectorIssueCodeStylesheetLoadingIssue            = "StylesheetLoadingIssue"
+  InspectorIssueCodeFederatedAuthUserInfoRequestIssue = "FederatedAuthUserInfoRequestIssue"
+  InspectorIssueCodePropertyRuleIssue                 = "PropertyRuleIssue"
+  InspectorIssueCodeSharedDictionaryIssue             = "SharedDictionaryIssue"
+  InspectorIssueCodeElementAccessibilityIssue         = "ElementAccessibilityIssue"
+  InspectorIssueCodeSRIMessageSignatureIssue          = "SRIMessageSignatureIssue"
+  InspectorIssueCodeUnencodedDigestIssue              = "UnencodedDigestIssue"
+  InspectorIssueCodeConnectionAllowlistIssue          = "ConnectionAllowlistIssue"
+  InspectorIssueCodeUserReidentificationIssue         = "UserReidentificationIssue"
+  InspectorIssueCodePermissionElementIssue            = "PermissionElementIssue"
+  InspectorIssueCodePerformanceIssue                  = "PerformanceIssue"
 
   struct InspectorIssueDetails
     include JSON::Serializable
@@ -518,5 +812,7 @@ module Cdp::Audits
   end
 
   alias GetEncodedResponseEncoding = String
-
-   end
+  GetEncodedResponseEncodingWebp = "webp"
+  GetEncodedResponseEncodingJpeg = "jpeg"
+  GetEncodedResponseEncodingPng  = "png"
+end

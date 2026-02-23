@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 require "./types"
 require "./events"
@@ -10,13 +8,12 @@ require "./events"
 #
 @[Experimental]
 module Cdp::SmartCardEmulation
-
   # Commands
   struct Enable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -34,7 +31,7 @@ module Cdp::SmartCardEmulation
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -271,5 +268,4 @@ module Cdp::SmartCardEmulation
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

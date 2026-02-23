@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -11,13 +10,12 @@ require "./events"
 
 # Provides access to log entries.
 module Cdp::Log
-
   # Commands
   struct Clear
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -35,7 +33,7 @@ module Cdp::Log
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -53,7 +51,7 @@ module Cdp::Log
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -91,7 +89,7 @@ module Cdp::Log
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -104,5 +102,4 @@ module Cdp::Log
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

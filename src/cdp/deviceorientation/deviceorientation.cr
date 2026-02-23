@@ -1,20 +1,16 @@
-
 require "../cdp"
 require "json"
 require "time"
 
-
-
 #
 @[Experimental]
 module Cdp::DeviceOrientation
-
   # Commands
   struct ClearDeviceOrientationOverride
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -51,5 +47,4 @@ module Cdp::DeviceOrientation
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

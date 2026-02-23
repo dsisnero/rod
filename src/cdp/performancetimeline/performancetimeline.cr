@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -14,7 +13,6 @@ require "./events"
 # https://w3c.github.io/performance-timeline/#dom-performanceobserver.
 @[Experimental]
 module Cdp::PerformanceTimeline
-
   # Commands
   struct Enable
     include JSON::Serializable
@@ -35,5 +33,4 @@ module Cdp::PerformanceTimeline
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

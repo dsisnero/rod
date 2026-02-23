@@ -46,27 +46,79 @@ module Pdlgen
         end
       end
 
-      logf("RETRIEVING: %s", cache.url)
-
-      # Retrieve via HTTP
-      client = HTTP::Client.new(URI.parse(cache.url))
-      response = client.get(cache.url)
-      unless response.success?
-        raise "HTTP request failed: #{response.status_code}"
-      end
-
-      buf = response.body.to_slice
-
-      # decode
-      if cache.decode
-        str = String.new(buf)
-        buf = Base64.decode(str)
-      end
-
-      logf("WRITING: %s", cache.path)
-      File.write(cache.path, buf)
+      # Try to fetch with HTTP caching
+      buf = fetch_with_cache(cache)
 
       buf
+    end
+
+    # Fetch with HTTP caching support (ETag, Last-Modified, retry on 429)
+    private def self.fetch_with_cache(cache : Cache) : Bytes
+      etag_path = cache.path + ".etag"
+      headers = HTTP::Headers.new
+
+      # Add caching headers if we have cached version
+      if File.exists?(cache.path)
+        # If-Modified-Since
+        mod_time = File.info(cache.path).modification_time
+        headers["If-Modified-Since"] = mod_time.to_rfc2822
+
+        # If-None-Match (ETag)
+        if File.exists?(etag_path)
+          etag = File.read(etag_path).strip
+          headers["If-None-Match"] = etag unless etag.empty?
+        end
+      end
+
+      uri = URI.parse(cache.url)
+      max_retries = 3
+      retry_delay = 2.0 # seconds
+
+      max_retries.times do |attempt|
+        logf("RETRIEVING: %s%s", cache.url, attempt > 0 ? " (attempt #{attempt + 1}/#{max_retries})" : "")
+
+        client = HTTP::Client.new(uri)
+        response = client.get(cache.url, headers: headers)
+
+        case response.status_code
+        when 200 # OK
+          # Store ETag if provided
+          if etag = response.headers["ETag"]?
+            File.write(etag_path, etag)
+          end
+
+          buf = response.body.to_slice
+
+          # decode if needed
+          if cache.decode
+            str = String.new(buf)
+            buf = Base64.decode(str)
+          end
+
+          logf("WRITING: %s", cache.path)
+          File.write(cache.path, buf)
+
+          return buf
+        when 304 # Not Modified
+          # Update modification time to refresh TTL
+          File.touch(cache.path)
+          return File.read(cache.path).to_slice
+        when 429 # Too Many Requests
+          # Rate limited, wait and retry
+          if attempt < max_retries - 1
+            sleep_time = retry_delay * (2 ** attempt) # exponential backoff
+            logf("Rate limited (429), waiting %.1f seconds...", sleep_time)
+            sleep(sleep_time)
+            next
+          else
+            raise "HTTP request failed: 429 Too Many Requests (after #{max_retries} attempts)"
+          end
+        else
+          raise "HTTP request failed: #{response.status_code} #{response.status_message}"
+        end
+      end
+
+      raise "Failed to retrieve #{cache.url} after #{max_retries} attempts"
     end
 
     # Ref wraps a ref.

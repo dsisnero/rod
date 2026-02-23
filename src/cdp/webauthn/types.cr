@@ -1,17 +1,24 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::WebAuthn
   alias AuthenticatorId = String
 
   alias AuthenticatorProtocol = String
+  AuthenticatorProtocolU2f   = "u2f"
+  AuthenticatorProtocolCtap2 = "ctap2"
 
   alias Ctap2Version = String
+  Ctap2VersionCtap20 = "ctap2_0"
+  Ctap2VersionCtap21 = "ctap2_1"
 
   alias AuthenticatorTransport = String
+  AuthenticatorTransportUsb      = "usb"
+  AuthenticatorTransportNfc      = "nfc"
+  AuthenticatorTransportBle      = "ble"
+  AuthenticatorTransportCable    = "cable"
+  AuthenticatorTransportInternal = "internal"
 
   struct VirtualAuthenticatorOptions
     include JSON::Serializable
@@ -22,25 +29,25 @@ module Cdp::WebAuthn
     @[JSON::Field(emit_null: false)]
     property transport : AuthenticatorTransport
     @[JSON::Field(emit_null: false)]
-    property has_resident_key : Bool?
+    property? has_resident_key : Bool?
     @[JSON::Field(emit_null: false)]
-    property has_user_verification : Bool?
+    property? has_user_verification : Bool?
     @[JSON::Field(emit_null: false)]
-    property has_large_blob : Bool?
+    property? has_large_blob : Bool?
     @[JSON::Field(emit_null: false)]
-    property has_cred_blob : Bool?
+    property? has_cred_blob : Bool?
     @[JSON::Field(emit_null: false)]
-    property has_min_pin_length : Bool?
+    property? has_min_pin_length : Bool?
     @[JSON::Field(emit_null: false)]
-    property has_prf : Bool?
+    property? has_prf : Bool?
     @[JSON::Field(emit_null: false)]
-    property automatic_presence_simulation : Bool?
+    property? automatic_presence_simulation : Bool?
     @[JSON::Field(emit_null: false)]
-    property is_user_verified : Bool?
+    property? is_user_verified : Bool?
     @[JSON::Field(emit_null: false)]
-    property default_backup_eligibility : Bool?
+    property? default_backup_eligibility : Bool?
     @[JSON::Field(emit_null: false)]
-    property default_backup_state : Bool?
+    property? default_backup_state : Bool?
   end
 
   struct Credential
@@ -48,7 +55,7 @@ module Cdp::WebAuthn
     @[JSON::Field(emit_null: false)]
     property credential_id : String
     @[JSON::Field(emit_null: false)]
-    property is_resident_credential : Bool
+    property? is_resident_credential : Bool
     @[JSON::Field(emit_null: false)]
     property rp_id : String?
     @[JSON::Field(emit_null: false)]
@@ -60,13 +67,12 @@ module Cdp::WebAuthn
     @[JSON::Field(emit_null: false)]
     property large_blob : String?
     @[JSON::Field(emit_null: false)]
-    property backup_eligibility : Bool?
+    property? backup_eligibility : Bool?
     @[JSON::Field(emit_null: false)]
-    property backup_state : Bool?
+    property? backup_state : Bool?
     @[JSON::Field(emit_null: false)]
     property user_name : String?
     @[JSON::Field(emit_null: false)]
     property user_display_name : String?
   end
-
-   end
+end

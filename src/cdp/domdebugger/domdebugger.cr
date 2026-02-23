@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -20,7 +19,6 @@ module Cdp::DOMDebugger
     end
   end
 
-
   # Commands
   struct GetEventListeners
     include JSON::Serializable
@@ -30,7 +28,7 @@ module Cdp::DOMDebugger
     @[JSON::Field(emit_null: false)]
     property depth : Int64?
     @[JSON::Field(emit_null: false)]
-    property pierce : Bool?
+    property? pierce : Bool?
 
     def initialize(@object_id : Cdp::Runtime::RemoteObjectId, @depth : Int64?, @pierce : Bool?)
     end
@@ -196,5 +194,4 @@ module Cdp::DOMDebugger
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -49,13 +48,12 @@ module Cdp::Profiler
     end
   end
 
-
   # Commands
   struct Disable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -73,7 +71,7 @@ module Cdp::Profiler
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -91,7 +89,7 @@ module Cdp::Profiler
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -131,7 +129,7 @@ module Cdp::Profiler
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -149,11 +147,11 @@ module Cdp::Profiler
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property call_count : Bool?
+    property? call_count : Bool?
     @[JSON::Field(emit_null: false)]
-    property detailed : Bool?
+    property? detailed : Bool?
     @[JSON::Field(emit_null: false)]
-    property allow_triggered_updates : Bool?
+    property? allow_triggered_updates : Bool?
 
     def initialize(@call_count : Bool?, @detailed : Bool?, @allow_triggered_updates : Bool?)
     end
@@ -175,7 +173,7 @@ module Cdp::Profiler
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -195,7 +193,7 @@ module Cdp::Profiler
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -213,7 +211,7 @@ module Cdp::Profiler
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -228,5 +226,4 @@ module Cdp::Profiler
       res
     end
   end
-
 end

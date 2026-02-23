@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -21,13 +20,12 @@ module Cdp::WebAudio
     end
   end
 
-
   # Commands
   struct Enable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -45,7 +43,7 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -80,5 +78,4 @@ module Cdp::WebAudio
       res
     end
   end
-
 end

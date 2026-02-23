@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -38,5 +37,4 @@ module Cdp::FileSystem
     @[JSON::Field(emit_null: false)]
     property path_components : Array(String)
   end
-
-   end
+end

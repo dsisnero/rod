@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -25,5 +24,6 @@ module Cdp::PWA
   end
 
   alias DisplayMode = String
-
-   end
+  DisplayModeStandalone = "standalone"
+  DisplayModeBrowser    = "browser"
+end

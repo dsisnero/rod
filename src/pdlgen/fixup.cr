@@ -20,17 +20,17 @@ module Pdlgen
     # various domains.
     def self.fix_domains(domains : Array(Pdl::Domain))
       # process domains
-      domains.each do |d|
-        case d.domain
+      domains.each do |domain|
+        case domain.domain
         when "CSS"
-          d.types.each do |t|
-            if t.name == "CSSComputedStyleProperty"
-              t.name = "ComputedProperty"
+          domain.types.each do |typ|
+            if typ.name == "CSSComputedStyleProperty"
+              typ.name = "ComputedProperty"
             end
           end
         when "DOM"
           # add DOM types
-          d.types << Pdl::Type.new(
+          domain.types << Pdl::Type.new(
             raw_name: "DOM.NodeType",
             raw_see: "https://developer.mozilla.org/en/docs/Web/API/Node/nodeType",
             is_circular_dep: true,
@@ -44,15 +44,15 @@ module Pdlgen
             ]
           )
 
-          d.types.each do |t|
-            case t.name
+          domain.types.each do |type|
+            case type.name
             when "NodeId", "BackendNodeId"
-              t.raw_name = d.domain + "." + t.name
+              type.raw_name = domain.domain + "." + type.name
               # TODO: add extra for unmarshaler
-              # t.extra += gotpl.ExtraFixStringUnmarshaler(snaker.ForceCamelIdentifier(t.name), "ParseInt", ", 10, 64")
+              # type.extra += gotpl.ExtraFixStringUnmarshaler(snaker.ForceCamelIdentifier(type.name), "ParseInt", ", 10, 64")
 
             when "Node"
-              t.properties.concat([
+              type.properties.concat([
                 Pdl::Type.new(
                   name: "Parent",
                   ref: DOM_NODE_REF,
@@ -83,30 +83,43 @@ module Pdlgen
                 ),
               ])
               # TODO: add extra node template
-              t.extra += Gen::CrystalExtras.extra_node_template
+              type.extra += Gen::CrystalExtras.extra_node_template
             when "RGBA"
-              t.properties.each do |p|
-                case p.name
+              type.properties.each do |prop|
+                case prop.name
                 when "a"
-                  p.always_emit = true
+                  prop.always_emit = true
                 end
               end
             end
           end
         when "Input"
-          # add Input types
-          d.types << Pdl::Type.new(
-            raw_name: "Input.Modifier",
-            raw_see: "https://chromedevtools.github.io/devtools-protocol/tot/Input#method-dispatchKeyEvent",
-            name: "Modifier",
-            type: Pdl::TypeEnum::Integer,
-            enum_bit_mask: true,
-            description: "Input key modifier type.",
-            enum: ["None", "Alt", "Ctrl", "Meta", "Shift"],
-            extra: "# ModifierCommand is an alias for ModifierMeta.\nconst ModifierCommand Modifier = ModifierMeta\n"
-          )
+          # Find or create Modifier type
+          modifier_type = domain.types.find { |type| type.name == "Modifier" }
+          if modifier_type
+            # Update existing Modifier type
+            modifier_type.raw_name = "Input.Modifier"
+            modifier_type.raw_see = "https://chromedevtools.github.io/devtools-protocol/tot/Input#method-dispatchKeyEvent"
+            modifier_type.type = Pdl::TypeEnum::Integer
+            modifier_type.enum_bit_mask = true
+            modifier_type.description = "Input key modifier type."
+            modifier_type.enum = ["None", "Alt", "Ctrl", "Meta", "Shift"]
+            modifier_type.extra = "# ModifierCommand is an alias for ModifierMeta.\nModifierCommand = Modifier::Meta\n"
+          else
+            # add Input types
+            domain.types << Pdl::Type.new(
+              raw_name: "Input.Modifier",
+              raw_see: "https://chromedevtools.github.io/devtools-protocol/tot/Input#method-dispatchKeyEvent",
+              name: "Modifier",
+              type: Pdl::TypeEnum::Integer,
+              enum_bit_mask: true,
+              description: "Input key modifier type.",
+              enum: ["None", "Alt", "Ctrl", "Meta", "Shift"],
+              extra: "# ModifierCommand is an alias for ModifierMeta.\nModifierCommand = Modifier::Meta\n"
+            )
+          end
 
-          d.types.each do |t|
+          domain.types.each do |t|
             case t.name
             when "GestureSourceType"
               t.name = "GestureType"
@@ -114,11 +127,11 @@ module Pdlgen
               t.type = Pdl::TypeEnum::Timestamp
               t.timestamp_type = Pdl::TimestampType::Second
               # TODO: add extra timestamp template
-              # t.extra += gotpl.ExtraTimestampTemplate(t, d)
+              # t.extra += gotpl.ExtraTimestampTemplate(t, domain)
             end
           end
 
-          d.commands.each do |c|
+          domain.commands.each do |c|
             case c.name
             when "dispatchKeyEvent"
               c.parameters.each do |p|
@@ -131,7 +144,7 @@ module Pdlgen
           end
         when "Inspector"
           # add Inspector types
-          d.types << Pdl::Type.new(
+          domain.types << Pdl::Type.new(
             raw_name: "Inspector.DetachReason",
             raw_see: "( -- none -- )",
             name: "DetachReason",
@@ -141,7 +154,7 @@ module Pdlgen
           )
 
           # find detached event's reason parameter and change type
-          d.events.each do |e|
+          domain.events.each do |e|
             if e.name == "detached"
               e.parameters.each do |param|
                 if param.name == "reason"
@@ -154,13 +167,13 @@ module Pdlgen
             end
           end
         when "Network"
-          d.types.each do |t|
+          domain.types.each do |t|
             # change Monotonic to TypeTimestamp and add extra unmarshaling template
             if t.name == "TimeSinceEpoch"
               t.type = Pdl::TypeEnum::Timestamp
               t.timestamp_type = Pdl::TimestampType::Second
               # TODO: add extra timestamp template
-              t.extra += Gen::CrystalExtras.extra_timestamp_template(t, d)
+              t.extra += Gen::CrystalExtras.extra_timestamp_template(t, domain)
             end
 
             # change Monotonic to TypeTimestamp and add extra unmarshaling template
@@ -168,7 +181,7 @@ module Pdlgen
               t.type = Pdl::TypeEnum::Timestamp
               t.timestamp_type = Pdl::TimestampType::Second
               # TODO: add extra timestamp template
-              t.extra += Gen::CrystalExtras.extra_timestamp_template(t, d)
+              t.extra += Gen::CrystalExtras.extra_timestamp_template(t, domain)
             end
 
             # change Headers to be a Hash(String, JSON::Any)
@@ -178,7 +191,7 @@ module Pdlgen
             end
           end
         when "Page"
-          d.types.each do |t|
+          domain.types.each do |t|
             case t.name
             when "FrameId"
               # TODO: add extra unmarshaler
@@ -228,7 +241,7 @@ module Pdlgen
             end
           end
 
-          d.commands.each do |c|
+          domain.commands.each do |c|
             case c.name
             when "printToPDF"
               c.parameters.each do |p|
@@ -241,13 +254,13 @@ module Pdlgen
           end
         when "Runtime"
           typs = [] of Pdl::Type
-          d.types.each do |t|
+          domain.types.each do |t|
             case t.name
             when "Timestamp"
               t.type = Pdl::TypeEnum::Timestamp
               t.timestamp_type = Pdl::TimestampType::Millisecond
               # TODO: add extra timestamp template
-              t.extra += Gen::CrystalExtras.extra_timestamp_template(t, d)
+              t.extra += Gen::CrystalExtras.extra_timestamp_template(t, domain)
             when "ExceptionDetails"
               t.extra += %(# Error satisfies the error interface.
   def error : String
@@ -271,23 +284,23 @@ module Pdlgen
             end
             typs << t
           end
-          d.types = typs
+          domain.types = typs
         end
 
         # convert object properties
-        d.types.each do |t|
+        domain.types.each do |t|
           if t.properties
-            t.properties = convert_object_properties(t.properties, t, d, t.name)
+            t.properties = convert_object_properties(t.properties, t, domain, t.name)
           end
         end
 
         # process events and commands
-        convert_objects(d, d.events)
-        convert_objects(d, d.commands)
+        convert_objects(domain, domain.events)
+        convert_objects(domain, domain.commands)
 
         # fix input enums
-        if d.domain == "Input"
-          d.types.each do |t|
+        if domain.domain == "Input"
+          domain.types.each do |t|
             if t.enum && t.name != "Modifier"
               t.enum_value_name_map = Hash(String, String).new
               t.enum.not_nil!.each do |v|
@@ -310,9 +323,9 @@ module Pdlgen
         end
 
         # fix type stuttering
-        d.types.each do |t|
+        domain.types.each do |t|
           if !t.no_expose && !t.no_resolve && !t.is_circular_dep
-            name = t.raw_name.sub(/^#{Regex.escape(d.domain)}\\.?/, "")
+            name = t.raw_name.sub(/^#{Regex.escape(domain.domain)}\\.?/, "")
             if t.raw_name.starts_with?("Accessibility.")
               name = t.raw_name.sub(/^Accessibility\./, "").gsub(AX_RE, "")
             end
@@ -321,6 +334,13 @@ module Pdlgen
             end
           end
         end
+
+        # Deduplicate types by name within domain
+        unique_types = Hash(String, Pdl::Type).new
+        domain.types.each do |t|
+          unique_types[t.name] = t
+        end
+        domain.types = unique_types.values
       end
     end
 
@@ -433,36 +453,36 @@ module Pdlgen
 
     # enumRefMap is the fully qualified parameter name to ref.
     private ENUM_REF_MAP = {
-      "Animation.Animation.type"                         => "Type",
-      "Console.ConsoleMessage.level"                     => "MessageLevel",
-      "Console.ConsoleMessage.source"                    => "MessageSource",
-      "CSS.CSSMedia.source"                              => "MediaSource",
-      "CSS.forcePseudoState.forcedPseudoClasses"         => "PseudoClass",
-      "Debugger.setPauseOnExceptions.state"              => "ExceptionsState",
-      "Emulation.ScreenOrientation.type"                 => "OrientationType",
-      "Emulation.setTouchEmulationEnabled.configuration" => "EnabledConfiguration",
-      "Input.dispatchKeyEvent.type"                      => "KeyType",
-      "Input.dispatchMouseEvent.button"                  => "ButtonType",
-      "Input.dispatchMouseEvent.type"                    => "MouseType",
-      "Input.dispatchTouchEvent.type"                    => "TouchType",
-      "Input.emulateTouchFromMouseEvent.button"          => "ButtonType",
-      "Input.emulateTouchFromMouseEvent.type"            => "MouseType",
-      "Input.TouchPoint.state"                           => "TouchState",
-      "Log.LogEntry.level"                               => "Level",
-      "Log.LogEntry.source"                              => "Source",
-      "Log.ViolationSetting.name"                        => "Violation",
-      "Network.Request.mixedContentType"                 => "MixedContentType",
-      "Network.Request.referrerPolicy"                   => "ReferrerPolicy",
-      "Page.startScreencast.format"                      => "ScreencastFormat",
-      "Runtime.consoleAPICalled.type"                    => "APIType",
-      "Runtime.ObjectPreview.subtype"                    => "Subtype",
-      "Runtime.ObjectPreview.type"                       => "Type",
-      "Runtime.PropertyPreview.subtype"                  => "Subtype",
-      "Runtime.PropertyPreview.type"                     => "Type",
-      "Runtime.RemoteObject.subtype"                     => "Subtype",
-      "Runtime.RemoteObject.type"                        => "Type",
-      "Tracing.start.transferMode"                       => "TransferMode",
-      "Tracing.TraceConfig.recordMode"                   => "RecordMode",
+      "Animation.Animation.type"                              => "Type",
+      "Console.ConsoleMessage.level"                          => "MessageLevel",
+      "Console.ConsoleMessage.source"                         => "MessageSource",
+      "CSS.CSSMedia.source"                                   => "MediaSource",
+      "CSS.forcePseudoState.forcedPseudoClasses"              => "PseudoClass",
+      "Debugger.setPauseOnExceptions.state"                   => "ExceptionsState",
+      "Emulation.ScreenOrientation.type"                      => "OrientationType",
+      "Emulation.setTouchEmulationEnabledomain.configuration" => "EnabledConfiguration",
+      "Input.dispatchKeyEvent.type"                           => "KeyType",
+      "Input.dispatchMouseEvent.button"                       => "ButtonType",
+      "Input.dispatchMouseEvent.type"                         => "MouseType",
+      "Input.dispatchTouchEvent.type"                         => "TouchType",
+      "Input.emulateTouchFromMouseEvent.button"               => "ButtonType",
+      "Input.emulateTouchFromMouseEvent.type"                 => "MouseType",
+      "Input.TouchPoint.state"                                => "TouchState",
+      "Log.LogEntry.level"                                    => "Level",
+      "Log.LogEntry.source"                                   => "Source",
+      "Log.ViolationSetting.name"                             => "Violation",
+      "Network.Request.mixedContentType"                      => "MixedContentType",
+      "Network.Request.referrerPolicy"                        => "ReferrerPolicy",
+      "Page.startScreencast.format"                           => "ScreencastFormat",
+      "Runtime.consoleAPICalledomain.type"                    => "APIType",
+      "Runtime.ObjectPreview.subtype"                         => "Subtype",
+      "Runtime.ObjectPreview.type"                            => "Type",
+      "Runtime.PropertyPreview.subtype"                       => "Subtype",
+      "Runtime.PropertyPreview.type"                          => "Type",
+      "Runtime.RemoteObject.subtype"                          => "Subtype",
+      "Runtime.RemoteObject.type"                             => "Type",
+      "Tracing.start.transferMode"                            => "TransferMode",
+      "Tracing.TraceConfig.recordMode"                        => "RecordMode",
     }
 
     # fixupEnumParameter takes an enum parameter, adds it to the domain and

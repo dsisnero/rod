@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -61,7 +60,7 @@ module Cdp::HeapProfiler
     @[JSON::Field(emit_null: false)]
     property total : Int64
     @[JSON::Field(emit_null: false)]
-    property finished : Bool?
+    property? finished : Bool?
 
     def initialize(@done : Int64, @total : Int64, @finished : Bool?)
     end
@@ -76,7 +75,7 @@ module Cdp::HeapProfiler
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize()
+    def initialize
     end
 
     # ProtoEvent returns the protocol event name.
@@ -84,5 +83,4 @@ module Cdp::HeapProfiler
       "HeapProfiler.resetProfiles"
     end
   end
-
 end

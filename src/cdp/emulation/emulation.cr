@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -52,13 +51,12 @@ module Cdp::Emulation
     end
   end
 
-
   # Commands
   struct ClearDeviceMetricsOverride
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -76,7 +74,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -95,7 +93,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -114,7 +112,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enabled : Bool
+    property? enabled : Bool
 
     def initialize(@enabled : Bool)
     end
@@ -135,7 +133,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enabled : Bool?
+    property? enabled : Bool?
 
     def initialize(@enabled : Bool?)
     end
@@ -222,7 +220,7 @@ module Cdp::Emulation
     @[JSON::Field(emit_null: false)]
     property device_scale_factor : Float64
     @[JSON::Field(emit_null: false)]
-    property mobile : Bool
+    property? mobile : Bool
     @[JSON::Field(emit_null: false)]
     property scale : Float64?
     @[JSON::Field(emit_null: false)]
@@ -234,7 +232,7 @@ module Cdp::Emulation
     @[JSON::Field(emit_null: false)]
     property position_y : Int64?
     @[JSON::Field(emit_null: false)]
-    property dont_set_visible_size : Bool?
+    property? dont_set_visible_size : Bool?
     @[JSON::Field(emit_null: false)]
     property screen_orientation : ScreenOrientation?
     @[JSON::Field(emit_null: false)]
@@ -284,7 +282,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -324,7 +322,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -343,7 +341,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property hidden : Bool
+    property? hidden : Bool
 
     def initialize(@hidden : Bool)
     end
@@ -364,7 +362,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property disabled : Bool
+    property? disabled : Bool
 
     def initialize(@disabled : Bool)
     end
@@ -385,7 +383,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enabled : Bool
+    property? enabled : Bool
     @[JSON::Field(emit_null: false)]
     property configuration : SetEmitTouchEventsForMouseConfiguration?
 
@@ -525,7 +523,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enabled : Bool
+    property? enabled : Bool
     @[JSON::Field(emit_null: false)]
     property type : SensorType
     @[JSON::Field(emit_null: false)]
@@ -573,7 +571,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enabled : Bool
+    property? enabled : Bool
     @[JSON::Field(emit_null: false)]
     property source : PressureSource
     @[JSON::Field(emit_null: false)]
@@ -645,9 +643,9 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property is_user_active : Bool
+    property? is_user_active : Bool
     @[JSON::Field(emit_null: false)]
-    property is_screen_unlocked : Bool
+    property? is_screen_unlocked : Bool
 
     def initialize(@is_user_active : Bool, @is_screen_unlocked : Bool)
     end
@@ -667,7 +665,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -706,7 +704,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property value : Bool
+    property? value : Bool
 
     def initialize(@value : Bool)
     end
@@ -726,7 +724,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enabled : Bool
+    property? enabled : Bool
     @[JSON::Field(emit_null: false)]
     property max_touch_points : Int64?
 
@@ -840,7 +838,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property data_saver_enabled : Bool?
+    property? data_saver_enabled : Bool?
 
     def initialize(@data_saver_enabled : Bool?)
     end
@@ -908,7 +906,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enabled : Bool
+    property? enabled : Bool
 
     def initialize(@enabled : Bool)
     end
@@ -950,7 +948,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -989,7 +987,7 @@ module Cdp::Emulation
     @[JSON::Field(emit_null: false)]
     property label : String?
     @[JSON::Field(emit_null: false)]
-    property is_internal : Bool?
+    property? is_internal : Bool?
 
     def initialize(@left : Int64, @top : Int64, @width : Int64, @height : Int64, @work_area_insets : WorkAreaInsets?, @device_pixel_ratio : Float64?, @rotation : Int64?, @color_depth : Int64?, @label : String?, @is_internal : Bool?)
     end
@@ -1027,5 +1025,4 @@ module Cdp::Emulation
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

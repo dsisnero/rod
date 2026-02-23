@@ -47,18 +47,18 @@ module Pdlgen
       files = [] of FileInfo
       dir = dir.chomp(File::SEPARATOR) + File::SEPARATOR
 
-      Dir.glob(File.join(dir, "**", "*")) do |n|
-        next if n == dir
-        info = File.info?(n)
+      Dir.glob(File.join(dir, "**", "*")) do |path|
+        next if path == dir
+        info = File.info?(path)
         next if info.nil? || info.directory?
 
         # Skip if same as current or doesn't match file mask
-        fn = n[dir.bytesize..]
+        fn = path[dir.bytesize..]
         next unless mask_re.match(fn)
         next if exclude.includes?(File.basename(fn))
 
         # Add to files
-        files << FileInfo.new(n, info)
+        files << FileInfo.new(path, info)
       end
 
       files
@@ -80,7 +80,7 @@ module Pdlgen
       end
 
       # Find filename in files
-      i = files.index { |fi| File.basename(fi.name) == File.basename(filename) }
+      i = files.index { |file| File.basename(file.name) == File.basename(filename) }
       return if i.nil?
 
       # Compare and return first with diff

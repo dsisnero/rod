@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -19,17 +18,17 @@ module Cdp::Overlay
   struct GridHighlightConfig
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property show_grid_extension_lines : Bool?
+    property? show_grid_extension_lines : Bool?
     @[JSON::Field(emit_null: false)]
-    property show_positive_line_numbers : Bool?
+    property? show_positive_line_numbers : Bool?
     @[JSON::Field(emit_null: false)]
-    property show_negative_line_numbers : Bool?
+    property? show_negative_line_numbers : Bool?
     @[JSON::Field(emit_null: false)]
-    property show_area_names : Bool?
+    property? show_area_names : Bool?
     @[JSON::Field(emit_null: false)]
-    property show_line_names : Bool?
+    property? show_line_names : Bool?
     @[JSON::Field(emit_null: false)]
-    property show_track_sizes : Bool?
+    property? show_track_sizes : Bool?
     @[JSON::Field(emit_null: false)]
     property grid_border_color : Cdp::DOM::RGBA?
     @[JSON::Field(emit_null: false)]
@@ -39,11 +38,11 @@ module Cdp::Overlay
     @[JSON::Field(emit_null: false)]
     property column_line_color : Cdp::DOM::RGBA?
     @[JSON::Field(emit_null: false)]
-    property grid_border_dash : Bool?
+    property? grid_border_dash : Bool?
     @[JSON::Field(emit_null: false)]
-    property row_line_dash : Bool?
+    property? row_line_dash : Bool?
     @[JSON::Field(emit_null: false)]
-    property column_line_dash : Bool?
+    property? column_line_dash : Bool?
     @[JSON::Field(emit_null: false)]
     property row_gap_color : Cdp::DOM::RGBA?
     @[JSON::Field(emit_null: false)]
@@ -105,19 +104,22 @@ module Cdp::Overlay
   end
 
   alias ContrastAlgorithm = String
+  ContrastAlgorithmAa   = "aa"
+  ContrastAlgorithmAaa  = "aaa"
+  ContrastAlgorithmApca = "apca"
 
   struct HighlightConfig
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property show_info : Bool?
+    property? show_info : Bool?
     @[JSON::Field(emit_null: false)]
-    property show_styles : Bool?
+    property? show_styles : Bool?
     @[JSON::Field(emit_null: false)]
-    property show_rulers : Bool?
+    property? show_rulers : Bool?
     @[JSON::Field(emit_null: false)]
-    property show_accessibility_info : Bool?
+    property? show_accessibility_info : Bool?
     @[JSON::Field(emit_null: false)]
-    property show_extension_lines : Bool?
+    property? show_extension_lines : Bool?
     @[JSON::Field(emit_null: false)]
     property content_color : Cdp::DOM::RGBA?
     @[JSON::Field(emit_null: false)]
@@ -149,6 +151,10 @@ module Cdp::Overlay
   end
 
   alias ColorFormat = String
+  ColorFormatRgb = "rgb"
+  ColorFormatHsl = "hsl"
+  ColorFormatHwb = "hwb"
+  ColorFormatHex = "hex"
 
   struct GridNodeHighlightConfig
     include JSON::Serializable
@@ -199,7 +205,7 @@ module Cdp::Overlay
   struct WindowControlsOverlayConfig
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property show_css : Bool
+    property? show_css : Bool
     @[JSON::Field(emit_null: false)]
     property selected_platform : String
     @[JSON::Field(emit_null: false)]
@@ -241,6 +247,10 @@ module Cdp::Overlay
   end
 
   alias InspectMode = String
+  InspectModeSearchForNode         = "searchForNode"
+  InspectModeSearchForUAShadowDOM  = "searchForUAShadowDOM"
+  InspectModeCaptureAreaScreenshot = "captureAreaScreenshot"
+  InspectModeNone                  = "none"
 
   struct InspectedElementAnchorConfig
     include JSON::Serializable
@@ -251,5 +261,6 @@ module Cdp::Overlay
   end
 
   alias LineStylePattern = String
-
-   end
+  LineStylePatternDashed = "dashed"
+  LineStylePatternDotted = "dotted"
+end

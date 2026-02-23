@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -22,11 +21,11 @@ module Cdp::Target
     @[JSON::Field(emit_null: false)]
     property url : String
     @[JSON::Field(emit_null: false)]
-    property attached : Bool
+    property? attached : Bool
     @[JSON::Field(emit_null: false)]
     property opener_id : TargetID?
     @[JSON::Field(emit_null: false)]
-    property can_access_opener : Bool
+    property? can_access_opener : Bool
     @[JSON::Field(emit_null: false)]
     property opener_frame_id : Cdp::Page::FrameId?
     @[JSON::Field(emit_null: false)]
@@ -41,7 +40,7 @@ module Cdp::Target
   struct FilterEntry
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property exclude : Bool?
+    property? exclude : Bool?
     @[JSON::Field(emit_null: false)]
     property type : String?
   end
@@ -61,5 +60,8 @@ module Cdp::Target
 
   @[Experimental]
   alias WindowState = String
-
-   end
+  WindowStateNormal     = "normal"
+  WindowStateMinimized  = "minimized"
+  WindowStateMaximized  = "maximized"
+  WindowStateFullscreen = "fullscreen"
+end

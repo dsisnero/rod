@@ -210,6 +210,51 @@ module Pdlgen
         name
       end
 
+      private def enum_member_name(value : String) : String
+        # Convert string like "all-screens-capture" or "Render process gone." to "AllScreensCapture" or "RenderProcessGone"
+        # Replace any non-alphanumeric characters with space, split by whitespace, camelcase each part, and join
+        cleaned = value.gsub(/[^a-zA-Z0-9]/, " ")
+        parts = cleaned.split(/\s+/).reject(&.empty?)
+        parts.map(&.camelcase).join
+      end
+
+      private def is_bool_type?(type_str : String) : Bool
+        type_str == "Bool"
+      end
+
+      private def safe_constant_name(name : String) : String
+        case name
+        when "Object"
+          "ObjectType"
+        when "String"
+          "StringType"
+        when "Symbol"
+          "SymbolType"
+        when "Number"
+          "NumberType"
+        when "Boolean"
+          "BooleanType"
+        when "Function"
+          "FunctionType"
+        when "Undefined"
+          "Undefined"
+        else
+          name
+        end
+      end
+
+      private def safe_enum_member_name(value : String) : String
+        safe_constant_name(enum_member_name(value))
+      end
+
+      private def string_enum_constant_name(t : Pdl::Type, value : String, d : Pdl::Domain?) : String
+        # Generate a unique constant name for string enum values
+        # Use the type name (without domain prefix) + the enum member name
+        prefix = type_name_for_domain(t, d)
+        member = safe_enum_member_name(value)
+        "#{prefix}#{member}"
+      end
+
       private def generate_type_struct(io : IO, t : Pdl::Type, d : Pdl::Domain?, domains : Array(Pdl::Domain))
         if t.deprecated
           io << "  @[Deprecated]\n"
@@ -224,7 +269,7 @@ module Pdlgen
             # Enum type
             io << "  enum #{type_name_for_domain(t, d)}\n"
             enum_values.each do |value|
-              io << "    #{value.camelcase}\n"
+              io << "    #{safe_constant_name(value.camelcase)}\n"
             end
             io << "  end\n"
           else
@@ -237,8 +282,14 @@ module Pdlgen
                 next if p.name.empty?
 
                 type_str = d ? CrystalUtil.crystal_type(p, d, domains) : "JSON::Any"
-                io << "    @[JSON::Field(emit_null: false)]\n" if p.optional
-                io << "    property #{p.name.underscore} : #{type_str}"
+                if p.optional
+                  io << "    @[JSON::Field(emit_null: false)]\n"
+                end
+                if is_bool_type?(type_str)
+                  io << "    property? #{p.name.underscore} : #{type_str}"
+                else
+                  io << "    property #{p.name.underscore} : #{type_str}"
+                end
                 io << "?" if p.optional
                 io << "\n"
               end

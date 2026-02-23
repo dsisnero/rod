@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 require "./types"
 require "./events"
@@ -38,13 +36,12 @@ module Cdp::WebAuthn
     end
   end
 
-
   # Commands
   struct Enable
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enable_ui : Bool?
+    property? enable_ui : Bool?
 
     def initialize(@enable_ui : Bool?)
     end
@@ -64,7 +61,7 @@ module Cdp::WebAuthn
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -106,11 +103,11 @@ module Cdp::WebAuthn
     @[JSON::Field(emit_null: false)]
     property authenticator_id : AuthenticatorId
     @[JSON::Field(emit_null: false)]
-    property is_bogus_signature : Bool?
+    property? is_bogus_signature : Bool?
     @[JSON::Field(emit_null: false)]
-    property is_bad_uv : Bool?
+    property? is_bad_uv : Bool?
     @[JSON::Field(emit_null: false)]
-    property is_bad_up : Bool?
+    property? is_bad_up : Bool?
 
     def initialize(@authenticator_id : AuthenticatorId, @is_bogus_signature : Bool?, @is_bad_uv : Bool?, @is_bad_up : Bool?)
     end
@@ -262,7 +259,7 @@ module Cdp::WebAuthn
     @[JSON::Field(emit_null: false)]
     property authenticator_id : AuthenticatorId
     @[JSON::Field(emit_null: false)]
-    property is_user_verified : Bool
+    property? is_user_verified : Bool
 
     def initialize(@authenticator_id : AuthenticatorId, @is_user_verified : Bool)
     end
@@ -284,7 +281,7 @@ module Cdp::WebAuthn
     @[JSON::Field(emit_null: false)]
     property authenticator_id : AuthenticatorId
     @[JSON::Field(emit_null: false)]
-    property enabled : Bool
+    property? enabled : Bool
 
     def initialize(@authenticator_id : AuthenticatorId, @enabled : Bool)
     end
@@ -308,9 +305,9 @@ module Cdp::WebAuthn
     @[JSON::Field(emit_null: false)]
     property credential_id : String
     @[JSON::Field(emit_null: false)]
-    property backup_eligibility : Bool?
+    property? backup_eligibility : Bool?
     @[JSON::Field(emit_null: false)]
-    property backup_state : Bool?
+    property? backup_state : Bool?
 
     def initialize(@authenticator_id : AuthenticatorId, @credential_id : String, @backup_eligibility : Bool?, @backup_state : Bool?)
     end
@@ -325,5 +322,4 @@ module Cdp::WebAuthn
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

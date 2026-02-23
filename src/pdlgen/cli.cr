@@ -117,16 +117,16 @@ module Pdlgen
           @latest = true
         end
 
-        parser.on("--pdl=FILE", "Path to PDL file to use") do |f|
-          @pdl = f
+        parser.on("--pdl=FILE", "Path to PDL file to use") do |file|
+          @pdl = file
         end
 
-        parser.on("--cache=DIR", "Protocol cache directory") do |d|
-          @cache = d
+        parser.on("--cache=DIR", "Protocol cache directory") do |dir|
+          @cache = dir
         end
 
-        parser.on("--out=DIR", "Package output directory") do |d|
-          @out = d
+        parser.on("--out=DIR", "Package output directory") do |out_dir|
+          @out = out_dir
         end
 
         parser.on("--no-clean", "Toggle not cleaning (removing) existing directories") do
@@ -137,8 +137,8 @@ module Pdlgen
           @no_dump = true
         end
 
-        parser.on("--base-pkg=PACKAGE", "Base package name (default: Cdp)") do |p|
-          @base_pkg = p
+        parser.on("--base-pkg=PACKAGE", "Base package name (default: Cdp)") do |pkg|
+          @base_pkg = pkg
         end
 
         parser.invalid_option do |flag|
@@ -252,30 +252,30 @@ module Pdlgen
       processed = [] of Pdl::Domain
       pkgs = [] of String
 
-      domains.each do |d|
+      domains.each do |domain|
         # Skip deprecated domains unless they have always_emit items
-        if d.deprecated && !has_always_emit(d)
-          Util.logf("SKIPPING(domain): %s [deprecated]", d.domain)
+        if domain.deprecated && !has_always_emit(domain)
+          Util.logf("SKIPPING(domain): %s [deprecated]", domain.domain)
           next
         end
 
         # Temporary fix for Page.setDownloadBehavior
-        if d.domain == "Page"
-          d.commands.each do |c|
-            if c.name == "setDownloadBehavior"
-              c.always_emit = true
+        if domain.domain == "Page"
+          domain.commands.each do |command|
+            if command.name == "setDownloadBehavior"
+              command.always_emit = true
             end
           end
         end
 
         # Will process
-        pkgs << Gen::CrystalUtil.package_name(d)
-        processed << d
+        pkgs << Gen::CrystalUtil.package_name(domain)
+        processed << domain
 
         # Cleanup types, events, commands
-        d.types = cleanup_types("type", d.domain, d.types)
-        d.events = cleanup_types("event", d.domain, d.events)
-        d.commands = cleanup_types("command", d.domain, d.commands)
+        domain.types = cleanup_types("type", domain.domain, domain.types)
+        domain.events = cleanup_types("event", domain.domain, domain.events)
+        domain.commands = cleanup_types("command", domain.domain, domain.commands)
       end
 
       # Apply fixup
@@ -312,31 +312,31 @@ module Pdlgen
     private def cleanup_types(n : String, dtyp : String, typs : Array(Pdl::Type)) : Array(Pdl::Type)
       result = [] of Pdl::Type
 
-      typs.each do |t|
-        typ = dtyp + "." + t.name
-        if false && t.deprecated && !t.always_emit
+      typs.each do |type|
+        typ = dtyp + "." + type.name
+        if false && type.deprecated && !type.always_emit
           Util.logf("SKIPPING(%s): %s [deprecated]", n.ljust(7), typ)
           next
         end
 
-        if t.redirect && !t.always_emit
-          Util.logf("SKIPPING(%s): %s [redirect:%s]", n.ljust(7), typ, t.redirect)
+        if type.redirect && !type.always_emit
+          Util.logf("SKIPPING(%s): %s [redirect:%s]", n.ljust(7), typ, type.redirect)
           next
         end
 
-        if t.properties && !t.properties.empty?
-          t.properties = cleanup_types(n[0] + " property", typ, t.properties)
+        if type.properties && !type.properties.empty?
+          type.properties = cleanup_types(n[0] + " property", typ, type.properties)
         end
 
-        if t.parameters && !t.parameters.empty?
-          t.parameters = cleanup_types(n[0] + " param", typ, t.parameters)
+        if type.parameters && !type.parameters.empty?
+          type.parameters = cleanup_types(n[0] + " param", typ, type.parameters)
         end
 
-        if t.returns && !t.returns.empty?
-          t.returns = cleanup_types(n[0] + " return", typ, t.returns)
+        if type.returns && !type.returns.empty?
+          type.returns = cleanup_types(n[0] + " return", typ, type.returns)
         end
 
-        result << t
+        result << type
       end
 
       result
@@ -348,22 +348,22 @@ module Pdlgen
       outpath = File.join(@out, "")
       whitelist = @crystal_wl.split(',')
 
-      Dir.glob(File.join(@out, "**", "*")).each do |n|
-        next unless File.exists?(n)
-        next if n == outpath
+      Dir.glob(File.join(@out, "**", "*")).each do |path|
+        next unless File.exists?(path)
+        next if path == outpath
 
         # Skip if file or path starts with ., is whitelisted, or is one of
         # the files whose output will be overwritten
-        pn = n[outpath.bytesize..] rescue ""
-        fn = File.basename(n)
+        pn = path[outpath.bytesize..] rescue ""
+        fn = File.basename(path)
 
         if pn.empty? || pn.starts_with?('.') || fn.starts_with?('.') || whitelisted?(fn, whitelist) || files.has_key?(pn)
           next
         end
 
-        Util.logf("REMOVING: %s", n)
-        File.delete(n) if File.file?(n)
-        Dir.delete(n) if Dir.exists?(n) && Dir.empty?(n)
+        Util.logf("REMOVING: %s", path)
+        File.delete(path) if File.file?(path)
+        Dir.delete(path) if Dir.exists?(path) && Dir.empty?(path)
       end
     end
 

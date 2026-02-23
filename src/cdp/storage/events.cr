@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -333,5 +332,4 @@ module Cdp::Storage
       "Storage.attributionReportingVerboseDebugReportSent"
     end
   end
-
 end

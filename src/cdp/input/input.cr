@@ -1,15 +1,12 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 require "./types"
 require "./events"
 
 #
 module Cdp::Input
-
   # Commands
   @[Experimental]
   struct DispatchDragEvent
@@ -64,11 +61,11 @@ module Cdp::Input
     @[JSON::Field(emit_null: false)]
     property native_virtual_key_code : Int64?
     @[JSON::Field(emit_null: false)]
-    property auto_repeat : Bool?
+    property? auto_repeat : Bool?
     @[JSON::Field(emit_null: false)]
-    property is_keypad : Bool?
+    property? is_keypad : Bool?
     @[JSON::Field(emit_null: false)]
-    property is_system_key : Bool?
+    property? is_system_key : Bool?
     @[JSON::Field(emit_null: false)]
     property location : Int64?
     @[JSON::Field(emit_null: false)]
@@ -218,7 +215,7 @@ module Cdp::Input
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -273,7 +270,7 @@ module Cdp::Input
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property ignore : Bool
+    property? ignore : Bool
 
     def initialize(@ignore : Bool)
     end
@@ -294,7 +291,7 @@ module Cdp::Input
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enabled : Bool
+    property? enabled : Bool
 
     def initialize(@enabled : Bool)
     end
@@ -356,7 +353,7 @@ module Cdp::Input
     @[JSON::Field(emit_null: false)]
     property y_overscroll : Float64?
     @[JSON::Field(emit_null: false)]
-    property prevent_fling : Bool?
+    property? prevent_fling : Bool?
     @[JSON::Field(emit_null: false)]
     property speed : Int64?
     @[JSON::Field(emit_null: false)]
@@ -410,5 +407,4 @@ module Cdp::Input
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

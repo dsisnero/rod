@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -24,16 +23,70 @@ module Cdp::DOM
   end
 
   alias PseudoType = String
+  PseudoTypeFirstLine                   = "first-line"
+  PseudoTypeFirstLetter                 = "first-letter"
+  PseudoTypeCheckmark                   = "checkmark"
+  PseudoTypeBefore                      = "before"
+  PseudoTypeAfter                       = "after"
+  PseudoTypePickerIcon                  = "picker-icon"
+  PseudoTypeInterestHint                = "interest-hint"
+  PseudoTypeMarker                      = "marker"
+  PseudoTypeBackdrop                    = "backdrop"
+  PseudoTypeColumn                      = "column"
+  PseudoTypeSelection                   = "selection"
+  PseudoTypeSearchText                  = "search-text"
+  PseudoTypeTargetText                  = "target-text"
+  PseudoTypeSpellingError               = "spelling-error"
+  PseudoTypeGrammarError                = "grammar-error"
+  PseudoTypeHighlight                   = "highlight"
+  PseudoTypeFirstLineInherited          = "first-line-inherited"
+  PseudoTypeScrollMarker                = "scroll-marker"
+  PseudoTypeScrollMarkerGroup           = "scroll-marker-group"
+  PseudoTypeScrollButton                = "scroll-button"
+  PseudoTypeScrollbar                   = "scrollbar"
+  PseudoTypeScrollbarThumb              = "scrollbar-thumb"
+  PseudoTypeScrollbarButton             = "scrollbar-button"
+  PseudoTypeScrollbarTrack              = "scrollbar-track"
+  PseudoTypeScrollbarTrackPiece         = "scrollbar-track-piece"
+  PseudoTypeScrollbarCorner             = "scrollbar-corner"
+  PseudoTypeResizer                     = "resizer"
+  PseudoTypeInputListButton             = "input-list-button"
+  PseudoTypeViewTransition              = "view-transition"
+  PseudoTypeViewTransitionGroup         = "view-transition-group"
+  PseudoTypeViewTransitionImagePair     = "view-transition-image-pair"
+  PseudoTypeViewTransitionGroupChildren = "view-transition-group-children"
+  PseudoTypeViewTransitionOld           = "view-transition-old"
+  PseudoTypeViewTransitionNew           = "view-transition-new"
+  PseudoTypePlaceholder                 = "placeholder"
+  PseudoTypeFileSelectorButton          = "file-selector-button"
+  PseudoTypeDetailsContent              = "details-content"
+  PseudoTypePicker                      = "picker"
+  PseudoTypePermissionIcon              = "permission-icon"
+  PseudoTypeOverscrollAreaParent        = "overscroll-area-parent"
 
   alias ShadowRootType = String
+  ShadowRootTypeUserAgent = "user-agent"
+  ShadowRootTypeOpen      = "open"
+  ShadowRootTypeClosed    = "closed"
 
   alias CompatibilityMode = String
+  CompatibilityModeQuirksMode        = "QuirksMode"
+  CompatibilityModeLimitedQuirksMode = "LimitedQuirksMode"
+  CompatibilityModeNoQuirksMode      = "NoQuirksMode"
 
   alias PhysicalAxes = String
+  PhysicalAxesHorizontal = "Horizontal"
+  PhysicalAxesVertical   = "Vertical"
+  PhysicalAxesBoth       = "Both"
 
   alias LogicalAxes = String
+  LogicalAxesInline = "Inline"
+  LogicalAxesBlock  = "Block"
+  LogicalAxesBoth   = "Both"
 
   alias ScrollOrientation = String
+  ScrollOrientationHorizontal = "horizontal"
+  ScrollOrientationVertical   = "vertical"
 
   struct Node
     include JSON::Serializable
@@ -94,15 +147,15 @@ module Cdp::DOM
     @[JSON::Field(emit_null: false)]
     property distributed_nodes : Array(BackendNode)?
     @[JSON::Field(emit_null: false)]
-    property is_svg : Bool?
+    property? is_svg : Bool?
     @[JSON::Field(emit_null: false)]
     property compatibility_mode : CompatibilityMode?
     @[JSON::Field(emit_null: false)]
     property assigned_slot : BackendNode?
     @[JSON::Field(emit_null: false)]
-    property is_scrollable : Bool?
+    property? is_scrollable : Bool?
     @[JSON::Field(emit_null: false)]
-    property affected_by_starting_styles : Bool?
+    property? affected_by_starting_styles : Bool?
     @[JSON::Field(emit_null: false)]
     property adopted_style_sheets : Array(StyleSheetId)?
     @[JSON::Field(emit_null: false)]
@@ -113,19 +166,37 @@ module Cdp::DOM
     property state : NodeState
     @[JSON::Field(emit_null: false)]
     property mutex : Mutex
-  end
-  # NodeState is the state of a DOM node.
-@[Flags]
-enum NodeState : UInt8
-  # Node state flags
-  NodeReady          = 1 << 7
-  NodeChildReady     = 1 << 6
-  NodeDescendantReady = 1 << 5
-  NodeAttached       = 1 << 4
-  NodeHasShadowRoot  = 1 << 3
-  NodeMutated        = 1 << 2
-end
 
+    # AttributeValue returns the named attribute for the node.
+    def attribute_value(name : String) : String
+      value = attribute(name)
+      value || ""
+    end
+
+    # Attribute returns the named attribute for the node and if it exists.
+    def attribute(name : String) : String?
+      if attrs = @attributes
+        attrs.each_slice(2) do |pair|
+          if pair[0] == name
+            return pair[1]
+          end
+        end
+      end
+      nil
+    end
+  end
+
+  # NodeState is the state of a DOM node.
+  @[Flags]
+  enum NodeState : UInt8
+    # Node state flags
+    NodeReady           = 1 << 7
+    NodeChildReady      = 1 << 6
+    NodeDescendantReady = 1 << 5
+    NodeAttached        = 1 << 4
+    NodeHasShadowRoot   = 1 << 3
+    NodeMutated         = 1 << 2
+  end
 
   struct DetachedElementInfo
     include JSON::Serializable
@@ -199,7 +270,11 @@ end
   end
 
   alias EnableIncludeWhitespace = String
+  EnableIncludeWhitespaceNone = "none"
+  EnableIncludeWhitespaceAll  = "all"
 
   alias GetElementByRelationRelation = String
-
-   end
+  GetElementByRelationRelationPopoverTarget  = "PopoverTarget"
+  GetElementByRelationRelationInterestTarget = "InterestTarget"
+  GetElementByRelationRelationCommandFor     = "CommandFor"
+end

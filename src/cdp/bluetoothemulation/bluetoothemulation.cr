@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 require "./types"
 require "./events"
@@ -38,7 +36,6 @@ module Cdp::BluetoothEmulation
     end
   end
 
-
   # Commands
   struct Enable
     include JSON::Serializable
@@ -46,7 +43,7 @@ module Cdp::BluetoothEmulation
     @[JSON::Field(emit_null: false)]
     property state : CentralState
     @[JSON::Field(emit_null: false)]
-    property le_supported : Bool
+    property? le_supported : Bool
 
     def initialize(@state : CentralState, @le_supported : Bool)
     end
@@ -86,7 +83,7 @@ module Cdp::BluetoothEmulation
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -375,5 +372,4 @@ module Cdp::BluetoothEmulation
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

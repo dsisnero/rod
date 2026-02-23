@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -23,5 +22,4 @@ module Cdp::Audits
       "Audits.issueAdded"
     end
   end
-
 end

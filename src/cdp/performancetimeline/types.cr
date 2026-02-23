@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -39,7 +38,7 @@ module Cdp::PerformanceTimeline
     @[JSON::Field(emit_null: false)]
     property value : Float64
     @[JSON::Field(emit_null: false)]
-    property had_recent_input : Bool
+    property? had_recent_input : Bool
     @[JSON::Field(emit_null: false)]
     property last_input_time : Cdp::Network::TimeSinceEpoch
     @[JSON::Field(emit_null: false)]
@@ -63,5 +62,4 @@ module Cdp::PerformanceTimeline
     @[JSON::Field(emit_null: false)]
     property layout_shift_details : LayoutShift?
   end
-
-   end
+end

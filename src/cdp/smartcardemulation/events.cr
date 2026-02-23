@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::SmartCardEmulation
   struct EstablishContextRequestedEvent
@@ -268,5 +266,4 @@ module Cdp::SmartCardEmulation
       "SmartCardEmulation.endTransactionRequested"
     end
   end
-
 end

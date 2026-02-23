@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -153,7 +152,7 @@ module Cdp::DOM
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize()
+    def initialize
     end
 
     # ProtoEvent returns the protocol event name.
@@ -201,7 +200,7 @@ module Cdp::DOM
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize()
+    def initialize
     end
 
     # ProtoEvent returns the protocol event name.
@@ -217,7 +216,7 @@ module Cdp::DOM
     @[JSON::Field(emit_null: false)]
     property node_id : NodeId
     @[JSON::Field(emit_null: false)]
-    property is_scrollable : Bool
+    property? is_scrollable : Bool
 
     def initialize(@node_id : NodeId, @is_scrollable : Bool)
     end
@@ -235,7 +234,7 @@ module Cdp::DOM
     @[JSON::Field(emit_null: false)]
     property node_id : NodeId
     @[JSON::Field(emit_null: false)]
-    property affected_by_starting_styles : Bool
+    property? affected_by_starting_styles : Bool
 
     def initialize(@node_id : NodeId, @affected_by_starting_styles : Bool)
     end
@@ -316,5 +315,4 @@ module Cdp::DOM
       "DOM.shadowRootPushed"
     end
   end
-
 end

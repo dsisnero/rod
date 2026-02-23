@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -37,5 +36,4 @@ module Cdp::HeapProfiler
     @[JSON::Field(emit_null: false)]
     property samples : Array(SamplingHeapProfileSample)
   end
-
-   end
+end

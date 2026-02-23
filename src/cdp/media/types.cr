@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -65,5 +64,8 @@ module Cdp::Media
   end
 
   alias PlayerMessageLevel = String
-
-   end
+  PlayerMessageLevelError   = "error"
+  PlayerMessageLevelWarning = "warning"
+  PlayerMessageLevelInfo    = "info"
+  PlayerMessageLevelDebug   = "debug"
+end

@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::Cast
   struct SinksUpdatedEvent
@@ -34,5 +32,4 @@ module Cdp::Cast
       "Cast.issueUpdated"
     end
   end
-
 end

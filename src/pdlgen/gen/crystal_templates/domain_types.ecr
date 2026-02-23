@@ -20,9 +20,12 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
     <%- end -%>
     <%- if t.type == Pdl::TypeEnum::Object -%>
       <%- if (enum_values = t.enum) && !enum_values.empty? -%>
+        <%- if t.enum_bit_mask -%>
+  @[Flags]
+        <%- end -%>
   enum <%= type_name_for_domain(t, d) %>
         <%- enum_values.each do |value| -%>
-    <%= value.camelcase %>
+    <%= t.enum_value_name_map[value]? || safe_enum_member_name(value) %>
         <%- end -%>
   end
       <%- else -%>
@@ -34,15 +37,57 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
             <%- next if p.name.empty? -%>
             <%- type_str = crystal_type(p, d, domains) -%>
     @[JSON::Field(emit_null: false)]
+    <%- if is_bool_type?(type_str) -%>
+    property? <%= p.name.underscore %> : <%= type_str %><%= "?" if p.optional %>
+    <%- else -%>
     property <%= p.name.underscore %> : <%= type_str %><%= "?" if p.optional %>
+    <%- end -%>
           <%- end -%>
+        <%- end -%>
+        <%- if d.domain == "DOM" && type_name_for_domain(t, d) == "Node" -%>
+
+    # AttributeValue returns the named attribute for the node.
+    def attribute_value(name : String) : String
+      value = attribute(name)
+      value || ""
+    end
+
+    # Attribute returns the named attribute for the node and if it exists.
+    def attribute(name : String) : String?
+      if attrs = @attributes
+        attrs.each_slice(2) do |pair|
+          if pair[0] == name
+            return pair[1]
+          end
+        end
+      end
+      nil
+    end
         <%- end -%>
   end
       <%- end -%>
     <%- elsif t.type == Pdl::TypeEnum::String -%>
+      <%- if (enum_values = t.enum) && !enum_values.empty? -%>
   alias <%= type_name_for_domain(t, d) %> = String
+        <%- enum_values.each do |value| -%>
+  <%= t.enum_value_name_map[value]? || string_enum_constant_name(t, value, d) %> = <%= value.inspect %>
+        <%- end -%>
+      <%- else -%>
+  alias <%= type_name_for_domain(t, d) %> = String
+      <%- end -%>
     <%- elsif t.type == Pdl::TypeEnum::Integer -%>
+      <%- if (enum_values = t.enum) && !enum_values.empty? -%>
+        <%- if t.enum_bit_mask -%>
+  @[Flags]
+        <%- end -%>
+  enum <%= type_name_for_domain(t, d) %> : Int64
+        <%- enum_values.each do |value| -%>
+    <%= t.enum_value_name_map[value]? || enum_member_name(value) %>
+        <%- end -%>
+  end
+      <%- else -%>
   alias <%= type_name_for_domain(t, d) %> = Int64
+      <%- end -%>
     <%- elsif t.type == Pdl::TypeEnum::Boolean -%>
   alias <%= type_name_for_domain(t, d) %> = Bool
     <%- elsif t.type == Pdl::TypeEnum::Number -%>
@@ -61,5 +106,5 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
   <%= t.extra %>
   <%- end -%>
 
-         <%- end -%>
-   end
+          <%- end -%>
+  end

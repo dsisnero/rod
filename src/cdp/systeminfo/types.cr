@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::SystemInfo
   struct GPUDevice
@@ -56,8 +54,14 @@ module Cdp::SystemInfo
   end
 
   alias SubsamplingFormat = String
+  SubsamplingFormatYuv420 = "yuv420"
+  SubsamplingFormatYuv422 = "yuv422"
+  SubsamplingFormatYuv444 = "yuv444"
 
   alias ImageType = String
+  ImageTypeJpeg    = "jpeg"
+  ImageTypeWebp    = "webp"
+  ImageTypeUnknown = "unknown"
 
   struct GPUInfo
     include JSON::Serializable
@@ -84,5 +88,4 @@ module Cdp::SystemInfo
     @[JSON::Field(emit_null: false)]
     property cpu_time : Float64
   end
-
-   end
+end

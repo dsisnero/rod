@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -87,7 +86,7 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize()
+    def initialize
     end
 
     # ProtoEvent returns the protocol event name.
@@ -95,5 +94,4 @@ module Cdp::Overlay
       "Overlay.inspectModeCanceled"
     end
   end
-
 end

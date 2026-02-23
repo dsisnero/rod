@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -319,7 +318,6 @@ module Cdp::CSS
     end
   end
 
-
   # Commands
   struct AddRule
     include JSON::Serializable
@@ -377,7 +375,7 @@ module Cdp::CSS
     @[JSON::Field(emit_null: false)]
     property frame_id : Cdp::Page::FrameId
     @[JSON::Field(emit_null: false)]
-    property force : Bool?
+    property? force : Bool?
 
     def initialize(@frame_id : Cdp::Page::FrameId, @force : Bool?)
     end
@@ -399,7 +397,7 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -417,7 +415,7 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -459,7 +457,7 @@ module Cdp::CSS
     @[JSON::Field(emit_null: false)]
     property node_id : Cdp::DOM::NodeId
     @[JSON::Field(emit_null: false)]
-    property forced : Bool
+    property? forced : Bool
 
     def initialize(@node_id : Cdp::DOM::NodeId, @forced : Bool)
     end
@@ -647,7 +645,7 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -667,7 +665,7 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -822,7 +820,7 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -1099,7 +1097,7 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -1117,7 +1115,7 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -1137,7 +1135,7 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -1158,7 +1156,7 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property enabled : Bool
+    property? enabled : Bool
 
     def initialize(@enabled : Bool)
     end
@@ -1173,5 +1171,4 @@ module Cdp::CSS
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

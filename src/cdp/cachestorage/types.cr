@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -9,6 +8,12 @@ module Cdp::CacheStorage
   alias CacheId = String
 
   alias CachedResponseType = String
+  CachedResponseTypeBasic          = "basic"
+  CachedResponseTypeCors           = "cors"
+  CachedResponseTypeDefault        = "default"
+  CachedResponseTypeError          = "error"
+  CachedResponseTypeOpaqueResponse = "opaqueResponse"
+  CachedResponseTypeOpaqueRedirect = "opaqueRedirect"
 
   struct DataEntry
     include JSON::Serializable
@@ -57,5 +62,4 @@ module Cdp::CacheStorage
     @[JSON::Field(emit_null: false)]
     property body : String
   end
-
-   end
+end

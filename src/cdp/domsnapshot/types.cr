@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -21,9 +20,9 @@ module Cdp::DOMSnapshot
     @[JSON::Field(emit_null: false)]
     property input_value : String?
     @[JSON::Field(emit_null: false)]
-    property input_checked : Bool?
+    property? input_checked : Bool?
     @[JSON::Field(emit_null: false)]
-    property option_selected : Bool?
+    property? option_selected : Bool?
     @[JSON::Field(emit_null: false)]
     property backend_node_id : Cdp::DOM::BackendNodeId
     @[JSON::Field(emit_null: false)]
@@ -55,7 +54,7 @@ module Cdp::DOMSnapshot
     @[JSON::Field(emit_null: false)]
     property shadow_root_type : Cdp::DOM::ShadowRootType?
     @[JSON::Field(emit_null: false)]
-    property is_clickable : Bool?
+    property? is_clickable : Bool?
     @[JSON::Field(emit_null: false)]
     property event_listeners : Array(Cdp::DOMDebugger::EventListener)?
     @[JSON::Field(emit_null: false)]
@@ -93,7 +92,7 @@ module Cdp::DOMSnapshot
     @[JSON::Field(emit_null: false)]
     property paint_order : Int64?
     @[JSON::Field(emit_null: false)]
-    property is_stacking_context : Bool?
+    property? is_stacking_context : Bool?
   end
 
   struct ComputedStyle
@@ -249,5 +248,4 @@ module Cdp::DOMSnapshot
     @[JSON::Field(emit_null: false)]
     property length : Array(Int64)
   end
-
-   end
+end

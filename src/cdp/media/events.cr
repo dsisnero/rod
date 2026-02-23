@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -88,5 +87,4 @@ module Cdp::Media
       "Media.playerCreated"
     end
   end
-
 end

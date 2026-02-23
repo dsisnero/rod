@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -57,7 +56,7 @@ module Cdp::Debugger
     @[JSON::Field(emit_null: false)]
     property return_value : Cdp::Runtime::RemoteObject?
     @[JSON::Field(emit_null: false)]
-    property can_be_restarted : Bool?
+    property? can_be_restarted : Bool?
   end
 
   struct Scope
@@ -104,6 +103,8 @@ module Cdp::Debugger
   end
 
   alias ScriptLanguage = String
+  ScriptLanguageJavaScript  = "JavaScript"
+  ScriptLanguageWebAssembly = "WebAssembly"
 
   struct DebugSymbols
     include JSON::Serializable
@@ -122,21 +123,63 @@ module Cdp::Debugger
   end
 
   alias ScopeType = String
+  ScopeTypeGlobal              = "global"
+  ScopeTypeLocal               = "local"
+  ScopeTypeWith                = "with"
+  ScopeTypeClosure             = "closure"
+  ScopeTypeCatch               = "catch"
+  ScopeTypeBlock               = "block"
+  ScopeTypeScript              = "script"
+  ScopeTypeEval                = "eval"
+  ScopeTypeModule              = "module"
+  ScopeTypeWasmExpressionStack = "wasm-expression-stack"
 
   alias BreakLocationType = String
+  BreakLocationTypeDebuggerStatement = "debuggerStatement"
+  BreakLocationTypeCall              = "call"
+  BreakLocationTypeReturn            = "return"
 
   alias DebugSymbolsType = String
+  DebugSymbolsTypeSourceMap     = "SourceMap"
+  DebugSymbolsTypeEmbeddedDWARF = "EmbeddedDWARF"
+  DebugSymbolsTypeExternalDWARF = "ExternalDWARF"
 
   alias PausedReason = String
+  PausedReasonAmbiguous        = "ambiguous"
+  PausedReasonAssert           = "assert"
+  PausedReasonCSPViolation     = "CSPViolation"
+  PausedReasonDebugCommand     = "debugCommand"
+  PausedReasonDOM              = "DOM"
+  PausedReasonEventListener    = "EventListener"
+  PausedReasonException        = "exception"
+  PausedReasonInstrumentation  = "instrumentation"
+  PausedReasonOOM              = "OOM"
+  PausedReasonOther            = "other"
+  PausedReasonPromiseRejection = "promiseRejection"
+  PausedReasonXHR              = "XHR"
+  PausedReasonStep             = "step"
 
   alias ContinueToLocationTargetCallFrames = String
+  ContinueToLocationTargetCallFramesAny     = "any"
+  ContinueToLocationTargetCallFramesCurrent = "current"
 
   alias RestartFrameMode = String
+  RestartFrameModeStepInto = "StepInto"
 
   alias SetInstrumentationBreakpointInstrumentation = String
+  SetInstrumentationBreakpointInstrumentationBeforeScriptExecution              = "beforeScriptExecution"
+  SetInstrumentationBreakpointInstrumentationBeforeScriptWithSourceMapExecution = "beforeScriptWithSourceMapExecution"
 
   alias ExceptionsState = String
+  ExceptionsStateNone     = "none"
+  ExceptionsStateCaught   = "caught"
+  ExceptionsStateUncaught = "uncaught"
+  ExceptionsStateAll      = "all"
 
   alias SetScriptSourceStatus = String
-
-   end
+  SetScriptSourceStatusOk                              = "Ok"
+  SetScriptSourceStatusCompileError                    = "CompileError"
+  SetScriptSourceStatusBlockedByActiveGenerator        = "BlockedByActiveGenerator"
+  SetScriptSourceStatusBlockedByActiveFunction         = "BlockedByActiveFunction"
+  SetScriptSourceStatusBlockedByTopLevelEsModuleChange = "BlockedByTopLevelEsModuleChange"
+end

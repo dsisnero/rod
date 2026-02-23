@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -15,6 +14,10 @@ module Cdp::Browser
 
   @[Experimental]
   alias WindowState = String
+  WindowStateNormal     = "normal"
+  WindowStateMinimized  = "minimized"
+  WindowStateMaximized  = "maximized"
+  WindowStateFullscreen = "fullscreen"
 
   @[Experimental]
   struct Bounds
@@ -33,9 +36,51 @@ module Cdp::Browser
 
   @[Experimental]
   alias PermissionType = String
+  PermissionTypeAr                       = "ar"
+  PermissionTypeAudioCapture             = "audioCapture"
+  PermissionTypeAutomaticFullscreen      = "automaticFullscreen"
+  PermissionTypeBackgroundFetch          = "backgroundFetch"
+  PermissionTypeBackgroundSync           = "backgroundSync"
+  PermissionTypeCameraPanTiltZoom        = "cameraPanTiltZoom"
+  PermissionTypeCapturedSurfaceControl   = "capturedSurfaceControl"
+  PermissionTypeClipboardReadWrite       = "clipboardReadWrite"
+  PermissionTypeClipboardSanitizedWrite  = "clipboardSanitizedWrite"
+  PermissionTypeDisplayCapture           = "displayCapture"
+  PermissionTypeDurableStorage           = "durableStorage"
+  PermissionTypeGeolocation              = "geolocation"
+  PermissionTypeHandTracking             = "handTracking"
+  PermissionTypeIdleDetection            = "idleDetection"
+  PermissionTypeKeyboardLock             = "keyboardLock"
+  PermissionTypeLocalFonts               = "localFonts"
+  PermissionTypeLocalNetwork             = "localNetwork"
+  PermissionTypeLocalNetworkAccess       = "localNetworkAccess"
+  PermissionTypeLoopbackNetwork          = "loopbackNetwork"
+  PermissionTypeMidi                     = "midi"
+  PermissionTypeMidiSysex                = "midiSysex"
+  PermissionTypeNfc                      = "nfc"
+  PermissionTypeNotifications            = "notifications"
+  PermissionTypePaymentHandler           = "paymentHandler"
+  PermissionTypePeriodicBackgroundSync   = "periodicBackgroundSync"
+  PermissionTypePointerLock              = "pointerLock"
+  PermissionTypeProtectedMediaIdentifier = "protectedMediaIdentifier"
+  PermissionTypeSensors                  = "sensors"
+  PermissionTypeSmartCard                = "smartCard"
+  PermissionTypeSpeakerSelection         = "speakerSelection"
+  PermissionTypeStorageAccess            = "storageAccess"
+  PermissionTypeTopLevelStorageAccess    = "topLevelStorageAccess"
+  PermissionTypeVideoCapture             = "videoCapture"
+  PermissionTypeVr                       = "vr"
+  PermissionTypeWakeLockScreen           = "wakeLockScreen"
+  PermissionTypeWakeLockSystem           = "wakeLockSystem"
+  PermissionTypeWebAppInstallation       = "webAppInstallation"
+  PermissionTypeWebPrinting              = "webPrinting"
+  PermissionTypeWindowManagement         = "windowManagement"
 
   @[Experimental]
   alias PermissionSetting = String
+  PermissionSettingGranted = "granted"
+  PermissionSettingDenied  = "denied"
+  PermissionSettingPrompt  = "prompt"
 
   @[Experimental]
   struct PermissionDescriptor
@@ -43,19 +88,22 @@ module Cdp::Browser
     @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
-    property sysex : Bool?
+    property? sysex : Bool?
     @[JSON::Field(emit_null: false)]
-    property user_visible_only : Bool?
+    property? user_visible_only : Bool?
     @[JSON::Field(emit_null: false)]
-    property allow_without_sanitization : Bool?
+    property? allow_without_sanitization : Bool?
     @[JSON::Field(emit_null: false)]
-    property allow_without_gesture : Bool?
+    property? allow_without_gesture : Bool?
     @[JSON::Field(emit_null: false)]
-    property pan_tilt_zoom : Bool?
+    property? pan_tilt_zoom : Bool?
   end
 
   @[Experimental]
   alias BrowserCommandId = String
+  BrowserCommandIdOpenTabSearch  = "openTabSearch"
+  BrowserCommandIdCloseTabSearch = "closeTabSearch"
+  BrowserCommandIdOpenGlic       = "openGlic"
 
   @[Experimental]
   struct Bucket
@@ -83,9 +131,17 @@ module Cdp::Browser
 
   @[Experimental]
   alias PrivacySandboxAPI = String
+  PrivacySandboxAPIBiddingAndAuctionServices = "BiddingAndAuctionServices"
+  PrivacySandboxAPITrustedKeyValue           = "TrustedKeyValue"
 
   alias DownloadProgressState = String
+  DownloadProgressStateInProgress = "inProgress"
+  DownloadProgressStateCompleted  = "completed"
+  DownloadProgressStateCanceled   = "canceled"
 
   alias SetDownloadBehaviorBehavior = String
-
-   end
+  SetDownloadBehaviorBehaviorDeny         = "deny"
+  SetDownloadBehaviorBehaviorAllow        = "allow"
+  SetDownloadBehaviorBehaviorAllowAndName = "allowAndName"
+  SetDownloadBehaviorBehaviorDefault      = "default"
+end

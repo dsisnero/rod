@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 require "./types"
 
@@ -27,7 +25,7 @@ module Cdp::SystemInfo
   struct GetFeatureStateResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property feature_enabled : Bool
+    property? feature_enabled : Bool
 
     def initialize(@feature_enabled : Bool)
     end
@@ -42,13 +40,12 @@ module Cdp::SystemInfo
     end
   end
 
-
   # Commands
   struct GetInfo
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -90,7 +87,7 @@ module Cdp::SystemInfo
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -105,5 +102,4 @@ module Cdp::SystemInfo
       res
     end
   end
-
 end

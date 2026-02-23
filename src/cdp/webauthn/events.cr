@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::WebAuthn
   struct CredentialAddedEvent
@@ -72,5 +70,4 @@ module Cdp::WebAuthn
       "WebAuthn.credentialAsserted"
     end
   end
-
 end

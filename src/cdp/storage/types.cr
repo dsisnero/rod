@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -12,6 +11,19 @@ module Cdp::Storage
   alias SerializedStorageKey = String
 
   alias StorageType = String
+  StorageTypeCookies        = "cookies"
+  StorageTypeFileSystems    = "file_systems"
+  StorageTypeIndexeddb      = "indexeddb"
+  StorageTypeLocalStorage   = "local_storage"
+  StorageTypeShaderCache    = "shader_cache"
+  StorageTypeWebsql         = "websql"
+  StorageTypeServiceWorkers = "service_workers"
+  StorageTypeCacheStorage   = "cache_storage"
+  StorageTypeInterestGroups = "interest_groups"
+  StorageTypeSharedStorage  = "shared_storage"
+  StorageTypeStorageBuckets = "storage_buckets"
+  StorageTypeAll            = "all"
+  StorageTypeOther          = "other"
 
   struct UsageForType
     include JSON::Serializable
@@ -33,14 +45,51 @@ module Cdp::Storage
   alias InterestGroupAuctionId = String
 
   alias InterestGroupAccessType = String
+  InterestGroupAccessTypeJoin                  = "join"
+  InterestGroupAccessTypeLeave                 = "leave"
+  InterestGroupAccessTypeUpdate                = "update"
+  InterestGroupAccessTypeLoaded                = "loaded"
+  InterestGroupAccessTypeBid                   = "bid"
+  InterestGroupAccessTypeWin                   = "win"
+  InterestGroupAccessTypeAdditionalBid         = "additionalBid"
+  InterestGroupAccessTypeAdditionalBidWin      = "additionalBidWin"
+  InterestGroupAccessTypeTopLevelBid           = "topLevelBid"
+  InterestGroupAccessTypeTopLevelAdditionalBid = "topLevelAdditionalBid"
+  InterestGroupAccessTypeClear                 = "clear"
 
   alias InterestGroupAuctionEventType = String
+  InterestGroupAuctionEventTypeStarted        = "started"
+  InterestGroupAuctionEventTypeConfigResolved = "configResolved"
 
   alias InterestGroupAuctionFetchType = String
+  InterestGroupAuctionFetchTypeBidderJs             = "bidderJs"
+  InterestGroupAuctionFetchTypeBidderWasm           = "bidderWasm"
+  InterestGroupAuctionFetchTypeSellerJs             = "sellerJs"
+  InterestGroupAuctionFetchTypeBidderTrustedSignals = "bidderTrustedSignals"
+  InterestGroupAuctionFetchTypeSellerTrustedSignals = "sellerTrustedSignals"
 
   alias SharedStorageAccessScope = String
+  SharedStorageAccessScopeWindow                   = "window"
+  SharedStorageAccessScopeSharedStorageWorklet     = "sharedStorageWorklet"
+  SharedStorageAccessScopeProtectedAudienceWorklet = "protectedAudienceWorklet"
+  SharedStorageAccessScopeHeader                   = "header"
 
   alias SharedStorageAccessMethod = String
+  SharedStorageAccessMethodAddModule       = "addModule"
+  SharedStorageAccessMethodCreateWorklet   = "createWorklet"
+  SharedStorageAccessMethodSelectURL       = "selectURL"
+  SharedStorageAccessMethodRun             = "run"
+  SharedStorageAccessMethodBatchUpdate     = "batchUpdate"
+  SharedStorageAccessMethodSet             = "set"
+  SharedStorageAccessMethodAppend          = "append"
+  SharedStorageAccessMethodDelete          = "delete"
+  SharedStorageAccessMethodClear           = "clear"
+  SharedStorageAccessMethodGet             = "get"
+  SharedStorageAccessMethodKeys            = "keys"
+  SharedStorageAccessMethodValues          = "values"
+  SharedStorageAccessMethodEntries         = "entries"
+  SharedStorageAccessMethodLength          = "length"
+  SharedStorageAccessMethodRemainingBudget = "remainingBudget"
 
   struct SharedStorageEntry
     include JSON::Serializable
@@ -101,7 +150,7 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property operation_id : String?
     @[JSON::Field(emit_null: false)]
-    property keep_alive : Bool?
+    property? keep_alive : Bool?
     @[JSON::Field(emit_null: false)]
     property private_aggregation_config : SharedStoragePrivateAggregationConfig?
     @[JSON::Field(emit_null: false)]
@@ -115,7 +164,7 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property value : String?
     @[JSON::Field(emit_null: false)]
-    property ignore_if_present : Bool?
+    property? ignore_if_present : Bool?
     @[JSON::Field(emit_null: false)]
     property worklet_ordinal : Int64?
     @[JSON::Field(emit_null: false)]
@@ -129,6 +178,8 @@ module Cdp::Storage
   end
 
   alias StorageBucketsDurability = String
+  StorageBucketsDurabilityRelaxed = "relaxed"
+  StorageBucketsDurabilityStrict  = "strict"
 
   struct StorageBucket
     include JSON::Serializable
@@ -149,13 +200,15 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property quota : Float64
     @[JSON::Field(emit_null: false)]
-    property persistent : Bool
+    property? persistent : Bool
     @[JSON::Field(emit_null: false)]
     property durability : StorageBucketsDurability
   end
 
   @[Experimental]
   alias AttributionReportingSourceType = String
+  AttributionReportingSourceTypeNavigation = "navigation"
+  AttributionReportingSourceTypeEvent      = "event"
 
   @[Experimental]
   alias UnsignedInt64AsBase10 = String
@@ -213,6 +266,8 @@ module Cdp::Storage
 
   @[Experimental]
   alias AttributionReportingTriggerDataMatching = String
+  AttributionReportingTriggerDataMatchingExact   = "exact"
+  AttributionReportingTriggerDataMatchingModulus = "modulus"
 
   @[Experimental]
   struct AttributionReportingAggregatableDebugReportingData
@@ -302,16 +357,34 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property named_budgets : Array(AttributionReportingNamedBudgetDef)
     @[JSON::Field(emit_null: false)]
-    property debug_reporting : Bool
+    property? debug_reporting : Bool
     @[JSON::Field(emit_null: false)]
     property event_level_epsilon : Float64
   end
 
   @[Experimental]
   alias AttributionReportingSourceRegistrationResult = String
+  AttributionReportingSourceRegistrationResultSuccess                                = "success"
+  AttributionReportingSourceRegistrationResultInternalError                          = "internalError"
+  AttributionReportingSourceRegistrationResultInsufficientSourceCapacity             = "insufficientSourceCapacity"
+  AttributionReportingSourceRegistrationResultInsufficientUniqueDestinationCapacity  = "insufficientUniqueDestinationCapacity"
+  AttributionReportingSourceRegistrationResultExcessiveReportingOrigins              = "excessiveReportingOrigins"
+  AttributionReportingSourceRegistrationResultProhibitedByBrowserPolicy              = "prohibitedByBrowserPolicy"
+  AttributionReportingSourceRegistrationResultSuccessNoised                          = "successNoised"
+  AttributionReportingSourceRegistrationResultDestinationReportingLimitReached       = "destinationReportingLimitReached"
+  AttributionReportingSourceRegistrationResultDestinationGlobalLimitReached          = "destinationGlobalLimitReached"
+  AttributionReportingSourceRegistrationResultDestinationBothLimitsReached           = "destinationBothLimitsReached"
+  AttributionReportingSourceRegistrationResultReportingOriginsPerSiteLimitReached    = "reportingOriginsPerSiteLimitReached"
+  AttributionReportingSourceRegistrationResultExceedsMaxChannelCapacity              = "exceedsMaxChannelCapacity"
+  AttributionReportingSourceRegistrationResultExceedsMaxScopesChannelCapacity        = "exceedsMaxScopesChannelCapacity"
+  AttributionReportingSourceRegistrationResultExceedsMaxTriggerStateCardinality      = "exceedsMaxTriggerStateCardinality"
+  AttributionReportingSourceRegistrationResultExceedsMaxEventStatesLimit             = "exceedsMaxEventStatesLimit"
+  AttributionReportingSourceRegistrationResultDestinationPerDayReportingLimitReached = "destinationPerDayReportingLimitReached"
 
   @[Experimental]
   alias AttributionReportingSourceRegistrationTimeConfig = String
+  AttributionReportingSourceRegistrationTimeConfigInclude = "include"
+  AttributionReportingSourceRegistrationTimeConfigExclude = "exclude"
 
   @[Experimental]
   struct AttributionReportingAggregatableValueDictEntry
@@ -393,7 +466,7 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property aggregatable_filtering_id_max_bytes : Int64
     @[JSON::Field(emit_null: false)]
-    property debug_reporting : Bool
+    property? debug_reporting : Bool
     @[JSON::Field(emit_null: false)]
     property aggregation_coordinator_origin : String?
     @[JSON::Field(emit_null: false)]
@@ -410,12 +483,50 @@ module Cdp::Storage
 
   @[Experimental]
   alias AttributionReportingEventLevelResult = String
+  AttributionReportingEventLevelResultSuccess                             = "success"
+  AttributionReportingEventLevelResultSuccessDroppedLowerPriority         = "successDroppedLowerPriority"
+  AttributionReportingEventLevelResultInternalError                       = "internalError"
+  AttributionReportingEventLevelResultNoCapacityForAttributionDestination = "noCapacityForAttributionDestination"
+  AttributionReportingEventLevelResultNoMatchingSources                   = "noMatchingSources"
+  AttributionReportingEventLevelResultDeduplicated                        = "deduplicated"
+  AttributionReportingEventLevelResultExcessiveAttributions               = "excessiveAttributions"
+  AttributionReportingEventLevelResultPriorityTooLow                      = "priorityTooLow"
+  AttributionReportingEventLevelResultNeverAttributedSource               = "neverAttributedSource"
+  AttributionReportingEventLevelResultExcessiveReportingOrigins           = "excessiveReportingOrigins"
+  AttributionReportingEventLevelResultNoMatchingSourceFilterData          = "noMatchingSourceFilterData"
+  AttributionReportingEventLevelResultProhibitedByBrowserPolicy           = "prohibitedByBrowserPolicy"
+  AttributionReportingEventLevelResultNoMatchingConfigurations            = "noMatchingConfigurations"
+  AttributionReportingEventLevelResultExcessiveReports                    = "excessiveReports"
+  AttributionReportingEventLevelResultFalselyAttributedSource             = "falselyAttributedSource"
+  AttributionReportingEventLevelResultReportWindowPassed                  = "reportWindowPassed"
+  AttributionReportingEventLevelResultNotRegistered                       = "notRegistered"
+  AttributionReportingEventLevelResultReportWindowNotStarted              = "reportWindowNotStarted"
+  AttributionReportingEventLevelResultNoMatchingTriggerData               = "noMatchingTriggerData"
 
   @[Experimental]
   alias AttributionReportingAggregatableResult = String
+  AttributionReportingAggregatableResultSuccess                             = "success"
+  AttributionReportingAggregatableResultInternalError                       = "internalError"
+  AttributionReportingAggregatableResultNoCapacityForAttributionDestination = "noCapacityForAttributionDestination"
+  AttributionReportingAggregatableResultNoMatchingSources                   = "noMatchingSources"
+  AttributionReportingAggregatableResultExcessiveAttributions               = "excessiveAttributions"
+  AttributionReportingAggregatableResultExcessiveReportingOrigins           = "excessiveReportingOrigins"
+  AttributionReportingAggregatableResultNoHistograms                        = "noHistograms"
+  AttributionReportingAggregatableResultInsufficientBudget                  = "insufficientBudget"
+  AttributionReportingAggregatableResultInsufficientNamedBudget             = "insufficientNamedBudget"
+  AttributionReportingAggregatableResultNoMatchingSourceFilterData          = "noMatchingSourceFilterData"
+  AttributionReportingAggregatableResultNotRegistered                       = "notRegistered"
+  AttributionReportingAggregatableResultProhibitedByBrowserPolicy           = "prohibitedByBrowserPolicy"
+  AttributionReportingAggregatableResultDeduplicated                        = "deduplicated"
+  AttributionReportingAggregatableResultReportWindowPassed                  = "reportWindowPassed"
+  AttributionReportingAggregatableResultExcessiveReports                    = "excessiveReports"
 
   @[Experimental]
   alias AttributionReportingReportResult = String
+  AttributionReportingReportResultSent             = "sent"
+  AttributionReportingReportResultProhibited       = "prohibited"
+  AttributionReportingReportResultFailedToAssemble = "failedToAssemble"
+  AttributionReportingReportResultExpired          = "expired"
 
   @[Experimental]
   struct RelatedWebsiteSet
@@ -427,5 +538,4 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property service_sites : Array(String)
   end
-
-   end
+end

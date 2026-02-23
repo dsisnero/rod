@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -38,7 +37,6 @@ module Cdp::CacheStorage
     def initialize(@cache_data_entries : Array(DataEntry), @return_count : Float64)
     end
   end
-
 
   # Commands
   struct DeleteCache
@@ -162,5 +160,4 @@ module Cdp::CacheStorage
       res
     end
   end
-
 end

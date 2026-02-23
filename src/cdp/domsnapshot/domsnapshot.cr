@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -23,13 +22,12 @@ module Cdp::DOMSnapshot
     end
   end
 
-
   # Commands
   struct Disable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -47,7 +45,7 @@ module Cdp::DOMSnapshot
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -67,13 +65,13 @@ module Cdp::DOMSnapshot
     @[JSON::Field(emit_null: false)]
     property computed_styles : Array(String)
     @[JSON::Field(emit_null: false)]
-    property include_paint_order : Bool?
+    property? include_paint_order : Bool?
     @[JSON::Field(emit_null: false)]
-    property include_dom_rects : Bool?
+    property? include_dom_rects : Bool?
     @[JSON::Field(emit_null: false)]
-    property include_blended_background_colors : Bool?
+    property? include_blended_background_colors : Bool?
     @[JSON::Field(emit_null: false)]
-    property include_text_color_opacities : Bool?
+    property? include_text_color_opacities : Bool?
 
     def initialize(@computed_styles : Array(String), @include_paint_order : Bool?, @include_dom_rects : Bool?, @include_blended_background_colors : Bool?, @include_text_color_opacities : Bool?)
     end
@@ -90,5 +88,4 @@ module Cdp::DOMSnapshot
       res
     end
   end
-
 end

@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::Tethering
   struct AcceptedEvent
@@ -21,5 +19,4 @@ module Cdp::Tethering
       "Tethering.accepted"
     end
   end
-
 end

@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::Performance
   struct Metric
@@ -14,7 +12,10 @@ module Cdp::Performance
   end
 
   alias EnableTimeDomain = String
+  EnableTimeDomainTimeTicks   = "timeTicks"
+  EnableTimeDomainThreadTicks = "threadTicks"
 
   alias SetTimeDomainTimeDomain = String
-
-   end
+  SetTimeDomainTimeDomainTimeTicks   = "timeTicks"
+  SetTimeDomainTimeDomainThreadTicks = "threadTicks"
+end

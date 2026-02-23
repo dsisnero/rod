@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -73,13 +72,12 @@ module Cdp::Accessibility
     end
   end
 
-
   # Commands
   struct Disable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -97,7 +95,7 @@ module Cdp::Accessibility
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -122,7 +120,7 @@ module Cdp::Accessibility
     @[JSON::Field(emit_null: false)]
     property object_id : Cdp::Runtime::RemoteObjectId?
     @[JSON::Field(emit_null: false)]
-    property fetch_relatives : Bool?
+    property? fetch_relatives : Bool?
 
     def initialize(@node_id : Cdp::DOM::NodeId?, @backend_node_id : Cdp::DOM::BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?, @fetch_relatives : Bool?)
     end
@@ -270,5 +268,4 @@ module Cdp::Accessibility
       res
     end
   end
-
 end

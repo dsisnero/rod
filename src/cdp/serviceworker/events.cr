@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -50,5 +49,4 @@ module Cdp::ServiceWorker
       "ServiceWorker.workerVersionUpdated"
     end
   end
-
 end

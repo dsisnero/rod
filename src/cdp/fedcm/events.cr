@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::FedCm
   struct DialogShownEvent
@@ -42,5 +40,4 @@ module Cdp::FedCm
       "FedCm.dialogClosed"
     end
   end
-
 end

@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 require "./types"
 
@@ -26,7 +24,6 @@ module Cdp::Extensions
     def initialize(@data : JSON::Any)
     end
   end
-
 
   # Commands
   struct TriggerAction
@@ -57,7 +54,7 @@ module Cdp::Extensions
     @[JSON::Field(emit_null: false)]
     property path : String
     @[JSON::Field(emit_null: false)]
-    property enable_in_incognito : Bool?
+    property? enable_in_incognito : Bool?
 
     def initialize(@path : String, @enable_in_incognito : Bool?)
     end
@@ -190,5 +187,4 @@ module Cdp::Extensions
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

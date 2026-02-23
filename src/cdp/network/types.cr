@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -11,6 +10,25 @@ require "../page/page"
 
 module Cdp::Network
   alias ResourceType = String
+  ResourceTypeDocument           = "Document"
+  ResourceTypeStylesheet         = "Stylesheet"
+  ResourceTypeImage              = "Image"
+  ResourceTypeMedia              = "Media"
+  ResourceTypeFont               = "Font"
+  ResourceTypeScript             = "Script"
+  ResourceTypeTextTrack          = "TextTrack"
+  ResourceTypeXHR                = "XHR"
+  ResourceTypeFetch              = "Fetch"
+  ResourceTypePrefetch           = "Prefetch"
+  ResourceTypeEventSource        = "EventSource"
+  ResourceTypeWebSocket          = "WebSocket"
+  ResourceTypeManifest           = "Manifest"
+  ResourceTypeSignedExchange     = "SignedExchange"
+  ResourceTypePing               = "Ping"
+  ResourceTypeCSPViolationReport = "CSPViolationReport"
+  ResourceTypePreflight          = "Preflight"
+  ResourceTypeFedCM              = "FedCM"
+  ResourceTypeOther              = "Other"
 
   alias LoaderId = String
 
@@ -19,6 +37,20 @@ module Cdp::Network
   alias InterceptionId = String
 
   alias ErrorReason = String
+  ErrorReasonFailed               = "Failed"
+  ErrorReasonAborted              = "Aborted"
+  ErrorReasonTimedOut             = "TimedOut"
+  ErrorReasonAccessDenied         = "AccessDenied"
+  ErrorReasonConnectionClosed     = "ConnectionClosed"
+  ErrorReasonConnectionReset      = "ConnectionReset"
+  ErrorReasonConnectionRefused    = "ConnectionRefused"
+  ErrorReasonConnectionAborted    = "ConnectionAborted"
+  ErrorReasonConnectionFailed     = "ConnectionFailed"
+  ErrorReasonNameNotResolved      = "NameNotResolved"
+  ErrorReasonInternetDisconnected = "InternetDisconnected"
+  ErrorReasonAddressUnreachable   = "AddressUnreachable"
+  ErrorReasonBlockedByClient      = "BlockedByClient"
+  ErrorReasonBlockedByResponse    = "BlockedByResponse"
 
   alias TimeSinceEpoch = Time
 
@@ -27,14 +59,32 @@ module Cdp::Network
   alias Headers = JSON::Any
 
   alias ConnectionType = String
+  ConnectionTypeNone       = "none"
+  ConnectionTypeCellular2g = "cellular2g"
+  ConnectionTypeCellular3g = "cellular3g"
+  ConnectionTypeCellular4g = "cellular4g"
+  ConnectionTypeBluetooth  = "bluetooth"
+  ConnectionTypeEthernet   = "ethernet"
+  ConnectionTypeWifi       = "wifi"
+  ConnectionTypeWimax      = "wimax"
+  ConnectionTypeOther      = "other"
 
   alias CookieSameSite = String
+  CookieSameSiteStrict = "Strict"
+  CookieSameSiteLax    = "Lax"
+  CookieSameSiteNone   = "None"
 
   @[Experimental]
   alias CookiePriority = String
+  CookiePriorityLow    = "Low"
+  CookiePriorityMedium = "Medium"
+  CookiePriorityHigh   = "High"
 
   @[Experimental]
   alias CookieSourceScheme = String
+  CookieSourceSchemeUnset     = "Unset"
+  CookieSourceSchemeNonSecure = "NonSecure"
+  CookieSourceSchemeSecure    = "Secure"
 
   struct ResourceTiming
     include JSON::Serializable
@@ -83,9 +133,19 @@ module Cdp::Network
   end
 
   alias ResourcePriority = String
+  ResourcePriorityVeryLow  = "VeryLow"
+  ResourcePriorityLow      = "Low"
+  ResourcePriorityMedium   = "Medium"
+  ResourcePriorityHigh     = "High"
+  ResourcePriorityVeryHigh = "VeryHigh"
 
   @[Experimental]
   alias RenderBlockingBehavior = String
+  RenderBlockingBehaviorBlocking             = "Blocking"
+  RenderBlockingBehaviorInBodyParserBlocking = "InBodyParserBlocking"
+  RenderBlockingBehaviorNonBlocking          = "NonBlocking"
+  RenderBlockingBehaviorNonBlockingDynamic   = "NonBlockingDynamic"
+  RenderBlockingBehaviorPotentiallyBlocking  = "PotentiallyBlocking"
 
   struct PostDataEntry
     include JSON::Serializable
@@ -104,7 +164,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property headers : Headers
     @[JSON::Field(emit_null: false)]
-    property has_post_data : Bool?
+    property? has_post_data : Bool?
     @[JSON::Field(emit_null: false)]
     property post_data_entries : Array(PostDataEntry)?
     @[JSON::Field(emit_null: false)]
@@ -114,13 +174,13 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property referrer_policy : ReferrerPolicy
     @[JSON::Field(emit_null: false)]
-    property is_link_preload : Bool?
+    property? is_link_preload : Bool?
     @[JSON::Field(emit_null: false)]
     property trust_token_params : TrustTokenParams?
     @[JSON::Field(emit_null: false)]
-    property is_same_site : Bool?
+    property? is_same_site : Bool?
     @[JSON::Field(emit_null: false)]
-    property is_ad_related : Bool?
+    property? is_ad_related : Bool?
   end
 
   struct SignedCertificateTimestamp
@@ -174,14 +234,61 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property server_signature_algorithm : Int64?
     @[JSON::Field(emit_null: false)]
-    property encrypted_client_hello : Bool
+    property? encrypted_client_hello : Bool
   end
 
   alias CertificateTransparencyCompliance = String
+  CertificateTransparencyComplianceUnknown      = "unknown"
+  CertificateTransparencyComplianceNotCompliant = "not-compliant"
+  CertificateTransparencyComplianceCompliant    = "compliant"
 
   alias BlockedReason = String
+  BlockedReasonOther                                                   = "other"
+  BlockedReasonCsp                                                     = "csp"
+  BlockedReasonMixedContent                                            = "mixed-content"
+  BlockedReasonOrigin                                                  = "origin"
+  BlockedReasonInspector                                               = "inspector"
+  BlockedReasonIntegrity                                               = "integrity"
+  BlockedReasonSubresourceFilter                                       = "subresource-filter"
+  BlockedReasonContentType                                             = "content-type"
+  BlockedReasonCoepFrameResourceNeedsCoepHeader                        = "coep-frame-resource-needs-coep-header"
+  BlockedReasonCoopSandboxedIframeCannotNavigateToCoopPage             = "coop-sandboxed-iframe-cannot-navigate-to-coop-page"
+  BlockedReasonCorpNotSameOrigin                                       = "corp-not-same-origin"
+  BlockedReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoep       = "corp-not-same-origin-after-defaulted-to-same-origin-by-coep"
+  BlockedReasonCorpNotSameOriginAfterDefaultedToSameOriginByDip        = "corp-not-same-origin-after-defaulted-to-same-origin-by-dip"
+  BlockedReasonCorpNotSameOriginAfterDefaultedToSameOriginByCoepAndDip = "corp-not-same-origin-after-defaulted-to-same-origin-by-coep-and-dip"
+  BlockedReasonCorpNotSameSite                                         = "corp-not-same-site"
+  BlockedReasonSriMessageSignatureMismatch                             = "sri-message-signature-mismatch"
 
   alias CorsError = String
+  CorsErrorDisallowedByMode                     = "DisallowedByMode"
+  CorsErrorInvalidResponse                      = "InvalidResponse"
+  CorsErrorWildcardOriginNotAllowed             = "WildcardOriginNotAllowed"
+  CorsErrorMissingAllowOriginHeader             = "MissingAllowOriginHeader"
+  CorsErrorMultipleAllowOriginValues            = "MultipleAllowOriginValues"
+  CorsErrorInvalidAllowOriginValue              = "InvalidAllowOriginValue"
+  CorsErrorAllowOriginMismatch                  = "AllowOriginMismatch"
+  CorsErrorInvalidAllowCredentials              = "InvalidAllowCredentials"
+  CorsErrorCorsDisabledScheme                   = "CorsDisabledScheme"
+  CorsErrorPreflightInvalidStatus               = "PreflightInvalidStatus"
+  CorsErrorPreflightDisallowedRedirect          = "PreflightDisallowedRedirect"
+  CorsErrorPreflightWildcardOriginNotAllowed    = "PreflightWildcardOriginNotAllowed"
+  CorsErrorPreflightMissingAllowOriginHeader    = "PreflightMissingAllowOriginHeader"
+  CorsErrorPreflightMultipleAllowOriginValues   = "PreflightMultipleAllowOriginValues"
+  CorsErrorPreflightInvalidAllowOriginValue     = "PreflightInvalidAllowOriginValue"
+  CorsErrorPreflightAllowOriginMismatch         = "PreflightAllowOriginMismatch"
+  CorsErrorPreflightInvalidAllowCredentials     = "PreflightInvalidAllowCredentials"
+  CorsErrorPreflightMissingAllowExternal        = "PreflightMissingAllowExternal"
+  CorsErrorPreflightInvalidAllowExternal        = "PreflightInvalidAllowExternal"
+  CorsErrorInvalidAllowMethodsPreflightResponse = "InvalidAllowMethodsPreflightResponse"
+  CorsErrorInvalidAllowHeadersPreflightResponse = "InvalidAllowHeadersPreflightResponse"
+  CorsErrorMethodDisallowedByPreflightResponse  = "MethodDisallowedByPreflightResponse"
+  CorsErrorHeaderDisallowedByPreflightResponse  = "HeaderDisallowedByPreflightResponse"
+  CorsErrorRedirectContainsCredentials          = "RedirectContainsCredentials"
+  CorsErrorInsecureLocalNetwork                 = "InsecureLocalNetwork"
+  CorsErrorInvalidLocalNetworkAccess            = "InvalidLocalNetworkAccess"
+  CorsErrorNoCorsRedirectModeNotFollow          = "NoCorsRedirectModeNotFollow"
+  CorsErrorLocalNetworkAccessPermissionDenied   = "LocalNetworkAccessPermissionDenied"
 
   struct CorsErrorStatus
     include JSON::Serializable
@@ -192,6 +299,10 @@ module Cdp::Network
   end
 
   alias ServiceWorkerResponseSource = String
+  ServiceWorkerResponseSourceCacheStorage = "cache-storage"
+  ServiceWorkerResponseSourceHttpCache    = "http-cache"
+  ServiceWorkerResponseSourceFallbackCode = "fallback-code"
+  ServiceWorkerResponseSourceNetwork      = "network"
 
   @[Experimental]
   struct TrustTokenParams
@@ -206,11 +317,27 @@ module Cdp::Network
 
   @[Experimental]
   alias TrustTokenOperationType = String
+  TrustTokenOperationTypeIssuance   = "Issuance"
+  TrustTokenOperationTypeRedemption = "Redemption"
+  TrustTokenOperationTypeSigning    = "Signing"
 
   @[Experimental]
   alias AlternateProtocolUsage = String
+  AlternateProtocolUsageAlternativeJobWonWithoutRace = "alternativeJobWonWithoutRace"
+  AlternateProtocolUsageAlternativeJobWonRace        = "alternativeJobWonRace"
+  AlternateProtocolUsageMainJobWonRace               = "mainJobWonRace"
+  AlternateProtocolUsageMappingMissing               = "mappingMissing"
+  AlternateProtocolUsageBroken                       = "broken"
+  AlternateProtocolUsageDnsAlpnH3JobWonWithoutRace   = "dnsAlpnH3JobWonWithoutRace"
+  AlternateProtocolUsageDnsAlpnH3JobWonRace          = "dnsAlpnH3JobWonRace"
+  AlternateProtocolUsageUnspecifiedReason            = "unspecifiedReason"
 
   alias ServiceWorkerRouterSource = String
+  ServiceWorkerRouterSourceNetwork                    = "network"
+  ServiceWorkerRouterSourceCache                      = "cache"
+  ServiceWorkerRouterSourceFetchEvent                 = "fetch-event"
+  ServiceWorkerRouterSourceRaceNetworkAndFetchHandler = "race-network-and-fetch-handler"
+  ServiceWorkerRouterSourceRaceNetworkAndCache        = "race-network-and-cache"
 
   @[Experimental]
   struct ServiceWorkerRouterInfo
@@ -240,7 +367,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property request_headers : Headers?
     @[JSON::Field(emit_null: false)]
-    property connection_reused : Bool
+    property? connection_reused : Bool
     @[JSON::Field(emit_null: false)]
     property connection_id : Float64
     @[JSON::Field(emit_null: false)]
@@ -248,13 +375,13 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property remote_port : Int64?
     @[JSON::Field(emit_null: false)]
-    property from_disk_cache : Bool?
+    property? from_disk_cache : Bool?
     @[JSON::Field(emit_null: false)]
-    property from_service_worker : Bool?
+    property? from_service_worker : Bool?
     @[JSON::Field(emit_null: false)]
-    property from_prefetch_cache : Bool?
+    property? from_prefetch_cache : Bool?
     @[JSON::Field(emit_null: false)]
-    property from_early_hints : Bool?
+    property? from_early_hints : Bool?
     @[JSON::Field(emit_null: false)]
     property service_worker_router_info : ServiceWorkerRouterInfo?
     @[JSON::Field(emit_null: false)]
@@ -304,7 +431,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property opcode : Float64
     @[JSON::Field(emit_null: false)]
-    property mask : Bool
+    property? mask : Bool
     @[JSON::Field(emit_null: false)]
     property payload_data : String
   end
@@ -343,7 +470,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property top_level_site : String
     @[JSON::Field(emit_null: false)]
-    property has_cross_site_ancestor : Bool
+    property? has_cross_site_ancestor : Bool
   end
 
   struct Cookie
@@ -361,11 +488,11 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property size : Int64
     @[JSON::Field(emit_null: false)]
-    property http_only : Bool
+    property? http_only : Bool
     @[JSON::Field(emit_null: false)]
-    property secure : Bool
+    property? secure : Bool
     @[JSON::Field(emit_null: false)]
-    property session : Bool
+    property? session : Bool
     @[JSON::Field(emit_null: false)]
     property same_site : CookieSameSite?
     @[JSON::Field(emit_null: false)]
@@ -377,17 +504,66 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property partition_key : CookiePartitionKey?
     @[JSON::Field(emit_null: false)]
-    property partition_key_opaque : Bool?
+    property? partition_key_opaque : Bool?
   end
 
   @[Experimental]
   alias SetCookieBlockedReason = String
+  SetCookieBlockedReasonSecureOnly                               = "SecureOnly"
+  SetCookieBlockedReasonSameSiteStrict                           = "SameSiteStrict"
+  SetCookieBlockedReasonSameSiteLax                              = "SameSiteLax"
+  SetCookieBlockedReasonSameSiteUnspecifiedTreatedAsLax          = "SameSiteUnspecifiedTreatedAsLax"
+  SetCookieBlockedReasonSameSiteNoneInsecure                     = "SameSiteNoneInsecure"
+  SetCookieBlockedReasonUserPreferences                          = "UserPreferences"
+  SetCookieBlockedReasonThirdPartyPhaseout                       = "ThirdPartyPhaseout"
+  SetCookieBlockedReasonThirdPartyBlockedInFirstPartySet         = "ThirdPartyBlockedInFirstPartySet"
+  SetCookieBlockedReasonSyntaxError                              = "SyntaxError"
+  SetCookieBlockedReasonSchemeNotSupported                       = "SchemeNotSupported"
+  SetCookieBlockedReasonOverwriteSecure                          = "OverwriteSecure"
+  SetCookieBlockedReasonInvalidDomain                            = "InvalidDomain"
+  SetCookieBlockedReasonInvalidPrefix                            = "InvalidPrefix"
+  SetCookieBlockedReasonUnknownError                             = "UnknownError"
+  SetCookieBlockedReasonSchemefulSameSiteStrict                  = "SchemefulSameSiteStrict"
+  SetCookieBlockedReasonSchemefulSameSiteLax                     = "SchemefulSameSiteLax"
+  SetCookieBlockedReasonSchemefulSameSiteUnspecifiedTreatedAsLax = "SchemefulSameSiteUnspecifiedTreatedAsLax"
+  SetCookieBlockedReasonNameValuePairExceedsMaxSize              = "NameValuePairExceedsMaxSize"
+  SetCookieBlockedReasonDisallowedCharacter                      = "DisallowedCharacter"
+  SetCookieBlockedReasonNoCookieContent                          = "NoCookieContent"
 
   @[Experimental]
   alias CookieBlockedReason = String
+  CookieBlockedReasonSecureOnly                               = "SecureOnly"
+  CookieBlockedReasonNotOnPath                                = "NotOnPath"
+  CookieBlockedReasonDomainMismatch                           = "DomainMismatch"
+  CookieBlockedReasonSameSiteStrict                           = "SameSiteStrict"
+  CookieBlockedReasonSameSiteLax                              = "SameSiteLax"
+  CookieBlockedReasonSameSiteUnspecifiedTreatedAsLax          = "SameSiteUnspecifiedTreatedAsLax"
+  CookieBlockedReasonSameSiteNoneInsecure                     = "SameSiteNoneInsecure"
+  CookieBlockedReasonUserPreferences                          = "UserPreferences"
+  CookieBlockedReasonThirdPartyPhaseout                       = "ThirdPartyPhaseout"
+  CookieBlockedReasonThirdPartyBlockedInFirstPartySet         = "ThirdPartyBlockedInFirstPartySet"
+  CookieBlockedReasonUnknownError                             = "UnknownError"
+  CookieBlockedReasonSchemefulSameSiteStrict                  = "SchemefulSameSiteStrict"
+  CookieBlockedReasonSchemefulSameSiteLax                     = "SchemefulSameSiteLax"
+  CookieBlockedReasonSchemefulSameSiteUnspecifiedTreatedAsLax = "SchemefulSameSiteUnspecifiedTreatedAsLax"
+  CookieBlockedReasonNameValuePairExceedsMaxSize              = "NameValuePairExceedsMaxSize"
+  CookieBlockedReasonPortMismatch                             = "PortMismatch"
+  CookieBlockedReasonSchemeMismatch                           = "SchemeMismatch"
+  CookieBlockedReasonAnonymousContext                         = "AnonymousContext"
 
   @[Experimental]
   alias CookieExemptionReason = String
+  CookieExemptionReasonNone                         = "None"
+  CookieExemptionReasonUserSetting                  = "UserSetting"
+  CookieExemptionReasonTPCDMetadata                 = "TPCDMetadata"
+  CookieExemptionReasonTPCDDeprecationTrial         = "TPCDDeprecationTrial"
+  CookieExemptionReasonTopLevelTPCDDeprecationTrial = "TopLevelTPCDDeprecationTrial"
+  CookieExemptionReasonTPCDHeuristics               = "TPCDHeuristics"
+  CookieExemptionReasonEnterprisePolicy             = "EnterprisePolicy"
+  CookieExemptionReasonStorageAccess                = "StorageAccess"
+  CookieExemptionReasonTopLevelStorageAccess        = "TopLevelStorageAccess"
+  CookieExemptionReasonScheme                       = "Scheme"
+  CookieExemptionReasonSameSiteNoneCookiesInSandbox = "SameSiteNoneCookiesInSandbox"
 
   @[Experimental]
   struct BlockedSetCookieWithReason
@@ -435,9 +611,9 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property path : String?
     @[JSON::Field(emit_null: false)]
-    property secure : Bool?
+    property? secure : Bool?
     @[JSON::Field(emit_null: false)]
-    property http_only : Bool?
+    property? http_only : Bool?
     @[JSON::Field(emit_null: false)]
     property same_site : CookieSameSite?
     @[JSON::Field(emit_null: false)]
@@ -478,6 +654,8 @@ module Cdp::Network
 
   @[Experimental]
   alias InterceptionStage = String
+  InterceptionStageRequest         = "Request"
+  InterceptionStageHeadersReceived = "HeadersReceived"
 
   @[Experimental]
   struct RequestPattern
@@ -530,6 +708,12 @@ module Cdp::Network
 
   @[Experimental]
   alias SignedExchangeErrorField = String
+  SignedExchangeErrorFieldSignatureSig         = "signatureSig"
+  SignedExchangeErrorFieldSignatureIntegrity   = "signatureIntegrity"
+  SignedExchangeErrorFieldSignatureCertUrl     = "signatureCertUrl"
+  SignedExchangeErrorFieldSignatureCertSha256  = "signatureCertSha256"
+  SignedExchangeErrorFieldSignatureValidityUrl = "signatureValidityUrl"
+  SignedExchangeErrorFieldSignatureTimestamps  = "signatureTimestamps"
 
   @[Experimental]
   struct SignedExchangeError
@@ -548,7 +732,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property outer_response : Response
     @[JSON::Field(emit_null: false)]
-    property has_extra_info : Bool
+    property? has_extra_info : Bool
     @[JSON::Field(emit_null: false)]
     property header : SignedExchangeHeader?
     @[JSON::Field(emit_null: false)]
@@ -559,6 +743,10 @@ module Cdp::Network
 
   @[Experimental]
   alias ContentEncoding = String
+  ContentEncodingDeflate = "deflate"
+  ContentEncodingGzip    = "gzip"
+  ContentEncodingBr      = "br"
+  ContentEncodingZstd    = "zstd"
 
   @[Experimental]
   struct NetworkConditions
@@ -578,7 +766,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property packet_queue_length : Int64?
     @[JSON::Field(emit_null: false)]
-    property packet_reordering : Bool?
+    property? packet_reordering : Bool?
   end
 
   @[Experimental]
@@ -587,17 +775,19 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property url_pattern : String
     @[JSON::Field(emit_null: false)]
-    property block : Bool
+    property? block : Bool
   end
 
   @[Experimental]
   alias DirectSocketDnsQueryType = String
+  DirectSocketDnsQueryTypeIpv4 = "ipv4"
+  DirectSocketDnsQueryTypeIpv6 = "ipv6"
 
   @[Experimental]
   struct DirectTCPSocketOptions
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property no_delay : Bool
+    property? no_delay : Bool
     @[JSON::Field(emit_null: false)]
     property keep_alive_delay : Float64?
     @[JSON::Field(emit_null: false)]
@@ -626,11 +816,11 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property receive_buffer_size : Float64?
     @[JSON::Field(emit_null: false)]
-    property multicast_loopback : Bool?
+    property? multicast_loopback : Bool?
     @[JSON::Field(emit_null: false)]
     property multicast_time_to_live : Int64?
     @[JSON::Field(emit_null: false)]
-    property multicast_allow_address_sharing : Bool?
+    property? multicast_allow_address_sharing : Bool?
   end
 
   @[Experimental]
@@ -646,9 +836,18 @@ module Cdp::Network
 
   @[Experimental]
   alias LocalNetworkAccessRequestPolicy = String
+  LocalNetworkAccessRequestPolicyAllow                          = "Allow"
+  LocalNetworkAccessRequestPolicyBlockFromInsecureToMorePrivate = "BlockFromInsecureToMorePrivate"
+  LocalNetworkAccessRequestPolicyWarnFromInsecureToMorePrivate  = "WarnFromInsecureToMorePrivate"
+  LocalNetworkAccessRequestPolicyPermissionBlock                = "PermissionBlock"
+  LocalNetworkAccessRequestPolicyPermissionWarn                 = "PermissionWarn"
 
   @[Experimental]
   alias IPAddressSpace = String
+  IPAddressSpaceLoopback = "Loopback"
+  IPAddressSpaceLocal    = "Local"
+  IPAddressSpacePublic   = "Public"
+  IPAddressSpaceUnknown  = "Unknown"
 
   @[Experimental]
   struct ConnectTiming
@@ -661,7 +860,7 @@ module Cdp::Network
   struct ClientSecurityState
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property initiator_is_secure_context : Bool
+    property? initiator_is_secure_context : Bool
     @[JSON::Field(emit_null: false)]
     property initiator_ip_address_space : IPAddressSpace
     @[JSON::Field(emit_null: false)]
@@ -670,6 +869,13 @@ module Cdp::Network
 
   @[Experimental]
   alias CrossOriginOpenerPolicyValue = String
+  CrossOriginOpenerPolicyValueSameOrigin                 = "SameOrigin"
+  CrossOriginOpenerPolicyValueSameOriginAllowPopups      = "SameOriginAllowPopups"
+  CrossOriginOpenerPolicyValueRestrictProperties         = "RestrictProperties"
+  CrossOriginOpenerPolicyValueUnsafeNone                 = "UnsafeNone"
+  CrossOriginOpenerPolicyValueSameOriginPlusCoep         = "SameOriginPlusCoep"
+  CrossOriginOpenerPolicyValueRestrictPropertiesPlusCoep = "RestrictPropertiesPlusCoep"
+  CrossOriginOpenerPolicyValueNoopenerAllowPopups        = "NoopenerAllowPopups"
 
   @[Experimental]
   struct CrossOriginOpenerPolicyStatus
@@ -686,6 +892,9 @@ module Cdp::Network
 
   @[Experimental]
   alias CrossOriginEmbedderPolicyValue = String
+  CrossOriginEmbedderPolicyValueNone           = "None"
+  CrossOriginEmbedderPolicyValueCredentialless = "Credentialless"
+  CrossOriginEmbedderPolicyValueRequireCorp    = "RequireCorp"
 
   @[Experimental]
   struct CrossOriginEmbedderPolicyStatus
@@ -702,6 +911,8 @@ module Cdp::Network
 
   @[Experimental]
   alias ContentSecurityPolicySource = String
+  ContentSecurityPolicySourceHTTP = "HTTP"
+  ContentSecurityPolicySourceMeta = "Meta"
 
   @[Experimental]
   struct ContentSecurityPolicyStatus
@@ -709,7 +920,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property effective_directives : String
     @[JSON::Field(emit_null: false)]
-    property is_enforced : Bool
+    property? is_enforced : Bool
     @[JSON::Field(emit_null: false)]
     property source : ContentSecurityPolicySource
   end
@@ -727,6 +938,10 @@ module Cdp::Network
 
   @[Experimental]
   alias ReportStatus = String
+  ReportStatusQueued           = "Queued"
+  ReportStatusPending          = "Pending"
+  ReportStatusMarkedForRemoval = "MarkedForRemoval"
+  ReportStatusSuccess          = "Success"
 
   @[Experimental]
   alias ReportId = String
@@ -791,9 +1006,9 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property path : String
     @[JSON::Field(emit_null: false)]
-    property secure : Bool
+    property? secure : Bool
     @[JSON::Field(emit_null: false)]
-    property http_only : Bool
+    property? http_only : Bool
     @[JSON::Field(emit_null: false)]
     property same_site : CookieSameSite?
   end
@@ -815,7 +1030,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property origin : String
     @[JSON::Field(emit_null: false)]
-    property include_site : Bool
+    property? include_site : Bool
     @[JSON::Field(emit_null: false)]
     property url_rules : Array(DeviceBoundSessionUrlRule)
   end
@@ -844,6 +1059,74 @@ module Cdp::Network
 
   @[Experimental]
   alias DeviceBoundSessionFetchResult = String
+  DeviceBoundSessionFetchResultSuccess                                           = "Success"
+  DeviceBoundSessionFetchResultKeyError                                          = "KeyError"
+  DeviceBoundSessionFetchResultSigningError                                      = "SigningError"
+  DeviceBoundSessionFetchResultServerRequestedTermination                        = "ServerRequestedTermination"
+  DeviceBoundSessionFetchResultInvalidSessionId                                  = "InvalidSessionId"
+  DeviceBoundSessionFetchResultInvalidChallenge                                  = "InvalidChallenge"
+  DeviceBoundSessionFetchResultTooManyChallenges                                 = "TooManyChallenges"
+  DeviceBoundSessionFetchResultInvalidFetcherUrl                                 = "InvalidFetcherUrl"
+  DeviceBoundSessionFetchResultInvalidRefreshUrl                                 = "InvalidRefreshUrl"
+  DeviceBoundSessionFetchResultTransientHttpError                                = "TransientHttpError"
+  DeviceBoundSessionFetchResultScopeOriginSameSiteMismatch                       = "ScopeOriginSameSiteMismatch"
+  DeviceBoundSessionFetchResultRefreshUrlSameSiteMismatch                        = "RefreshUrlSameSiteMismatch"
+  DeviceBoundSessionFetchResultMismatchedSessionId                               = "MismatchedSessionId"
+  DeviceBoundSessionFetchResultMissingScope                                      = "MissingScope"
+  DeviceBoundSessionFetchResultNoCredentials                                     = "NoCredentials"
+  DeviceBoundSessionFetchResultSubdomainRegistrationWellKnownUnavailable         = "SubdomainRegistrationWellKnownUnavailable"
+  DeviceBoundSessionFetchResultSubdomainRegistrationUnauthorized                 = "SubdomainRegistrationUnauthorized"
+  DeviceBoundSessionFetchResultSubdomainRegistrationWellKnownMalformed           = "SubdomainRegistrationWellKnownMalformed"
+  DeviceBoundSessionFetchResultSessionProviderWellKnownUnavailable               = "SessionProviderWellKnownUnavailable"
+  DeviceBoundSessionFetchResultRelyingPartyWellKnownUnavailable                  = "RelyingPartyWellKnownUnavailable"
+  DeviceBoundSessionFetchResultFederatedKeyThumbprintMismatch                    = "FederatedKeyThumbprintMismatch"
+  DeviceBoundSessionFetchResultInvalidFederatedSessionUrl                        = "InvalidFederatedSessionUrl"
+  DeviceBoundSessionFetchResultInvalidFederatedKey                               = "InvalidFederatedKey"
+  DeviceBoundSessionFetchResultTooManyRelyingOriginLabels                        = "TooManyRelyingOriginLabels"
+  DeviceBoundSessionFetchResultBoundCookieSetForbidden                           = "BoundCookieSetForbidden"
+  DeviceBoundSessionFetchResultNetError                                          = "NetError"
+  DeviceBoundSessionFetchResultProxyError                                        = "ProxyError"
+  DeviceBoundSessionFetchResultEmptySessionConfig                                = "EmptySessionConfig"
+  DeviceBoundSessionFetchResultInvalidCredentialsConfig                          = "InvalidCredentialsConfig"
+  DeviceBoundSessionFetchResultInvalidCredentialsType                            = "InvalidCredentialsType"
+  DeviceBoundSessionFetchResultInvalidCredentialsEmptyName                       = "InvalidCredentialsEmptyName"
+  DeviceBoundSessionFetchResultInvalidCredentialsCookie                          = "InvalidCredentialsCookie"
+  DeviceBoundSessionFetchResultPersistentHttpError                               = "PersistentHttpError"
+  DeviceBoundSessionFetchResultRegistrationAttemptedChallenge                    = "RegistrationAttemptedChallenge"
+  DeviceBoundSessionFetchResultInvalidScopeOrigin                                = "InvalidScopeOrigin"
+  DeviceBoundSessionFetchResultScopeOriginContainsPath                           = "ScopeOriginContainsPath"
+  DeviceBoundSessionFetchResultRefreshInitiatorNotString                         = "RefreshInitiatorNotString"
+  DeviceBoundSessionFetchResultRefreshInitiatorInvalidHostPattern                = "RefreshInitiatorInvalidHostPattern"
+  DeviceBoundSessionFetchResultInvalidScopeSpecification                         = "InvalidScopeSpecification"
+  DeviceBoundSessionFetchResultMissingScopeSpecificationType                     = "MissingScopeSpecificationType"
+  DeviceBoundSessionFetchResultEmptyScopeSpecificationDomain                     = "EmptyScopeSpecificationDomain"
+  DeviceBoundSessionFetchResultEmptyScopeSpecificationPath                       = "EmptyScopeSpecificationPath"
+  DeviceBoundSessionFetchResultInvalidScopeSpecificationType                     = "InvalidScopeSpecificationType"
+  DeviceBoundSessionFetchResultInvalidScopeIncludeSite                           = "InvalidScopeIncludeSite"
+  DeviceBoundSessionFetchResultMissingScopeIncludeSite                           = "MissingScopeIncludeSite"
+  DeviceBoundSessionFetchResultFederatedNotAuthorizedByProvider                  = "FederatedNotAuthorizedByProvider"
+  DeviceBoundSessionFetchResultFederatedNotAuthorizedByRelyingParty              = "FederatedNotAuthorizedByRelyingParty"
+  DeviceBoundSessionFetchResultSessionProviderWellKnownMalformed                 = "SessionProviderWellKnownMalformed"
+  DeviceBoundSessionFetchResultSessionProviderWellKnownHasProviderOrigin         = "SessionProviderWellKnownHasProviderOrigin"
+  DeviceBoundSessionFetchResultRelyingPartyWellKnownMalformed                    = "RelyingPartyWellKnownMalformed"
+  DeviceBoundSessionFetchResultRelyingPartyWellKnownHasRelyingOrigins            = "RelyingPartyWellKnownHasRelyingOrigins"
+  DeviceBoundSessionFetchResultInvalidFederatedSessionProviderSessionMissing     = "InvalidFederatedSessionProviderSessionMissing"
+  DeviceBoundSessionFetchResultInvalidFederatedSessionWrongProviderOrigin        = "InvalidFederatedSessionWrongProviderOrigin"
+  DeviceBoundSessionFetchResultInvalidCredentialsCookieCreationTime              = "InvalidCredentialsCookieCreationTime"
+  DeviceBoundSessionFetchResultInvalidCredentialsCookieName                      = "InvalidCredentialsCookieName"
+  DeviceBoundSessionFetchResultInvalidCredentialsCookieParsing                   = "InvalidCredentialsCookieParsing"
+  DeviceBoundSessionFetchResultInvalidCredentialsCookieUnpermittedAttribute      = "InvalidCredentialsCookieUnpermittedAttribute"
+  DeviceBoundSessionFetchResultInvalidCredentialsCookieInvalidDomain             = "InvalidCredentialsCookieInvalidDomain"
+  DeviceBoundSessionFetchResultInvalidCredentialsCookiePrefix                    = "InvalidCredentialsCookiePrefix"
+  DeviceBoundSessionFetchResultInvalidScopeRulePath                              = "InvalidScopeRulePath"
+  DeviceBoundSessionFetchResultInvalidScopeRuleHostPattern                       = "InvalidScopeRuleHostPattern"
+  DeviceBoundSessionFetchResultScopeRuleOriginScopedHostPatternMismatch          = "ScopeRuleOriginScopedHostPatternMismatch"
+  DeviceBoundSessionFetchResultScopeRuleSiteScopedHostPatternMismatch            = "ScopeRuleSiteScopedHostPatternMismatch"
+  DeviceBoundSessionFetchResultSigningQuotaExceeded                              = "SigningQuotaExceeded"
+  DeviceBoundSessionFetchResultInvalidConfigJson                                 = "InvalidConfigJson"
+  DeviceBoundSessionFetchResultInvalidFederatedSessionProviderFailedToRestoreKey = "InvalidFederatedSessionProviderFailedToRestoreKey"
+  DeviceBoundSessionFetchResultFailedToUnwrapKey                                 = "FailedToUnwrapKey"
+  DeviceBoundSessionFetchResultSessionDeletedDuringRefresh                       = "SessionDeletedDuringRefresh"
 
   @[Experimental]
   struct CreationEventDetails
@@ -864,7 +1147,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property new_session : DeviceBoundSession?
     @[JSON::Field(emit_null: false)]
-    property was_fully_proactive_refresh : Bool
+    property? was_fully_proactive_refresh : Bool
   end
 
   @[Experimental]
@@ -887,7 +1170,7 @@ module Cdp::Network
   struct LoadNetworkResourcePageResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property success : Bool
+    property? success : Bool
     @[JSON::Field(emit_null: false)]
     property net_error : Float64?
     @[JSON::Field(emit_null: false)]
@@ -904,31 +1187,92 @@ module Cdp::Network
   struct LoadNetworkResourceOptions
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property disable_cache : Bool
+    property? disable_cache : Bool
     @[JSON::Field(emit_null: false)]
-    property include_credentials : Bool
+    property? include_credentials : Bool
   end
 
   alias ReferrerPolicy = String
+  ReferrerPolicyUnsafeUrl                   = "unsafe-url"
+  ReferrerPolicyNoReferrerWhenDowngrade     = "no-referrer-when-downgrade"
+  ReferrerPolicyNoReferrer                  = "no-referrer"
+  ReferrerPolicyOrigin                      = "origin"
+  ReferrerPolicyOriginWhenCrossOrigin       = "origin-when-cross-origin"
+  ReferrerPolicySameOrigin                  = "same-origin"
+  ReferrerPolicyStrictOrigin                = "strict-origin"
+  ReferrerPolicyStrictOriginWhenCrossOrigin = "strict-origin-when-cross-origin"
 
   alias TrustTokenParamsRefreshPolicy = String
+  TrustTokenParamsRefreshPolicyUseCached = "UseCached"
+  TrustTokenParamsRefreshPolicyRefresh   = "Refresh"
 
   alias InitiatorType = String
+  InitiatorTypeParser         = "parser"
+  InitiatorTypeScript         = "script"
+  InitiatorTypePreload        = "preload"
+  InitiatorTypeSignedExchange = "SignedExchange"
+  InitiatorTypePreflight      = "preflight"
+  InitiatorTypeFedCM          = "FedCM"
+  InitiatorTypeOther          = "other"
 
   alias AuthChallengeSource = String
+  AuthChallengeSourceServer = "Server"
+  AuthChallengeSourceProxy  = "Proxy"
 
   alias AuthChallengeResponseResponse = String
+  AuthChallengeResponseResponseDefault            = "Default"
+  AuthChallengeResponseResponseCancelAuth         = "CancelAuth"
+  AuthChallengeResponseResponseProvideCredentials = "ProvideCredentials"
 
   alias DeviceBoundSessionWithUsageUsage = String
+  DeviceBoundSessionWithUsageUsageNotInScope                  = "NotInScope"
+  DeviceBoundSessionWithUsageUsageInScopeRefreshNotYetNeeded  = "InScopeRefreshNotYetNeeded"
+  DeviceBoundSessionWithUsageUsageInScopeRefreshNotAllowed    = "InScopeRefreshNotAllowed"
+  DeviceBoundSessionWithUsageUsageProactiveRefreshNotPossible = "ProactiveRefreshNotPossible"
+  DeviceBoundSessionWithUsageUsageProactiveRefreshAttempted   = "ProactiveRefreshAttempted"
+  DeviceBoundSessionWithUsageUsageDeferred                    = "Deferred"
 
   alias DeviceBoundSessionUrlRuleRuleType = String
+  DeviceBoundSessionUrlRuleRuleTypeExclude = "Exclude"
+  DeviceBoundSessionUrlRuleRuleTypeInclude = "Include"
 
   alias RefreshEventDetailsRefreshResult = String
+  RefreshEventDetailsRefreshResultRefreshed            = "Refreshed"
+  RefreshEventDetailsRefreshResultInitializedService   = "InitializedService"
+  RefreshEventDetailsRefreshResultUnreachable          = "Unreachable"
+  RefreshEventDetailsRefreshResultServerError          = "ServerError"
+  RefreshEventDetailsRefreshResultRefreshQuotaExceeded = "RefreshQuotaExceeded"
+  RefreshEventDetailsRefreshResultFatalError           = "FatalError"
+  RefreshEventDetailsRefreshResultSigningQuotaExceeded = "SigningQuotaExceeded"
 
   alias TerminationEventDetailsDeletionReason = String
+  TerminationEventDetailsDeletionReasonExpired                 = "Expired"
+  TerminationEventDetailsDeletionReasonFailedToRestoreKey      = "FailedToRestoreKey"
+  TerminationEventDetailsDeletionReasonFailedToUnwrapKey       = "FailedToUnwrapKey"
+  TerminationEventDetailsDeletionReasonStoragePartitionCleared = "StoragePartitionCleared"
+  TerminationEventDetailsDeletionReasonClearBrowsingData       = "ClearBrowsingData"
+  TerminationEventDetailsDeletionReasonServerRequested         = "ServerRequested"
+  TerminationEventDetailsDeletionReasonInvalidSessionParams    = "InvalidSessionParams"
+  TerminationEventDetailsDeletionReasonRefreshFatalError       = "RefreshFatalError"
 
   alias ChallengeEventDetailsChallengeResult = String
+  ChallengeEventDetailsChallengeResultSuccess            = "Success"
+  ChallengeEventDetailsChallengeResultNoSessionId        = "NoSessionId"
+  ChallengeEventDetailsChallengeResultNoSessionMatch     = "NoSessionMatch"
+  ChallengeEventDetailsChallengeResultCantSetBoundCookie = "CantSetBoundCookie"
 
   alias TrustTokenOperationDoneStatus = String
-
-   end
+  TrustTokenOperationDoneStatusOk                 = "Ok"
+  TrustTokenOperationDoneStatusInvalidArgument    = "InvalidArgument"
+  TrustTokenOperationDoneStatusMissingIssuerKeys  = "MissingIssuerKeys"
+  TrustTokenOperationDoneStatusFailedPrecondition = "FailedPrecondition"
+  TrustTokenOperationDoneStatusResourceExhausted  = "ResourceExhausted"
+  TrustTokenOperationDoneStatusAlreadyExists      = "AlreadyExists"
+  TrustTokenOperationDoneStatusResourceLimited    = "ResourceLimited"
+  TrustTokenOperationDoneStatusUnauthorized       = "Unauthorized"
+  TrustTokenOperationDoneStatusBadResponse        = "BadResponse"
+  TrustTokenOperationDoneStatusInternalError      = "InternalError"
+  TrustTokenOperationDoneStatusUnknownError       = "UnknownError"
+  TrustTokenOperationDoneStatusFulfilledLocally   = "FulfilledLocally"
+  TrustTokenOperationDoneStatusSiteIssuerLimit    = "SiteIssuerLimit"
+end

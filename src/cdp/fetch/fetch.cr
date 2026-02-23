@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -17,7 +16,7 @@ module Cdp::Fetch
     @[JSON::Field(emit_null: false)]
     property body : String
     @[JSON::Field(emit_null: false)]
-    property base64_encoded : Bool
+    property? base64_encoded : Bool
 
     def initialize(@body : String, @base64_encoded : Bool)
     end
@@ -32,13 +31,12 @@ module Cdp::Fetch
     end
   end
 
-
   # Commands
   struct Disable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -58,7 +56,7 @@ module Cdp::Fetch
     @[JSON::Field(emit_null: false)]
     property patterns : Array(RequestPattern)?
     @[JSON::Field(emit_null: false)]
-    property handle_auth_requests : Bool?
+    property? handle_auth_requests : Bool?
 
     def initialize(@patterns : Array(RequestPattern)?, @handle_auth_requests : Bool?)
     end
@@ -140,7 +138,7 @@ module Cdp::Fetch
     @[JSON::Field(emit_null: false)]
     property headers : Array(HeaderEntry)?
     @[JSON::Field(emit_null: false)]
-    property intercept_response : Bool?
+    property? intercept_response : Bool?
 
     def initialize(@request_id : RequestId, @url : String?, @method : String?, @post_data : String?, @headers : Array(HeaderEntry)?, @intercept_response : Bool?)
     end
@@ -250,5 +248,4 @@ module Cdp::Fetch
       res
     end
   end
-
 end

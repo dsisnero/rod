@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -26,7 +25,7 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize()
+    def initialize
     end
 
     # ProtoEvent returns the protocol event name.
@@ -95,5 +94,4 @@ module Cdp::CSS
       "CSS.computedStyleUpdated"
     end
   end
-
 end

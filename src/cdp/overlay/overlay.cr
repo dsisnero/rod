@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -40,13 +39,12 @@ module Cdp::Overlay
     end
   end
 
-
   # Commands
   struct Disable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -64,7 +62,7 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -84,13 +82,13 @@ module Cdp::Overlay
     @[JSON::Field(emit_null: false)]
     property node_id : Cdp::DOM::NodeId
     @[JSON::Field(emit_null: false)]
-    property include_distance : Bool?
+    property? include_distance : Bool?
     @[JSON::Field(emit_null: false)]
-    property include_style : Bool?
+    property? include_style : Bool?
     @[JSON::Field(emit_null: false)]
     property color_format : ColorFormat?
     @[JSON::Field(emit_null: false)]
-    property show_accessibility_info : Bool?
+    property? show_accessibility_info : Bool?
 
     def initialize(@node_id : Cdp::DOM::NodeId, @include_distance : Bool?, @include_style : Bool?, @color_format : ColorFormat?, @show_accessibility_info : Bool?)
     end
@@ -156,7 +154,7 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -304,7 +302,7 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property show : Bool
+    property? show : Bool
 
     def initialize(@show : Bool)
     end
@@ -344,7 +342,7 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property show : Bool
+    property? show : Bool
 
     def initialize(@show : Bool)
     end
@@ -364,7 +362,7 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property show : Bool
+    property? show : Bool
 
     def initialize(@show : Bool)
     end
@@ -484,7 +482,7 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property result : Bool
+    property? result : Bool
 
     def initialize(@result : Bool)
     end
@@ -504,7 +502,7 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property result : Bool
+    property? result : Bool
 
     def initialize(@result : Bool)
     end
@@ -524,7 +522,7 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property show : Bool
+    property? show : Bool
 
     def initialize(@show : Bool)
     end
@@ -544,7 +542,7 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property show : Bool
+    property? show : Bool
 
     def initialize(@show : Bool)
     end
@@ -619,5 +617,4 @@ module Cdp::Overlay
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

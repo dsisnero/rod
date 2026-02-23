@@ -1,17 +1,26 @@
-
 require "../cdp"
 require "json"
 require "time"
 
-
 module Cdp::FedCm
   alias LoginState = String
+  LoginStateSignIn = "SignIn"
+  LoginStateSignUp = "SignUp"
 
   alias DialogType = String
+  DialogTypeAccountChooser  = "AccountChooser"
+  DialogTypeAutoReauthn     = "AutoReauthn"
+  DialogTypeConfirmIdpLogin = "ConfirmIdpLogin"
+  DialogTypeError           = "Error"
 
   alias DialogButton = String
+  DialogButtonConfirmIdpLoginContinue = "ConfirmIdpLoginContinue"
+  DialogButtonErrorGotIt              = "ErrorGotIt"
+  DialogButtonErrorMoreDetails        = "ErrorMoreDetails"
 
   alias AccountUrlType = String
+  AccountUrlTypeTermsOfService = "TermsOfService"
+  AccountUrlTypePrivacyPolicy  = "PrivacyPolicy"
 
   struct Account
     include JSON::Serializable
@@ -36,5 +45,4 @@ module Cdp::FedCm
     @[JSON::Field(emit_null: false)]
     property privacy_policy_url : String?
   end
-
-   end
+end

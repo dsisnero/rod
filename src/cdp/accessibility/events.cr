@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -39,5 +38,4 @@ module Cdp::Accessibility
       "Accessibility.nodesUpdated"
     end
   end
-
 end

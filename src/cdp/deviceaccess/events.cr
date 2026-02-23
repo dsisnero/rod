@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::DeviceAccess
   struct DeviceRequestPromptedEvent
@@ -21,5 +19,4 @@ module Cdp::DeviceAccess
       "DeviceAccess.deviceRequestPrompted"
     end
   end
-
 end

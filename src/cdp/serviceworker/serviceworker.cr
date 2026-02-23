@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -11,7 +10,6 @@ require "./events"
 #
 @[Experimental]
 module Cdp::ServiceWorker
-
   # Commands
   struct DeliverPushMessage
     include JSON::Serializable
@@ -41,7 +39,7 @@ module Cdp::ServiceWorker
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -65,7 +63,7 @@ module Cdp::ServiceWorker
     @[JSON::Field(emit_null: false)]
     property tag : String
     @[JSON::Field(emit_null: false)]
-    property last_chance : Bool
+    property? last_chance : Bool
 
     def initialize(@origin : String, @registration_id : RegistrationID, @tag : String, @last_chance : Bool)
     end
@@ -109,7 +107,7 @@ module Cdp::ServiceWorker
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -127,7 +125,7 @@ module Cdp::ServiceWorker
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property force_update_on_page_load : Bool
+    property? force_update_on_page_load : Bool
 
     def initialize(@force_update_on_page_load : Bool)
     end
@@ -187,7 +185,7 @@ module Cdp::ServiceWorker
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -260,5 +258,4 @@ module Cdp::ServiceWorker
       Cdp.call(proto_req, self, nil, c)
     end
   end
-
 end

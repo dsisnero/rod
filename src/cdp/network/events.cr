@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -68,7 +67,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property error_text : String
     @[JSON::Field(emit_null: false)]
-    property canceled : Bool?
+    property? canceled : Bool?
     @[JSON::Field(emit_null: false)]
     property blocked_reason : BlockedReason?
     @[JSON::Field(emit_null: false)]
@@ -135,7 +134,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property initiator : Initiator
     @[JSON::Field(emit_null: false)]
-    property redirect_has_extra_info : Bool
+    property? redirect_has_extra_info : Bool
     @[JSON::Field(emit_null: false)]
     property redirect_response : Response?
     @[JSON::Field(emit_null: false)]
@@ -143,7 +142,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
     @[JSON::Field(emit_null: false)]
-    property has_user_gesture : Bool?
+    property? has_user_gesture : Bool?
     @[JSON::Field(emit_null: false)]
     property render_blocking_behavior : RenderBlockingBehavior?
 
@@ -208,7 +207,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property response : Response
     @[JSON::Field(emit_null: false)]
-    property has_extra_info : Bool
+    property? has_extra_info : Bool
     @[JSON::Field(emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
 
@@ -718,7 +717,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property client_security_state : ClientSecurityState?
     @[JSON::Field(emit_null: false)]
-    property site_has_cookie_in_other_partition : Bool?
+    property? site_has_cookie_in_other_partition : Bool?
     @[JSON::Field(emit_null: false)]
     property applied_network_conditions_id : String?
 
@@ -750,7 +749,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property cookie_partition_key : CookiePartitionKey?
     @[JSON::Field(emit_null: false)]
-    property cookie_partition_key_opaque : Bool?
+    property? cookie_partition_key_opaque : Bool?
     @[JSON::Field(emit_null: false)]
     property exempted_cookies : Array(ExemptedSetCookieWithReason)?
 
@@ -812,7 +811,7 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize()
+    def initialize
     end
 
     # ProtoEvent returns the protocol event name.
@@ -896,7 +895,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property site : String
     @[JSON::Field(emit_null: false)]
-    property succeeded : Bool
+    property? succeeded : Bool
     @[JSON::Field(emit_null: false)]
     property session_id : String?
     @[JSON::Field(emit_null: false)]
@@ -916,5 +915,4 @@ module Cdp::Network
       "Network.deviceBoundSessionEventOccurred"
     end
   end
-
 end

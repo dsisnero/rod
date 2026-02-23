@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -67,7 +66,6 @@ module Cdp::LayerTree
     end
   end
 
-
   # Commands
   struct CompositingReasons
     include JSON::Serializable
@@ -95,7 +93,7 @@ module Cdp::LayerTree
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -113,7 +111,7 @@ module Cdp::LayerTree
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize()
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
@@ -268,5 +266,4 @@ module Cdp::LayerTree
       res
     end
   end
-
 end

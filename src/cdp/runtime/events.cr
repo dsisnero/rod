@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 module Cdp::Runtime
   @[Experimental]
@@ -29,7 +27,7 @@ module Cdp::Runtime
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property type : APIType
+    property type : ConsoleAPICalledType
     @[JSON::Field(emit_null: false)]
     property args : Array(RemoteObject)
     @[JSON::Field(emit_null: false)]
@@ -41,7 +39,7 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property context : String?
 
-    def initialize(@type : APIType, @args : Array(RemoteObject), @execution_context_id : ExecutionContextId, @timestamp : Timestamp, @stack_trace : StackTrace?, @context : String?)
+    def initialize(@type : ConsoleAPICalledType, @args : Array(RemoteObject), @execution_context_id : ExecutionContextId, @timestamp : Timestamp, @stack_trace : StackTrace?, @context : String?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -120,7 +118,7 @@ module Cdp::Runtime
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize()
+    def initialize
     end
 
     # ProtoEvent returns the protocol event name.
@@ -147,5 +145,4 @@ module Cdp::Runtime
       "Runtime.inspectRequested"
     end
   end
-
 end

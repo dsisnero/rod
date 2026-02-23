@@ -1,8 +1,6 @@
-
 require "../cdp"
 require "json"
 require "time"
-
 
 require "./types"
 
@@ -12,14 +10,13 @@ module Cdp::HeadlessExperimental
   struct BeginFrameResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property has_damage : Bool
+    property? has_damage : Bool
     @[JSON::Field(emit_null: false)]
     property screenshot_data : String?
 
     def initialize(@has_damage : Bool, @screenshot_data : String?)
     end
   end
-
 
   # Commands
   struct BeginFrame
@@ -30,7 +27,7 @@ module Cdp::HeadlessExperimental
     @[JSON::Field(emit_null: false)]
     property interval : Float64?
     @[JSON::Field(emit_null: false)]
-    property no_display_updates : Bool?
+    property? no_display_updates : Bool?
     @[JSON::Field(emit_null: false)]
     property screenshot : ScreenshotParams?
 
@@ -49,5 +46,4 @@ module Cdp::HeadlessExperimental
       res
     end
   end
-
 end

@@ -35,7 +35,7 @@ module Cdp::Tracing
     @[JSON::Field(emit_null: false)]
     property dump_guid : String
     @[JSON::Field(emit_null: false)]
-    property success : Bool
+    property? success : Bool
 
     def initialize(@dump_guid : String, @success : Bool)
     end
@@ -128,7 +128,7 @@ module Cdp::Tracing
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property deterministic : Bool?
+    property? deterministic : Bool?
     @[JSON::Field(emit_null: false)]
     property level_of_detail : MemoryDumpLevelOfDetail?
 

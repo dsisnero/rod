@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -19,7 +18,6 @@ module Cdp::FileSystem
     def initialize(@directory : Directory)
     end
   end
-
 
   # Commands
   struct GetDirectory
@@ -43,5 +41,4 @@ module Cdp::FileSystem
       res
     end
   end
-
 end

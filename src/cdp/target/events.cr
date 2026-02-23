@@ -1,4 +1,3 @@
-
 require "../cdp"
 require "json"
 require "time"
@@ -16,7 +15,7 @@ module Cdp::Target
     @[JSON::Field(emit_null: false)]
     property target_info : TargetInfo
     @[JSON::Field(emit_null: false)]
-    property waiting_for_debugger : Bool
+    property? waiting_for_debugger : Bool
 
     def initialize(@session_id : SessionID, @target_info : TargetInfo, @waiting_for_debugger : Bool)
     end
@@ -127,5 +126,4 @@ module Cdp::Target
       "Target.targetInfoChanged"
     end
   end
-
 end
