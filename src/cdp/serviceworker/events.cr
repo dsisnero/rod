@@ -1,12 +1,15 @@
-require "../serviceworker/serviceworker"
+
+require "../cdp"
 require "json"
 require "time"
+
+require "../target/target"
 
 module Cdp::ServiceWorker
   struct WorkerErrorReportedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property error_message : ServiceWorkerErrorMessage
 
     def initialize(@error_message : ServiceWorkerErrorMessage)
@@ -21,7 +24,7 @@ module Cdp::ServiceWorker
   struct WorkerRegistrationUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property registrations : Array(ServiceWorkerRegistration)
 
     def initialize(@registrations : Array(ServiceWorkerRegistration))
@@ -36,7 +39,7 @@ module Cdp::ServiceWorker
   struct WorkerVersionUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property versions : Array(ServiceWorkerVersion)
 
     def initialize(@versions : Array(ServiceWorkerVersion))
@@ -47,4 +50,5 @@ module Cdp::ServiceWorker
       "ServiceWorker.workerVersionUpdated"
     end
   end
+
 end

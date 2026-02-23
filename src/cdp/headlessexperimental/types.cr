@@ -1,11 +1,12 @@
-require "../headlessexperimental/headlessexperimental"
+
+require "../cdp"
 require "json"
 require "time"
+
 
 module Cdp::HeadlessExperimental
   struct ScreenshotParams
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property format : ScreenshotParamsFormat?
     @[JSON::Field(emit_null: false)]
@@ -15,4 +16,5 @@ module Cdp::HeadlessExperimental
   end
 
   alias ScreenshotParamsFormat = String
-end
+
+   end

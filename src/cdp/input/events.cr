@@ -1,13 +1,15 @@
-require "../input/input"
+
+require "../cdp"
 require "json"
 require "time"
+
 
 module Cdp::Input
   @[Experimental]
   struct DragInterceptedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property data : DragData
 
     def initialize(@data : DragData)
@@ -18,4 +20,5 @@ module Cdp::Input
       "Input.dragIntercepted"
     end
   end
+
 end

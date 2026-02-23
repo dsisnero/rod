@@ -1,19 +1,24 @@
-require "../storage/storage"
+
+require "../cdp"
 require "json"
 require "time"
-require "../page/page"
-require "../browser/browser"
+
 require "../network/network"
 require "../target/target"
+require "../page/page"
+require "../browser/browser"
 
 module Cdp::Storage
   struct CacheStorageContentUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property origin : String
+    @[JSON::Field(emit_null: false)]
     property storage_key : String
+    @[JSON::Field(emit_null: false)]
     property bucket_id : String
+    @[JSON::Field(emit_null: false)]
     property cache_name : String
 
     def initialize(@origin : String, @storage_key : String, @bucket_id : String, @cache_name : String)
@@ -28,9 +33,11 @@ module Cdp::Storage
   struct CacheStorageListUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property origin : String
+    @[JSON::Field(emit_null: false)]
     property storage_key : String
+    @[JSON::Field(emit_null: false)]
     property bucket_id : String
 
     def initialize(@origin : String, @storage_key : String, @bucket_id : String)
@@ -45,11 +52,15 @@ module Cdp::Storage
   struct IndexedDBContentUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property origin : String
+    @[JSON::Field(emit_null: false)]
     property storage_key : String
+    @[JSON::Field(emit_null: false)]
     property bucket_id : String
+    @[JSON::Field(emit_null: false)]
     property database_name : String
+    @[JSON::Field(emit_null: false)]
     property object_store_name : String
 
     def initialize(@origin : String, @storage_key : String, @bucket_id : String, @database_name : String, @object_store_name : String)
@@ -64,9 +75,11 @@ module Cdp::Storage
   struct IndexedDBListUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property origin : String
+    @[JSON::Field(emit_null: false)]
     property storage_key : String
+    @[JSON::Field(emit_null: false)]
     property bucket_id : String
 
     def initialize(@origin : String, @storage_key : String, @bucket_id : String)
@@ -81,10 +94,13 @@ module Cdp::Storage
   struct InterestGroupAccessedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property access_time : Cdp::Network::TimeSinceEpoch
+    @[JSON::Field(emit_null: false)]
     property type : InterestGroupAccessType
+    @[JSON::Field(emit_null: false)]
     property owner_origin : String
+    @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
     property component_seller_origin : String?
@@ -107,9 +123,11 @@ module Cdp::Storage
   struct InterestGroupAuctionEventOccurredEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property event_time : Cdp::Network::TimeSinceEpoch
+    @[JSON::Field(emit_null: false)]
     property type : InterestGroupAuctionEventType
+    @[JSON::Field(emit_null: false)]
     property unique_auction_id : InterestGroupAuctionId
     @[JSON::Field(emit_null: false)]
     property parent_auction_id : InterestGroupAuctionId?
@@ -128,9 +146,11 @@ module Cdp::Storage
   struct InterestGroupAuctionNetworkRequestCreatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property type : InterestGroupAuctionFetchType
+    @[JSON::Field(emit_null: false)]
     property request_id : Cdp::Network::RequestId
+    @[JSON::Field(emit_null: false)]
     property auctions : Array(InterestGroupAuctionId)
 
     def initialize(@type : InterestGroupAuctionFetchType, @request_id : Cdp::Network::RequestId, @auctions : Array(InterestGroupAuctionId))
@@ -145,13 +165,19 @@ module Cdp::Storage
   struct SharedStorageAccessedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property access_time : Cdp::Network::TimeSinceEpoch
+    @[JSON::Field(emit_null: false)]
     property scope : SharedStorageAccessScope
+    @[JSON::Field(emit_null: false)]
     property method : SharedStorageAccessMethod
+    @[JSON::Field(emit_null: false)]
     property main_frame_id : Cdp::Page::FrameId
+    @[JSON::Field(emit_null: false)]
     property owner_origin : String
+    @[JSON::Field(emit_null: false)]
     property owner_site : String
+    @[JSON::Field(emit_null: false)]
     property params : SharedStorageAccessParams
 
     def initialize(@access_time : Cdp::Network::TimeSinceEpoch, @scope : SharedStorageAccessScope, @method : SharedStorageAccessMethod, @main_frame_id : Cdp::Page::FrameId, @owner_origin : String, @owner_site : String, @params : SharedStorageAccessParams)
@@ -166,13 +192,19 @@ module Cdp::Storage
   struct SharedStorageWorkletOperationExecutionFinishedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property finished_time : Cdp::Network::TimeSinceEpoch
+    @[JSON::Field(emit_null: false)]
     property execution_time : Int64
+    @[JSON::Field(emit_null: false)]
     property method : SharedStorageAccessMethod
+    @[JSON::Field(emit_null: false)]
     property operation_id : String
+    @[JSON::Field(emit_null: false)]
     property worklet_target_id : Cdp::Target::TargetID
+    @[JSON::Field(emit_null: false)]
     property main_frame_id : Cdp::Page::FrameId
+    @[JSON::Field(emit_null: false)]
     property owner_origin : String
 
     def initialize(@finished_time : Cdp::Network::TimeSinceEpoch, @execution_time : Int64, @method : SharedStorageAccessMethod, @operation_id : String, @worklet_target_id : Cdp::Target::TargetID, @main_frame_id : Cdp::Page::FrameId, @owner_origin : String)
@@ -187,7 +219,7 @@ module Cdp::Storage
   struct StorageBucketCreatedOrUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property bucket_info : StorageBucketInfo
 
     def initialize(@bucket_info : StorageBucketInfo)
@@ -202,7 +234,7 @@ module Cdp::Storage
   struct StorageBucketDeletedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property bucket_id : String
 
     def initialize(@bucket_id : String)
@@ -218,8 +250,9 @@ module Cdp::Storage
   struct AttributionReportingSourceRegisteredEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property registration : AttributionReportingSourceRegistration
+    @[JSON::Field(emit_null: false)]
     property result : AttributionReportingSourceRegistrationResult
 
     def initialize(@registration : AttributionReportingSourceRegistration, @result : AttributionReportingSourceRegistrationResult)
@@ -235,9 +268,11 @@ module Cdp::Storage
   struct AttributionReportingTriggerRegisteredEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property registration : AttributionReportingTriggerRegistration
+    @[JSON::Field(emit_null: false)]
     property event_level : AttributionReportingEventLevelResult
+    @[JSON::Field(emit_null: false)]
     property aggregatable : AttributionReportingAggregatableResult
 
     def initialize(@registration : AttributionReportingTriggerRegistration, @event_level : AttributionReportingEventLevelResult, @aggregatable : AttributionReportingAggregatableResult)
@@ -253,9 +288,11 @@ module Cdp::Storage
   struct AttributionReportingReportSentEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property url : String
+    @[JSON::Field(emit_null: false)]
     property body : JSON::Any
+    @[JSON::Field(emit_null: false)]
     property result : AttributionReportingReportResult
     @[JSON::Field(emit_null: false)]
     property net_error : Int64?
@@ -277,7 +314,7 @@ module Cdp::Storage
   struct AttributionReportingVerboseDebugReportSentEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property url : String
     @[JSON::Field(emit_null: false)]
     property body : Array(JSON::Any)?
@@ -296,4 +333,5 @@ module Cdp::Storage
       "Storage.attributionReportingVerboseDebugReportSent"
     end
   end
+
 end

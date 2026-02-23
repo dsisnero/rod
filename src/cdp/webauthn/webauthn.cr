@@ -1,16 +1,48 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
+
 require "./types"
+require "./events"
 
 # This domain allows configuring virtual authenticators to test the WebAuthn
 # API.
 @[Experimental]
 module Cdp::WebAuthn
+  struct AddVirtualAuthenticatorResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property authenticator_id : AuthenticatorId
+
+    def initialize(@authenticator_id : AuthenticatorId)
+    end
+  end
+
+  struct GetCredentialResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property credential : Credential
+
+    def initialize(@credential : Credential)
+    end
+  end
+
+  struct GetCredentialsResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property credentials : Array(Credential)
+
+    def initialize(@credentials : Array(Credential))
+    end
+  end
+
+
   # Commands
   struct Enable
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property enable_ui : Bool?
 
@@ -32,7 +64,7 @@ module Cdp::WebAuthn
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -49,7 +81,7 @@ module Cdp::WebAuthn
   struct AddVirtualAuthenticator
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property options : VirtualAuthenticatorOptions
 
     def initialize(@options : VirtualAuthenticatorOptions)
@@ -68,19 +100,10 @@ module Cdp::WebAuthn
     end
   end
 
-  struct AddVirtualAuthenticatorResult
-    include JSON::Serializable
-
-    property authenticator_id : AuthenticatorId
-
-    def initialize(@authenticator_id : AuthenticatorId)
-    end
-  end
-
   struct SetResponseOverrideBits
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property authenticator_id : AuthenticatorId
     @[JSON::Field(emit_null: false)]
     property is_bogus_signature : Bool?
@@ -106,7 +129,7 @@ module Cdp::WebAuthn
   struct RemoveVirtualAuthenticator
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property authenticator_id : AuthenticatorId
 
     def initialize(@authenticator_id : AuthenticatorId)
@@ -126,8 +149,9 @@ module Cdp::WebAuthn
   struct AddCredential
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property authenticator_id : AuthenticatorId
+    @[JSON::Field(emit_null: false)]
     property credential : Credential
 
     def initialize(@authenticator_id : AuthenticatorId, @credential : Credential)
@@ -147,8 +171,9 @@ module Cdp::WebAuthn
   struct GetCredential
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property authenticator_id : AuthenticatorId
+    @[JSON::Field(emit_null: false)]
     property credential_id : String
 
     def initialize(@authenticator_id : AuthenticatorId, @credential_id : String)
@@ -167,19 +192,10 @@ module Cdp::WebAuthn
     end
   end
 
-  struct GetCredentialResult
-    include JSON::Serializable
-
-    property credential : Credential
-
-    def initialize(@credential : Credential)
-    end
-  end
-
   struct GetCredentials
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property authenticator_id : AuthenticatorId
 
     def initialize(@authenticator_id : AuthenticatorId)
@@ -198,20 +214,12 @@ module Cdp::WebAuthn
     end
   end
 
-  struct GetCredentialsResult
-    include JSON::Serializable
-
-    property credentials : Array(Credential)
-
-    def initialize(@credentials : Array(Credential))
-    end
-  end
-
   struct RemoveCredential
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property authenticator_id : AuthenticatorId
+    @[JSON::Field(emit_null: false)]
     property credential_id : String
 
     def initialize(@authenticator_id : AuthenticatorId, @credential_id : String)
@@ -231,7 +239,7 @@ module Cdp::WebAuthn
   struct ClearCredentials
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property authenticator_id : AuthenticatorId
 
     def initialize(@authenticator_id : AuthenticatorId)
@@ -251,8 +259,9 @@ module Cdp::WebAuthn
   struct SetUserVerified
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property authenticator_id : AuthenticatorId
+    @[JSON::Field(emit_null: false)]
     property is_user_verified : Bool
 
     def initialize(@authenticator_id : AuthenticatorId, @is_user_verified : Bool)
@@ -272,8 +281,9 @@ module Cdp::WebAuthn
   struct SetAutomaticPresenceSimulation
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property authenticator_id : AuthenticatorId
+    @[JSON::Field(emit_null: false)]
     property enabled : Bool
 
     def initialize(@authenticator_id : AuthenticatorId, @enabled : Bool)
@@ -293,8 +303,9 @@ module Cdp::WebAuthn
   struct SetCredentialProperties
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property authenticator_id : AuthenticatorId
+    @[JSON::Field(emit_null: false)]
     property credential_id : String
     @[JSON::Field(emit_null: false)]
     property backup_eligibility : Bool?
@@ -314,4 +325,5 @@ module Cdp::WebAuthn
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

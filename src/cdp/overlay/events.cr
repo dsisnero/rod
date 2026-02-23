@@ -1,15 +1,17 @@
-require "../overlay/overlay"
+
+require "../cdp"
 require "json"
 require "time"
+
 require "../dom/dom"
-require "../runtime/runtime"
 require "../page/page"
+require "../runtime/runtime"
 
 module Cdp::Overlay
   struct InspectNodeRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property backend_node_id : Cdp::DOM::BackendNodeId
 
     def initialize(@backend_node_id : Cdp::DOM::BackendNodeId)
@@ -24,7 +26,7 @@ module Cdp::Overlay
   struct NodeHighlightRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property node_id : Cdp::DOM::NodeId
 
     def initialize(@node_id : Cdp::DOM::NodeId)
@@ -39,7 +41,7 @@ module Cdp::Overlay
   struct ScreenshotRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property viewport : Cdp::Page::Viewport
 
     def initialize(@viewport : Cdp::Page::Viewport)
@@ -54,7 +56,7 @@ module Cdp::Overlay
   struct InspectPanelShowRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property backend_node_id : Cdp::DOM::BackendNodeId
 
     def initialize(@backend_node_id : Cdp::DOM::BackendNodeId)
@@ -69,7 +71,7 @@ module Cdp::Overlay
   struct InspectedElementWindowRestoredEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property backend_node_id : Cdp::DOM::BackendNodeId
 
     def initialize(@backend_node_id : Cdp::DOM::BackendNodeId)
@@ -85,7 +87,7 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize
+    def initialize()
     end
 
     # ProtoEvent returns the protocol event name.
@@ -93,4 +95,5 @@ module Cdp::Overlay
       "Overlay.inspectModeCanceled"
     end
   end
+
 end

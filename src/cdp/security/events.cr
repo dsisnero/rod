@@ -1,13 +1,16 @@
-require "../security/security"
+
+require "../cdp"
 require "json"
 require "time"
+
+require "../network/network"
 
 module Cdp::Security
   @[Experimental]
   struct VisibleSecurityStateChangedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property visible_security_state : VisibleSecurityState
 
     def initialize(@visible_security_state : VisibleSecurityState)
@@ -18,4 +21,5 @@ module Cdp::Security
       "Security.visibleSecurityStateChanged"
     end
   end
+
 end

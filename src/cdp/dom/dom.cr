@@ -1,8 +1,13 @@
-require "json"
+
 require "../cdp"
-require "../runtime/runtime"
+require "json"
+require "time"
+
 require "../page/page"
+require "../runtime/runtime"
+
 require "./types"
+require "./events"
 
 # This domain exposes DOM read/write operations. Each DOM Node is represented with its mirror object
 # that has an `id`. This `id` can be used to get additional information on the Node, resolve it into
@@ -12,12 +17,319 @@ require "./types"
 # the nodes that were sent to the client. Note that `iframe` owner elements will return
 # corresponding document elements as their child nodes.
 module Cdp::DOM
+  @[Experimental]
+  struct CollectClassNamesFromSubtreeResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property class_names : Array(String)
+
+    def initialize(@class_names : Array(String))
+    end
+  end
+
+  @[Experimental]
+  struct CopyToResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property node_id : NodeId
+
+    def initialize(@node_id : NodeId)
+    end
+  end
+
+  struct DescribeNodeResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property node : Node
+
+    def initialize(@node : Node)
+    end
+  end
+
+  struct GetAttributesResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property attributes : Array(String)
+
+    def initialize(@attributes : Array(String))
+    end
+  end
+
+  struct GetBoxModelResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property model : BoxModel
+
+    def initialize(@model : BoxModel)
+    end
+  end
+
+  @[Experimental]
+  struct GetContentQuadsResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property quads : Array(Quad)
+
+    def initialize(@quads : Array(Quad))
+    end
+  end
+
+  struct GetDocumentResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property root : Node
+
+    def initialize(@root : Node)
+    end
+  end
+
+  @[Experimental]
+  struct GetNodesForSubtreeByStyleResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property node_ids : Array(NodeId)
+
+    def initialize(@node_ids : Array(NodeId))
+    end
+  end
+
+  struct GetNodeForLocationResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property backend_node_id : BackendNodeId
+    @[JSON::Field(emit_null: false)]
+    property frame_id : Cdp::Page::FrameId
+    @[JSON::Field(emit_null: false)]
+    property node_id : NodeId?
+
+    def initialize(@backend_node_id : BackendNodeId, @frame_id : Cdp::Page::FrameId, @node_id : NodeId?)
+    end
+  end
+
+  struct GetOuterHTMLResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property outer_html : String
+
+    def initialize(@outer_html : String)
+    end
+  end
+
+  @[Experimental]
+  struct GetRelayoutBoundaryResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property node_id : NodeId
+
+    def initialize(@node_id : NodeId)
+    end
+  end
+
+  @[Experimental]
+  struct GetSearchResultsResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property node_ids : Array(NodeId)
+
+    def initialize(@node_ids : Array(NodeId))
+    end
+  end
+
+  struct MoveToResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property node_id : NodeId
+
+    def initialize(@node_id : NodeId)
+    end
+  end
+
+  @[Experimental]
+  struct PerformSearchResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property search_id : String
+    @[JSON::Field(emit_null: false)]
+    property result_count : Int64
+
+    def initialize(@search_id : String, @result_count : Int64)
+    end
+  end
+
+  @[Experimental]
+  struct PushNodeByPathToFrontendResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property node_id : NodeId
+
+    def initialize(@node_id : NodeId)
+    end
+  end
+
+  @[Experimental]
+  struct PushNodesByBackendIdsToFrontendResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property node_ids : Array(NodeId)
+
+    def initialize(@node_ids : Array(NodeId))
+    end
+  end
+
+  struct QuerySelectorResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property node_id : NodeId
+
+    def initialize(@node_id : NodeId)
+    end
+  end
+
+  struct QuerySelectorAllResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property node_ids : Array(NodeId)
+
+    def initialize(@node_ids : Array(NodeId))
+    end
+  end
+
+  @[Experimental]
+  struct GetTopLayerElementsResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property node_ids : Array(NodeId)
+
+    def initialize(@node_ids : Array(NodeId))
+    end
+  end
+
+  @[Experimental]
+  struct GetElementByRelationResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property node_id : NodeId
+
+    def initialize(@node_id : NodeId)
+    end
+  end
+
+  struct RequestNodeResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property node_id : NodeId
+
+    def initialize(@node_id : NodeId)
+    end
+  end
+
+  struct ResolveNodeResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property object : Cdp::Runtime::RemoteObject
+
+    def initialize(@object : Cdp::Runtime::RemoteObject)
+    end
+  end
+
+  @[Experimental]
+  struct GetNodeStackTracesResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property creation : Cdp::Runtime::StackTrace?
+
+    def initialize(@creation : Cdp::Runtime::StackTrace?)
+    end
+  end
+
+  @[Experimental]
+  struct GetFileInfoResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property path : String
+
+    def initialize(@path : String)
+    end
+  end
+
+  @[Experimental]
+  struct GetDetachedDomNodesResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property detached_nodes : Array(DetachedElementInfo)
+
+    def initialize(@detached_nodes : Array(DetachedElementInfo))
+    end
+  end
+
+  struct SetNodeNameResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property node_id : NodeId
+
+    def initialize(@node_id : NodeId)
+    end
+  end
+
+  @[Experimental]
+  struct GetFrameOwnerResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property backend_node_id : BackendNodeId
+    @[JSON::Field(emit_null: false)]
+    property node_id : NodeId?
+
+    def initialize(@backend_node_id : BackendNodeId, @node_id : NodeId?)
+    end
+  end
+
+  @[Experimental]
+  struct GetContainerForNodeResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property node_id : NodeId?
+
+    def initialize(@node_id : NodeId?)
+    end
+  end
+
+  @[Experimental]
+  struct GetQueryingDescendantsForContainerResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property node_ids : Array(NodeId)
+
+    def initialize(@node_ids : Array(NodeId))
+    end
+  end
+
+  @[Experimental]
+  struct GetAnchorElementResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property node_id : NodeId
+
+    def initialize(@node_id : NodeId)
+    end
+  end
+
+  @[Experimental]
+  struct ForceShowPopoverResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property node_ids : Array(NodeId)
+
+    def initialize(@node_ids : Array(NodeId))
+    end
+  end
+
+
   # Commands
   @[Experimental]
   struct CollectClassNamesFromSubtree
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
 
     def initialize(@node_id : NodeId)
@@ -37,21 +349,12 @@ module Cdp::DOM
   end
 
   @[Experimental]
-  struct CollectClassNamesFromSubtreeResult
-    include JSON::Serializable
-
-    property class_names : Array(String)
-
-    def initialize(@class_names : Array(String))
-    end
-  end
-
-  @[Experimental]
   struct CopyTo
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
+    @[JSON::Field(emit_null: false)]
     property target_node_id : NodeId
     @[JSON::Field(emit_null: false)]
     property insert_before_node_id : NodeId?
@@ -72,20 +375,9 @@ module Cdp::DOM
     end
   end
 
-  @[Experimental]
-  struct CopyToResult
-    include JSON::Serializable
-
-    property node_id : NodeId
-
-    def initialize(@node_id : NodeId)
-    end
-  end
-
   struct DescribeNode
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property node_id : NodeId?
     @[JSON::Field(emit_null: false)]
@@ -113,19 +405,9 @@ module Cdp::DOM
     end
   end
 
-  struct DescribeNodeResult
-    include JSON::Serializable
-
-    property node : Node
-
-    def initialize(@node : Node)
-    end
-  end
-
   struct ScrollIntoViewIfNeeded
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property node_id : NodeId?
     @[JSON::Field(emit_null: false)]
@@ -153,7 +435,7 @@ module Cdp::DOM
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -171,7 +453,7 @@ module Cdp::DOM
   struct DiscardSearchResults
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property search_id : String
 
     def initialize(@search_id : String)
@@ -191,7 +473,6 @@ module Cdp::DOM
   struct Enable
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property include_whitespace : EnableIncludeWhitespace?
 
@@ -212,7 +493,6 @@ module Cdp::DOM
   struct Focus
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property node_id : NodeId?
     @[JSON::Field(emit_null: false)]
@@ -237,7 +517,7 @@ module Cdp::DOM
   struct GetAttributes
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
 
     def initialize(@node_id : NodeId)
@@ -256,19 +536,9 @@ module Cdp::DOM
     end
   end
 
-  struct GetAttributesResult
-    include JSON::Serializable
-
-    property attributes : Array(String)
-
-    def initialize(@attributes : Array(String))
-    end
-  end
-
   struct GetBoxModel
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property node_id : NodeId?
     @[JSON::Field(emit_null: false)]
@@ -292,20 +562,10 @@ module Cdp::DOM
     end
   end
 
-  struct GetBoxModelResult
-    include JSON::Serializable
-
-    property model : BoxModel
-
-    def initialize(@model : BoxModel)
-    end
-  end
-
   @[Experimental]
   struct GetContentQuads
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property node_id : NodeId?
     @[JSON::Field(emit_null: false)]
@@ -329,20 +589,9 @@ module Cdp::DOM
     end
   end
 
-  @[Experimental]
-  struct GetContentQuadsResult
-    include JSON::Serializable
-
-    property quads : Array(Quad)
-
-    def initialize(@quads : Array(Quad))
-    end
-  end
-
   struct GetDocument
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property depth : Int64?
     @[JSON::Field(emit_null: false)]
@@ -364,21 +613,13 @@ module Cdp::DOM
     end
   end
 
-  struct GetDocumentResult
-    include JSON::Serializable
-
-    property root : Node
-
-    def initialize(@root : Node)
-    end
-  end
-
   @[Experimental]
   struct GetNodesForSubtreeByStyle
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
+    @[JSON::Field(emit_null: false)]
     property computed_styles : Array(CSSComputedStyleProperty)
     @[JSON::Field(emit_null: false)]
     property pierce : Bool?
@@ -399,21 +640,12 @@ module Cdp::DOM
     end
   end
 
-  @[Experimental]
-  struct GetNodesForSubtreeByStyleResult
-    include JSON::Serializable
-
-    property node_ids : Array(NodeId)
-
-    def initialize(@node_ids : Array(NodeId))
-    end
-  end
-
   struct GetNodeForLocation
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property x : Int64
+    @[JSON::Field(emit_null: false)]
     property y : Int64
     @[JSON::Field(emit_null: false)]
     property include_user_agent_shadow_dom : Bool?
@@ -436,22 +668,9 @@ module Cdp::DOM
     end
   end
 
-  struct GetNodeForLocationResult
-    include JSON::Serializable
-
-    property backend_node_id : BackendNodeId
-    property frame_id : Cdp::Page::FrameId
-    @[JSON::Field(emit_null: false)]
-    property node_id : NodeId?
-
-    def initialize(@backend_node_id : BackendNodeId, @frame_id : Cdp::Page::FrameId, @node_id : NodeId?)
-    end
-  end
-
   struct GetOuterHTML
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property node_id : NodeId?
     @[JSON::Field(emit_null: false)]
@@ -477,20 +696,11 @@ module Cdp::DOM
     end
   end
 
-  struct GetOuterHTMLResult
-    include JSON::Serializable
-
-    property outer_html : String
-
-    def initialize(@outer_html : String)
-    end
-  end
-
   @[Experimental]
   struct GetRelayoutBoundary
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
 
     def initialize(@node_id : NodeId)
@@ -510,22 +720,14 @@ module Cdp::DOM
   end
 
   @[Experimental]
-  struct GetRelayoutBoundaryResult
-    include JSON::Serializable
-
-    property node_id : NodeId
-
-    def initialize(@node_id : NodeId)
-    end
-  end
-
-  @[Experimental]
   struct GetSearchResults
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property search_id : String
+    @[JSON::Field(emit_null: false)]
     property from_index : Int64
+    @[JSON::Field(emit_null: false)]
     property to_index : Int64
 
     def initialize(@search_id : String, @from_index : Int64, @to_index : Int64)
@@ -545,21 +747,11 @@ module Cdp::DOM
   end
 
   @[Experimental]
-  struct GetSearchResultsResult
-    include JSON::Serializable
-
-    property node_ids : Array(NodeId)
-
-    def initialize(@node_ids : Array(NodeId))
-    end
-  end
-
-  @[Experimental]
   struct MarkUndoableState
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -576,8 +768,9 @@ module Cdp::DOM
   struct MoveTo
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
+    @[JSON::Field(emit_null: false)]
     property target_node_id : NodeId
     @[JSON::Field(emit_null: false)]
     property insert_before_node_id : NodeId?
@@ -598,20 +791,11 @@ module Cdp::DOM
     end
   end
 
-  struct MoveToResult
-    include JSON::Serializable
-
-    property node_id : NodeId
-
-    def initialize(@node_id : NodeId)
-    end
-  end
-
   @[Experimental]
   struct PerformSearch
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property query : String
     @[JSON::Field(emit_null: false)]
     property include_user_agent_shadow_dom : Bool?
@@ -633,21 +817,10 @@ module Cdp::DOM
   end
 
   @[Experimental]
-  struct PerformSearchResult
-    include JSON::Serializable
-
-    property search_id : String
-    property result_count : Int64
-
-    def initialize(@search_id : String, @result_count : Int64)
-    end
-  end
-
-  @[Experimental]
   struct PushNodeByPathToFrontend
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property path : String
 
     def initialize(@path : String)
@@ -667,20 +840,10 @@ module Cdp::DOM
   end
 
   @[Experimental]
-  struct PushNodeByPathToFrontendResult
-    include JSON::Serializable
-
-    property node_id : NodeId
-
-    def initialize(@node_id : NodeId)
-    end
-  end
-
-  @[Experimental]
   struct PushNodesByBackendIdsToFrontend
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property backend_node_ids : Array(BackendNodeId)
 
     def initialize(@backend_node_ids : Array(BackendNodeId))
@@ -699,21 +862,12 @@ module Cdp::DOM
     end
   end
 
-  @[Experimental]
-  struct PushNodesByBackendIdsToFrontendResult
-    include JSON::Serializable
-
-    property node_ids : Array(NodeId)
-
-    def initialize(@node_ids : Array(NodeId))
-    end
-  end
-
   struct QuerySelector
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
+    @[JSON::Field(emit_null: false)]
     property selector : String
 
     def initialize(@node_id : NodeId, @selector : String)
@@ -732,20 +886,12 @@ module Cdp::DOM
     end
   end
 
-  struct QuerySelectorResult
-    include JSON::Serializable
-
-    property node_id : NodeId
-
-    def initialize(@node_id : NodeId)
-    end
-  end
-
   struct QuerySelectorAll
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
+    @[JSON::Field(emit_null: false)]
     property selector : String
 
     def initialize(@node_id : NodeId, @selector : String)
@@ -764,21 +910,12 @@ module Cdp::DOM
     end
   end
 
-  struct QuerySelectorAllResult
-    include JSON::Serializable
-
-    property node_ids : Array(NodeId)
-
-    def initialize(@node_ids : Array(NodeId))
-    end
-  end
-
   @[Experimental]
   struct GetTopLayerElements
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -795,21 +932,12 @@ module Cdp::DOM
   end
 
   @[Experimental]
-  struct GetTopLayerElementsResult
-    include JSON::Serializable
-
-    property node_ids : Array(NodeId)
-
-    def initialize(@node_ids : Array(NodeId))
-    end
-  end
-
-  @[Experimental]
   struct GetElementByRelation
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
+    @[JSON::Field(emit_null: false)]
     property relation : GetElementByRelationRelation
 
     def initialize(@node_id : NodeId, @relation : GetElementByRelationRelation)
@@ -829,21 +957,11 @@ module Cdp::DOM
   end
 
   @[Experimental]
-  struct GetElementByRelationResult
-    include JSON::Serializable
-
-    property node_id : NodeId
-
-    def initialize(@node_id : NodeId)
-    end
-  end
-
-  @[Experimental]
   struct Redo
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -860,8 +978,9 @@ module Cdp::DOM
   struct RemoveAttribute
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
+    @[JSON::Field(emit_null: false)]
     property name : String
 
     def initialize(@node_id : NodeId, @name : String)
@@ -881,7 +1000,7 @@ module Cdp::DOM
   struct RemoveNode
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
 
     def initialize(@node_id : NodeId)
@@ -901,7 +1020,7 @@ module Cdp::DOM
   struct RequestChildNodes
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
     @[JSON::Field(emit_null: false)]
     property depth : Int64?
@@ -925,7 +1044,7 @@ module Cdp::DOM
   struct RequestNode
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property object_id : Cdp::Runtime::RemoteObjectId
 
     def initialize(@object_id : Cdp::Runtime::RemoteObjectId)
@@ -944,19 +1063,9 @@ module Cdp::DOM
     end
   end
 
-  struct RequestNodeResult
-    include JSON::Serializable
-
-    property node_id : NodeId
-
-    def initialize(@node_id : NodeId)
-    end
-  end
-
   struct ResolveNode
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property node_id : NodeId?
     @[JSON::Field(emit_null: false)]
@@ -982,21 +1091,14 @@ module Cdp::DOM
     end
   end
 
-  struct ResolveNodeResult
-    include JSON::Serializable
-
-    property object : Cdp::Runtime::RemoteObject
-
-    def initialize(@object : Cdp::Runtime::RemoteObject)
-    end
-  end
-
   struct SetAttributeValue
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
+    @[JSON::Field(emit_null: false)]
     property name : String
+    @[JSON::Field(emit_null: false)]
     property value : String
 
     def initialize(@node_id : NodeId, @name : String, @value : String)
@@ -1016,8 +1118,9 @@ module Cdp::DOM
   struct SetAttributesAsText
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
+    @[JSON::Field(emit_null: false)]
     property text : String
     @[JSON::Field(emit_null: false)]
     property name : String?
@@ -1039,7 +1142,7 @@ module Cdp::DOM
   struct SetFileInputFiles
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property files : Array(String)
     @[JSON::Field(emit_null: false)]
     property node_id : NodeId?
@@ -1066,7 +1169,7 @@ module Cdp::DOM
   struct SetNodeStackTracesEnabled
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property enable : Bool
 
     def initialize(@enable : Bool)
@@ -1087,7 +1190,7 @@ module Cdp::DOM
   struct GetNodeStackTraces
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
 
     def initialize(@node_id : NodeId)
@@ -1107,21 +1210,10 @@ module Cdp::DOM
   end
 
   @[Experimental]
-  struct GetNodeStackTracesResult
-    include JSON::Serializable
-
-    @[JSON::Field(emit_null: false)]
-    property creation : Cdp::Runtime::StackTrace?
-
-    def initialize(@creation : Cdp::Runtime::StackTrace?)
-    end
-  end
-
-  @[Experimental]
   struct GetFileInfo
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property object_id : Cdp::Runtime::RemoteObjectId
 
     def initialize(@object_id : Cdp::Runtime::RemoteObjectId)
@@ -1141,21 +1233,11 @@ module Cdp::DOM
   end
 
   @[Experimental]
-  struct GetFileInfoResult
-    include JSON::Serializable
-
-    property path : String
-
-    def initialize(@path : String)
-    end
-  end
-
-  @[Experimental]
   struct GetDetachedDomNodes
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -1172,20 +1254,10 @@ module Cdp::DOM
   end
 
   @[Experimental]
-  struct GetDetachedDomNodesResult
-    include JSON::Serializable
-
-    property detached_nodes : Array(DetachedElementInfo)
-
-    def initialize(@detached_nodes : Array(DetachedElementInfo))
-    end
-  end
-
-  @[Experimental]
   struct SetInspectedNode
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
 
     def initialize(@node_id : NodeId)
@@ -1205,8 +1277,9 @@ module Cdp::DOM
   struct SetNodeName
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
+    @[JSON::Field(emit_null: false)]
     property name : String
 
     def initialize(@node_id : NodeId, @name : String)
@@ -1225,20 +1298,12 @@ module Cdp::DOM
     end
   end
 
-  struct SetNodeNameResult
-    include JSON::Serializable
-
-    property node_id : NodeId
-
-    def initialize(@node_id : NodeId)
-    end
-  end
-
   struct SetNodeValue
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
+    @[JSON::Field(emit_null: false)]
     property value : String
 
     def initialize(@node_id : NodeId, @value : String)
@@ -1258,8 +1323,9 @@ module Cdp::DOM
   struct SetOuterHTML
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
+    @[JSON::Field(emit_null: false)]
     property outer_html : String
 
     def initialize(@node_id : NodeId, @outer_html : String)
@@ -1281,7 +1347,7 @@ module Cdp::DOM
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -1299,7 +1365,7 @@ module Cdp::DOM
   struct GetFrameOwner
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property frame_id : Cdp::Page::FrameId
 
     def initialize(@frame_id : Cdp::Page::FrameId)
@@ -1319,22 +1385,10 @@ module Cdp::DOM
   end
 
   @[Experimental]
-  struct GetFrameOwnerResult
-    include JSON::Serializable
-
-    property backend_node_id : BackendNodeId
-    @[JSON::Field(emit_null: false)]
-    property node_id : NodeId?
-
-    def initialize(@backend_node_id : BackendNodeId, @node_id : NodeId?)
-    end
-  end
-
-  @[Experimental]
   struct GetContainerForNode
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
     @[JSON::Field(emit_null: false)]
     property container_name : String?
@@ -1364,21 +1418,10 @@ module Cdp::DOM
   end
 
   @[Experimental]
-  struct GetContainerForNodeResult
-    include JSON::Serializable
-
-    @[JSON::Field(emit_null: false)]
-    property node_id : NodeId?
-
-    def initialize(@node_id : NodeId?)
-    end
-  end
-
-  @[Experimental]
   struct GetQueryingDescendantsForContainer
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
 
     def initialize(@node_id : NodeId)
@@ -1398,20 +1441,10 @@ module Cdp::DOM
   end
 
   @[Experimental]
-  struct GetQueryingDescendantsForContainerResult
-    include JSON::Serializable
-
-    property node_ids : Array(NodeId)
-
-    def initialize(@node_ids : Array(NodeId))
-    end
-  end
-
-  @[Experimental]
   struct GetAnchorElement
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
     @[JSON::Field(emit_null: false)]
     property anchor_specifier : String?
@@ -1433,21 +1466,12 @@ module Cdp::DOM
   end
 
   @[Experimental]
-  struct GetAnchorElementResult
-    include JSON::Serializable
-
-    property node_id : NodeId
-
-    def initialize(@node_id : NodeId)
-    end
-  end
-
-  @[Experimental]
   struct ForceShowPopover
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : NodeId
+    @[JSON::Field(emit_null: false)]
     property enable : Bool
 
     def initialize(@node_id : NodeId, @enable : Bool)
@@ -1466,13 +1490,4 @@ module Cdp::DOM
     end
   end
 
-  @[Experimental]
-  struct ForceShowPopoverResult
-    include JSON::Serializable
-
-    property node_ids : Array(NodeId)
-
-    def initialize(@node_ids : Array(NodeId))
-    end
-  end
 end

@@ -1,12 +1,16 @@
-require "../log/log"
+
+require "../cdp"
 require "json"
 require "time"
+
+require "../runtime/runtime"
+require "../network/network"
 
 module Cdp::Log
   struct EntryAddedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property entry : LogEntry
 
     def initialize(@entry : LogEntry)
@@ -17,4 +21,5 @@ module Cdp::Log
       "Log.entryAdded"
     end
   end
+
 end

@@ -1,12 +1,15 @@
-require "../webaudio/webaudio"
+
+require "../cdp"
 require "json"
 require "time"
+
+require "../dom/dom"
 
 module Cdp::WebAudio
   struct ContextCreatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property context : BaseAudioContext
 
     def initialize(@context : BaseAudioContext)
@@ -21,7 +24,7 @@ module Cdp::WebAudio
   struct ContextWillBeDestroyedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property context_id : GraphObjectId
 
     def initialize(@context_id : GraphObjectId)
@@ -36,7 +39,7 @@ module Cdp::WebAudio
   struct ContextChangedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property context : BaseAudioContext
 
     def initialize(@context : BaseAudioContext)
@@ -51,7 +54,7 @@ module Cdp::WebAudio
   struct AudioListenerCreatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property listener : AudioListener
 
     def initialize(@listener : AudioListener)
@@ -66,8 +69,9 @@ module Cdp::WebAudio
   struct AudioListenerWillBeDestroyedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property context_id : GraphObjectId
+    @[JSON::Field(emit_null: false)]
     property listener_id : GraphObjectId
 
     def initialize(@context_id : GraphObjectId, @listener_id : GraphObjectId)
@@ -82,7 +86,7 @@ module Cdp::WebAudio
   struct AudioNodeCreatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property node : AudioNode
 
     def initialize(@node : AudioNode)
@@ -97,8 +101,9 @@ module Cdp::WebAudio
   struct AudioNodeWillBeDestroyedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property context_id : GraphObjectId
+    @[JSON::Field(emit_null: false)]
     property node_id : GraphObjectId
 
     def initialize(@context_id : GraphObjectId, @node_id : GraphObjectId)
@@ -113,7 +118,7 @@ module Cdp::WebAudio
   struct AudioParamCreatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property param : AudioParam
 
     def initialize(@param : AudioParam)
@@ -128,9 +133,11 @@ module Cdp::WebAudio
   struct AudioParamWillBeDestroyedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property context_id : GraphObjectId
+    @[JSON::Field(emit_null: false)]
     property node_id : GraphObjectId
+    @[JSON::Field(emit_null: false)]
     property param_id : GraphObjectId
 
     def initialize(@context_id : GraphObjectId, @node_id : GraphObjectId, @param_id : GraphObjectId)
@@ -145,9 +152,11 @@ module Cdp::WebAudio
   struct NodesConnectedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property context_id : GraphObjectId
+    @[JSON::Field(emit_null: false)]
     property source_id : GraphObjectId
+    @[JSON::Field(emit_null: false)]
     property destination_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
     property source_output_index : Float64?
@@ -166,9 +175,11 @@ module Cdp::WebAudio
   struct NodesDisconnectedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property context_id : GraphObjectId
+    @[JSON::Field(emit_null: false)]
     property source_id : GraphObjectId
+    @[JSON::Field(emit_null: false)]
     property destination_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
     property source_output_index : Float64?
@@ -187,9 +198,11 @@ module Cdp::WebAudio
   struct NodeParamConnectedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property context_id : GraphObjectId
+    @[JSON::Field(emit_null: false)]
     property source_id : GraphObjectId
+    @[JSON::Field(emit_null: false)]
     property destination_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
     property source_output_index : Float64?
@@ -206,9 +219,11 @@ module Cdp::WebAudio
   struct NodeParamDisconnectedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property context_id : GraphObjectId
+    @[JSON::Field(emit_null: false)]
     property source_id : GraphObjectId
+    @[JSON::Field(emit_null: false)]
     property destination_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
     property source_output_index : Float64?
@@ -221,4 +236,5 @@ module Cdp::WebAudio
       "WebAudio.nodeParamDisconnected"
     end
   end
+
 end

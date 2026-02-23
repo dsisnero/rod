@@ -1,15 +1,22 @@
-require "json"
-require "../cdp"
-require "./types"
 
+require "../cdp"
+require "json"
+require "time"
+
+
+require "./types"
+require "./events"
+
+#
 @[Experimental]
 module Cdp::DeviceAccess
+
   # Commands
   struct Enable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -27,7 +34,7 @@ module Cdp::DeviceAccess
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -44,8 +51,9 @@ module Cdp::DeviceAccess
   struct SelectPrompt
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property id : RequestId
+    @[JSON::Field(emit_null: false)]
     property device_id : DeviceId
 
     def initialize(@id : RequestId, @device_id : DeviceId)
@@ -65,7 +73,7 @@ module Cdp::DeviceAccess
   struct CancelPrompt
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property id : RequestId
 
     def initialize(@id : RequestId)
@@ -81,4 +89,5 @@ module Cdp::DeviceAccess
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

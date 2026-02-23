@@ -1,17 +1,27 @@
-require "json"
-require "../cdp"
-require "./types"
 
+require "../cdp"
+require "json"
+require "time"
+
+
+require "./types"
+require "./events"
+
+#
 module Cdp::Input
+
   # Commands
   @[Experimental]
   struct DispatchDragEvent
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property type : DispatchDragEventType
+    @[JSON::Field(emit_null: false)]
     property x : Float64
+    @[JSON::Field(emit_null: false)]
     property y : Float64
+    @[JSON::Field(emit_null: false)]
     property data : DragData
     @[JSON::Field(emit_null: false)]
     property modifiers : Modifier?
@@ -33,7 +43,7 @@ module Cdp::Input
   struct DispatchKeyEvent
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property type : KeyType
     @[JSON::Field(emit_null: false)]
     property modifiers : Modifier?
@@ -82,7 +92,7 @@ module Cdp::Input
   struct InsertText
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property text : String
 
     def initialize(@text : String)
@@ -103,9 +113,11 @@ module Cdp::Input
   struct ImeSetComposition
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property text : String
+    @[JSON::Field(emit_null: false)]
     property selection_start : Int64
+    @[JSON::Field(emit_null: false)]
     property selection_end : Int64
     @[JSON::Field(emit_null: false)]
     property replacement_start : Int64?
@@ -129,9 +141,11 @@ module Cdp::Input
   struct DispatchMouseEvent
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property type : MouseType
+    @[JSON::Field(emit_null: false)]
     property x : Float64
+    @[JSON::Field(emit_null: false)]
     property y : Float64
     @[JSON::Field(emit_null: false)]
     property modifiers : Modifier?
@@ -177,8 +191,9 @@ module Cdp::Input
   struct DispatchTouchEvent
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property type : TouchType
+    @[JSON::Field(emit_null: false)]
     property touch_points : Array(TouchPoint)
     @[JSON::Field(emit_null: false)]
     property modifiers : Modifier?
@@ -203,7 +218,7 @@ module Cdp::Input
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -221,10 +236,13 @@ module Cdp::Input
   struct EmulateTouchFromMouseEvent
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property type : MouseType
+    @[JSON::Field(emit_null: false)]
     property x : Int64
+    @[JSON::Field(emit_null: false)]
     property y : Int64
+    @[JSON::Field(emit_null: false)]
     property button : MouseButton
     @[JSON::Field(emit_null: false)]
     property timestamp : TimeSinceEpoch?
@@ -254,7 +272,7 @@ module Cdp::Input
   struct SetIgnoreInputEvents
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property ignore : Bool
 
     def initialize(@ignore : Bool)
@@ -275,7 +293,7 @@ module Cdp::Input
   struct SetInterceptDrags
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property enabled : Bool
 
     def initialize(@enabled : Bool)
@@ -296,9 +314,11 @@ module Cdp::Input
   struct SynthesizePinchGesture
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property x : Float64
+    @[JSON::Field(emit_null: false)]
     property y : Float64
+    @[JSON::Field(emit_null: false)]
     property scale_factor : Float64
     @[JSON::Field(emit_null: false)]
     property relative_speed : Int64?
@@ -323,8 +343,9 @@ module Cdp::Input
   struct SynthesizeScrollGesture
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property x : Float64
+    @[JSON::Field(emit_null: false)]
     property y : Float64
     @[JSON::Field(emit_null: false)]
     property x_distance : Float64?
@@ -365,8 +386,9 @@ module Cdp::Input
   struct SynthesizeTapGesture
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property x : Float64
+    @[JSON::Field(emit_null: false)]
     property y : Float64
     @[JSON::Field(emit_null: false)]
     property duration : Int64?
@@ -388,4 +410,5 @@ module Cdp::Input
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

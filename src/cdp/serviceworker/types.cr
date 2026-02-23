@@ -1,15 +1,20 @@
-require "../serviceworker/serviceworker"
+
+require "../cdp"
 require "json"
 require "time"
+
+require "../target/target"
 
 module Cdp::ServiceWorker
   alias RegistrationID = String
 
   struct ServiceWorkerRegistration
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property registration_id : RegistrationID
+    @[JSON::Field(emit_null: false)]
     property scope_url : String
+    @[JSON::Field(emit_null: false)]
     property is_deleted : Bool
   end
 
@@ -19,11 +24,15 @@ module Cdp::ServiceWorker
 
   struct ServiceWorkerVersion
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property version_id : String
+    @[JSON::Field(emit_null: false)]
     property registration_id : RegistrationID
+    @[JSON::Field(emit_null: false)]
     property script_url : String
+    @[JSON::Field(emit_null: false)]
     property running_status : ServiceWorkerVersionRunningStatus
+    @[JSON::Field(emit_null: false)]
     property status : ServiceWorkerVersionStatus
     @[JSON::Field(emit_null: false)]
     property script_last_modified : Float64?
@@ -39,12 +48,18 @@ module Cdp::ServiceWorker
 
   struct ServiceWorkerErrorMessage
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property error_message : String
+    @[JSON::Field(emit_null: false)]
     property registration_id : RegistrationID
+    @[JSON::Field(emit_null: false)]
     property version_id : String
+    @[JSON::Field(emit_null: false)]
     property source_url : String
+    @[JSON::Field(emit_null: false)]
     property line_number : Int64
+    @[JSON::Field(emit_null: false)]
     property column_number : Int64
   end
-end
+
+   end

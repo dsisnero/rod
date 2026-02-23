@@ -1,17 +1,23 @@
-require "json"
+
 require "../cdp"
-require "../dom/dom"
+require "json"
+require "time"
+
 require "../page/page"
+require "../dom/dom"
+
 require "./types"
+require "./events"
 
 # Defines commands and events for Autofill.
 @[Experimental]
 module Cdp::Autofill
+
   # Commands
   struct Trigger
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property field_id : Cdp::DOM::BackendNodeId
     @[JSON::Field(emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
@@ -37,7 +43,7 @@ module Cdp::Autofill
   struct SetAddresses
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property addresses : Array(Address)
 
     def initialize(@addresses : Array(Address))
@@ -58,7 +64,7 @@ module Cdp::Autofill
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -76,7 +82,7 @@ module Cdp::Autofill
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -89,4 +95,5 @@ module Cdp::Autofill
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

@@ -1,16 +1,21 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
+
 require "./types"
+require "./events"
 
 # A domain for interacting with Cast, Presentation API, and Remote Playback API
 # functionalities.
 @[Experimental]
 module Cdp::Cast
+
   # Commands
   struct Enable
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property presentation_url : String?
 
@@ -32,7 +37,7 @@ module Cdp::Cast
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -49,7 +54,7 @@ module Cdp::Cast
   struct SetSinkToUse
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property sink_name : String
 
     def initialize(@sink_name : String)
@@ -69,7 +74,7 @@ module Cdp::Cast
   struct StartDesktopMirroring
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property sink_name : String
 
     def initialize(@sink_name : String)
@@ -89,7 +94,7 @@ module Cdp::Cast
   struct StartTabMirroring
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property sink_name : String
 
     def initialize(@sink_name : String)
@@ -109,7 +114,7 @@ module Cdp::Cast
   struct StopCasting
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property sink_name : String
 
     def initialize(@sink_name : String)
@@ -125,4 +130,5 @@ module Cdp::Cast
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

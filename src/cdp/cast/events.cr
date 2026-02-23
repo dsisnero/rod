@@ -1,12 +1,14 @@
-require "../cast/cast"
+
+require "../cdp"
 require "json"
 require "time"
+
 
 module Cdp::Cast
   struct SinksUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property sinks : Array(Sink)
 
     def initialize(@sinks : Array(Sink))
@@ -21,7 +23,7 @@ module Cdp::Cast
   struct IssueUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property issue_message : String
 
     def initialize(@issue_message : String)
@@ -32,4 +34,5 @@ module Cdp::Cast
       "Cast.issueUpdated"
     end
   end
+
 end

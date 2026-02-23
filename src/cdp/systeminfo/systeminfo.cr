@@ -1,16 +1,54 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
+
 require "./types"
 
 # The SystemInfo domain defines methods and events for querying low-level system information.
 @[Experimental]
 module Cdp::SystemInfo
+  struct GetInfoResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property gpu : GPUInfo
+    @[JSON::Field(emit_null: false)]
+    property model_name : String
+    @[JSON::Field(emit_null: false)]
+    property model_version : String
+    @[JSON::Field(emit_null: false)]
+    property command_line : String
+
+    def initialize(@gpu : GPUInfo, @model_name : String, @model_version : String, @command_line : String)
+    end
+  end
+
+  struct GetFeatureStateResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property feature_enabled : Bool
+
+    def initialize(@feature_enabled : Bool)
+    end
+  end
+
+  struct GetProcessInfoResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property process_info : Array(ProcessInfo)
+
+    def initialize(@process_info : Array(ProcessInfo))
+    end
+  end
+
+
   # Commands
   struct GetInfo
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -26,22 +64,10 @@ module Cdp::SystemInfo
     end
   end
 
-  struct GetInfoResult
-    include JSON::Serializable
-
-    property gpu : GPUInfo
-    property model_name : String
-    property model_version : String
-    property command_line : String
-
-    def initialize(@gpu : GPUInfo, @model_name : String, @model_version : String, @command_line : String)
-    end
-  end
-
   struct GetFeatureState
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property feature_state : String
 
     def initialize(@feature_state : String)
@@ -60,20 +86,11 @@ module Cdp::SystemInfo
     end
   end
 
-  struct GetFeatureStateResult
-    include JSON::Serializable
-
-    property feature_enabled : Bool
-
-    def initialize(@feature_enabled : Bool)
-    end
-  end
-
   struct GetProcessInfo
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -89,12 +106,4 @@ module Cdp::SystemInfo
     end
   end
 
-  struct GetProcessInfoResult
-    include JSON::Serializable
-
-    property process_info : Array(ProcessInfo)
-
-    def initialize(@process_info : Array(ProcessInfo))
-    end
-  end
 end

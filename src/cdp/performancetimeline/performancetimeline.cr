@@ -1,16 +1,25 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
+require "../network/network"
+require "../dom/dom"
+require "../page/page"
+
 require "./types"
+require "./events"
 
 # Reporting of performance timeline events, as specified in
 # https://w3c.github.io/performance-timeline/#dom-performanceobserver.
 @[Experimental]
 module Cdp::PerformanceTimeline
+
   # Commands
   struct Enable
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property event_types : Array(String)
 
     def initialize(@event_types : Array(String))
@@ -26,4 +35,5 @@ module Cdp::PerformanceTimeline
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

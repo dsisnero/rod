@@ -1,16 +1,40 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
+
 require "./types"
 
 # Defines commands and events for browser extensions.
 @[Experimental]
 module Cdp::Extensions
+  struct LoadUnpackedResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property id : String
+
+    def initialize(@id : String)
+    end
+  end
+
+  struct GetStorageItemsResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property data : JSON::Any
+
+    def initialize(@data : JSON::Any)
+    end
+  end
+
+
   # Commands
   struct TriggerAction
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property id : String
+    @[JSON::Field(emit_null: false)]
     property target_id : String
 
     def initialize(@id : String, @target_id : String)
@@ -30,7 +54,7 @@ module Cdp::Extensions
   struct LoadUnpacked
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property path : String
     @[JSON::Field(emit_null: false)]
     property enable_in_incognito : Bool?
@@ -51,19 +75,10 @@ module Cdp::Extensions
     end
   end
 
-  struct LoadUnpackedResult
-    include JSON::Serializable
-
-    property id : String
-
-    def initialize(@id : String)
-    end
-  end
-
   struct Uninstall
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property id : String
 
     def initialize(@id : String)
@@ -83,8 +98,9 @@ module Cdp::Extensions
   struct GetStorageItems
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property id : String
+    @[JSON::Field(emit_null: false)]
     property storage_area : StorageArea
     @[JSON::Field(emit_null: false)]
     property keys : Array(String)?
@@ -105,21 +121,14 @@ module Cdp::Extensions
     end
   end
 
-  struct GetStorageItemsResult
-    include JSON::Serializable
-
-    property data : JSON::Any
-
-    def initialize(@data : JSON::Any)
-    end
-  end
-
   struct RemoveStorageItems
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property id : String
+    @[JSON::Field(emit_null: false)]
     property storage_area : StorageArea
+    @[JSON::Field(emit_null: false)]
     property keys : Array(String)
 
     def initialize(@id : String, @storage_area : StorageArea, @keys : Array(String))
@@ -139,8 +148,9 @@ module Cdp::Extensions
   struct ClearStorageItems
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property id : String
+    @[JSON::Field(emit_null: false)]
     property storage_area : StorageArea
 
     def initialize(@id : String, @storage_area : StorageArea)
@@ -160,9 +170,11 @@ module Cdp::Extensions
   struct SetStorageItems
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property id : String
+    @[JSON::Field(emit_null: false)]
     property storage_area : StorageArea
+    @[JSON::Field(emit_null: false)]
     property values : JSON::Any
 
     def initialize(@id : String, @storage_area : StorageArea, @values : JSON::Any)
@@ -178,4 +190,5 @@ module Cdp::Extensions
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

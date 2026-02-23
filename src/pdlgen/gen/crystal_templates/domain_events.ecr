@@ -1,6 +1,6 @@
 <%# domain_events.ecr - Template for generating domain events %>
 <%- # Variables: d (Pdl::Domain), domains (Array(Pdl::Domain)), base_pkg (String), referenced_domains (Array(String)) -%>
-require "../<%= d.domain.downcase %>/<%= d.domain.downcase %>"
+require "../cdp"
 require "json"
 require "time"
 
@@ -25,7 +25,7 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
       <%- next if p.deprecated && !p.always_emit -%>
       <%- next if p.name.empty? -%>
       <%- type_str = crystal_type(p, d, domains) -%>
-    @[JSON::Field(emit_null: false)]<%= "?" if p.optional %>
+    @[JSON::Field(emit_null: false)]
     property <%= p.name.underscore %> : <%= type_str %><%= "?" if p.optional %>
     <%- end -%>
 

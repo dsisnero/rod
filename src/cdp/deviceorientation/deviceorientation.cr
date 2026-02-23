@@ -1,14 +1,20 @@
-require "json"
-require "../cdp"
 
+require "../cdp"
+require "json"
+require "time"
+
+
+
+#
 @[Experimental]
 module Cdp::DeviceOrientation
+
   # Commands
   struct ClearDeviceOrientationOverride
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -25,9 +31,11 @@ module Cdp::DeviceOrientation
   struct SetDeviceOrientationOverride
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property alpha : Float64
+    @[JSON::Field(emit_null: false)]
     property beta : Float64
+    @[JSON::Field(emit_null: false)]
     property gamma : Float64
 
     def initialize(@alpha : Float64, @beta : Float64, @gamma : Float64)
@@ -43,4 +51,5 @@ module Cdp::DeviceOrientation
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

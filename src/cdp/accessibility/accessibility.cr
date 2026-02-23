@@ -1,18 +1,85 @@
-require "json"
-require "../cdp"
-require "../dom/dom"
-require "../runtime/runtime"
-require "../page/page"
-require "./types"
 
+require "../cdp"
+require "json"
+require "time"
+
+require "../dom/dom"
+require "../page/page"
+require "../runtime/runtime"
+
+require "./types"
+require "./events"
+
+#
 @[Experimental]
 module Cdp::Accessibility
+  @[Experimental]
+  struct GetPartialAXTreeResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property nodes : Array(Node)
+
+    def initialize(@nodes : Array(Node))
+    end
+  end
+
+  @[Experimental]
+  struct GetFullAXTreeResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property nodes : Array(Node)
+
+    def initialize(@nodes : Array(Node))
+    end
+  end
+
+  @[Experimental]
+  struct GetRootAXNodeResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property node : Node
+
+    def initialize(@node : Node)
+    end
+  end
+
+  @[Experimental]
+  struct GetAXNodeAndAncestorsResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property nodes : Array(Node)
+
+    def initialize(@nodes : Array(Node))
+    end
+  end
+
+  @[Experimental]
+  struct GetChildAXNodesResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property nodes : Array(Node)
+
+    def initialize(@nodes : Array(Node))
+    end
+  end
+
+  @[Experimental]
+  struct QueryAXTreeResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property nodes : Array(Node)
+
+    def initialize(@nodes : Array(Node))
+    end
+  end
+
+
   # Commands
   struct Disable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -30,7 +97,7 @@ module Cdp::Accessibility
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -48,7 +115,6 @@ module Cdp::Accessibility
   struct GetPartialAXTree
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property node_id : Cdp::DOM::NodeId?
     @[JSON::Field(emit_null: false)]
@@ -75,20 +141,9 @@ module Cdp::Accessibility
   end
 
   @[Experimental]
-  struct GetPartialAXTreeResult
-    include JSON::Serializable
-
-    property nodes : Array(Node)
-
-    def initialize(@nodes : Array(Node))
-    end
-  end
-
-  @[Experimental]
   struct GetFullAXTree
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property depth : Int64?
     @[JSON::Field(emit_null: false)]
@@ -111,20 +166,9 @@ module Cdp::Accessibility
   end
 
   @[Experimental]
-  struct GetFullAXTreeResult
-    include JSON::Serializable
-
-    property nodes : Array(Node)
-
-    def initialize(@nodes : Array(Node))
-    end
-  end
-
-  @[Experimental]
   struct GetRootAXNode
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
 
@@ -145,20 +189,9 @@ module Cdp::Accessibility
   end
 
   @[Experimental]
-  struct GetRootAXNodeResult
-    include JSON::Serializable
-
-    property node : Node
-
-    def initialize(@node : Node)
-    end
-  end
-
-  @[Experimental]
   struct GetAXNodeAndAncestors
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property node_id : Cdp::DOM::NodeId?
     @[JSON::Field(emit_null: false)]
@@ -183,20 +216,10 @@ module Cdp::Accessibility
   end
 
   @[Experimental]
-  struct GetAXNodeAndAncestorsResult
-    include JSON::Serializable
-
-    property nodes : Array(Node)
-
-    def initialize(@nodes : Array(Node))
-    end
-  end
-
-  @[Experimental]
   struct GetChildAXNodes
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property id : NodeId
     @[JSON::Field(emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
@@ -218,20 +241,9 @@ module Cdp::Accessibility
   end
 
   @[Experimental]
-  struct GetChildAXNodesResult
-    include JSON::Serializable
-
-    property nodes : Array(Node)
-
-    def initialize(@nodes : Array(Node))
-    end
-  end
-
-  @[Experimental]
   struct QueryAXTree
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property node_id : Cdp::DOM::NodeId?
     @[JSON::Field(emit_null: false)]
@@ -259,13 +271,4 @@ module Cdp::Accessibility
     end
   end
 
-  @[Experimental]
-  struct QueryAXTreeResult
-    include JSON::Serializable
-
-    property nodes : Array(Node)
-
-    def initialize(@nodes : Array(Node))
-    end
-  end
 end

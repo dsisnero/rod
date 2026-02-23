@@ -1,15 +1,20 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
+
 require "./types"
+require "./events"
 
 # This domain allows interacting with the FedCM dialog.
 @[Experimental]
 module Cdp::FedCm
+
   # Commands
   struct Enable
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property disable_rejection_delay : Bool?
 
@@ -31,7 +36,7 @@ module Cdp::FedCm
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -48,8 +53,9 @@ module Cdp::FedCm
   struct SelectAccount
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property dialog_id : String
+    @[JSON::Field(emit_null: false)]
     property account_index : Int64
 
     def initialize(@dialog_id : String, @account_index : Int64)
@@ -69,8 +75,9 @@ module Cdp::FedCm
   struct ClickDialogButton
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property dialog_id : String
+    @[JSON::Field(emit_null: false)]
     property dialog_button : DialogButton
 
     def initialize(@dialog_id : String, @dialog_button : DialogButton)
@@ -90,9 +97,11 @@ module Cdp::FedCm
   struct OpenUrl
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property dialog_id : String
+    @[JSON::Field(emit_null: false)]
     property account_index : Int64
+    @[JSON::Field(emit_null: false)]
     property account_url_type : AccountUrlType
 
     def initialize(@dialog_id : String, @account_index : Int64, @account_url_type : AccountUrlType)
@@ -112,7 +121,7 @@ module Cdp::FedCm
   struct DismissDialog
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property dialog_id : String
     @[JSON::Field(emit_null: false)]
     property trigger_cooldown : Bool?
@@ -135,7 +144,7 @@ module Cdp::FedCm
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -148,4 +157,5 @@ module Cdp::FedCm
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

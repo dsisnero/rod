@@ -1,15 +1,42 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
 require "../runtime/runtime"
+
 require "./types"
 
 # Input/Output operations for streams produced by DevTools.
 module Cdp::IO
+  struct ReadResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property base64_encoded : Bool?
+    @[JSON::Field(emit_null: false)]
+    property data : String
+    @[JSON::Field(emit_null: false)]
+    property eof : Bool
+
+    def initialize(@base64_encoded : Bool?, @data : String, @eof : Bool)
+    end
+  end
+
+  struct ResolveBlobResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property uuid : String
+
+    def initialize(@uuid : String)
+    end
+  end
+
+
   # Commands
   struct Close
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property handle : StreamHandle
 
     def initialize(@handle : StreamHandle)
@@ -29,7 +56,7 @@ module Cdp::IO
   struct Read
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property handle : StreamHandle
     @[JSON::Field(emit_null: false)]
     property offset : Int64?
@@ -52,22 +79,10 @@ module Cdp::IO
     end
   end
 
-  struct ReadResult
-    include JSON::Serializable
-
-    @[JSON::Field(emit_null: false)]
-    property base64_encoded : Bool?
-    property data : String
-    property eof : Bool
-
-    def initialize(@base64_encoded : Bool?, @data : String, @eof : Bool)
-    end
-  end
-
   struct ResolveBlob
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property object_id : Cdp::Runtime::RemoteObjectId
 
     def initialize(@object_id : Cdp::Runtime::RemoteObjectId)
@@ -86,12 +101,4 @@ module Cdp::IO
     end
   end
 
-  struct ResolveBlobResult
-    include JSON::Serializable
-
-    property uuid : String
-
-    def initialize(@uuid : String)
-    end
-  end
 end

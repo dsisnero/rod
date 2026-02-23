@@ -1,13 +1,18 @@
-require "../audits/audits"
+
+require "../cdp"
 require "json"
 require "time"
+
 require "../network/network"
+require "../page/page"
+require "../runtime/runtime"
+require "../dom/dom"
 
 module Cdp::Audits
   struct IssueAddedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property issue : InspectorIssue
 
     def initialize(@issue : InspectorIssue)
@@ -18,4 +23,5 @@ module Cdp::Audits
       "Audits.issueAdded"
     end
   end
+
 end

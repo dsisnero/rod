@@ -1,5 +1,7 @@
+
 require "json"
 require "http"
+require "./cdp/types"
 
 # Chrome DevTools Protocol types.
 module Cdp

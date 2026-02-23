@@ -1,18 +1,94 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
 require "../target/target"
 require "../page/page"
+
 require "./types"
+require "./events"
 
 # The Browser domain defines methods and events for browser managing.
 module Cdp::Browser
+  struct GetVersionResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property protocol_version : String
+    @[JSON::Field(emit_null: false)]
+    property product : String
+    @[JSON::Field(emit_null: false)]
+    property revision : String
+    @[JSON::Field(emit_null: false)]
+    property user_agent : String
+    @[JSON::Field(emit_null: false)]
+    property js_version : String
+
+    def initialize(@protocol_version : String, @product : String, @revision : String, @user_agent : String, @js_version : String)
+    end
+  end
+
+  @[Experimental]
+  struct GetBrowserCommandLineResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property arguments : Array(String)
+
+    def initialize(@arguments : Array(String))
+    end
+  end
+
+  @[Experimental]
+  struct GetHistogramsResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property histograms : Array(Histogram)
+
+    def initialize(@histograms : Array(Histogram))
+    end
+  end
+
+  @[Experimental]
+  struct GetHistogramResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property histogram : Histogram
+
+    def initialize(@histogram : Histogram)
+    end
+  end
+
+  @[Experimental]
+  struct GetWindowBoundsResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property bounds : Bounds
+
+    def initialize(@bounds : Bounds)
+    end
+  end
+
+  @[Experimental]
+  struct GetWindowForTargetResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property window_id : WindowID
+    @[JSON::Field(emit_null: false)]
+    property bounds : Bounds
+
+    def initialize(@window_id : WindowID, @bounds : Bounds)
+    end
+  end
+
+
   # Commands
   @[Experimental]
   struct SetPermission
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property permission : PermissionDescriptor
+    @[JSON::Field(emit_null: false)]
     property setting : PermissionSetting
     @[JSON::Field(emit_null: false)]
     property origin : String?
@@ -38,7 +114,6 @@ module Cdp::Browser
   struct ResetPermissions
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property browser_context_id : BrowserContextID?
 
@@ -60,7 +135,7 @@ module Cdp::Browser
   struct SetDownloadBehavior
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property behavior : SetDownloadBehaviorBehavior
     @[JSON::Field(emit_null: false)]
     property browser_context_id : BrowserContextID?
@@ -87,7 +162,7 @@ module Cdp::Browser
   struct CancelDownload
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property guid : String
     @[JSON::Field(emit_null: false)]
     property browser_context_id : BrowserContextID?
@@ -110,7 +185,7 @@ module Cdp::Browser
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -129,7 +204,7 @@ module Cdp::Browser
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -148,7 +223,7 @@ module Cdp::Browser
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -166,7 +241,7 @@ module Cdp::Browser
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -182,25 +257,12 @@ module Cdp::Browser
     end
   end
 
-  struct GetVersionResult
-    include JSON::Serializable
-
-    property protocol_version : String
-    property product : String
-    property revision : String
-    property user_agent : String
-    property js_version : String
-
-    def initialize(@protocol_version : String, @product : String, @revision : String, @user_agent : String, @js_version : String)
-    end
-  end
-
   @[Experimental]
   struct GetBrowserCommandLine
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -217,20 +279,9 @@ module Cdp::Browser
   end
 
   @[Experimental]
-  struct GetBrowserCommandLineResult
-    include JSON::Serializable
-
-    property arguments : Array(String)
-
-    def initialize(@arguments : Array(String))
-    end
-  end
-
-  @[Experimental]
   struct GetHistograms
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property query : String?
     @[JSON::Field(emit_null: false)]
@@ -253,20 +304,10 @@ module Cdp::Browser
   end
 
   @[Experimental]
-  struct GetHistogramsResult
-    include JSON::Serializable
-
-    property histograms : Array(Histogram)
-
-    def initialize(@histograms : Array(Histogram))
-    end
-  end
-
-  @[Experimental]
   struct GetHistogram
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
     property delta : Bool?
@@ -288,20 +329,10 @@ module Cdp::Browser
   end
 
   @[Experimental]
-  struct GetHistogramResult
-    include JSON::Serializable
-
-    property histogram : Histogram
-
-    def initialize(@histogram : Histogram)
-    end
-  end
-
-  @[Experimental]
   struct GetWindowBounds
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property window_id : WindowID
 
     def initialize(@window_id : WindowID)
@@ -321,20 +352,9 @@ module Cdp::Browser
   end
 
   @[Experimental]
-  struct GetWindowBoundsResult
-    include JSON::Serializable
-
-    property bounds : Bounds
-
-    def initialize(@bounds : Bounds)
-    end
-  end
-
-  @[Experimental]
   struct GetWindowForTarget
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property target_id : Cdp::Target::TargetID?
 
@@ -355,22 +375,12 @@ module Cdp::Browser
   end
 
   @[Experimental]
-  struct GetWindowForTargetResult
-    include JSON::Serializable
-
-    property window_id : WindowID
-    property bounds : Bounds
-
-    def initialize(@window_id : WindowID, @bounds : Bounds)
-    end
-  end
-
-  @[Experimental]
   struct SetWindowBounds
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property window_id : WindowID
+    @[JSON::Field(emit_null: false)]
     property bounds : Bounds
 
     def initialize(@window_id : WindowID, @bounds : Bounds)
@@ -391,7 +401,7 @@ module Cdp::Browser
   struct SetContentsSize
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property window_id : WindowID
     @[JSON::Field(emit_null: false)]
     property width : Int64?
@@ -416,7 +426,6 @@ module Cdp::Browser
   struct SetDockTile
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property badge_label : String?
     @[JSON::Field(emit_null: false)]
@@ -440,7 +449,7 @@ module Cdp::Browser
   struct ExecuteBrowserCommand
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property command_id : BrowserCommandId
 
     def initialize(@command_id : BrowserCommandId)
@@ -460,7 +469,7 @@ module Cdp::Browser
   struct AddPrivacySandboxEnrollmentOverride
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property url : String
 
     def initialize(@url : String)
@@ -480,9 +489,11 @@ module Cdp::Browser
   struct AddPrivacySandboxCoordinatorKeyConfig
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property api : PrivacySandboxAPI
+    @[JSON::Field(emit_null: false)]
     property coordinator_origin : String
+    @[JSON::Field(emit_null: false)]
     property key_config : String
     @[JSON::Field(emit_null: false)]
     property browser_context_id : BrowserContextID?
@@ -500,4 +511,5 @@ module Cdp::Browser
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

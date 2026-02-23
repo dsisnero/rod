@@ -1,15 +1,23 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
+require "../runtime/runtime"
+require "../network/network"
+
 require "./types"
+require "./events"
 
 # Provides access to log entries.
 module Cdp::Log
+
   # Commands
   struct Clear
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -27,7 +35,7 @@ module Cdp::Log
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -45,7 +53,7 @@ module Cdp::Log
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -62,7 +70,7 @@ module Cdp::Log
   struct StartViolationsReport
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property config : Array(ViolationSetting)
 
     def initialize(@config : Array(ViolationSetting))
@@ -83,7 +91,7 @@ module Cdp::Log
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -96,4 +104,5 @@ module Cdp::Log
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

@@ -1,13 +1,20 @@
-require "../domsnapshot/domsnapshot"
+
+require "../cdp"
 require "json"
 require "time"
+
+require "../dom/dom"
+require "../page/page"
+require "../domdebugger/domdebugger"
 
 module Cdp::DOMSnapshot
   struct DOMNode
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property node_type : Cdp::NodeType
+    @[JSON::Field(emit_null: false)]
     property node_name : String
+    @[JSON::Field(emit_null: false)]
     property node_value : String
     @[JSON::Field(emit_null: false)]
     property text_value : String?
@@ -17,6 +24,7 @@ module Cdp::DOMSnapshot
     property input_checked : Bool?
     @[JSON::Field(emit_null: false)]
     property option_selected : Bool?
+    @[JSON::Field(emit_null: false)]
     property backend_node_id : Cdp::DOM::BackendNodeId
     @[JSON::Field(emit_null: false)]
     property child_node_indexes : Array(Int64)?
@@ -62,16 +70,19 @@ module Cdp::DOMSnapshot
 
   struct InlineTextBox
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property bounding_box : Cdp::DOM::Rect
+    @[JSON::Field(emit_null: false)]
     property start_character_index : Int64
+    @[JSON::Field(emit_null: false)]
     property num_characters : Int64
   end
 
   struct LayoutTreeNode
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property dom_node_index : Int64
+    @[JSON::Field(emit_null: false)]
     property bounding_box : Cdp::DOM::Rect
     @[JSON::Field(emit_null: false)]
     property layout_text : String?
@@ -87,14 +98,15 @@ module Cdp::DOMSnapshot
 
   struct ComputedStyle
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property properties : Array(NameValue)
   end
 
   struct NameValue
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property name : String
+    @[JSON::Field(emit_null: false)]
     property value : String
   end
 
@@ -105,21 +117,23 @@ module Cdp::DOMSnapshot
 
   struct RareStringData
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property index : Array(Int64)
+    @[JSON::Field(emit_null: false)]
     property value : Array(StringIndex)
   end
 
   struct RareBooleanData
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property index : Array(Int64)
   end
 
   struct RareIntegerData
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property index : Array(Int64)
+    @[JSON::Field(emit_null: false)]
     property value : Array(Int64)
   end
 
@@ -128,17 +142,27 @@ module Cdp::DOMSnapshot
 
   struct DocumentSnapshot
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property document_url : StringIndex
+    @[JSON::Field(emit_null: false)]
     property title : StringIndex
+    @[JSON::Field(emit_null: false)]
     property base_url : StringIndex
+    @[JSON::Field(emit_null: false)]
     property content_language : StringIndex
+    @[JSON::Field(emit_null: false)]
     property encoding_name : StringIndex
+    @[JSON::Field(emit_null: false)]
     property public_id : StringIndex
+    @[JSON::Field(emit_null: false)]
     property system_id : StringIndex
+    @[JSON::Field(emit_null: false)]
     property frame_id : StringIndex
+    @[JSON::Field(emit_null: false)]
     property nodes : NodeTreeSnapshot
+    @[JSON::Field(emit_null: false)]
     property layout : LayoutTreeSnapshot
+    @[JSON::Field(emit_null: false)]
     property text_boxes : TextBoxSnapshot
     @[JSON::Field(emit_null: false)]
     property scroll_offset_x : Float64?
@@ -152,7 +176,6 @@ module Cdp::DOMSnapshot
 
   struct NodeTreeSnapshot
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property parent_index : Array(Int64)?
     @[JSON::Field(emit_null: false)]
@@ -191,11 +214,15 @@ module Cdp::DOMSnapshot
 
   struct LayoutTreeSnapshot
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property node_index : Array(Int64)
+    @[JSON::Field(emit_null: false)]
     property styles : Array(ArrayOfStrings)
+    @[JSON::Field(emit_null: false)]
     property bounds : Array(Rectangle)
+    @[JSON::Field(emit_null: false)]
     property text : Array(StringIndex)
+    @[JSON::Field(emit_null: false)]
     property stacking_contexts : RareBooleanData
     @[JSON::Field(emit_null: false)]
     property paint_orders : Array(Int64)?
@@ -213,10 +240,14 @@ module Cdp::DOMSnapshot
 
   struct TextBoxSnapshot
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property layout_index : Array(Int64)
+    @[JSON::Field(emit_null: false)]
     property bounds : Array(Rectangle)
+    @[JSON::Field(emit_null: false)]
     property start : Array(Int64)
+    @[JSON::Field(emit_null: false)]
     property length : Array(Int64)
   end
-end
+
+   end

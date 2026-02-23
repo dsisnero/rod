@@ -1,4 +1,5 @@
 require "./pdl"
+require "./gen/crystal_extras"
 
 module Pdlgen
   module Fixup
@@ -6,8 +7,8 @@ module Pdlgen
     #
     # These need to be here in case the location of these types change (see above)
     # relative to the generated 'cdp' package.
-    DOM_NODE_ID_REF = "NodeId"
-    DOM_NODE_REF    = "Node?"
+    DOM_NODE_ID_REF = "DOM::NodeId"
+    DOM_NODE_REF    = "DOM::Node?"
 
     AX_RE = /^AX/
 
@@ -82,8 +83,7 @@ module Pdlgen
                 ),
               ])
               # TODO: add extra node template
-              # t.extra += gotpl.ExtraNodeTemplate()
-
+              t.extra += Gen::CrystalExtras.extra_node_template
             when "RGBA"
               t.properties.each do |p|
                 case p.name
@@ -160,15 +160,15 @@ module Pdlgen
               t.type = Pdl::TypeEnum::Timestamp
               t.timestamp_type = Pdl::TimestampType::Second
               # TODO: add extra timestamp template
-              # t.extra += gotpl.ExtraTimestampTemplate(t, d)
+              t.extra += Gen::CrystalExtras.extra_timestamp_template(t, d)
             end
 
             # change Monotonic to TypeTimestamp and add extra unmarshaling template
             if t.name == "MonotonicTime"
               t.type = Pdl::TypeEnum::Timestamp
-              t.timestamp_type = Pdl::TimestampType::Monotonic
+              t.timestamp_type = Pdl::TimestampType::Second
               # TODO: add extra timestamp template
-              # t.extra += gotpl.ExtraTimestampTemplate(t, d)
+              t.extra += Gen::CrystalExtras.extra_timestamp_template(t, d)
             end
 
             # change Headers to be a Hash(String, JSON::Any)
@@ -216,7 +216,7 @@ module Pdlgen
                 ),
               ])
               # TODO: add extra frame template
-              # t.extra += gotpl.ExtraFrameTemplate()
+              t.extra += Gen::CrystalExtras.extra_frame_template
 
               # convert Frame.id/parentId to $ref of FrameID
               t.properties.each do |p|
@@ -247,8 +247,7 @@ module Pdlgen
               t.type = Pdl::TypeEnum::Timestamp
               t.timestamp_type = Pdl::TimestampType::Millisecond
               # TODO: add extra timestamp template
-              # t.extra += gotpl.ExtraTimestampTemplate(t, d)
-
+              t.extra += Gen::CrystalExtras.extra_timestamp_template(t, d)
             when "ExceptionDetails"
               t.extra += %(# Error satisfies the error interface.
   def error : String

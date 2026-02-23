@@ -44,7 +44,7 @@ module Pdlgen
     INCLUDE_RE           = /^\s*include\s+(\S+)/
     REDIRECT_RE          = /^    redirect ([^\s]+)/
     REDIRECT_COMMENT_RE  = /^Use '([^']+)' instead$/
-    ENUM_LITERAL_RE      = /^\s+[^\s]+$/
+    ENUM_LITERAL_RE      = /^      (  )?[^\s]+$/
 
     def self.is_circular_dep(dtyp : String, typ : String) : Bool
       CIRCULAR_DEPS[{"#{dtyp.downcase}.#{typ.downcase}"}]? || false

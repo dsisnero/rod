@@ -1,6 +1,11 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
+
 require "./types"
+require "./events"
 
 # Runtime domain exposes JavaScript runtime by means of remote evaluation and mirror objects.
 # Evaluation results are returned as mirror object that expose object type, string representation
@@ -8,11 +13,136 @@ require "./types"
 # maintained in memory unless they are either explicitly released or are released along with the
 # other objects in their object group.
 module Cdp::Runtime
+  struct AwaitPromiseResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property result : RemoteObject
+    @[JSON::Field(emit_null: false)]
+    property exception_details : ExceptionDetails?
+
+    def initialize(@result : RemoteObject, @exception_details : ExceptionDetails?)
+    end
+  end
+
+  struct CallFunctionOnResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property result : RemoteObject
+    @[JSON::Field(emit_null: false)]
+    property exception_details : ExceptionDetails?
+
+    def initialize(@result : RemoteObject, @exception_details : ExceptionDetails?)
+    end
+  end
+
+  struct CompileScriptResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property script_id : ScriptId?
+    @[JSON::Field(emit_null: false)]
+    property exception_details : ExceptionDetails?
+
+    def initialize(@script_id : ScriptId?, @exception_details : ExceptionDetails?)
+    end
+  end
+
+  struct EvaluateResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property result : RemoteObject
+    @[JSON::Field(emit_null: false)]
+    property exception_details : ExceptionDetails?
+
+    def initialize(@result : RemoteObject, @exception_details : ExceptionDetails?)
+    end
+  end
+
+  @[Experimental]
+  struct GetIsolateIdResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property id : String
+
+    def initialize(@id : String)
+    end
+  end
+
+  @[Experimental]
+  struct GetHeapUsageResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property used_size : Float64
+    @[JSON::Field(emit_null: false)]
+    property total_size : Float64
+    @[JSON::Field(emit_null: false)]
+    property embedder_heap_used_size : Float64
+    @[JSON::Field(emit_null: false)]
+    property backing_storage_size : Float64
+
+    def initialize(@used_size : Float64, @total_size : Float64, @embedder_heap_used_size : Float64, @backing_storage_size : Float64)
+    end
+  end
+
+  struct GetPropertiesResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property result : Array(PropertyDescriptor)
+    @[JSON::Field(emit_null: false)]
+    property internal_properties : Array(InternalPropertyDescriptor)?
+    @[JSON::Field(emit_null: false)]
+    property private_properties : Array(PrivatePropertyDescriptor)?
+    @[JSON::Field(emit_null: false)]
+    property exception_details : ExceptionDetails?
+
+    def initialize(@result : Array(PropertyDescriptor), @internal_properties : Array(InternalPropertyDescriptor)?, @private_properties : Array(PrivatePropertyDescriptor)?, @exception_details : ExceptionDetails?)
+    end
+  end
+
+  struct GlobalLexicalScopeNamesResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property names : Array(String)
+
+    def initialize(@names : Array(String))
+    end
+  end
+
+  struct QueryObjectsResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property objects : RemoteObject
+
+    def initialize(@objects : RemoteObject)
+    end
+  end
+
+  struct RunScriptResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property result : RemoteObject
+    @[JSON::Field(emit_null: false)]
+    property exception_details : ExceptionDetails?
+
+    def initialize(@result : RemoteObject, @exception_details : ExceptionDetails?)
+    end
+  end
+
+  @[Experimental]
+  struct GetExceptionDetailsResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property exception_details : ExceptionDetails?
+
+    def initialize(@exception_details : ExceptionDetails?)
+    end
+  end
+
+
   # Commands
   struct AwaitPromise
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property promise_object_id : RemoteObjectId
     @[JSON::Field(emit_null: false)]
     property return_by_value : Bool?
@@ -35,21 +165,10 @@ module Cdp::Runtime
     end
   end
 
-  struct AwaitPromiseResult
-    include JSON::Serializable
-
-    property result : RemoteObject
-    @[JSON::Field(emit_null: false)]
-    property exception_details : ExceptionDetails?
-
-    def initialize(@result : RemoteObject, @exception_details : ExceptionDetails?)
-    end
-  end
-
   struct CallFunctionOn
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property function_declaration : String
     @[JSON::Field(emit_null: false)]
     property object_id : RemoteObjectId?
@@ -92,23 +211,14 @@ module Cdp::Runtime
     end
   end
 
-  struct CallFunctionOnResult
-    include JSON::Serializable
-
-    property result : RemoteObject
-    @[JSON::Field(emit_null: false)]
-    property exception_details : ExceptionDetails?
-
-    def initialize(@result : RemoteObject, @exception_details : ExceptionDetails?)
-    end
-  end
-
   struct CompileScript
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property expression : String
+    @[JSON::Field(emit_null: false)]
     property source_url : String
+    @[JSON::Field(emit_null: false)]
     property persist_script : Bool
     @[JSON::Field(emit_null: false)]
     property execution_context_id : ExecutionContextId?
@@ -129,23 +239,11 @@ module Cdp::Runtime
     end
   end
 
-  struct CompileScriptResult
-    include JSON::Serializable
-
-    @[JSON::Field(emit_null: false)]
-    property script_id : ScriptId?
-    @[JSON::Field(emit_null: false)]
-    property exception_details : ExceptionDetails?
-
-    def initialize(@script_id : ScriptId?, @exception_details : ExceptionDetails?)
-    end
-  end
-
   struct Disable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -163,7 +261,7 @@ module Cdp::Runtime
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -181,7 +279,7 @@ module Cdp::Runtime
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -198,7 +296,7 @@ module Cdp::Runtime
   struct Evaluate
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property expression : String
     @[JSON::Field(emit_null: false)]
     property object_group : String?
@@ -247,23 +345,12 @@ module Cdp::Runtime
     end
   end
 
-  struct EvaluateResult
-    include JSON::Serializable
-
-    property result : RemoteObject
-    @[JSON::Field(emit_null: false)]
-    property exception_details : ExceptionDetails?
-
-    def initialize(@result : RemoteObject, @exception_details : ExceptionDetails?)
-    end
-  end
-
   @[Experimental]
   struct GetIsolateId
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -280,21 +367,11 @@ module Cdp::Runtime
   end
 
   @[Experimental]
-  struct GetIsolateIdResult
-    include JSON::Serializable
-
-    property id : String
-
-    def initialize(@id : String)
-    end
-  end
-
-  @[Experimental]
   struct GetHeapUsage
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -310,23 +387,10 @@ module Cdp::Runtime
     end
   end
 
-  @[Experimental]
-  struct GetHeapUsageResult
-    include JSON::Serializable
-
-    property used_size : Float64
-    property total_size : Float64
-    property embedder_heap_used_size : Float64
-    property backing_storage_size : Float64
-
-    def initialize(@used_size : Float64, @total_size : Float64, @embedder_heap_used_size : Float64, @backing_storage_size : Float64)
-    end
-  end
-
   struct GetProperties
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property object_id : RemoteObjectId
     @[JSON::Field(emit_null: false)]
     property own_properties : Bool?
@@ -353,25 +417,9 @@ module Cdp::Runtime
     end
   end
 
-  struct GetPropertiesResult
-    include JSON::Serializable
-
-    property result : Array(PropertyDescriptor)
-    @[JSON::Field(emit_null: false)]
-    property internal_properties : Array(InternalPropertyDescriptor)?
-    @[JSON::Field(emit_null: false)]
-    property private_properties : Array(PrivatePropertyDescriptor)?
-    @[JSON::Field(emit_null: false)]
-    property exception_details : ExceptionDetails?
-
-    def initialize(@result : Array(PropertyDescriptor), @internal_properties : Array(InternalPropertyDescriptor)?, @private_properties : Array(PrivatePropertyDescriptor)?, @exception_details : ExceptionDetails?)
-    end
-  end
-
   struct GlobalLexicalScopeNames
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property execution_context_id : ExecutionContextId?
 
@@ -391,19 +439,10 @@ module Cdp::Runtime
     end
   end
 
-  struct GlobalLexicalScopeNamesResult
-    include JSON::Serializable
-
-    property names : Array(String)
-
-    def initialize(@names : Array(String))
-    end
-  end
-
   struct QueryObjects
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property prototype_object_id : RemoteObjectId
     @[JSON::Field(emit_null: false)]
     property object_group : String?
@@ -424,19 +463,10 @@ module Cdp::Runtime
     end
   end
 
-  struct QueryObjectsResult
-    include JSON::Serializable
-
-    property objects : RemoteObject
-
-    def initialize(@objects : RemoteObject)
-    end
-  end
-
   struct ReleaseObject
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property object_id : RemoteObjectId
 
     def initialize(@object_id : RemoteObjectId)
@@ -456,7 +486,7 @@ module Cdp::Runtime
   struct ReleaseObjectGroup
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property object_group : String
 
     def initialize(@object_group : String)
@@ -477,7 +507,7 @@ module Cdp::Runtime
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -494,7 +524,7 @@ module Cdp::Runtime
   struct RunScript
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property script_id : ScriptId
     @[JSON::Field(emit_null: false)]
     property execution_context_id : ExecutionContextId?
@@ -527,22 +557,11 @@ module Cdp::Runtime
     end
   end
 
-  struct RunScriptResult
-    include JSON::Serializable
-
-    property result : RemoteObject
-    @[JSON::Field(emit_null: false)]
-    property exception_details : ExceptionDetails?
-
-    def initialize(@result : RemoteObject, @exception_details : ExceptionDetails?)
-    end
-  end
-
   @[Experimental]
   struct SetCustomObjectFormatterEnabled
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property enabled : Bool
 
     def initialize(@enabled : Bool)
@@ -563,7 +582,7 @@ module Cdp::Runtime
   struct SetMaxCallStackSizeToCapture
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property size : Int64
 
     def initialize(@size : Int64)
@@ -585,7 +604,7 @@ module Cdp::Runtime
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -602,12 +621,14 @@ module Cdp::Runtime
   struct AddBinding
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property name : String
+    @[JSON::Field(emit_null: false)]
+    property execution_context_id : ExecutionContextId?
     @[JSON::Field(emit_null: false)]
     property execution_context_name : String?
 
-    def initialize(@name : String, @execution_context_name : String?)
+    def initialize(@name : String, @execution_context_id : ExecutionContextId?, @execution_context_name : String?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -624,7 +645,7 @@ module Cdp::Runtime
   struct RemoveBinding
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property name : String
 
     def initialize(@name : String)
@@ -645,7 +666,7 @@ module Cdp::Runtime
   struct GetExceptionDetails
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property error_object_id : RemoteObjectId
 
     def initialize(@error_object_id : RemoteObjectId)
@@ -664,14 +685,4 @@ module Cdp::Runtime
     end
   end
 
-  @[Experimental]
-  struct GetExceptionDetailsResult
-    include JSON::Serializable
-
-    @[JSON::Field(emit_null: false)]
-    property exception_details : ExceptionDetails?
-
-    def initialize(@exception_details : ExceptionDetails?)
-    end
-  end
 end

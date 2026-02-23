@@ -1,14 +1,17 @@
-require "../layertree/layertree"
+
+require "../cdp"
 require "json"
 require "time"
+
 require "../dom/dom"
 
 module Cdp::LayerTree
   struct LayerPaintedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property layer_id : LayerId
+    @[JSON::Field(emit_null: false)]
     property clip : Cdp::DOM::Rect
 
     def initialize(@layer_id : LayerId, @clip : Cdp::DOM::Rect)
@@ -23,7 +26,6 @@ module Cdp::LayerTree
   struct LayerTreeDidChangeEvent
     include JSON::Serializable
     include Cdp::Event
-
     @[JSON::Field(emit_null: false)]
     property layers : Array(Layer)?
 
@@ -35,4 +37,5 @@ module Cdp::LayerTree
       "LayerTree.layerTreeDidChange"
     end
   end
+
 end

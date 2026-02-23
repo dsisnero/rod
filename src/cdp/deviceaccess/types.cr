@@ -1,6 +1,8 @@
-require "../deviceaccess/deviceaccess"
+
+require "../cdp"
 require "json"
 require "time"
+
 
 module Cdp::DeviceAccess
   alias RequestId = String
@@ -9,8 +11,10 @@ module Cdp::DeviceAccess
 
   struct PromptDevice
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property id : DeviceId
+    @[JSON::Field(emit_null: false)]
     property name : String
   end
-end
+
+   end

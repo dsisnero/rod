@@ -1,6 +1,8 @@
-require "../smartcardemulation/smartcardemulation"
+
+require "../cdp"
 require "json"
 require "time"
+
 
 module Cdp::SmartCardEmulation
   alias ResultCode = String
@@ -13,7 +15,6 @@ module Cdp::SmartCardEmulation
 
   struct ReaderStateFlags
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property unaware : Bool?
     @[JSON::Field(emit_null: false)]
@@ -40,7 +41,6 @@ module Cdp::SmartCardEmulation
 
   struct ProtocolSet
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property t0 : Bool?
     @[JSON::Field(emit_null: false)]
@@ -53,18 +53,24 @@ module Cdp::SmartCardEmulation
 
   struct ReaderStateIn
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property reader : String
+    @[JSON::Field(emit_null: false)]
     property current_state : ReaderStateFlags
+    @[JSON::Field(emit_null: false)]
     property current_insertion_count : Int64
   end
 
   struct ReaderStateOut
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property reader : String
+    @[JSON::Field(emit_null: false)]
     property event_state : ReaderStateFlags
+    @[JSON::Field(emit_null: false)]
     property event_count : Int64
+    @[JSON::Field(emit_null: false)]
     property atr : String
   end
-end
+
+   end

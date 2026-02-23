@@ -1,21 +1,23 @@
-require "../overlay/overlay"
+
+require "../cdp"
 require "json"
 require "time"
+
 require "../dom/dom"
-require "../runtime/runtime"
 require "../page/page"
+require "../runtime/runtime"
 
 module Cdp::Overlay
   struct SourceOrderConfig
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property parent_outline_color : Cdp::DOM::RGBA
+    @[JSON::Field(emit_null: false)]
     property child_outline_color : Cdp::DOM::RGBA
   end
 
   struct GridHighlightConfig
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property show_grid_extension_lines : Bool?
     @[JSON::Field(emit_null: false)]
@@ -30,6 +32,8 @@ module Cdp::Overlay
     property show_track_sizes : Bool?
     @[JSON::Field(emit_null: false)]
     property grid_border_color : Cdp::DOM::RGBA?
+    @[JSON::Field(emit_null: false)]
+    property cell_border_color : Cdp::DOM::RGBA?
     @[JSON::Field(emit_null: false)]
     property row_line_color : Cdp::DOM::RGBA?
     @[JSON::Field(emit_null: false)]
@@ -56,7 +60,6 @@ module Cdp::Overlay
 
   struct FlexContainerHighlightConfig
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property container_border : LineStyle?
     @[JSON::Field(emit_null: false)]
@@ -77,7 +80,6 @@ module Cdp::Overlay
 
   struct FlexItemHighlightConfig
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property base_size_box : BoxStyle?
     @[JSON::Field(emit_null: false)]
@@ -88,7 +90,6 @@ module Cdp::Overlay
 
   struct LineStyle
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property color : Cdp::DOM::RGBA?
     @[JSON::Field(emit_null: false)]
@@ -97,7 +98,6 @@ module Cdp::Overlay
 
   struct BoxStyle
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property fill_color : Cdp::DOM::RGBA?
     @[JSON::Field(emit_null: false)]
@@ -108,7 +108,6 @@ module Cdp::Overlay
 
   struct HighlightConfig
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property show_info : Bool?
     @[JSON::Field(emit_null: false)]
@@ -153,21 +152,22 @@ module Cdp::Overlay
 
   struct GridNodeHighlightConfig
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property grid_highlight_config : GridHighlightConfig
+    @[JSON::Field(emit_null: false)]
     property node_id : Cdp::DOM::NodeId
   end
 
   struct FlexNodeHighlightConfig
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property flex_container_highlight_config : FlexContainerHighlightConfig
+    @[JSON::Field(emit_null: false)]
     property node_id : Cdp::DOM::NodeId
   end
 
   struct ScrollSnapContainerHighlightConfig
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property snapport_border : LineStyle?
     @[JSON::Field(emit_null: false)]
@@ -180,14 +180,15 @@ module Cdp::Overlay
 
   struct ScrollSnapHighlightConfig
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property scroll_snap_container_highlight_config : ScrollSnapContainerHighlightConfig
+    @[JSON::Field(emit_null: false)]
     property node_id : Cdp::DOM::NodeId
   end
 
   struct HingeConfig
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property rect : Cdp::DOM::Rect
     @[JSON::Field(emit_null: false)]
     property content_color : Cdp::DOM::RGBA?
@@ -197,22 +198,24 @@ module Cdp::Overlay
 
   struct WindowControlsOverlayConfig
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property show_css : Bool
+    @[JSON::Field(emit_null: false)]
     property selected_platform : String
+    @[JSON::Field(emit_null: false)]
     property theme_color : String
   end
 
   struct ContainerQueryHighlightConfig
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property container_query_container_highlight_config : ContainerQueryContainerHighlightConfig
+    @[JSON::Field(emit_null: false)]
     property node_id : Cdp::DOM::NodeId
   end
 
   struct ContainerQueryContainerHighlightConfig
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property container_border : LineStyle?
     @[JSON::Field(emit_null: false)]
@@ -221,14 +224,14 @@ module Cdp::Overlay
 
   struct IsolatedElementHighlightConfig
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property isolation_mode_highlight_config : IsolationModeHighlightConfig
+    @[JSON::Field(emit_null: false)]
     property node_id : Cdp::DOM::NodeId
   end
 
   struct IsolationModeHighlightConfig
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property resizer_color : Cdp::DOM::RGBA?
     @[JSON::Field(emit_null: false)]
@@ -241,7 +244,6 @@ module Cdp::Overlay
 
   struct InspectedElementAnchorConfig
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property node_id : Cdp::DOM::NodeId?
     @[JSON::Field(emit_null: false)]
@@ -249,4 +251,5 @@ module Cdp::Overlay
   end
 
   alias LineStylePattern = String
-end
+
+   end

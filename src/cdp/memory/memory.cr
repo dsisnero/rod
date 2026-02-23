@@ -1,15 +1,70 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
+
 require "./types"
 
+#
 @[Experimental]
 module Cdp::Memory
+  struct GetDOMCountersResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property documents : Int64
+    @[JSON::Field(emit_null: false)]
+    property nodes : Int64
+    @[JSON::Field(emit_null: false)]
+    property js_event_listeners : Int64
+
+    def initialize(@documents : Int64, @nodes : Int64, @js_event_listeners : Int64)
+    end
+  end
+
+  struct GetDOMCountersForLeakDetectionResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property counters : Array(DOMCounter)
+
+    def initialize(@counters : Array(DOMCounter))
+    end
+  end
+
+  struct GetAllTimeSamplingProfileResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property profile : SamplingProfile
+
+    def initialize(@profile : SamplingProfile)
+    end
+  end
+
+  struct GetBrowserSamplingProfileResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property profile : SamplingProfile
+
+    def initialize(@profile : SamplingProfile)
+    end
+  end
+
+  struct GetSamplingProfileResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property profile : SamplingProfile
+
+    def initialize(@profile : SamplingProfile)
+    end
+  end
+
+
   # Commands
   struct GetDOMCounters
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -25,22 +80,11 @@ module Cdp::Memory
     end
   end
 
-  struct GetDOMCountersResult
-    include JSON::Serializable
-
-    property documents : Int64
-    property nodes : Int64
-    property js_event_listeners : Int64
-
-    def initialize(@documents : Int64, @nodes : Int64, @js_event_listeners : Int64)
-    end
-  end
-
   struct GetDOMCountersForLeakDetection
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -56,20 +100,11 @@ module Cdp::Memory
     end
   end
 
-  struct GetDOMCountersForLeakDetectionResult
-    include JSON::Serializable
-
-    property counters : Array(DOMCounter)
-
-    def initialize(@counters : Array(DOMCounter))
-    end
-  end
-
   struct PrepareForLeakDetection
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -87,7 +122,7 @@ module Cdp::Memory
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -104,7 +139,7 @@ module Cdp::Memory
   struct SetPressureNotificationsSuppressed
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property suppressed : Bool
 
     def initialize(@suppressed : Bool)
@@ -124,7 +159,7 @@ module Cdp::Memory
   struct SimulatePressureNotification
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property level : PressureLevel
 
     def initialize(@level : PressureLevel)
@@ -144,7 +179,6 @@ module Cdp::Memory
   struct StartSampling
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property sampling_interval : Int64?
     @[JSON::Field(emit_null: false)]
@@ -168,7 +202,7 @@ module Cdp::Memory
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -186,7 +220,7 @@ module Cdp::Memory
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -202,20 +236,11 @@ module Cdp::Memory
     end
   end
 
-  struct GetAllTimeSamplingProfileResult
-    include JSON::Serializable
-
-    property profile : SamplingProfile
-
-    def initialize(@profile : SamplingProfile)
-    end
-  end
-
   struct GetBrowserSamplingProfile
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -231,20 +256,11 @@ module Cdp::Memory
     end
   end
 
-  struct GetBrowserSamplingProfileResult
-    include JSON::Serializable
-
-    property profile : SamplingProfile
-
-    def initialize(@profile : SamplingProfile)
-    end
-  end
-
   struct GetSamplingProfile
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -260,12 +276,4 @@ module Cdp::Memory
     end
   end
 
-  struct GetSamplingProfileResult
-    include JSON::Serializable
-
-    property profile : SamplingProfile
-
-    def initialize(@profile : SamplingProfile)
-    end
-  end
 end

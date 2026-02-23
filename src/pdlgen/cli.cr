@@ -314,7 +314,7 @@ module Pdlgen
 
       typs.each do |t|
         typ = dtyp + "." + t.name
-        if t.deprecated && !t.always_emit
+        if false && t.deprecated && !t.always_emit
           Util.logf("SKIPPING(%s): %s [deprecated]", n.ljust(7), typ)
           next
         end

@@ -1,17 +1,33 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
+require "../dom/dom"
+
 require "./types"
+require "./events"
 
 # This domain allows inspection of Web Audio API.
 # https://webaudio.github.io/web-audio-api/
 @[Experimental]
 module Cdp::WebAudio
+  struct GetRealtimeDataResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property realtime_data : ContextRealtimeData
+
+    def initialize(@realtime_data : ContextRealtimeData)
+    end
+  end
+
+
   # Commands
   struct Enable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -29,7 +45,7 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -46,7 +62,7 @@ module Cdp::WebAudio
   struct GetRealtimeData
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property context_id : GraphObjectId
 
     def initialize(@context_id : GraphObjectId)
@@ -65,12 +81,4 @@ module Cdp::WebAudio
     end
   end
 
-  struct GetRealtimeDataResult
-    include JSON::Serializable
-
-    property realtime_data : ContextRealtimeData
-
-    def initialize(@realtime_data : ContextRealtimeData)
-    end
-  end
 end

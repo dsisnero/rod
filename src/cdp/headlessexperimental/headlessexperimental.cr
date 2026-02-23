@@ -1,15 +1,30 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
+
 require "./types"
 
 # This domain provides experimental commands only supported in headless mode.
 @[Experimental]
 module Cdp::HeadlessExperimental
+  struct BeginFrameResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property has_damage : Bool
+    @[JSON::Field(emit_null: false)]
+    property screenshot_data : String?
+
+    def initialize(@has_damage : Bool, @screenshot_data : String?)
+    end
+  end
+
+
   # Commands
   struct BeginFrame
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property frame_time_ticks : Float64?
     @[JSON::Field(emit_null: false)]
@@ -35,14 +50,4 @@ module Cdp::HeadlessExperimental
     end
   end
 
-  struct BeginFrameResult
-    include JSON::Serializable
-
-    property has_damage : Bool
-    @[JSON::Field(emit_null: false)]
-    property screenshot_data : String?
-
-    def initialize(@has_damage : Bool, @screenshot_data : String?)
-    end
-  end
 end

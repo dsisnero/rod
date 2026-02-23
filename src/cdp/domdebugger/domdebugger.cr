@@ -1,17 +1,31 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
 require "../runtime/runtime"
 require "../dom/dom"
+
 require "./types"
 
 # DOM debugging allows setting breakpoints on particular DOM operations and events. JavaScript
 # execution will stop on these operations as if there was a regular breakpoint set.
 module Cdp::DOMDebugger
+  struct GetEventListenersResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property listeners : Array(EventListener)
+
+    def initialize(@listeners : Array(EventListener))
+    end
+  end
+
+
   # Commands
   struct GetEventListeners
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property object_id : Cdp::Runtime::RemoteObjectId
     @[JSON::Field(emit_null: false)]
     property depth : Int64?
@@ -34,20 +48,12 @@ module Cdp::DOMDebugger
     end
   end
 
-  struct GetEventListenersResult
-    include JSON::Serializable
-
-    property listeners : Array(EventListener)
-
-    def initialize(@listeners : Array(EventListener))
-    end
-  end
-
   struct RemoveDOMBreakpoint
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : Cdp::DOM::NodeId
+    @[JSON::Field(emit_null: false)]
     property type : DOMBreakpointType
 
     def initialize(@node_id : Cdp::DOM::NodeId, @type : DOMBreakpointType)
@@ -67,7 +73,7 @@ module Cdp::DOMDebugger
   struct RemoveEventListenerBreakpoint
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property event_name : String
     @[JSON::Field(emit_null: false)]
     property target_name : String?
@@ -89,7 +95,7 @@ module Cdp::DOMDebugger
   struct RemoveXHRBreakpoint
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property url : String
 
     def initialize(@url : String)
@@ -110,7 +116,7 @@ module Cdp::DOMDebugger
   struct SetBreakOnCSPViolation
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property violation_types : Array(CSPViolationType)
 
     def initialize(@violation_types : Array(CSPViolationType))
@@ -130,8 +136,9 @@ module Cdp::DOMDebugger
   struct SetDOMBreakpoint
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : Cdp::DOM::NodeId
+    @[JSON::Field(emit_null: false)]
     property type : DOMBreakpointType
 
     def initialize(@node_id : Cdp::DOM::NodeId, @type : DOMBreakpointType)
@@ -151,7 +158,7 @@ module Cdp::DOMDebugger
   struct SetEventListenerBreakpoint
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property event_name : String
     @[JSON::Field(emit_null: false)]
     property target_name : String?
@@ -173,7 +180,7 @@ module Cdp::DOMDebugger
   struct SetXHRBreakpoint
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property url : String
 
     def initialize(@url : String)
@@ -189,4 +196,5 @@ module Cdp::DOMDebugger
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

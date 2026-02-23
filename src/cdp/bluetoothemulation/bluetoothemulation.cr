@@ -1,17 +1,51 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
+
 require "./types"
+require "./events"
 
 # This domain allows configuring virtual Bluetooth devices to test
 # the web-bluetooth API.
 @[Experimental]
 module Cdp::BluetoothEmulation
+  struct AddServiceResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property service_id : String
+
+    def initialize(@service_id : String)
+    end
+  end
+
+  struct AddCharacteristicResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property characteristic_id : String
+
+    def initialize(@characteristic_id : String)
+    end
+  end
+
+  struct AddDescriptorResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property descriptor_id : String
+
+    def initialize(@descriptor_id : String)
+    end
+  end
+
+
   # Commands
   struct Enable
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property state : CentralState
+    @[JSON::Field(emit_null: false)]
     property le_supported : Bool
 
     def initialize(@state : CentralState, @le_supported : Bool)
@@ -31,7 +65,7 @@ module Cdp::BluetoothEmulation
   struct SetSimulatedCentralState
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property state : CentralState
 
     def initialize(@state : CentralState)
@@ -52,7 +86,7 @@ module Cdp::BluetoothEmulation
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -69,10 +103,13 @@ module Cdp::BluetoothEmulation
   struct SimulatePreconnectedPeripheral
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property address : String
+    @[JSON::Field(emit_null: false)]
     property name : String
+    @[JSON::Field(emit_null: false)]
     property manufacturer_data : Array(ManufacturerData)
+    @[JSON::Field(emit_null: false)]
     property known_service_uuids : Array(String)
 
     def initialize(@address : String, @name : String, @manufacturer_data : Array(ManufacturerData), @known_service_uuids : Array(String))
@@ -92,7 +129,7 @@ module Cdp::BluetoothEmulation
   struct SimulateAdvertisement
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property entry : ScanEntry
 
     def initialize(@entry : ScanEntry)
@@ -112,9 +149,11 @@ module Cdp::BluetoothEmulation
   struct SimulateGATTOperationResponse
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property address : String
+    @[JSON::Field(emit_null: false)]
     property type : GATTOperationType
+    @[JSON::Field(emit_null: false)]
     property code : Int64
 
     def initialize(@address : String, @type : GATTOperationType, @code : Int64)
@@ -134,9 +173,11 @@ module Cdp::BluetoothEmulation
   struct SimulateCharacteristicOperationResponse
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property characteristic_id : String
+    @[JSON::Field(emit_null: false)]
     property type : CharacteristicOperationType
+    @[JSON::Field(emit_null: false)]
     property code : Int64
     @[JSON::Field(emit_null: false)]
     property data : String?
@@ -158,9 +199,11 @@ module Cdp::BluetoothEmulation
   struct SimulateDescriptorOperationResponse
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property descriptor_id : String
+    @[JSON::Field(emit_null: false)]
     property type : DescriptorOperationType
+    @[JSON::Field(emit_null: false)]
     property code : Int64
     @[JSON::Field(emit_null: false)]
     property data : String?
@@ -182,8 +225,9 @@ module Cdp::BluetoothEmulation
   struct AddService
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property address : String
+    @[JSON::Field(emit_null: false)]
     property service_uuid : String
 
     def initialize(@address : String, @service_uuid : String)
@@ -202,19 +246,10 @@ module Cdp::BluetoothEmulation
     end
   end
 
-  struct AddServiceResult
-    include JSON::Serializable
-
-    property service_id : String
-
-    def initialize(@service_id : String)
-    end
-  end
-
   struct RemoveService
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property service_id : String
 
     def initialize(@service_id : String)
@@ -234,9 +269,11 @@ module Cdp::BluetoothEmulation
   struct AddCharacteristic
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property service_id : String
+    @[JSON::Field(emit_null: false)]
     property characteristic_uuid : String
+    @[JSON::Field(emit_null: false)]
     property properties : CharacteristicProperties
 
     def initialize(@service_id : String, @characteristic_uuid : String, @properties : CharacteristicProperties)
@@ -255,19 +292,10 @@ module Cdp::BluetoothEmulation
     end
   end
 
-  struct AddCharacteristicResult
-    include JSON::Serializable
-
-    property characteristic_id : String
-
-    def initialize(@characteristic_id : String)
-    end
-  end
-
   struct RemoveCharacteristic
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property characteristic_id : String
 
     def initialize(@characteristic_id : String)
@@ -287,8 +315,9 @@ module Cdp::BluetoothEmulation
   struct AddDescriptor
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property characteristic_id : String
+    @[JSON::Field(emit_null: false)]
     property descriptor_uuid : String
 
     def initialize(@characteristic_id : String, @descriptor_uuid : String)
@@ -307,19 +336,10 @@ module Cdp::BluetoothEmulation
     end
   end
 
-  struct AddDescriptorResult
-    include JSON::Serializable
-
-    property descriptor_id : String
-
-    def initialize(@descriptor_id : String)
-    end
-  end
-
   struct RemoveDescriptor
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property descriptor_id : String
 
     def initialize(@descriptor_id : String)
@@ -339,7 +359,7 @@ module Cdp::BluetoothEmulation
   struct SimulateGATTDisconnection
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property address : String
 
     def initialize(@address : String)
@@ -355,4 +375,5 @@ module Cdp::BluetoothEmulation
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

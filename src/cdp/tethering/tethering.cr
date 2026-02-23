@@ -1,14 +1,20 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
+
+require "./events"
 
 # The Tethering domain defines methods and events for browser port binding.
 @[Experimental]
 module Cdp::Tethering
+
   # Commands
   struct Bind
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property port : Int64
 
     def initialize(@port : Int64)
@@ -28,7 +34,7 @@ module Cdp::Tethering
   struct Unbind
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property port : Int64
 
     def initialize(@port : Int64)
@@ -44,4 +50,5 @@ module Cdp::Tethering
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

@@ -1,13 +1,15 @@
-require "../runtime/runtime"
+
+require "../cdp"
 require "json"
 require "time"
+
 
 module Cdp::Runtime
   alias ScriptId = String
 
   struct SerializationOptions
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property serialization : SerializationOptionsSerialization
     @[JSON::Field(emit_null: false)]
     property max_depth : Int64?
@@ -17,7 +19,7 @@ module Cdp::Runtime
 
   struct DeepSerializedValue
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property type : DeepSerializedValueType
     @[JSON::Field(emit_null: false)]
     property value : JSON::Any?
@@ -33,7 +35,7 @@ module Cdp::Runtime
 
   struct RemoteObject
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property type : Type
     @[JSON::Field(emit_null: false)]
     property subtype : Subtype?
@@ -58,7 +60,7 @@ module Cdp::Runtime
   @[Experimental]
   struct CustomPreview
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property header : String
     @[JSON::Field(emit_null: false)]
     property body_getter_id : RemoteObjectId?
@@ -67,13 +69,15 @@ module Cdp::Runtime
   @[Experimental]
   struct ObjectPreview
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property type : Type
     @[JSON::Field(emit_null: false)]
     property subtype : Subtype?
     @[JSON::Field(emit_null: false)]
     property description : String?
+    @[JSON::Field(emit_null: false)]
     property overflow : Bool
+    @[JSON::Field(emit_null: false)]
     property properties : Array(PropertyPreview)
     @[JSON::Field(emit_null: false)]
     property entries : Array(EntryPreview)?
@@ -82,8 +86,9 @@ module Cdp::Runtime
   @[Experimental]
   struct PropertyPreview
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property name : String
+    @[JSON::Field(emit_null: false)]
     property type : Type
     @[JSON::Field(emit_null: false)]
     property value : String?
@@ -96,15 +101,15 @@ module Cdp::Runtime
   @[Experimental]
   struct EntryPreview
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property key : ObjectPreview?
+    @[JSON::Field(emit_null: false)]
     property value : ObjectPreview
   end
 
   struct PropertyDescriptor
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
     property value : RemoteObject?
@@ -114,7 +119,9 @@ module Cdp::Runtime
     property get : RemoteObject?
     @[JSON::Field(emit_null: false)]
     property set : RemoteObject?
+    @[JSON::Field(emit_null: false)]
     property configurable : Bool
+    @[JSON::Field(emit_null: false)]
     property enumerable : Bool
     @[JSON::Field(emit_null: false)]
     property was_thrown : Bool?
@@ -126,7 +133,7 @@ module Cdp::Runtime
 
   struct InternalPropertyDescriptor
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
     property value : RemoteObject?
@@ -135,7 +142,7 @@ module Cdp::Runtime
   @[Experimental]
   struct PrivatePropertyDescriptor
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
     property value : RemoteObject?
@@ -147,7 +154,6 @@ module Cdp::Runtime
 
   struct CallArgument
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property value : JSON::Any?
     @[JSON::Field(emit_null: false)]
@@ -160,10 +166,13 @@ module Cdp::Runtime
 
   struct ExecutionContextDescription
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property id : ExecutionContextId
+    @[JSON::Field(emit_null: false)]
     property origin : String
+    @[JSON::Field(emit_null: false)]
     property name : String
+    @[JSON::Field(emit_null: false)]
     property unique_id : String
     @[JSON::Field(emit_null: false)]
     property aux_data : JSON::Any?
@@ -171,10 +180,13 @@ module Cdp::Runtime
 
   struct ExceptionDetails
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property exception_id : Int64
+    @[JSON::Field(emit_null: false)]
     property text : String
+    @[JSON::Field(emit_null: false)]
     property line_number : Int64
+    @[JSON::Field(emit_null: false)]
     property column_number : Int64
     @[JSON::Field(emit_null: false)]
     property script_id : ScriptId?
@@ -189,6 +201,25 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property exception_meta_data : JSON::Any?
   end
+  # Error satisfies the error interface.
+  def error : String
+    String.build do |b|
+      # TODO: watch script parsed events and match the ExceptionDetails.ScriptID
+      # to the name/location of the actual code and display here
+      b << "exception "
+      b.inspect(e.text)
+      b << " ("
+      b << e.line_number
+      b << ":"
+      b << e.column_number
+      b << ")"
+      if obj = e.exception
+        b << ": "
+        b << obj.description
+      end
+    end
+  end
+
 
   alias Timestamp = Time
 
@@ -196,27 +227,28 @@ module Cdp::Runtime
 
   struct CallFrame
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property function_name : String
+    @[JSON::Field(emit_null: false)]
     property script_id : ScriptId
+    @[JSON::Field(emit_null: false)]
     property url : String
+    @[JSON::Field(emit_null: false)]
     property line_number : Int64
+    @[JSON::Field(emit_null: false)]
     property column_number : Int64
   end
 
-  class StackTrace
+  struct StackTrace
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property description : String?
+    @[JSON::Field(emit_null: false)]
     property call_frames : Array(CallFrame)
     @[JSON::Field(emit_null: false)]
     property parent : StackTrace?
     @[JSON::Field(emit_null: false)]
     property parent_id : StackTraceId?
-
-    def initialize(@description : String? = nil, @call_frames : Array(CallFrame) = [] of CallFrame, @parent : StackTrace? = nil, @parent_id : StackTraceId? = nil)
-    end
   end
 
   @[Experimental]
@@ -225,7 +257,7 @@ module Cdp::Runtime
   @[Experimental]
   struct StackTraceId
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property id : String
     @[JSON::Field(emit_null: false)]
     property debugger_id : UniqueDebuggerId?
@@ -240,4 +272,5 @@ module Cdp::Runtime
   alias Subtype = String
 
   alias APIType = String
-end
+
+   end

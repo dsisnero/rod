@@ -1,16 +1,19 @@
-require "../page/page"
+
+require "../cdp"
 require "json"
 require "time"
+
 require "../runtime/runtime"
-require "../dom/dom"
 require "../network/network"
+require "../dom/dom"
 require "../io/io"
+require "../debugger/debugger"
 
 module Cdp::Page
   struct DomContentEventFiredEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property timestamp : Cdp::Network::MonotonicTime
 
     def initialize(@timestamp : Cdp::Network::MonotonicTime)
@@ -25,8 +28,9 @@ module Cdp::Page
   struct FileChooserOpenedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property frame_id : FrameId
+    @[JSON::Field(emit_null: false)]
     property mode : FileChooserOpenedMode
     @[JSON::Field(emit_null: false)]
     property backend_node_id : Cdp::DOM::BackendNodeId?
@@ -43,8 +47,9 @@ module Cdp::Page
   struct FrameAttachedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property frame_id : FrameId
+    @[JSON::Field(emit_null: false)]
     property parent_frame_id : FrameId
     @[JSON::Field(emit_null: false)]
     property stack : Cdp::Runtime::StackTrace?
@@ -61,8 +66,9 @@ module Cdp::Page
   struct FrameDetachedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property frame_id : FrameId
+    @[JSON::Field(emit_null: false)]
     property reason : FrameDetachedReason
 
     def initialize(@frame_id : FrameId, @reason : FrameDetachedReason)
@@ -78,7 +84,7 @@ module Cdp::Page
   struct FrameSubtreeWillBeDetachedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property frame_id : FrameId
 
     def initialize(@frame_id : FrameId)
@@ -93,8 +99,9 @@ module Cdp::Page
   struct FrameNavigatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property frame : Frame
+    @[JSON::Field(emit_null: false)]
     property type : NavigationType
 
     def initialize(@frame : Frame, @type : NavigationType)
@@ -110,7 +117,7 @@ module Cdp::Page
   struct DocumentOpenedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property frame : Frame
 
     def initialize(@frame : Frame)
@@ -127,7 +134,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize
+    def initialize()
     end
 
     # ProtoEvent returns the protocol event name.
@@ -140,10 +147,13 @@ module Cdp::Page
   struct FrameStartedNavigatingEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property frame_id : FrameId
+    @[JSON::Field(emit_null: false)]
     property url : String
+    @[JSON::Field(emit_null: false)]
     property loader_id : Cdp::Network::LoaderId
+    @[JSON::Field(emit_null: false)]
     property navigation_type : FrameStartedNavigatingNavigationType
 
     def initialize(@frame_id : FrameId, @url : String, @loader_id : Cdp::Network::LoaderId, @navigation_type : FrameStartedNavigatingNavigationType)
@@ -159,10 +169,13 @@ module Cdp::Page
   struct FrameRequestedNavigationEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property frame_id : FrameId
+    @[JSON::Field(emit_null: false)]
     property reason : ClientNavigationReason
+    @[JSON::Field(emit_null: false)]
     property url : String
+    @[JSON::Field(emit_null: false)]
     property disposition : ClientNavigationDisposition
 
     def initialize(@frame_id : FrameId, @reason : ClientNavigationReason, @url : String, @disposition : ClientNavigationDisposition)
@@ -178,7 +191,7 @@ module Cdp::Page
   struct FrameStartedLoadingEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property frame_id : FrameId
 
     def initialize(@frame_id : FrameId)
@@ -194,7 +207,7 @@ module Cdp::Page
   struct FrameStoppedLoadingEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property frame_id : FrameId
 
     def initialize(@frame_id : FrameId)
@@ -210,7 +223,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize
+    def initialize()
     end
 
     # ProtoEvent returns the protocol event name.
@@ -223,7 +236,7 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize
+    def initialize()
     end
 
     # ProtoEvent returns the protocol event name.
@@ -235,9 +248,11 @@ module Cdp::Page
   struct JavascriptDialogClosedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property frame_id : FrameId
+    @[JSON::Field(emit_null: false)]
     property result : Bool
+    @[JSON::Field(emit_null: false)]
     property user_input : String
 
     def initialize(@frame_id : FrameId, @result : Bool, @user_input : String)
@@ -252,11 +267,15 @@ module Cdp::Page
   struct JavascriptDialogOpeningEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property url : String
+    @[JSON::Field(emit_null: false)]
     property frame_id : FrameId
+    @[JSON::Field(emit_null: false)]
     property message : String
+    @[JSON::Field(emit_null: false)]
     property type : DialogType
+    @[JSON::Field(emit_null: false)]
     property has_browser_handler : Bool
     @[JSON::Field(emit_null: false)]
     property default_prompt : String?
@@ -273,10 +292,13 @@ module Cdp::Page
   struct LifecycleEventEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property frame_id : FrameId
+    @[JSON::Field(emit_null: false)]
     property loader_id : Cdp::Network::LoaderId
+    @[JSON::Field(emit_null: false)]
     property name : String
+    @[JSON::Field(emit_null: false)]
     property timestamp : Cdp::Network::MonotonicTime
 
     def initialize(@frame_id : FrameId, @loader_id : Cdp::Network::LoaderId, @name : String, @timestamp : Cdp::Network::MonotonicTime)
@@ -292,9 +314,11 @@ module Cdp::Page
   struct BackForwardCacheNotUsedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property loader_id : Cdp::Network::LoaderId
+    @[JSON::Field(emit_null: false)]
     property frame_id : FrameId
+    @[JSON::Field(emit_null: false)]
     property not_restored_explanations : Array(BackForwardCacheNotRestoredExplanation)
     @[JSON::Field(emit_null: false)]
     property not_restored_explanations_tree : BackForwardCacheNotRestoredExplanationTree?
@@ -311,7 +335,7 @@ module Cdp::Page
   struct LoadEventFiredEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property timestamp : Cdp::Network::MonotonicTime
 
     def initialize(@timestamp : Cdp::Network::MonotonicTime)
@@ -327,9 +351,11 @@ module Cdp::Page
   struct NavigatedWithinDocumentEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property frame_id : FrameId
+    @[JSON::Field(emit_null: false)]
     property url : String
+    @[JSON::Field(emit_null: false)]
     property navigation_type : NavigatedWithinDocumentNavigationType
 
     def initialize(@frame_id : FrameId, @url : String, @navigation_type : NavigatedWithinDocumentNavigationType)
@@ -345,9 +371,11 @@ module Cdp::Page
   struct ScreencastFrameEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property data : String
+    @[JSON::Field(emit_null: false)]
     property metadata : ScreencastFrameMetadata
+    @[JSON::Field(emit_null: false)]
     property session_id : Int64
 
     def initialize(@data : String, @metadata : ScreencastFrameMetadata, @session_id : Int64)
@@ -363,7 +391,7 @@ module Cdp::Page
   struct ScreencastVisibilityChangedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property visible : Bool
 
     def initialize(@visible : Bool)
@@ -378,10 +406,13 @@ module Cdp::Page
   struct WindowOpenEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property url : String
+    @[JSON::Field(emit_null: false)]
     property window_name : String
+    @[JSON::Field(emit_null: false)]
     property window_features : Array(String)
+    @[JSON::Field(emit_null: false)]
     property user_gesture : Bool
 
     def initialize(@url : String, @window_name : String, @window_features : Array(String), @user_gesture : Bool)
@@ -397,8 +428,9 @@ module Cdp::Page
   struct CompilationCacheProducedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property url : String
+    @[JSON::Field(emit_null: false)]
     property data : String
 
     def initialize(@url : String, @data : String)
@@ -409,4 +441,5 @@ module Cdp::Page
       "Page.compilationCacheProduced"
     end
   end
+
 end

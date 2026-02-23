@@ -1,6 +1,8 @@
-require "../css/css"
+
+require "../cdp"
 require "json"
 require "time"
+
 require "../dom/dom"
 require "../page/page"
 
@@ -8,7 +10,6 @@ module Cdp::CSS
   struct FontsUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-
     @[JSON::Field(emit_null: false)]
     property font : FontFace?
 
@@ -25,7 +26,7 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize
+    def initialize()
     end
 
     # ProtoEvent returns the protocol event name.
@@ -37,7 +38,7 @@ module Cdp::CSS
   struct StyleSheetAddedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property header : CSSStyleSheetHeader
 
     def initialize(@header : CSSStyleSheetHeader)
@@ -52,7 +53,7 @@ module Cdp::CSS
   struct StyleSheetChangedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property style_sheet_id : Cdp::DOM::StyleSheetId
 
     def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId)
@@ -67,7 +68,7 @@ module Cdp::CSS
   struct StyleSheetRemovedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property style_sheet_id : Cdp::DOM::StyleSheetId
 
     def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId)
@@ -83,7 +84,7 @@ module Cdp::CSS
   struct ComputedStyleUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property node_id : Cdp::DOM::NodeId
 
     def initialize(@node_id : Cdp::DOM::NodeId)
@@ -94,4 +95,5 @@ module Cdp::CSS
       "CSS.computedStyleUpdated"
     end
   end
+
 end

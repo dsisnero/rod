@@ -1,17 +1,49 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
 require "../network/network"
+require "../page/page"
+require "../runtime/runtime"
+require "../dom/dom"
+
 require "./types"
+require "./events"
 
 # Audits domain allows investigation of page violations and possible improvements.
 @[Experimental]
 module Cdp::Audits
+  struct GetEncodedResponseResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property body : String?
+    @[JSON::Field(emit_null: false)]
+    property original_size : Int64
+    @[JSON::Field(emit_null: false)]
+    property encoded_size : Int64
+
+    def initialize(@body : String?, @original_size : Int64, @encoded_size : Int64)
+    end
+  end
+
+  struct CheckFormsIssuesResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property form_issues : Array(GenericIssueDetails)
+
+    def initialize(@form_issues : Array(GenericIssueDetails))
+    end
+  end
+
+
   # Commands
   struct GetEncodedResponse
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property request_id : Cdp::Network::RequestId
+    @[JSON::Field(emit_null: false)]
     property encoding : GetEncodedResponseEncoding
     @[JSON::Field(emit_null: false)]
     property quality : Float64?
@@ -34,23 +66,11 @@ module Cdp::Audits
     end
   end
 
-  struct GetEncodedResponseResult
-    include JSON::Serializable
-
-    @[JSON::Field(emit_null: false)]
-    property body : String?
-    property original_size : Int64
-    property encoded_size : Int64
-
-    def initialize(@body : String?, @original_size : Int64, @encoded_size : Int64)
-    end
-  end
-
   struct Disable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -68,7 +88,7 @@ module Cdp::Audits
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -85,7 +105,6 @@ module Cdp::Audits
   struct CheckContrast
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property report_aaa : Bool?
 
@@ -107,7 +126,7 @@ module Cdp::Audits
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -123,12 +142,4 @@ module Cdp::Audits
     end
   end
 
-  struct CheckFormsIssuesResult
-    include JSON::Serializable
-
-    property form_issues : Array(GenericIssueDetails)
-
-    def initialize(@form_issues : Array(GenericIssueDetails))
-    end
-  end
 end

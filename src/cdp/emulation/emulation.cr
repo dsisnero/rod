@@ -1,18 +1,64 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
 require "../dom/dom"
 require "../page/page"
 require "../network/network"
+
 require "./types"
+require "./events"
 
 # This domain emulates different environments for the page.
 module Cdp::Emulation
+  @[Experimental]
+  struct GetOverriddenSensorInformationResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property requested_sampling_frequency : Float64
+
+    def initialize(@requested_sampling_frequency : Float64)
+    end
+  end
+
+  @[Experimental]
+  struct SetVirtualTimePolicyResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property virtual_time_ticks_base : Float64
+
+    def initialize(@virtual_time_ticks_base : Float64)
+    end
+  end
+
+  @[Experimental]
+  struct GetScreenInfosResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property screen_infos : Array(ScreenInfo)
+
+    def initialize(@screen_infos : Array(ScreenInfo))
+    end
+  end
+
+  @[Experimental]
+  struct AddScreenResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property screen_info : ScreenInfo
+
+    def initialize(@screen_info : ScreenInfo)
+    end
+  end
+
+
   # Commands
   struct ClearDeviceMetricsOverride
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -30,7 +76,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -49,7 +95,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -67,7 +113,7 @@ module Cdp::Emulation
   struct SetFocusEmulationEnabled
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property enabled : Bool
 
     def initialize(@enabled : Bool)
@@ -88,7 +134,6 @@ module Cdp::Emulation
   struct SetAutoDarkModeOverride
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property enabled : Bool?
 
@@ -109,7 +154,7 @@ module Cdp::Emulation
   struct SetCPUThrottlingRate
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property rate : Float64
 
     def initialize(@rate : Float64)
@@ -129,7 +174,6 @@ module Cdp::Emulation
   struct SetDefaultBackgroundColorOverride
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property color : Cdp::DOM::RGBA?
 
@@ -151,7 +195,7 @@ module Cdp::Emulation
   struct SetSafeAreaInsetsOverride
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property insets : SafeAreaInsets
 
     def initialize(@insets : SafeAreaInsets)
@@ -171,10 +215,13 @@ module Cdp::Emulation
   struct SetDeviceMetricsOverride
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property width : Int64
+    @[JSON::Field(emit_null: false)]
     property height : Int64
+    @[JSON::Field(emit_null: false)]
     property device_scale_factor : Float64
+    @[JSON::Field(emit_null: false)]
     property mobile : Bool
     @[JSON::Field(emit_null: false)]
     property scale : Float64?
@@ -192,8 +239,12 @@ module Cdp::Emulation
     property screen_orientation : ScreenOrientation?
     @[JSON::Field(emit_null: false)]
     property viewport : Cdp::Page::Viewport?
+    @[JSON::Field(emit_null: false)]
+    property display_feature : DisplayFeature?
+    @[JSON::Field(emit_null: false)]
+    property device_posture : DevicePosture?
 
-    def initialize(@width : Int64, @height : Int64, @device_scale_factor : Float64, @mobile : Bool, @scale : Float64?, @screen_width : Int64?, @screen_height : Int64?, @position_x : Int64?, @position_y : Int64?, @dont_set_visible_size : Bool?, @screen_orientation : ScreenOrientation?, @viewport : Cdp::Page::Viewport?)
+    def initialize(@width : Int64, @height : Int64, @device_scale_factor : Float64, @mobile : Bool, @scale : Float64?, @screen_width : Int64?, @screen_height : Int64?, @position_x : Int64?, @position_y : Int64?, @dont_set_visible_size : Bool?, @screen_orientation : ScreenOrientation?, @viewport : Cdp::Page::Viewport?, @display_feature : DisplayFeature?, @device_posture : DevicePosture?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -211,7 +262,7 @@ module Cdp::Emulation
   struct SetDevicePostureOverride
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property posture : DevicePosture
 
     def initialize(@posture : DevicePosture)
@@ -233,7 +284,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -251,7 +302,7 @@ module Cdp::Emulation
   struct SetDisplayFeaturesOverride
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property features : Array(DisplayFeature)
 
     def initialize(@features : Array(DisplayFeature))
@@ -273,7 +324,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -291,7 +342,7 @@ module Cdp::Emulation
   struct SetScrollbarsHidden
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property hidden : Bool
 
     def initialize(@hidden : Bool)
@@ -312,7 +363,7 @@ module Cdp::Emulation
   struct SetDocumentCookieDisabled
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property disabled : Bool
 
     def initialize(@disabled : Bool)
@@ -333,7 +384,7 @@ module Cdp::Emulation
   struct SetEmitTouchEventsForMouse
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property enabled : Bool
     @[JSON::Field(emit_null: false)]
     property configuration : SetEmitTouchEventsForMouseConfiguration?
@@ -355,7 +406,6 @@ module Cdp::Emulation
   struct SetEmulatedMedia
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property media : String?
     @[JSON::Field(emit_null: false)]
@@ -378,7 +428,7 @@ module Cdp::Emulation
   struct SetEmulatedVisionDeficiency
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property type : SetEmulatedVisionDeficiencyType
 
     def initialize(@type : SetEmulatedVisionDeficiencyType)
@@ -398,7 +448,6 @@ module Cdp::Emulation
   struct SetEmulatedOSTextScale
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property scale : Float64?
 
@@ -419,7 +468,6 @@ module Cdp::Emulation
   struct SetGeolocationOverride
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property latitude : Float64?
     @[JSON::Field(emit_null: false)]
@@ -453,7 +501,7 @@ module Cdp::Emulation
   struct GetOverriddenSensorInformation
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property type : SensorType
 
     def initialize(@type : SensorType)
@@ -473,21 +521,12 @@ module Cdp::Emulation
   end
 
   @[Experimental]
-  struct GetOverriddenSensorInformationResult
-    include JSON::Serializable
-
-    property requested_sampling_frequency : Float64
-
-    def initialize(@requested_sampling_frequency : Float64)
-    end
-  end
-
-  @[Experimental]
   struct SetSensorOverrideEnabled
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property enabled : Bool
+    @[JSON::Field(emit_null: false)]
     property type : SensorType
     @[JSON::Field(emit_null: false)]
     property metadata : SensorMetadata?
@@ -510,8 +549,9 @@ module Cdp::Emulation
   struct SetSensorOverrideReadings
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property type : SensorType
+    @[JSON::Field(emit_null: false)]
     property reading : SensorReading
 
     def initialize(@type : SensorType, @reading : SensorReading)
@@ -532,8 +572,9 @@ module Cdp::Emulation
   struct SetPressureSourceOverrideEnabled
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property enabled : Bool
+    @[JSON::Field(emit_null: false)]
     property source : PressureSource
     @[JSON::Field(emit_null: false)]
     property metadata : PressureMetadata?
@@ -556,8 +597,9 @@ module Cdp::Emulation
   struct SetPressureStateOverride
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property source : PressureSource
+    @[JSON::Field(emit_null: false)]
     property state : PressureState
 
     def initialize(@source : PressureSource, @state : PressureState)
@@ -578,8 +620,9 @@ module Cdp::Emulation
   struct SetPressureDataOverride
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property source : PressureSource
+    @[JSON::Field(emit_null: false)]
     property state : PressureState
     @[JSON::Field(emit_null: false)]
     property own_contribution_estimate : Float64?
@@ -601,8 +644,9 @@ module Cdp::Emulation
   struct SetIdleOverride
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property is_user_active : Bool
+    @[JSON::Field(emit_null: false)]
     property is_screen_unlocked : Bool
 
     def initialize(@is_user_active : Bool, @is_screen_unlocked : Bool)
@@ -623,7 +667,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -641,7 +685,7 @@ module Cdp::Emulation
   struct SetPageScaleFactor
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property page_scale_factor : Float64
 
     def initialize(@page_scale_factor : Float64)
@@ -661,7 +705,7 @@ module Cdp::Emulation
   struct SetScriptExecutionDisabled
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property value : Bool
 
     def initialize(@value : Bool)
@@ -681,7 +725,7 @@ module Cdp::Emulation
   struct SetTouchEmulationEnabled
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property enabled : Bool
     @[JSON::Field(emit_null: false)]
     property max_touch_points : Int64?
@@ -704,7 +748,7 @@ module Cdp::Emulation
   struct SetVirtualTimePolicy
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property policy : VirtualTimePolicy
     @[JSON::Field(emit_null: false)]
     property budget : Float64?
@@ -730,20 +774,9 @@ module Cdp::Emulation
   end
 
   @[Experimental]
-  struct SetVirtualTimePolicyResult
-    include JSON::Serializable
-
-    property virtual_time_ticks_base : Float64
-
-    def initialize(@virtual_time_ticks_base : Float64)
-    end
-  end
-
-  @[Experimental]
   struct SetLocaleOverride
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property locale : String?
 
@@ -764,7 +797,7 @@ module Cdp::Emulation
   struct SetTimezoneOverride
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property timezone_id : String
 
     def initialize(@timezone_id : String)
@@ -785,7 +818,7 @@ module Cdp::Emulation
   struct SetDisabledImageTypes
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property image_types : Array(DisabledImageType)
 
     def initialize(@image_types : Array(DisabledImageType))
@@ -806,7 +839,6 @@ module Cdp::Emulation
   struct SetDataSaverOverride
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property data_saver_enabled : Bool?
 
@@ -828,7 +860,7 @@ module Cdp::Emulation
   struct SetHardwareConcurrencyOverride
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property hardware_concurrency : Int64
 
     def initialize(@hardware_concurrency : Int64)
@@ -848,7 +880,7 @@ module Cdp::Emulation
   struct SetUserAgentOverride
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property user_agent : String
     @[JSON::Field(emit_null: false)]
     property accept_language : String?
@@ -875,7 +907,7 @@ module Cdp::Emulation
   struct SetAutomationOverride
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property enabled : Bool
 
     def initialize(@enabled : Bool)
@@ -896,7 +928,7 @@ module Cdp::Emulation
   struct SetSmallViewportHeightDifferenceOverride
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property difference : Int64
 
     def initialize(@difference : Int64)
@@ -918,7 +950,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -935,23 +967,16 @@ module Cdp::Emulation
   end
 
   @[Experimental]
-  struct GetScreenInfosResult
-    include JSON::Serializable
-
-    property screen_infos : Array(ScreenInfo)
-
-    def initialize(@screen_infos : Array(ScreenInfo))
-    end
-  end
-
-  @[Experimental]
   struct AddScreen
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property left : Int64
+    @[JSON::Field(emit_null: false)]
     property top : Int64
+    @[JSON::Field(emit_null: false)]
     property width : Int64
+    @[JSON::Field(emit_null: false)]
     property height : Int64
     @[JSON::Field(emit_null: false)]
     property work_area_insets : WorkAreaInsets?
@@ -983,20 +1008,10 @@ module Cdp::Emulation
   end
 
   @[Experimental]
-  struct AddScreenResult
-    include JSON::Serializable
-
-    property screen_info : ScreenInfo
-
-    def initialize(@screen_info : ScreenInfo)
-    end
-  end
-
-  @[Experimental]
   struct RemoveScreen
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property screen_id : ScreenId
 
     def initialize(@screen_id : ScreenId)
@@ -1012,4 +1027,5 @@ module Cdp::Emulation
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

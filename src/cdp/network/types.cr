@@ -1,7 +1,12 @@
-require "../network/network"
+
+require "../cdp"
 require "json"
 require "time"
+
+require "../security/security"
+require "../runtime/runtime"
 require "../io/io"
+require "../debugger/debugger"
 require "../page/page"
 
 module Cdp::Network
@@ -33,29 +38,47 @@ module Cdp::Network
 
   struct ResourceTiming
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property request_time : Float64
+    @[JSON::Field(emit_null: false)]
     property proxy_start : Float64
+    @[JSON::Field(emit_null: false)]
     property proxy_end : Float64
+    @[JSON::Field(emit_null: false)]
     property dns_start : Float64
+    @[JSON::Field(emit_null: false)]
     property dns_end : Float64
+    @[JSON::Field(emit_null: false)]
     property connect_start : Float64
+    @[JSON::Field(emit_null: false)]
     property connect_end : Float64
+    @[JSON::Field(emit_null: false)]
     property ssl_start : Float64
+    @[JSON::Field(emit_null: false)]
     property ssl_end : Float64
+    @[JSON::Field(emit_null: false)]
     property worker_start : Float64
+    @[JSON::Field(emit_null: false)]
     property worker_ready : Float64
+    @[JSON::Field(emit_null: false)]
     property worker_fetch_start : Float64
+    @[JSON::Field(emit_null: false)]
     property worker_respond_with_settled : Float64
     @[JSON::Field(emit_null: false)]
     property worker_router_evaluation_start : Float64?
     @[JSON::Field(emit_null: false)]
     property worker_cache_lookup_start : Float64?
+    @[JSON::Field(emit_null: false)]
     property send_start : Float64
+    @[JSON::Field(emit_null: false)]
     property send_end : Float64
+    @[JSON::Field(emit_null: false)]
     property push_start : Float64
+    @[JSON::Field(emit_null: false)]
     property push_end : Float64
+    @[JSON::Field(emit_null: false)]
     property receive_headers_start : Float64
+    @[JSON::Field(emit_null: false)]
     property receive_headers_end : Float64
   end
 
@@ -66,18 +89,19 @@ module Cdp::Network
 
   struct PostDataEntry
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property bytes : String?
   end
 
   struct Request
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property url : String
     @[JSON::Field(emit_null: false)]
     property url_fragment : String?
+    @[JSON::Field(emit_null: false)]
     property method : String
+    @[JSON::Field(emit_null: false)]
     property headers : Headers
     @[JSON::Field(emit_null: false)]
     property has_post_data : Bool?
@@ -85,7 +109,9 @@ module Cdp::Network
     property post_data_entries : Array(PostDataEntry)?
     @[JSON::Field(emit_null: false)]
     property mixed_content_type : Cdp::Security::MixedContentType?
+    @[JSON::Field(emit_null: false)]
     property initial_priority : ResourcePriority
+    @[JSON::Field(emit_null: false)]
     property referrer_policy : ReferrerPolicy
     @[JSON::Field(emit_null: false)]
     property is_link_preload : Bool?
@@ -99,37 +125,55 @@ module Cdp::Network
 
   struct SignedCertificateTimestamp
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property status : String
+    @[JSON::Field(emit_null: false)]
     property origin : String
+    @[JSON::Field(emit_null: false)]
     property log_description : String
+    @[JSON::Field(emit_null: false)]
     property log_id : String
+    @[JSON::Field(emit_null: false)]
     property timestamp : Float64
+    @[JSON::Field(emit_null: false)]
     property hash_algorithm : String
+    @[JSON::Field(emit_null: false)]
     property signature_algorithm : String
+    @[JSON::Field(emit_null: false)]
     property signature_data : String
   end
 
   struct SecurityDetails
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property protocol : String
+    @[JSON::Field(emit_null: false)]
     property key_exchange : String
     @[JSON::Field(emit_null: false)]
     property key_exchange_group : String?
+    @[JSON::Field(emit_null: false)]
     property cipher : String
     @[JSON::Field(emit_null: false)]
     property mac : String?
+    @[JSON::Field(emit_null: false)]
     property certificate_id : Cdp::Security::CertificateId
+    @[JSON::Field(emit_null: false)]
     property subject_name : String
+    @[JSON::Field(emit_null: false)]
     property san_list : Array(String)
+    @[JSON::Field(emit_null: false)]
     property issuer : String
+    @[JSON::Field(emit_null: false)]
     property valid_from : TimeSinceEpoch
+    @[JSON::Field(emit_null: false)]
     property valid_to : TimeSinceEpoch
+    @[JSON::Field(emit_null: false)]
     property signed_certificate_timestamp_list : Array(SignedCertificateTimestamp)
+    @[JSON::Field(emit_null: false)]
     property certificate_transparency_compliance : CertificateTransparencyCompliance
     @[JSON::Field(emit_null: false)]
     property server_signature_algorithm : Int64?
+    @[JSON::Field(emit_null: false)]
     property encrypted_client_hello : Bool
   end
 
@@ -141,8 +185,9 @@ module Cdp::Network
 
   struct CorsErrorStatus
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property cors_error : CorsError
+    @[JSON::Field(emit_null: false)]
     property failed_parameter : String
   end
 
@@ -151,8 +196,9 @@ module Cdp::Network
   @[Experimental]
   struct TrustTokenParams
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property operation : TrustTokenOperationType
+    @[JSON::Field(emit_null: false)]
     property refresh_policy : TrustTokenParamsRefreshPolicy
     @[JSON::Field(emit_null: false)]
     property issuers : Array(String)?
@@ -169,7 +215,6 @@ module Cdp::Network
   @[Experimental]
   struct ServiceWorkerRouterInfo
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property rule_id_matched : Int64?
     @[JSON::Field(emit_null: false)]
@@ -180,16 +225,23 @@ module Cdp::Network
 
   struct Response
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property url : String
+    @[JSON::Field(emit_null: false)]
     property status : Int64
+    @[JSON::Field(emit_null: false)]
     property status_text : String
+    @[JSON::Field(emit_null: false)]
     property headers : Headers
+    @[JSON::Field(emit_null: false)]
     property mime_type : String
+    @[JSON::Field(emit_null: false)]
     property charset : String
     @[JSON::Field(emit_null: false)]
     property request_headers : Headers?
+    @[JSON::Field(emit_null: false)]
     property connection_reused : Bool
+    @[JSON::Field(emit_null: false)]
     property connection_id : Float64
     @[JSON::Field(emit_null: false)]
     property remote_ip_address : String?
@@ -205,6 +257,7 @@ module Cdp::Network
     property from_early_hints : Bool?
     @[JSON::Field(emit_null: false)]
     property service_worker_router_info : ServiceWorkerRouterInfo?
+    @[JSON::Field(emit_null: false)]
     property encoded_data_length : Float64
     @[JSON::Field(emit_null: false)]
     property timing : ResourceTiming?
@@ -218,6 +271,7 @@ module Cdp::Network
     property protocol : String?
     @[JSON::Field(emit_null: false)]
     property alternate_protocol_usage : AlternateProtocolUsage?
+    @[JSON::Field(emit_null: false)]
     property security_state : Cdp::Security::SecurityState
     @[JSON::Field(emit_null: false)]
     property security_details : SecurityDetails?
@@ -225,15 +279,17 @@ module Cdp::Network
 
   struct WebSocketRequest
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property headers : Headers
   end
 
   struct WebSocketResponse
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property status : Int64
+    @[JSON::Field(emit_null: false)]
     property status_text : String
+    @[JSON::Field(emit_null: false)]
     property headers : Headers
     @[JSON::Field(emit_null: false)]
     property headers_text : String?
@@ -245,25 +301,29 @@ module Cdp::Network
 
   struct WebSocketFrame
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property opcode : Float64
+    @[JSON::Field(emit_null: false)]
     property mask : Bool
+    @[JSON::Field(emit_null: false)]
     property payload_data : String
   end
 
   struct CachedResource
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property url : String
+    @[JSON::Field(emit_null: false)]
     property type : ResourceType
     @[JSON::Field(emit_null: false)]
     property response : Response?
+    @[JSON::Field(emit_null: false)]
     property body_size : Float64
   end
 
   struct Initiator
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property type : InitiatorType
     @[JSON::Field(emit_null: false)]
     property stack : Cdp::Runtime::StackTrace?
@@ -280,27 +340,39 @@ module Cdp::Network
   @[Experimental]
   struct CookiePartitionKey
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property top_level_site : String
+    @[JSON::Field(emit_null: false)]
     property has_cross_site_ancestor : Bool
   end
 
   struct Cookie
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property name : String
+    @[JSON::Field(emit_null: false)]
     property value : String
+    @[JSON::Field(emit_null: false)]
     property domain : String
+    @[JSON::Field(emit_null: false)]
     property path : String
+    @[JSON::Field(emit_null: false)]
     property expires : Float64
+    @[JSON::Field(emit_null: false)]
     property size : Int64
+    @[JSON::Field(emit_null: false)]
     property http_only : Bool
+    @[JSON::Field(emit_null: false)]
     property secure : Bool
+    @[JSON::Field(emit_null: false)]
     property session : Bool
     @[JSON::Field(emit_null: false)]
     property same_site : CookieSameSite?
+    @[JSON::Field(emit_null: false)]
     property priority : CookiePriority
+    @[JSON::Field(emit_null: false)]
     property source_scheme : CookieSourceScheme
+    @[JSON::Field(emit_null: false)]
     property source_port : Int64
     @[JSON::Field(emit_null: false)]
     property partition_key : CookiePartitionKey?
@@ -320,8 +392,9 @@ module Cdp::Network
   @[Experimental]
   struct BlockedSetCookieWithReason
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property blocked_reasons : Array(SetCookieBlockedReason)
+    @[JSON::Field(emit_null: false)]
     property cookie_line : String
     @[JSON::Field(emit_null: false)]
     property cookie : Cookie?
@@ -330,17 +403,20 @@ module Cdp::Network
   @[Experimental]
   struct ExemptedSetCookieWithReason
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property exemption_reason : CookieExemptionReason
+    @[JSON::Field(emit_null: false)]
     property cookie_line : String
+    @[JSON::Field(emit_null: false)]
     property cookie : Cookie
   end
 
   @[Experimental]
   struct AssociatedCookie
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property cookie : Cookie
+    @[JSON::Field(emit_null: false)]
     property blocked_reasons : Array(CookieBlockedReason)
     @[JSON::Field(emit_null: false)]
     property exemption_reason : CookieExemptionReason?
@@ -348,8 +424,9 @@ module Cdp::Network
 
   struct CookieParam
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property name : String
+    @[JSON::Field(emit_null: false)]
     property value : String
     @[JSON::Field(emit_null: false)]
     property url : String?
@@ -378,18 +455,20 @@ module Cdp::Network
   @[Experimental]
   struct AuthChallenge
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property source : AuthChallengeSource?
+    @[JSON::Field(emit_null: false)]
     property origin : String
+    @[JSON::Field(emit_null: false)]
     property scheme : String
+    @[JSON::Field(emit_null: false)]
     property realm : String
   end
 
   @[Experimental]
   struct AuthChallengeResponse
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property response : AuthChallengeResponseResponse
     @[JSON::Field(emit_null: false)]
     property username : String?
@@ -403,7 +482,6 @@ module Cdp::Network
   @[Experimental]
   struct RequestPattern
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property url_pattern : String?
     @[JSON::Field(emit_null: false)]
@@ -415,16 +493,21 @@ module Cdp::Network
   @[Experimental]
   struct SignedExchangeSignature
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property label : String
+    @[JSON::Field(emit_null: false)]
     property signature : String
+    @[JSON::Field(emit_null: false)]
     property integrity : String
     @[JSON::Field(emit_null: false)]
     property cert_url : String?
     @[JSON::Field(emit_null: false)]
     property cert_sha256 : String?
+    @[JSON::Field(emit_null: false)]
     property validity_url : String
+    @[JSON::Field(emit_null: false)]
     property date : Int64
+    @[JSON::Field(emit_null: false)]
     property expires : Int64
     @[JSON::Field(emit_null: false)]
     property certificates : Array(String)?
@@ -433,11 +516,15 @@ module Cdp::Network
   @[Experimental]
   struct SignedExchangeHeader
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property request_url : String
+    @[JSON::Field(emit_null: false)]
     property response_code : Int64
+    @[JSON::Field(emit_null: false)]
     property response_headers : Headers
+    @[JSON::Field(emit_null: false)]
     property signatures : Array(SignedExchangeSignature)
+    @[JSON::Field(emit_null: false)]
     property header_integrity : String
   end
 
@@ -447,7 +534,7 @@ module Cdp::Network
   @[Experimental]
   struct SignedExchangeError
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property message : String
     @[JSON::Field(emit_null: false)]
     property signature_index : Int64?
@@ -458,8 +545,9 @@ module Cdp::Network
   @[Experimental]
   struct SignedExchangeInfo
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property outer_response : Response
+    @[JSON::Field(emit_null: false)]
     property has_extra_info : Bool
     @[JSON::Field(emit_null: false)]
     property header : SignedExchangeHeader?
@@ -475,10 +563,13 @@ module Cdp::Network
   @[Experimental]
   struct NetworkConditions
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property url_pattern : String
+    @[JSON::Field(emit_null: false)]
     property latency : Float64
+    @[JSON::Field(emit_null: false)]
     property download_throughput : Float64
+    @[JSON::Field(emit_null: false)]
     property upload_throughput : Float64
     @[JSON::Field(emit_null: false)]
     property connection_type : ConnectionType?
@@ -493,8 +584,9 @@ module Cdp::Network
   @[Experimental]
   struct BlockPattern
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property url_pattern : String
+    @[JSON::Field(emit_null: false)]
     property block : Bool
   end
 
@@ -504,7 +596,7 @@ module Cdp::Network
   @[Experimental]
   struct DirectTCPSocketOptions
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property no_delay : Bool
     @[JSON::Field(emit_null: false)]
     property keep_alive_delay : Float64?
@@ -519,7 +611,6 @@ module Cdp::Network
   @[Experimental]
   struct DirectUDPSocketOptions
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property remote_addr : String?
     @[JSON::Field(emit_null: false)]
@@ -545,7 +636,7 @@ module Cdp::Network
   @[Experimental]
   struct DirectUDPMessage
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property data : String
     @[JSON::Field(emit_null: false)]
     property remote_addr : String?
@@ -562,16 +653,18 @@ module Cdp::Network
   @[Experimental]
   struct ConnectTiming
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property request_time : Float64
   end
 
   @[Experimental]
   struct ClientSecurityState
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property initiator_is_secure_context : Bool
+    @[JSON::Field(emit_null: false)]
     property initiator_ip_address_space : IPAddressSpace
+    @[JSON::Field(emit_null: false)]
     property local_network_access_request_policy : LocalNetworkAccessRequestPolicy
   end
 
@@ -581,8 +674,9 @@ module Cdp::Network
   @[Experimental]
   struct CrossOriginOpenerPolicyStatus
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property value : CrossOriginOpenerPolicyValue
+    @[JSON::Field(emit_null: false)]
     property report_only_value : CrossOriginOpenerPolicyValue
     @[JSON::Field(emit_null: false)]
     property reporting_endpoint : String?
@@ -596,8 +690,9 @@ module Cdp::Network
   @[Experimental]
   struct CrossOriginEmbedderPolicyStatus
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property value : CrossOriginEmbedderPolicyValue
+    @[JSON::Field(emit_null: false)]
     property report_only_value : CrossOriginEmbedderPolicyValue
     @[JSON::Field(emit_null: false)]
     property reporting_endpoint : String?
@@ -611,16 +706,17 @@ module Cdp::Network
   @[Experimental]
   struct ContentSecurityPolicyStatus
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property effective_directives : String
+    @[JSON::Field(emit_null: false)]
     property is_enforced : Bool
+    @[JSON::Field(emit_null: false)]
     property source : ContentSecurityPolicySource
   end
 
   @[Experimental]
   struct SecurityIsolationStatus
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property coop : CrossOriginOpenerPolicyStatus?
     @[JSON::Field(emit_null: false)]
@@ -638,50 +734,65 @@ module Cdp::Network
   @[Experimental]
   struct ReportingApiReport
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property id : ReportId
+    @[JSON::Field(emit_null: false)]
     property initiator_url : String
+    @[JSON::Field(emit_null: false)]
     property destination : String
+    @[JSON::Field(emit_null: false)]
     property type : String
+    @[JSON::Field(emit_null: false)]
     property timestamp : TimeSinceEpoch
+    @[JSON::Field(emit_null: false)]
     property depth : Int64
+    @[JSON::Field(emit_null: false)]
     property completed_attempts : Int64
+    @[JSON::Field(emit_null: false)]
     property body : JSON::Any
+    @[JSON::Field(emit_null: false)]
     property status : ReportStatus
   end
 
   @[Experimental]
   struct ReportingApiEndpoint
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property url : String
+    @[JSON::Field(emit_null: false)]
     property group_name : String
   end
 
   @[Experimental]
   struct DeviceBoundSessionKey
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property site : String
+    @[JSON::Field(emit_null: false)]
     property id : String
   end
 
   @[Experimental]
   struct DeviceBoundSessionWithUsage
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property session_key : DeviceBoundSessionKey
+    @[JSON::Field(emit_null: false)]
     property usage : DeviceBoundSessionWithUsageUsage
   end
 
   @[Experimental]
   struct DeviceBoundSessionCookieCraving
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property name : String
+    @[JSON::Field(emit_null: false)]
     property domain : String
+    @[JSON::Field(emit_null: false)]
     property path : String
+    @[JSON::Field(emit_null: false)]
     property secure : Bool
+    @[JSON::Field(emit_null: false)]
     property http_only : Bool
     @[JSON::Field(emit_null: false)]
     property same_site : CookieSameSite?
@@ -690,32 +801,41 @@ module Cdp::Network
   @[Experimental]
   struct DeviceBoundSessionUrlRule
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property rule_type : DeviceBoundSessionUrlRuleRuleType
+    @[JSON::Field(emit_null: false)]
     property host_pattern : String
+    @[JSON::Field(emit_null: false)]
     property path_prefix : String
   end
 
   @[Experimental]
   struct DeviceBoundSessionInclusionRules
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property origin : String
+    @[JSON::Field(emit_null: false)]
     property include_site : Bool
+    @[JSON::Field(emit_null: false)]
     property url_rules : Array(DeviceBoundSessionUrlRule)
   end
 
   @[Experimental]
   struct DeviceBoundSession
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property key : DeviceBoundSessionKey
+    @[JSON::Field(emit_null: false)]
     property refresh_url : String
+    @[JSON::Field(emit_null: false)]
     property inclusion_rules : DeviceBoundSessionInclusionRules
+    @[JSON::Field(emit_null: false)]
     property cookie_cravings : Array(DeviceBoundSessionCookieCraving)
+    @[JSON::Field(emit_null: false)]
     property expiry_date : TimeSinceEpoch
     @[JSON::Field(emit_null: false)]
     property cached_challenge : String?
+    @[JSON::Field(emit_null: false)]
     property allowed_refresh_initiators : Array(String)
   end
 
@@ -728,7 +848,7 @@ module Cdp::Network
   @[Experimental]
   struct CreationEventDetails
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property fetch_result : DeviceBoundSessionFetchResult
     @[JSON::Field(emit_null: false)]
     property new_session : DeviceBoundSession?
@@ -737,34 +857,36 @@ module Cdp::Network
   @[Experimental]
   struct RefreshEventDetails
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property refresh_result : RefreshEventDetailsRefreshResult
     @[JSON::Field(emit_null: false)]
     property fetch_result : DeviceBoundSessionFetchResult?
     @[JSON::Field(emit_null: false)]
     property new_session : DeviceBoundSession?
+    @[JSON::Field(emit_null: false)]
     property was_fully_proactive_refresh : Bool
   end
 
   @[Experimental]
   struct TerminationEventDetails
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property deletion_reason : TerminationEventDetailsDeletionReason
   end
 
   @[Experimental]
   struct ChallengeEventDetails
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property challenge_result : ChallengeEventDetailsChallengeResult
+    @[JSON::Field(emit_null: false)]
     property challenge : String
   end
 
   @[Experimental]
   struct LoadNetworkResourcePageResult
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property success : Bool
     @[JSON::Field(emit_null: false)]
     property net_error : Float64?
@@ -781,8 +903,9 @@ module Cdp::Network
   @[Experimental]
   struct LoadNetworkResourceOptions
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property disable_cache : Bool
+    @[JSON::Field(emit_null: false)]
     property include_credentials : Bool
   end
 
@@ -807,4 +930,5 @@ module Cdp::Network
   alias ChallengeEventDetailsChallengeResult = String
 
   alias TrustTokenOperationDoneStatus = String
-end
+
+   end

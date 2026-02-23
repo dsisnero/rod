@@ -1,14 +1,17 @@
-require "../preload/preload"
+
+require "../cdp"
 require "json"
 require "time"
-require "../page/page"
+
 require "../network/network"
+require "../dom/dom"
+require "../page/page"
 
 module Cdp::Preload
   struct RuleSetUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property rule_set : RuleSet
 
     def initialize(@rule_set : RuleSet)
@@ -23,7 +26,7 @@ module Cdp::Preload
   struct RuleSetRemovedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property id : RuleSetId
 
     def initialize(@id : RuleSetId)
@@ -38,11 +41,15 @@ module Cdp::Preload
   struct PreloadEnabledStateUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property disabled_by_preference : Bool
+    @[JSON::Field(emit_null: false)]
     property disabled_by_data_saver : Bool
+    @[JSON::Field(emit_null: false)]
     property disabled_by_battery_saver : Bool
+    @[JSON::Field(emit_null: false)]
     property disabled_by_holdback_prefetch_speculation_rules : Bool
+    @[JSON::Field(emit_null: false)]
     property disabled_by_holdback_prerender_speculation_rules : Bool
 
     def initialize(@disabled_by_preference : Bool, @disabled_by_data_saver : Bool, @disabled_by_battery_saver : Bool, @disabled_by_holdback_prefetch_speculation_rules : Bool, @disabled_by_holdback_prerender_speculation_rules : Bool)
@@ -57,13 +64,19 @@ module Cdp::Preload
   struct PrefetchStatusUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property key : PreloadingAttemptKey
+    @[JSON::Field(emit_null: false)]
     property pipeline_id : PreloadPipelineId
+    @[JSON::Field(emit_null: false)]
     property initiating_frame_id : Cdp::Page::FrameId
+    @[JSON::Field(emit_null: false)]
     property prefetch_url : String
+    @[JSON::Field(emit_null: false)]
     property status : PreloadingStatus
+    @[JSON::Field(emit_null: false)]
     property prefetch_status : PrefetchStatus
+    @[JSON::Field(emit_null: false)]
     property request_id : Cdp::Network::RequestId
 
     def initialize(@key : PreloadingAttemptKey, @pipeline_id : PreloadPipelineId, @initiating_frame_id : Cdp::Page::FrameId, @prefetch_url : String, @status : PreloadingStatus, @prefetch_status : PrefetchStatus, @request_id : Cdp::Network::RequestId)
@@ -78,9 +91,11 @@ module Cdp::Preload
   struct PrerenderStatusUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property key : PreloadingAttemptKey
+    @[JSON::Field(emit_null: false)]
     property pipeline_id : PreloadPipelineId
+    @[JSON::Field(emit_null: false)]
     property status : PreloadingStatus
     @[JSON::Field(emit_null: false)]
     property prerender_status : PrerenderFinalStatus?
@@ -101,8 +116,9 @@ module Cdp::Preload
   struct PreloadingAttemptSourcesUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property loader_id : Cdp::Network::LoaderId
+    @[JSON::Field(emit_null: false)]
     property preloading_attempt_sources : Array(PreloadingAttemptSource)
 
     def initialize(@loader_id : Cdp::Network::LoaderId, @preloading_attempt_sources : Array(PreloadingAttemptSource))
@@ -113,4 +129,5 @@ module Cdp::Preload
       "Preload.preloadingAttemptSourcesUpdated"
     end
   end
+
 end

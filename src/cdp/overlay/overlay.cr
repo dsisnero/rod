@@ -1,19 +1,52 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
 require "../dom/dom"
-require "../runtime/runtime"
 require "../page/page"
+require "../runtime/runtime"
+
 require "./types"
+require "./events"
 
 # This domain provides various functionality related to drawing atop the inspected page.
 @[Experimental]
 module Cdp::Overlay
+  struct GetHighlightObjectForTestResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property highlight : JSON::Any
+
+    def initialize(@highlight : JSON::Any)
+    end
+  end
+
+  struct GetGridHighlightObjectsForTestResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property highlights : JSON::Any
+
+    def initialize(@highlights : JSON::Any)
+    end
+  end
+
+  struct GetSourceOrderHighlightObjectForTestResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property highlight : JSON::Any
+
+    def initialize(@highlight : JSON::Any)
+    end
+  end
+
+
   # Commands
   struct Disable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -31,7 +64,7 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -48,7 +81,7 @@ module Cdp::Overlay
   struct GetHighlightObjectForTest
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : Cdp::DOM::NodeId
     @[JSON::Field(emit_null: false)]
     property include_distance : Bool?
@@ -75,19 +108,10 @@ module Cdp::Overlay
     end
   end
 
-  struct GetHighlightObjectForTestResult
-    include JSON::Serializable
-
-    property highlight : JSON::Any
-
-    def initialize(@highlight : JSON::Any)
-    end
-  end
-
   struct GetGridHighlightObjectsForTest
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_ids : Array(Cdp::DOM::NodeId)
 
     def initialize(@node_ids : Array(Cdp::DOM::NodeId))
@@ -106,19 +130,10 @@ module Cdp::Overlay
     end
   end
 
-  struct GetGridHighlightObjectsForTestResult
-    include JSON::Serializable
-
-    property highlights : JSON::Any
-
-    def initialize(@highlights : JSON::Any)
-    end
-  end
-
   struct GetSourceOrderHighlightObjectForTest
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property node_id : Cdp::DOM::NodeId
 
     def initialize(@node_id : Cdp::DOM::NodeId)
@@ -137,20 +152,11 @@ module Cdp::Overlay
     end
   end
 
-  struct GetSourceOrderHighlightObjectForTestResult
-    include JSON::Serializable
-
-    property highlight : JSON::Any
-
-    def initialize(@highlight : JSON::Any)
-    end
-  end
-
   struct HideHighlight
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -167,7 +173,7 @@ module Cdp::Overlay
   struct HighlightNode
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property highlight_config : HighlightConfig
     @[JSON::Field(emit_null: false)]
     property node_id : Cdp::DOM::NodeId?
@@ -195,7 +201,7 @@ module Cdp::Overlay
   struct HighlightQuad
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property quad : Cdp::DOM::Quad
     @[JSON::Field(emit_null: false)]
     property color : Cdp::DOM::RGBA?
@@ -219,10 +225,13 @@ module Cdp::Overlay
   struct HighlightRect
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property x : Int64
+    @[JSON::Field(emit_null: false)]
     property y : Int64
+    @[JSON::Field(emit_null: false)]
     property width : Int64
+    @[JSON::Field(emit_null: false)]
     property height : Int64
     @[JSON::Field(emit_null: false)]
     property color : Cdp::DOM::RGBA?
@@ -246,7 +255,7 @@ module Cdp::Overlay
   struct HighlightSourceOrder
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property source_order_config : SourceOrderConfig
     @[JSON::Field(emit_null: false)]
     property node_id : Cdp::DOM::NodeId?
@@ -272,7 +281,7 @@ module Cdp::Overlay
   struct SetInspectMode
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property mode : InspectMode
     @[JSON::Field(emit_null: false)]
     property highlight_config : HighlightConfig?
@@ -294,7 +303,7 @@ module Cdp::Overlay
   struct SetShowAdHighlights
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property show : Bool
 
     def initialize(@show : Bool)
@@ -314,7 +323,6 @@ module Cdp::Overlay
   struct SetPausedInDebuggerMessage
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property message : String?
 
@@ -335,7 +343,7 @@ module Cdp::Overlay
   struct SetShowDebugBorders
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property show : Bool
 
     def initialize(@show : Bool)
@@ -355,7 +363,7 @@ module Cdp::Overlay
   struct SetShowFPSCounter
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property show : Bool
 
     def initialize(@show : Bool)
@@ -375,7 +383,7 @@ module Cdp::Overlay
   struct SetShowGridOverlays
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property grid_node_highlight_configs : Array(GridNodeHighlightConfig)
 
     def initialize(@grid_node_highlight_configs : Array(GridNodeHighlightConfig))
@@ -395,7 +403,7 @@ module Cdp::Overlay
   struct SetShowFlexOverlays
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property flex_node_highlight_configs : Array(FlexNodeHighlightConfig)
 
     def initialize(@flex_node_highlight_configs : Array(FlexNodeHighlightConfig))
@@ -415,7 +423,7 @@ module Cdp::Overlay
   struct SetShowScrollSnapOverlays
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property scroll_snap_highlight_configs : Array(ScrollSnapHighlightConfig)
 
     def initialize(@scroll_snap_highlight_configs : Array(ScrollSnapHighlightConfig))
@@ -435,7 +443,7 @@ module Cdp::Overlay
   struct SetShowContainerQueryOverlays
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property container_query_highlight_configs : Array(ContainerQueryHighlightConfig)
 
     def initialize(@container_query_highlight_configs : Array(ContainerQueryHighlightConfig))
@@ -455,7 +463,7 @@ module Cdp::Overlay
   struct SetShowInspectedElementAnchor
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property inspected_element_anchor_config : InspectedElementAnchorConfig
 
     def initialize(@inspected_element_anchor_config : InspectedElementAnchorConfig)
@@ -475,7 +483,7 @@ module Cdp::Overlay
   struct SetShowPaintRects
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property result : Bool
 
     def initialize(@result : Bool)
@@ -495,7 +503,7 @@ module Cdp::Overlay
   struct SetShowLayoutShiftRegions
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property result : Bool
 
     def initialize(@result : Bool)
@@ -515,7 +523,7 @@ module Cdp::Overlay
   struct SetShowScrollBottleneckRects
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property show : Bool
 
     def initialize(@show : Bool)
@@ -535,7 +543,7 @@ module Cdp::Overlay
   struct SetShowViewportSizeOnResize
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property show : Bool
 
     def initialize(@show : Bool)
@@ -555,7 +563,6 @@ module Cdp::Overlay
   struct SetShowHinge
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property hinge_config : HingeConfig?
 
@@ -576,7 +583,7 @@ module Cdp::Overlay
   struct SetShowIsolatedElements
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property isolated_element_highlight_configs : Array(IsolatedElementHighlightConfig)
 
     def initialize(@isolated_element_highlight_configs : Array(IsolatedElementHighlightConfig))
@@ -596,7 +603,6 @@ module Cdp::Overlay
   struct SetShowWindowControlsOverlay
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property window_controls_overlay_config : WindowControlsOverlayConfig?
 
@@ -613,4 +619,5 @@ module Cdp::Overlay
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

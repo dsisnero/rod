@@ -1,15 +1,23 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
+require "../network/network"
+require "../serviceworker/serviceworker"
+
 require "./types"
+require "./events"
 
 # Defines events for background web platform features.
 @[Experimental]
 module Cdp::BackgroundService
+
   # Commands
   struct StartObserving
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property service : ServiceName
 
     def initialize(@service : ServiceName)
@@ -29,7 +37,7 @@ module Cdp::BackgroundService
   struct StopObserving
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property service : ServiceName
 
     def initialize(@service : ServiceName)
@@ -49,8 +57,9 @@ module Cdp::BackgroundService
   struct SetRecording
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property should_record : Bool
+    @[JSON::Field(emit_null: false)]
     property service : ServiceName
 
     def initialize(@should_record : Bool, @service : ServiceName)
@@ -70,7 +79,7 @@ module Cdp::BackgroundService
   struct ClearEvents
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property service : ServiceName
 
     def initialize(@service : ServiceName)
@@ -86,4 +95,5 @@ module Cdp::BackgroundService
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

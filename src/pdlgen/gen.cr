@@ -1,5 +1,5 @@
 require "./gen/emitter"
-require "./gen/crystal"
+require "./gen/crystal_template_generator"
 
 module Pdlgen
   module Gen
@@ -9,7 +9,7 @@ module Pdlgen
     # Generators returns all the various Chrome DevTools Protocol generators.
     def self.generators : Hash(String, Generator)
       {
-        "crystal" => ->(domains : Array(Pdl::Domain), base_pkg : String) { CrystalGenerator.create(domains, base_pkg).as(Pdlgen::Gen::Emitter) },
+        "crystal" => ->(domains : Array(Pdl::Domain), base_pkg : String) { CrystalTemplateGenerator.create(domains, base_pkg).as(Pdlgen::Gen::Emitter) },
       }
     end
   end

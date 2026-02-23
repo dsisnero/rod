@@ -1,6 +1,7 @@
-require "../tracing/tracing"
+require "../cdp"
 require "json"
 require "time"
+
 require "../io/io"
 
 module Cdp::Tracing
@@ -8,7 +9,6 @@ module Cdp::Tracing
   struct BufferUsageEvent
     include JSON::Serializable
     include Cdp::Event
-
     @[JSON::Field(emit_null: false)]
     property percent_full : Float64?
     @[JSON::Field(emit_null: false)]
@@ -29,7 +29,7 @@ module Cdp::Tracing
   struct DataCollectedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property value : Array(JSON::Any)
 
     def initialize(@value : Array(JSON::Any))
@@ -44,7 +44,7 @@ module Cdp::Tracing
   struct TracingCompleteEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property data_loss_occurred : Bool
     @[JSON::Field(emit_null: false)]
     property stream : Cdp::IO::StreamHandle?

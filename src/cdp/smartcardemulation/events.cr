@@ -1,12 +1,14 @@
-require "../smartcardemulation/smartcardemulation"
+
+require "../cdp"
 require "json"
 require "time"
+
 
 module Cdp::SmartCardEmulation
   struct EstablishContextRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property request_id : String
 
     def initialize(@request_id : String)
@@ -21,8 +23,9 @@ module Cdp::SmartCardEmulation
   struct ReleaseContextRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property request_id : String
+    @[JSON::Field(emit_null: false)]
     property context_id : Int64
 
     def initialize(@request_id : String, @context_id : Int64)
@@ -37,8 +40,9 @@ module Cdp::SmartCardEmulation
   struct ListReadersRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property request_id : String
+    @[JSON::Field(emit_null: false)]
     property context_id : Int64
 
     def initialize(@request_id : String, @context_id : Int64)
@@ -53,9 +57,11 @@ module Cdp::SmartCardEmulation
   struct GetStatusChangeRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property request_id : String
+    @[JSON::Field(emit_null: false)]
     property context_id : Int64
+    @[JSON::Field(emit_null: false)]
     property reader_states : Array(ReaderStateIn)
     @[JSON::Field(emit_null: false)]
     property timeout : Int64?
@@ -72,8 +78,9 @@ module Cdp::SmartCardEmulation
   struct CancelRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property request_id : String
+    @[JSON::Field(emit_null: false)]
     property context_id : Int64
 
     def initialize(@request_id : String, @context_id : Int64)
@@ -88,11 +95,15 @@ module Cdp::SmartCardEmulation
   struct ConnectRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property request_id : String
+    @[JSON::Field(emit_null: false)]
     property context_id : Int64
+    @[JSON::Field(emit_null: false)]
     property reader : String
+    @[JSON::Field(emit_null: false)]
     property share_mode : ShareMode
+    @[JSON::Field(emit_null: false)]
     property preferred_protocols : ProtocolSet
 
     def initialize(@request_id : String, @context_id : Int64, @reader : String, @share_mode : ShareMode, @preferred_protocols : ProtocolSet)
@@ -107,9 +118,11 @@ module Cdp::SmartCardEmulation
   struct DisconnectRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property request_id : String
+    @[JSON::Field(emit_null: false)]
     property handle : Int64
+    @[JSON::Field(emit_null: false)]
     property disposition : Disposition
 
     def initialize(@request_id : String, @handle : Int64, @disposition : Disposition)
@@ -124,9 +137,11 @@ module Cdp::SmartCardEmulation
   struct TransmitRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property request_id : String
+    @[JSON::Field(emit_null: false)]
     property handle : Int64
+    @[JSON::Field(emit_null: false)]
     property data : String
     @[JSON::Field(emit_null: false)]
     property protocol : Protocol?
@@ -143,10 +158,13 @@ module Cdp::SmartCardEmulation
   struct ControlRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property request_id : String
+    @[JSON::Field(emit_null: false)]
     property handle : Int64
+    @[JSON::Field(emit_null: false)]
     property control_code : Int64
+    @[JSON::Field(emit_null: false)]
     property data : String
 
     def initialize(@request_id : String, @handle : Int64, @control_code : Int64, @data : String)
@@ -161,9 +179,11 @@ module Cdp::SmartCardEmulation
   struct GetAttribRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property request_id : String
+    @[JSON::Field(emit_null: false)]
     property handle : Int64
+    @[JSON::Field(emit_null: false)]
     property attrib_id : Int64
 
     def initialize(@request_id : String, @handle : Int64, @attrib_id : Int64)
@@ -178,10 +198,13 @@ module Cdp::SmartCardEmulation
   struct SetAttribRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property request_id : String
+    @[JSON::Field(emit_null: false)]
     property handle : Int64
+    @[JSON::Field(emit_null: false)]
     property attrib_id : Int64
+    @[JSON::Field(emit_null: false)]
     property data : String
 
     def initialize(@request_id : String, @handle : Int64, @attrib_id : Int64, @data : String)
@@ -196,8 +219,9 @@ module Cdp::SmartCardEmulation
   struct StatusRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property request_id : String
+    @[JSON::Field(emit_null: false)]
     property handle : Int64
 
     def initialize(@request_id : String, @handle : Int64)
@@ -212,8 +236,9 @@ module Cdp::SmartCardEmulation
   struct BeginTransactionRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property request_id : String
+    @[JSON::Field(emit_null: false)]
     property handle : Int64
 
     def initialize(@request_id : String, @handle : Int64)
@@ -228,9 +253,11 @@ module Cdp::SmartCardEmulation
   struct EndTransactionRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property request_id : String
+    @[JSON::Field(emit_null: false)]
     property handle : Int64
+    @[JSON::Field(emit_null: false)]
     property disposition : Disposition
 
     def initialize(@request_id : String, @handle : Int64, @disposition : Disposition)
@@ -241,4 +268,5 @@ module Cdp::SmartCardEmulation
       "SmartCardEmulation.endTransactionRequested"
     end
   end
+
 end

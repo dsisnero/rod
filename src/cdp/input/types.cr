@@ -1,12 +1,15 @@
-require "../input/input"
+
+require "../cdp"
 require "json"
 require "time"
+
 
 module Cdp::Input
   struct TouchPoint
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property x : Float64
+    @[JSON::Field(emit_null: false)]
     property y : Float64
     @[JSON::Field(emit_null: false)]
     property radius_x : Float64?
@@ -38,8 +41,9 @@ module Cdp::Input
   @[Experimental]
   struct DragDataItem
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property mime_type : String
+    @[JSON::Field(emit_null: false)]
     property data : String
     @[JSON::Field(emit_null: false)]
     property title : String?
@@ -50,14 +54,18 @@ module Cdp::Input
   @[Experimental]
   struct DragData
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property items : Array(DragDataItem)
     @[JSON::Field(emit_null: false)]
     property files : Array(String)?
+    @[JSON::Field(emit_null: false)]
     property drag_operations_mask : Int64
   end
 
   alias Modifier = Int64
+  # ModifierCommand is an alias for ModifierMeta.
+const ModifierCommand Modifier = ModifierMeta
+
 
   alias DispatchDragEventType = String
 
@@ -70,4 +78,8 @@ module Cdp::Input
   alias TouchType = String
 
   alias Modifier = Int64
-end
+  # ModifierCommand is an alias for ModifierMeta.
+const ModifierCommand Modifier = ModifierMeta
+
+
+   end

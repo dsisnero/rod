@@ -1,16 +1,21 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
+
 
 # EventBreakpoints permits setting JavaScript breakpoints on operations and events
 # occurring in native code invoked from JavaScript. Once breakpoint is hit, it is
 # reported through Debugger domain, similarly to regular breakpoints being hit.
 @[Experimental]
 module Cdp::EventBreakpoints
+
   # Commands
   struct SetInstrumentationBreakpoint
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property event_name : String
 
     def initialize(@event_name : String)
@@ -30,7 +35,7 @@ module Cdp::EventBreakpoints
   struct RemoveInstrumentationBreakpoint
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property event_name : String
 
     def initialize(@event_name : String)
@@ -51,7 +56,7 @@ module Cdp::EventBreakpoints
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -64,4 +69,5 @@ module Cdp::EventBreakpoints
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

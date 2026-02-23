@@ -1,6 +1,8 @@
-require "../emulation/emulation"
+
+require "../cdp"
 require "json"
 require "time"
+
 require "../dom/dom"
 require "../page/page"
 require "../network/network"
@@ -9,7 +11,6 @@ module Cdp::Emulation
   @[Experimental]
   struct SafeAreaInsets
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property top : Int64?
     @[JSON::Field(emit_null: false)]
@@ -30,29 +31,33 @@ module Cdp::Emulation
 
   struct ScreenOrientation
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property type : OrientationType
+    @[JSON::Field(emit_null: false)]
     property angle : Int64
   end
 
   struct DisplayFeature
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property orientation : DisplayFeatureOrientation
+    @[JSON::Field(emit_null: false)]
     property offset : Int64
+    @[JSON::Field(emit_null: false)]
     property mask_length : Int64
   end
 
   struct DevicePosture
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property type : DevicePostureType
   end
 
   struct MediaFeature
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property name : String
+    @[JSON::Field(emit_null: false)]
     property value : String
   end
 
@@ -62,23 +67,28 @@ module Cdp::Emulation
   @[Experimental]
   struct UserAgentBrandVersion
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property brand : String
+    @[JSON::Field(emit_null: false)]
     property version : String
   end
 
   @[Experimental]
   struct UserAgentMetadata
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property brands : Array(UserAgentBrandVersion)?
     @[JSON::Field(emit_null: false)]
     property full_version_list : Array(UserAgentBrandVersion)?
+    @[JSON::Field(emit_null: false)]
     property platform : String
+    @[JSON::Field(emit_null: false)]
     property platform_version : String
+    @[JSON::Field(emit_null: false)]
     property architecture : String
+    @[JSON::Field(emit_null: false)]
     property model : String
+    @[JSON::Field(emit_null: false)]
     property mobile : Bool
     @[JSON::Field(emit_null: false)]
     property bitness : String?
@@ -94,7 +104,6 @@ module Cdp::Emulation
   @[Experimental]
   struct SensorMetadata
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property available : Bool?
     @[JSON::Field(emit_null: false)]
@@ -106,33 +115,37 @@ module Cdp::Emulation
   @[Experimental]
   struct SensorReadingSingle
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property value : Float64
   end
 
   @[Experimental]
   struct SensorReadingXYZ
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property x : Float64
+    @[JSON::Field(emit_null: false)]
     property y : Float64
+    @[JSON::Field(emit_null: false)]
     property z : Float64
   end
 
   @[Experimental]
   struct SensorReadingQuaternion
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property x : Float64
+    @[JSON::Field(emit_null: false)]
     property y : Float64
+    @[JSON::Field(emit_null: false)]
     property z : Float64
+    @[JSON::Field(emit_null: false)]
     property w : Float64
   end
 
   @[Experimental]
   struct SensorReading
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property single : SensorReadingSingle?
     @[JSON::Field(emit_null: false)]
@@ -150,7 +163,6 @@ module Cdp::Emulation
   @[Experimental]
   struct PressureMetadata
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property available : Bool?
   end
@@ -158,7 +170,6 @@ module Cdp::Emulation
   @[Experimental]
   struct WorkAreaInsets
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property top : Int64?
     @[JSON::Field(emit_null: false)]
@@ -175,22 +186,37 @@ module Cdp::Emulation
   @[Experimental]
   struct ScreenInfo
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property left : Int64
+    @[JSON::Field(emit_null: false)]
     property top : Int64
+    @[JSON::Field(emit_null: false)]
     property width : Int64
+    @[JSON::Field(emit_null: false)]
     property height : Int64
+    @[JSON::Field(emit_null: false)]
     property avail_left : Int64
+    @[JSON::Field(emit_null: false)]
     property avail_top : Int64
+    @[JSON::Field(emit_null: false)]
     property avail_width : Int64
+    @[JSON::Field(emit_null: false)]
     property avail_height : Int64
+    @[JSON::Field(emit_null: false)]
     property device_pixel_ratio : Float64
+    @[JSON::Field(emit_null: false)]
     property orientation : ScreenOrientation
+    @[JSON::Field(emit_null: false)]
     property color_depth : Int64
+    @[JSON::Field(emit_null: false)]
     property is_extended : Bool
+    @[JSON::Field(emit_null: false)]
     property is_internal : Bool
+    @[JSON::Field(emit_null: false)]
     property is_primary : Bool
+    @[JSON::Field(emit_null: false)]
     property label : String
+    @[JSON::Field(emit_null: false)]
     property id : ScreenId
   end
 
@@ -206,4 +232,5 @@ module Cdp::Emulation
   alias SetEmitTouchEventsForMouseConfiguration = String
 
   alias SetEmulatedVisionDeficiencyType = String
-end
+
+   end

@@ -1,13 +1,15 @@
-require "../heapprofiler/heapprofiler"
+
+require "../cdp"
 require "json"
 require "time"
+
 require "../runtime/runtime"
 
 module Cdp::HeapProfiler
   struct AddHeapSnapshotChunkEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property chunk : String
 
     def initialize(@chunk : String)
@@ -22,7 +24,7 @@ module Cdp::HeapProfiler
   struct HeapStatsUpdateEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property stats_update : Array(Int64)
 
     def initialize(@stats_update : Array(Int64))
@@ -37,8 +39,9 @@ module Cdp::HeapProfiler
   struct LastSeenObjectIdEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property last_seen_object_id : Int64
+    @[JSON::Field(emit_null: false)]
     property timestamp : Float64
 
     def initialize(@last_seen_object_id : Int64, @timestamp : Float64)
@@ -53,8 +56,9 @@ module Cdp::HeapProfiler
   struct ReportHeapSnapshotProgressEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property done : Int64
+    @[JSON::Field(emit_null: false)]
     property total : Int64
     @[JSON::Field(emit_null: false)]
     property finished : Bool?
@@ -72,7 +76,7 @@ module Cdp::HeapProfiler
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize
+    def initialize()
     end
 
     # ProtoEvent returns the protocol event name.
@@ -80,4 +84,5 @@ module Cdp::HeapProfiler
       "HeapProfiler.resetProfiles"
     end
   end
+
 end

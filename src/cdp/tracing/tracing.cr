@@ -1,9 +1,46 @@
-require "json"
 require "../cdp"
-require "../io/io"
-require "./types"
+require "json"
+require "time"
 
+require "../io/io"
+
+require "./types"
+require "./events"
+
+#
 module Cdp::Tracing
+  @[Experimental]
+  struct GetCategoriesResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property categories : Array(String)
+
+    def initialize(@categories : Array(String))
+    end
+  end
+
+  @[Experimental]
+  struct GetTrackEventDescriptorResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property descriptor : String
+
+    def initialize(@descriptor : String)
+    end
+  end
+
+  @[Experimental]
+  struct RequestMemoryDumpResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property dump_guid : String
+    @[JSON::Field(emit_null: false)]
+    property success : Bool
+
+    def initialize(@dump_guid : String, @success : Bool)
+    end
+  end
+
   # Commands
   struct End
     include JSON::Serializable
@@ -45,16 +82,6 @@ module Cdp::Tracing
   end
 
   @[Experimental]
-  struct GetCategoriesResult
-    include JSON::Serializable
-
-    property categories : Array(String)
-
-    def initialize(@categories : Array(String))
-    end
-  end
-
-  @[Experimental]
   struct GetTrackEventDescriptor
     include JSON::Serializable
     include Cdp::Request
@@ -76,20 +103,10 @@ module Cdp::Tracing
   end
 
   @[Experimental]
-  struct GetTrackEventDescriptorResult
-    include JSON::Serializable
-
-    property descriptor : String
-
-    def initialize(@descriptor : String)
-    end
-  end
-
-  @[Experimental]
   struct RecordClockSyncMarker
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property sync_id : String
 
     def initialize(@sync_id : String)
@@ -110,7 +127,6 @@ module Cdp::Tracing
   struct RequestMemoryDump
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property deterministic : Bool?
     @[JSON::Field(emit_null: false)]
@@ -132,21 +148,9 @@ module Cdp::Tracing
     end
   end
 
-  @[Experimental]
-  struct RequestMemoryDumpResult
-    include JSON::Serializable
-
-    property dump_guid : String
-    property success : Bool
-
-    def initialize(@dump_guid : String, @success : Bool)
-    end
-  end
-
   struct Start
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property buffer_usage_reporting_interval : Float64?
     @[JSON::Field(emit_null: false)]

@@ -1,5 +1,21 @@
 <%# domain_module.ecr - Template for generating a Crystal domain module with commands %>
 <%- # Variables: d (Pdl::Domain), domains (Array(Pdl::Domain)), base_pkg (String), referenced_domains (Array(String)) -%>
+require "../cdp"
+require "json"
+require "time"
+
+<%- referenced_domains.each do |ref_domain| -%>
+<%- next if ref_domain == d.domain.downcase -%>
+require "../<%= ref_domain %>/<%= ref_domain %>"
+<%- end -%>
+
+<%- if !d.types.empty? -%>
+require "./types"
+<%- end -%>
+<%- if !d.events.empty? -%>
+require "./events"
+<%- end -%>
+
 <%- description_lines = d.description.split('\n') -%>
 <%- description_lines.each do |line| -%>
 # <%= line.strip %>
@@ -27,7 +43,7 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
     <%- c.returns.each do |r| -%>
       <%- next if r.deprecated && !r.always_emit -%>
       <%- type_str = crystal_type(r, d, domains) -%>
-    @[JSON::Field(emit_null: false)]<%= "?" if r.optional %>
+    @[JSON::Field(emit_null: false)]
     property <%= r.name.underscore %> : <%= type_str %><%= "?" if r.optional %>
     <%- end -%>
 
@@ -55,7 +71,7 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
       <%- next if p.deprecated && !p.always_emit -%>
       <%- next if p.name.empty? -%>
       <%- type_str = crystal_type(p, d, domains) -%>
-    @[JSON::Field(emit_null: false)]<%= "?" if p.optional %>
+    @[JSON::Field(emit_null: false)]
     property <%= p.name.underscore %> : <%= type_str %><%= "?" if p.optional %>
     <%- end -%>
 

@@ -1,13 +1,17 @@
-require "../media/media"
+
+require "../cdp"
 require "json"
 require "time"
+
+require "../dom/dom"
 
 module Cdp::Media
   struct PlayerPropertiesChangedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property player_id : PlayerId
+    @[JSON::Field(emit_null: false)]
     property properties : Array(PlayerProperty)
 
     def initialize(@player_id : PlayerId, @properties : Array(PlayerProperty))
@@ -22,8 +26,9 @@ module Cdp::Media
   struct PlayerEventsAddedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property player_id : PlayerId
+    @[JSON::Field(emit_null: false)]
     property events : Array(PlayerEvent)
 
     def initialize(@player_id : PlayerId, @events : Array(PlayerEvent))
@@ -38,8 +43,9 @@ module Cdp::Media
   struct PlayerMessagesLoggedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property player_id : PlayerId
+    @[JSON::Field(emit_null: false)]
     property messages : Array(PlayerMessage)
 
     def initialize(@player_id : PlayerId, @messages : Array(PlayerMessage))
@@ -54,8 +60,9 @@ module Cdp::Media
   struct PlayerErrorsRaisedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property player_id : PlayerId
+    @[JSON::Field(emit_null: false)]
     property errors : Array(PlayerError)
 
     def initialize(@player_id : PlayerId, @errors : Array(PlayerError))
@@ -70,7 +77,7 @@ module Cdp::Media
   struct PlayerCreatedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property player : Player
 
     def initialize(@player : Player)
@@ -81,4 +88,5 @@ module Cdp::Media
       "Media.playerCreated"
     end
   end
+
 end

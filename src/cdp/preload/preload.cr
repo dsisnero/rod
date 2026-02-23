@@ -1,17 +1,25 @@
-require "json"
-require "../cdp"
-require "../page/page"
-require "../network/network"
-require "./types"
 
+require "../cdp"
+require "json"
+require "time"
+
+require "../network/network"
+require "../dom/dom"
+require "../page/page"
+
+require "./types"
+require "./events"
+
+#
 @[Experimental]
 module Cdp::Preload
+
   # Commands
   struct Enable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -29,7 +37,7 @@ module Cdp::Preload
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -42,4 +50,5 @@ module Cdp::Preload
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

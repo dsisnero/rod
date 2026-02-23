@@ -1,14 +1,17 @@
-require "../debugger/debugger"
+
+require "../cdp"
 require "json"
 require "time"
+
 require "../runtime/runtime"
 
 module Cdp::Debugger
   struct PausedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property call_frames : Array(CallFrame)
+    @[JSON::Field(emit_null: false)]
     property reason : PausedReason
     @[JSON::Field(emit_null: false)]
     property data : JSON::Any?
@@ -18,8 +21,10 @@ module Cdp::Debugger
     property async_stack_trace : Cdp::Runtime::StackTrace?
     @[JSON::Field(emit_null: false)]
     property async_stack_trace_id : Cdp::Runtime::StackTraceId?
+    @[JSON::Field(emit_null: false)]
+    property async_call_stack_trace_id : Cdp::Runtime::StackTraceId?
 
-    def initialize(@call_frames : Array(CallFrame), @reason : PausedReason, @data : JSON::Any?, @hit_breakpoints : Array(String)?, @async_stack_trace : Cdp::Runtime::StackTrace?, @async_stack_trace_id : Cdp::Runtime::StackTraceId?)
+    def initialize(@call_frames : Array(CallFrame), @reason : PausedReason, @data : JSON::Any?, @hit_breakpoints : Array(String)?, @async_stack_trace : Cdp::Runtime::StackTrace?, @async_stack_trace_id : Cdp::Runtime::StackTraceId?, @async_call_stack_trace_id : Cdp::Runtime::StackTraceId?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -32,7 +37,7 @@ module Cdp::Debugger
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize
+    def initialize()
     end
 
     # ProtoEvent returns the protocol event name.
@@ -44,15 +49,23 @@ module Cdp::Debugger
   struct ScriptFailedToParseEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property script_id : Cdp::Runtime::ScriptId
+    @[JSON::Field(emit_null: false)]
     property url : String
+    @[JSON::Field(emit_null: false)]
     property start_line : Int64
+    @[JSON::Field(emit_null: false)]
     property start_column : Int64
+    @[JSON::Field(emit_null: false)]
     property end_line : Int64
+    @[JSON::Field(emit_null: false)]
     property end_column : Int64
+    @[JSON::Field(emit_null: false)]
     property execution_context_id : Cdp::Runtime::ExecutionContextId
+    @[JSON::Field(emit_null: false)]
     property hash : String
+    @[JSON::Field(emit_null: false)]
     property build_id : String
     @[JSON::Field(emit_null: false)]
     property execution_context_aux_data : JSON::Any?
@@ -85,15 +98,23 @@ module Cdp::Debugger
   struct ScriptParsedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property script_id : Cdp::Runtime::ScriptId
+    @[JSON::Field(emit_null: false)]
     property url : String
+    @[JSON::Field(emit_null: false)]
     property start_line : Int64
+    @[JSON::Field(emit_null: false)]
     property start_column : Int64
+    @[JSON::Field(emit_null: false)]
     property end_line : Int64
+    @[JSON::Field(emit_null: false)]
     property end_column : Int64
+    @[JSON::Field(emit_null: false)]
     property execution_context_id : Cdp::Runtime::ExecutionContextId
+    @[JSON::Field(emit_null: false)]
     property hash : String
+    @[JSON::Field(emit_null: false)]
     property build_id : String
     @[JSON::Field(emit_null: false)]
     property execution_context_aux_data : JSON::Any?
@@ -128,4 +149,5 @@ module Cdp::Debugger
       "Debugger.scriptParsed"
     end
   end
+
 end

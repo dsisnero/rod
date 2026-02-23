@@ -1,16 +1,50 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
 require "../target/target"
+
 require "./types"
 
 # This domain allows interacting with the browser to control PWAs.
 @[Experimental]
 module Cdp::PWA
+  struct GetOsAppStateResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property badge_count : Int64
+    @[JSON::Field(emit_null: false)]
+    property file_handlers : Array(FileHandler)
+
+    def initialize(@badge_count : Int64, @file_handlers : Array(FileHandler))
+    end
+  end
+
+  struct LaunchResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property target_id : Cdp::Target::TargetID
+
+    def initialize(@target_id : Cdp::Target::TargetID)
+    end
+  end
+
+  struct LaunchFilesInAppResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property target_ids : Array(Cdp::Target::TargetID)
+
+    def initialize(@target_ids : Array(Cdp::Target::TargetID))
+    end
+  end
+
+
   # Commands
   struct GetOsAppState
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property manifest_id : String
 
     def initialize(@manifest_id : String)
@@ -29,20 +63,10 @@ module Cdp::PWA
     end
   end
 
-  struct GetOsAppStateResult
-    include JSON::Serializable
-
-    property badge_count : Int64
-    property file_handlers : Array(FileHandler)
-
-    def initialize(@badge_count : Int64, @file_handlers : Array(FileHandler))
-    end
-  end
-
   struct Install
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property manifest_id : String
     @[JSON::Field(emit_null: false)]
     property install_url_or_bundle_url : String?
@@ -64,7 +88,7 @@ module Cdp::PWA
   struct Uninstall
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property manifest_id : String
 
     def initialize(@manifest_id : String)
@@ -84,7 +108,7 @@ module Cdp::PWA
   struct Launch
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property manifest_id : String
     @[JSON::Field(emit_null: false)]
     property url : String?
@@ -105,20 +129,12 @@ module Cdp::PWA
     end
   end
 
-  struct LaunchResult
-    include JSON::Serializable
-
-    property target_id : Cdp::Target::TargetID
-
-    def initialize(@target_id : Cdp::Target::TargetID)
-    end
-  end
-
   struct LaunchFilesInApp
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property manifest_id : String
+    @[JSON::Field(emit_null: false)]
     property files : Array(String)
 
     def initialize(@manifest_id : String, @files : Array(String))
@@ -137,19 +153,10 @@ module Cdp::PWA
     end
   end
 
-  struct LaunchFilesInAppResult
-    include JSON::Serializable
-
-    property target_ids : Array(Cdp::Target::TargetID)
-
-    def initialize(@target_ids : Array(Cdp::Target::TargetID))
-    end
-  end
-
   struct OpenCurrentPageInApp
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property manifest_id : String
 
     def initialize(@manifest_id : String)
@@ -169,7 +176,7 @@ module Cdp::PWA
   struct ChangeAppUserSettings
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property manifest_id : String
     @[JSON::Field(emit_null: false)]
     property link_capturing : Bool?
@@ -189,4 +196,5 @@ module Cdp::PWA
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

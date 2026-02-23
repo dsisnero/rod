@@ -1,14 +1,22 @@
-require "json"
-require "../cdp"
-require "./types"
 
+require "../cdp"
+require "json"
+require "time"
+
+require "../network/network"
+
+require "./types"
+require "./events"
+
+#
 module Cdp::Security
+
   # Commands
   struct Disable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -26,7 +34,7 @@ module Cdp::Security
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -43,7 +51,7 @@ module Cdp::Security
   struct SetIgnoreCertificateErrors
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property ignore : Bool
 
     def initialize(@ignore : Bool)
@@ -59,4 +67,5 @@ module Cdp::Security
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

@@ -1,6 +1,8 @@
-require "../browser/browser"
+
+require "../cdp"
 require "json"
 require "time"
+
 require "../target/target"
 require "../page/page"
 
@@ -17,7 +19,6 @@ module Cdp::Browser
   @[Experimental]
   struct Bounds
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property left : Int64?
     @[JSON::Field(emit_null: false)]
@@ -39,7 +40,7 @@ module Cdp::Browser
   @[Experimental]
   struct PermissionDescriptor
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
     property sysex : Bool?
@@ -59,19 +60,24 @@ module Cdp::Browser
   @[Experimental]
   struct Bucket
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property low : Int64
+    @[JSON::Field(emit_null: false)]
     property high : Int64
+    @[JSON::Field(emit_null: false)]
     property count : Int64
   end
 
   @[Experimental]
   struct Histogram
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property name : String
+    @[JSON::Field(emit_null: false)]
     property sum : Int64
+    @[JSON::Field(emit_null: false)]
     property count : Int64
+    @[JSON::Field(emit_null: false)]
     property buckets : Array(Bucket)
   end
 
@@ -81,4 +87,5 @@ module Cdp::Browser
   alias DownloadProgressState = String
 
   alias SetDownloadBehaviorBehavior = String
-end
+
+   end

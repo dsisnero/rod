@@ -1,15 +1,50 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
 require "../storage/storage"
+
 require "./types"
 
+#
 @[Experimental]
 module Cdp::CacheStorage
+  struct RequestCacheNamesResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property caches : Array(Cache)
+
+    def initialize(@caches : Array(Cache))
+    end
+  end
+
+  struct RequestCachedResponseResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property response : CachedResponse
+
+    def initialize(@response : CachedResponse)
+    end
+  end
+
+  struct RequestEntriesResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property cache_data_entries : Array(DataEntry)
+    @[JSON::Field(emit_null: false)]
+    property return_count : Float64
+
+    def initialize(@cache_data_entries : Array(DataEntry), @return_count : Float64)
+    end
+  end
+
+
   # Commands
   struct DeleteCache
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property cache_id : CacheId
 
     def initialize(@cache_id : CacheId)
@@ -29,8 +64,9 @@ module Cdp::CacheStorage
   struct DeleteEntry
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property cache_id : CacheId
+    @[JSON::Field(emit_null: false)]
     property request : String
 
     def initialize(@cache_id : CacheId, @request : String)
@@ -50,7 +86,6 @@ module Cdp::CacheStorage
   struct RequestCacheNames
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property security_origin : String?
     @[JSON::Field(emit_null: false)]
@@ -74,21 +109,14 @@ module Cdp::CacheStorage
     end
   end
 
-  struct RequestCacheNamesResult
-    include JSON::Serializable
-
-    property caches : Array(Cache)
-
-    def initialize(@caches : Array(Cache))
-    end
-  end
-
   struct RequestCachedResponse
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property cache_id : CacheId
+    @[JSON::Field(emit_null: false)]
     property request_url : String
+    @[JSON::Field(emit_null: false)]
     property request_headers : Array(Header)
 
     def initialize(@cache_id : CacheId, @request_url : String, @request_headers : Array(Header))
@@ -107,19 +135,10 @@ module Cdp::CacheStorage
     end
   end
 
-  struct RequestCachedResponseResult
-    include JSON::Serializable
-
-    property response : CachedResponse
-
-    def initialize(@response : CachedResponse)
-    end
-  end
-
   struct RequestEntries
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property cache_id : CacheId
     @[JSON::Field(emit_null: false)]
     property skip_count : Int64?
@@ -144,13 +163,4 @@ module Cdp::CacheStorage
     end
   end
 
-  struct RequestEntriesResult
-    include JSON::Serializable
-
-    property cache_data_entries : Array(DataEntry)
-    property return_count : Float64
-
-    def initialize(@cache_data_entries : Array(DataEntry), @return_count : Float64)
-    end
-  end
 end

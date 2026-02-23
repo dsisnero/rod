@@ -1,6 +1,8 @@
-require "../bluetoothemulation/bluetoothemulation"
+
+require "../cdp"
 require "json"
 require "time"
+
 
 module Cdp::BluetoothEmulation
   alias CentralState = String
@@ -15,14 +17,14 @@ module Cdp::BluetoothEmulation
 
   struct ManufacturerData
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property key : Int64
+    @[JSON::Field(emit_null: false)]
     property data : String
   end
 
   struct ScanRecord
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property name : String?
     @[JSON::Field(emit_null: false)]
@@ -37,15 +39,16 @@ module Cdp::BluetoothEmulation
 
   struct ScanEntry
     include JSON::Serializable
-
+    @[JSON::Field(emit_null: false)]
     property device_address : String
+    @[JSON::Field(emit_null: false)]
     property rssi : Int64
+    @[JSON::Field(emit_null: false)]
     property scan_record : ScanRecord
   end
 
   struct CharacteristicProperties
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property broadcast : Bool?
     @[JSON::Field(emit_null: false)]
@@ -63,4 +66,5 @@ module Cdp::BluetoothEmulation
     @[JSON::Field(emit_null: false)]
     property extended_properties : Bool?
   end
-end
+
+   end

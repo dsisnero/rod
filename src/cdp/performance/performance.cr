@@ -1,14 +1,30 @@
-require "json"
-require "../cdp"
-require "./types"
 
+require "../cdp"
+require "json"
+require "time"
+
+
+require "./types"
+require "./events"
+
+#
 module Cdp::Performance
+  struct GetMetricsResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property metrics : Array(Metric)
+
+    def initialize(@metrics : Array(Metric))
+    end
+  end
+
+
   # Commands
   struct Disable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -25,7 +41,6 @@ module Cdp::Performance
   struct Enable
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property time_domain : EnableTimeDomain?
 
@@ -47,7 +62,7 @@ module Cdp::Performance
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -63,12 +78,4 @@ module Cdp::Performance
     end
   end
 
-  struct GetMetricsResult
-    include JSON::Serializable
-
-    property metrics : Array(Metric)
-
-    def initialize(@metrics : Array(Metric))
-    end
-  end
 end

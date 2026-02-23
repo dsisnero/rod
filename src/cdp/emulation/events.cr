@@ -1,6 +1,8 @@
-require "../emulation/emulation"
+
+require "../cdp"
 require "json"
 require "time"
+
 require "../dom/dom"
 require "../page/page"
 require "../network/network"
@@ -11,7 +13,7 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Event
 
-    def initialize
+    def initialize()
     end
 
     # ProtoEvent returns the protocol event name.
@@ -19,4 +21,5 @@ module Cdp::Emulation
       "Emulation.virtualTimeBudgetExpired"
     end
   end
+
 end

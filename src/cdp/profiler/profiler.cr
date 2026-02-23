@@ -1,15 +1,61 @@
-require "json"
-require "../cdp"
-require "../debugger/debugger"
-require "./types"
 
+require "../cdp"
+require "json"
+require "time"
+
+require "../runtime/runtime"
+require "../debugger/debugger"
+
+require "./types"
+require "./events"
+
+#
 module Cdp::Profiler
+  struct GetBestEffortCoverageResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property result : Array(ScriptCoverage)
+
+    def initialize(@result : Array(ScriptCoverage))
+    end
+  end
+
+  struct StartPreciseCoverageResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property timestamp : Float64
+
+    def initialize(@timestamp : Float64)
+    end
+  end
+
+  struct StopResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property profile : Profile
+
+    def initialize(@profile : Profile)
+    end
+  end
+
+  struct TakePreciseCoverageResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property result : Array(ScriptCoverage)
+    @[JSON::Field(emit_null: false)]
+    property timestamp : Float64
+
+    def initialize(@result : Array(ScriptCoverage), @timestamp : Float64)
+    end
+  end
+
+
   # Commands
   struct Disable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -27,7 +73,7 @@ module Cdp::Profiler
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -45,7 +91,7 @@ module Cdp::Profiler
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -61,19 +107,10 @@ module Cdp::Profiler
     end
   end
 
-  struct GetBestEffortCoverageResult
-    include JSON::Serializable
-
-    property result : Array(ScriptCoverage)
-
-    def initialize(@result : Array(ScriptCoverage))
-    end
-  end
-
   struct SetSamplingInterval
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property interval : Int64
 
     def initialize(@interval : Int64)
@@ -94,7 +131,7 @@ module Cdp::Profiler
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -111,7 +148,6 @@ module Cdp::Profiler
   struct StartPreciseCoverage
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property call_count : Bool?
     @[JSON::Field(emit_null: false)]
@@ -135,20 +171,11 @@ module Cdp::Profiler
     end
   end
 
-  struct StartPreciseCoverageResult
-    include JSON::Serializable
-
-    property timestamp : Float64
-
-    def initialize(@timestamp : Float64)
-    end
-  end
-
   struct Stop
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -164,20 +191,11 @@ module Cdp::Profiler
     end
   end
 
-  struct StopResult
-    include JSON::Serializable
-
-    property profile : Profile
-
-    def initialize(@profile : Profile)
-    end
-  end
-
   struct StopPreciseCoverage
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -195,7 +213,7 @@ module Cdp::Profiler
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -211,13 +229,4 @@ module Cdp::Profiler
     end
   end
 
-  struct TakePreciseCoverageResult
-    include JSON::Serializable
-
-    property result : Array(ScriptCoverage)
-    property timestamp : Float64
-
-    def initialize(@result : Array(ScriptCoverage), @timestamp : Float64)
-    end
-  end
 end

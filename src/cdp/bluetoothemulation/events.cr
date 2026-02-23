@@ -1,13 +1,16 @@
-require "../bluetoothemulation/bluetoothemulation"
+
+require "../cdp"
 require "json"
 require "time"
+
 
 module Cdp::BluetoothEmulation
   struct GattOperationReceivedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property address : String
+    @[JSON::Field(emit_null: false)]
     property type : GATTOperationType
 
     def initialize(@address : String, @type : GATTOperationType)
@@ -22,8 +25,9 @@ module Cdp::BluetoothEmulation
   struct CharacteristicOperationReceivedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property characteristic_id : String
+    @[JSON::Field(emit_null: false)]
     property type : CharacteristicOperationType
     @[JSON::Field(emit_null: false)]
     property data : String?
@@ -42,8 +46,9 @@ module Cdp::BluetoothEmulation
   struct DescriptorOperationReceivedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property descriptor_id : String
+    @[JSON::Field(emit_null: false)]
     property type : DescriptorOperationType
     @[JSON::Field(emit_null: false)]
     property data : String?
@@ -56,4 +61,5 @@ module Cdp::BluetoothEmulation
       "BluetoothEmulation.descriptorOperationReceived"
     end
   end
+
 end

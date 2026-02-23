@@ -1,6 +1,7 @@
-require "../tracing/tracing"
+require "../cdp"
 require "json"
 require "time"
+
 require "../io/io"
 
 module Cdp::Tracing
@@ -11,7 +12,6 @@ module Cdp::Tracing
 
   struct TraceConfig
     include JSON::Serializable
-
     @[JSON::Field(emit_null: false)]
     property record_mode : RecordMode?
     @[JSON::Field(emit_null: false)]

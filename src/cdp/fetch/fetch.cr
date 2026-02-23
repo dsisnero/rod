@@ -1,18 +1,44 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
 require "../network/network"
 require "../io/io"
 require "../page/page"
+
 require "./types"
+require "./events"
 
 # A domain for letting clients substitute browser's network layer with client code.
 module Cdp::Fetch
+  struct GetResponseBodyResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property body : String
+    @[JSON::Field(emit_null: false)]
+    property base64_encoded : Bool
+
+    def initialize(@body : String, @base64_encoded : Bool)
+    end
+  end
+
+  struct TakeResponseBodyAsStreamResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property stream : Cdp::IO::StreamHandle
+
+    def initialize(@stream : Cdp::IO::StreamHandle)
+    end
+  end
+
+
   # Commands
   struct Disable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -29,7 +55,6 @@ module Cdp::Fetch
   struct Enable
     include JSON::Serializable
     include Cdp::Request
-
     @[JSON::Field(emit_null: false)]
     property patterns : Array(RequestPattern)?
     @[JSON::Field(emit_null: false)]
@@ -52,8 +77,9 @@ module Cdp::Fetch
   struct FailRequest
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property request_id : RequestId
+    @[JSON::Field(emit_null: false)]
     property error_reason : Cdp::Network::ErrorReason
 
     def initialize(@request_id : RequestId, @error_reason : Cdp::Network::ErrorReason)
@@ -73,8 +99,9 @@ module Cdp::Fetch
   struct FulfillRequest
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property request_id : RequestId
+    @[JSON::Field(emit_null: false)]
     property response_code : Int64
     @[JSON::Field(emit_null: false)]
     property response_headers : Array(HeaderEntry)?
@@ -102,7 +129,7 @@ module Cdp::Fetch
   struct ContinueRequest
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property request_id : RequestId
     @[JSON::Field(emit_null: false)]
     property url : String?
@@ -132,8 +159,9 @@ module Cdp::Fetch
   struct ContinueWithAuth
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property request_id : RequestId
+    @[JSON::Field(emit_null: false)]
     property auth_challenge_response : AuthChallengeResponse
 
     def initialize(@request_id : RequestId, @auth_challenge_response : AuthChallengeResponse)
@@ -154,7 +182,7 @@ module Cdp::Fetch
   struct ContinueResponse
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property request_id : RequestId
     @[JSON::Field(emit_null: false)]
     property response_code : Int64?
@@ -182,7 +210,7 @@ module Cdp::Fetch
   struct GetResponseBody
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property request_id : RequestId
 
     def initialize(@request_id : RequestId)
@@ -201,20 +229,10 @@ module Cdp::Fetch
     end
   end
 
-  struct GetResponseBodyResult
-    include JSON::Serializable
-
-    property body : String
-    property base64_encoded : Bool
-
-    def initialize(@body : String, @base64_encoded : Bool)
-    end
-  end
-
   struct TakeResponseBodyAsStream
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property request_id : RequestId
 
     def initialize(@request_id : RequestId)
@@ -233,12 +251,4 @@ module Cdp::Fetch
     end
   end
 
-  struct TakeResponseBodyAsStreamResult
-    include JSON::Serializable
-
-    property stream : Cdp::IO::StreamHandle
-
-    def initialize(@stream : Cdp::IO::StreamHandle)
-    end
-  end
 end

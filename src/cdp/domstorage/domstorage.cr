@@ -1,15 +1,30 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
+
 require "./types"
+require "./events"
 
 # Query and modify DOM storage.
 @[Experimental]
 module Cdp::DOMStorage
+  struct GetDOMStorageItemsResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property entries : Array(Item)
+
+    def initialize(@entries : Array(Item))
+    end
+  end
+
+
   # Commands
   struct Clear
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property storage_id : StorageId
 
     def initialize(@storage_id : StorageId)
@@ -30,7 +45,7 @@ module Cdp::DOMStorage
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -48,7 +63,7 @@ module Cdp::DOMStorage
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -65,7 +80,7 @@ module Cdp::DOMStorage
   struct GetDOMStorageItems
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property storage_id : StorageId
 
     def initialize(@storage_id : StorageId)
@@ -84,20 +99,12 @@ module Cdp::DOMStorage
     end
   end
 
-  struct GetDOMStorageItemsResult
-    include JSON::Serializable
-
-    property entries : Array(Item)
-
-    def initialize(@entries : Array(Item))
-    end
-  end
-
   struct RemoveDOMStorageItem
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property storage_id : StorageId
+    @[JSON::Field(emit_null: false)]
     property key : String
 
     def initialize(@storage_id : StorageId, @key : String)
@@ -117,9 +124,11 @@ module Cdp::DOMStorage
   struct SetDOMStorageItem
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property storage_id : StorageId
+    @[JSON::Field(emit_null: false)]
     property key : String
+    @[JSON::Field(emit_null: false)]
     property value : String
 
     def initialize(@storage_id : StorageId, @key : String, @value : String)
@@ -135,4 +144,5 @@ module Cdp::DOMStorage
       Cdp.call(proto_req, self, nil, c)
     end
   end
+
 end

@@ -1,6 +1,8 @@
-require "../fetch/fetch"
+
+require "../cdp"
 require "json"
 require "time"
+
 require "../network/network"
 require "../io/io"
 require "../page/page"
@@ -9,10 +11,13 @@ module Cdp::Fetch
   struct RequestPausedEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property request_id : RequestId
+    @[JSON::Field(emit_null: false)]
     property request : Cdp::Network::Request
+    @[JSON::Field(emit_null: false)]
     property frame_id : Cdp::Page::FrameId
+    @[JSON::Field(emit_null: false)]
     property resource_type : Cdp::Network::ResourceType
     @[JSON::Field(emit_null: false)]
     property response_error_reason : Cdp::Network::ErrorReason?
@@ -39,11 +44,15 @@ module Cdp::Fetch
   struct AuthRequiredEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property request_id : RequestId
+    @[JSON::Field(emit_null: false)]
     property request : Cdp::Network::Request
+    @[JSON::Field(emit_null: false)]
     property frame_id : Cdp::Page::FrameId
+    @[JSON::Field(emit_null: false)]
     property resource_type : Cdp::Network::ResourceType
+    @[JSON::Field(emit_null: false)]
     property auth_challenge : AuthChallenge
 
     def initialize(@request_id : RequestId, @request : Cdp::Network::Request, @frame_id : Cdp::Page::FrameId, @resource_type : Cdp::Network::ResourceType, @auth_challenge : AuthChallenge)
@@ -54,4 +63,5 @@ module Cdp::Fetch
       "Fetch.authRequired"
     end
   end
+
 end

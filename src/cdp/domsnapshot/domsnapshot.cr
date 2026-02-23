@@ -1,16 +1,35 @@
-require "json"
+
 require "../cdp"
+require "json"
+require "time"
+
+require "../dom/dom"
+require "../page/page"
+require "../domdebugger/domdebugger"
+
 require "./types"
 
 # This domain facilitates obtaining document snapshots with DOM, layout, and style information.
 @[Experimental]
 module Cdp::DOMSnapshot
+  struct CaptureSnapshotResult
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property documents : Array(DocumentSnapshot)
+    @[JSON::Field(emit_null: false)]
+    property strings : Array(String)
+
+    def initialize(@documents : Array(DocumentSnapshot), @strings : Array(String))
+    end
+  end
+
+
   # Commands
   struct Disable
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -28,7 +47,7 @@ module Cdp::DOMSnapshot
     include JSON::Serializable
     include Cdp::Request
 
-    def initialize
+    def initialize()
     end
 
     # ProtoReq returns the protocol method name.
@@ -45,7 +64,7 @@ module Cdp::DOMSnapshot
   struct CaptureSnapshot
     include JSON::Serializable
     include Cdp::Request
-
+    @[JSON::Field(emit_null: false)]
     property computed_styles : Array(String)
     @[JSON::Field(emit_null: false)]
     property include_paint_order : Bool?
@@ -72,13 +91,4 @@ module Cdp::DOMSnapshot
     end
   end
 
-  struct CaptureSnapshotResult
-    include JSON::Serializable
-
-    property documents : Array(DocumentSnapshot)
-    property strings : Array(String)
-
-    def initialize(@documents : Array(DocumentSnapshot), @strings : Array(String))
-    end
-  end
 end

@@ -1,15 +1,18 @@
-require "../autofill/autofill"
+
+require "../cdp"
 require "json"
 require "time"
-require "../dom/dom"
+
 require "../page/page"
+require "../dom/dom"
 
 module Cdp::Autofill
   struct AddressFormFilledEvent
     include JSON::Serializable
     include Cdp::Event
-
+    @[JSON::Field(emit_null: false)]
     property filled_fields : Array(FilledField)
+    @[JSON::Field(emit_null: false)]
     property address_ui : AddressUI
 
     def initialize(@filled_fields : Array(FilledField), @address_ui : AddressUI)
@@ -20,4 +23,5 @@ module Cdp::Autofill
       "Autofill.addressFormFilled"
     end
   end
+
 end
