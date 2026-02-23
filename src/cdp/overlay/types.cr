@@ -3,16 +3,14 @@ require "json"
 require "time"
 
 require "../dom/dom"
-require "../page/page"
-require "../runtime/runtime"
 
 module Cdp::Overlay
   struct SourceOrderConfig
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property parent_outline_color : Cdp::DOM::RGBA
+    property parent_outline_color : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property child_outline_color : Cdp::DOM::RGBA
+    property child_outline_color : Cdp::NodeType
   end
 
   struct GridHighlightConfig
@@ -30,13 +28,13 @@ module Cdp::Overlay
     @[JSON::Field(emit_null: false)]
     property? show_track_sizes : Bool?
     @[JSON::Field(emit_null: false)]
-    property grid_border_color : Cdp::DOM::RGBA?
+    property grid_border_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property cell_border_color : Cdp::DOM::RGBA?
+    property cell_border_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property row_line_color : Cdp::DOM::RGBA?
+    property row_line_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property column_line_color : Cdp::DOM::RGBA?
+    property column_line_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property? grid_border_dash : Bool?
     @[JSON::Field(emit_null: false)]
@@ -44,63 +42,63 @@ module Cdp::Overlay
     @[JSON::Field(emit_null: false)]
     property? column_line_dash : Bool?
     @[JSON::Field(emit_null: false)]
-    property row_gap_color : Cdp::DOM::RGBA?
+    property row_gap_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property row_hatch_color : Cdp::DOM::RGBA?
+    property row_hatch_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property column_gap_color : Cdp::DOM::RGBA?
+    property column_gap_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property column_hatch_color : Cdp::DOM::RGBA?
+    property column_hatch_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property area_border_color : Cdp::DOM::RGBA?
+    property area_border_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property grid_background_color : Cdp::DOM::RGBA?
+    property grid_background_color : Cdp::NodeType?
   end
 
   struct FlexContainerHighlightConfig
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property container_border : LineStyle?
+    property container_border : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property line_separator : LineStyle?
+    property line_separator : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property item_separator : LineStyle?
+    property item_separator : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property main_distributed_space : BoxStyle?
+    property main_distributed_space : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property cross_distributed_space : BoxStyle?
+    property cross_distributed_space : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property row_gap_space : BoxStyle?
+    property row_gap_space : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property column_gap_space : BoxStyle?
+    property column_gap_space : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property cross_alignment : LineStyle?
+    property cross_alignment : Cdp::NodeType?
   end
 
   struct FlexItemHighlightConfig
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property base_size_box : BoxStyle?
+    property base_size_box : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property base_size_border : LineStyle?
+    property base_size_border : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property flexibility_arrow : LineStyle?
+    property flexibility_arrow : Cdp::NodeType?
   end
 
   struct LineStyle
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property color : Cdp::DOM::RGBA?
+    property color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property pattern : LineStylePattern?
+    property pattern : Cdp::NodeType?
   end
 
   struct BoxStyle
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property fill_color : Cdp::DOM::RGBA?
+    property fill_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property hatch_color : Cdp::DOM::RGBA?
+    property hatch_color : Cdp::NodeType?
   end
 
   alias ContrastAlgorithm = String
@@ -121,33 +119,33 @@ module Cdp::Overlay
     @[JSON::Field(emit_null: false)]
     property? show_extension_lines : Bool?
     @[JSON::Field(emit_null: false)]
-    property content_color : Cdp::DOM::RGBA?
+    property content_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property padding_color : Cdp::DOM::RGBA?
+    property padding_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property border_color : Cdp::DOM::RGBA?
+    property border_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property margin_color : Cdp::DOM::RGBA?
+    property margin_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property event_target_color : Cdp::DOM::RGBA?
+    property event_target_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property shape_color : Cdp::DOM::RGBA?
+    property shape_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property shape_margin_color : Cdp::DOM::RGBA?
+    property shape_margin_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property css_grid_color : Cdp::DOM::RGBA?
+    property css_grid_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property color_format : ColorFormat?
+    property color_format : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property grid_highlight_config : GridHighlightConfig?
+    property grid_highlight_config : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property flex_container_highlight_config : FlexContainerHighlightConfig?
+    property flex_container_highlight_config : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property flex_item_highlight_config : FlexItemHighlightConfig?
+    property flex_item_highlight_config : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property contrast_algorithm : ContrastAlgorithm?
+    property contrast_algorithm : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property container_query_container_highlight_config : ContainerQueryContainerHighlightConfig?
+    property container_query_container_highlight_config : Cdp::NodeType?
   end
 
   alias ColorFormat = String
@@ -159,47 +157,47 @@ module Cdp::Overlay
   struct GridNodeHighlightConfig
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property grid_highlight_config : GridHighlightConfig
+    property grid_highlight_config : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::DOM::NodeId
+    property node_id : Cdp::NodeType
   end
 
   struct FlexNodeHighlightConfig
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property flex_container_highlight_config : FlexContainerHighlightConfig
+    property flex_container_highlight_config : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::DOM::NodeId
+    property node_id : Cdp::NodeType
   end
 
   struct ScrollSnapContainerHighlightConfig
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property snapport_border : LineStyle?
+    property snapport_border : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property snap_area_border : LineStyle?
+    property snap_area_border : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property scroll_margin_color : Cdp::DOM::RGBA?
+    property scroll_margin_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property scroll_padding_color : Cdp::DOM::RGBA?
+    property scroll_padding_color : Cdp::NodeType?
   end
 
   struct ScrollSnapHighlightConfig
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property scroll_snap_container_highlight_config : ScrollSnapContainerHighlightConfig
+    property scroll_snap_container_highlight_config : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::DOM::NodeId
+    property node_id : Cdp::NodeType
   end
 
   struct HingeConfig
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property rect : Cdp::DOM::Rect
+    property rect : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property content_color : Cdp::DOM::RGBA?
+    property content_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property outline_color : Cdp::DOM::RGBA?
+    property outline_color : Cdp::NodeType?
   end
 
   struct WindowControlsOverlayConfig
@@ -215,35 +213,35 @@ module Cdp::Overlay
   struct ContainerQueryHighlightConfig
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property container_query_container_highlight_config : ContainerQueryContainerHighlightConfig
+    property container_query_container_highlight_config : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::DOM::NodeId
+    property node_id : Cdp::NodeType
   end
 
   struct ContainerQueryContainerHighlightConfig
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property container_border : LineStyle?
+    property container_border : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property descendant_border : LineStyle?
+    property descendant_border : Cdp::NodeType?
   end
 
   struct IsolatedElementHighlightConfig
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property isolation_mode_highlight_config : IsolationModeHighlightConfig
+    property isolation_mode_highlight_config : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::DOM::NodeId
+    property node_id : Cdp::NodeType
   end
 
   struct IsolationModeHighlightConfig
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property resizer_color : Cdp::DOM::RGBA?
+    property resizer_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property resizer_handle_color : Cdp::DOM::RGBA?
+    property resizer_handle_color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property mask_color : Cdp::DOM::RGBA?
+    property mask_color : Cdp::NodeType?
   end
 
   alias InspectMode = String
@@ -255,9 +253,9 @@ module Cdp::Overlay
   struct InspectedElementAnchorConfig
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::DOM::NodeId?
+    property node_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property backend_node_id : Cdp::DOM::BackendNodeId?
+    property backend_node_id : Cdp::NodeType?
   end
 
   alias LineStylePattern = String

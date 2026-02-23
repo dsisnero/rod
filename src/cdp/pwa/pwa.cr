@@ -2,7 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../target/target"
+require "../dom/dom"
 
 require "./types"
 
@@ -14,27 +14,27 @@ module Cdp::PWA
     @[JSON::Field(emit_null: false)]
     property badge_count : Int64
     @[JSON::Field(emit_null: false)]
-    property file_handlers : Array(FileHandler)
+    property file_handlers : Array(Cdp::NodeType)
 
-    def initialize(@badge_count : Int64, @file_handlers : Array(FileHandler))
+    def initialize(@badge_count : Int64, @file_handlers : Array(Cdp::NodeType))
     end
   end
 
   struct LaunchResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property target_id : Cdp::Target::TargetID
+    property target_id : Cdp::NodeType
 
-    def initialize(@target_id : Cdp::Target::TargetID)
+    def initialize(@target_id : Cdp::NodeType)
     end
   end
 
   struct LaunchFilesInAppResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property target_ids : Array(Cdp::Target::TargetID)
+    property target_ids : Array(Cdp::NodeType)
 
-    def initialize(@target_ids : Array(Cdp::Target::TargetID))
+    def initialize(@target_ids : Array(Cdp::NodeType))
     end
   end
 
@@ -179,9 +179,9 @@ module Cdp::PWA
     @[JSON::Field(emit_null: false)]
     property? link_capturing : Bool?
     @[JSON::Field(emit_null: false)]
-    property display_mode : DisplayMode?
+    property display_mode : Cdp::NodeType?
 
-    def initialize(@manifest_id : String, @link_capturing : Bool?, @display_mode : DisplayMode?)
+    def initialize(@manifest_id : String, @link_capturing : Bool?, @display_mode : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.

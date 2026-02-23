@@ -5,7 +5,7 @@ module Pdlgen
       getter url : String
       getter path : String
       getter ttl : Time::Span
-      getter decode : Bool
+      getter? decode : Bool
 
       def initialize(@url, @path, @ttl, @decode = false)
       end

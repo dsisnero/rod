@@ -7,7 +7,7 @@ require "./pdl"
 require "./util"
 require "./fixup"
 require "./gen"
-require "./gen/crystal"
+# require "./gen/crystal"
 require "./diff"
 
 module Pdlgen
@@ -254,7 +254,7 @@ module Pdlgen
 
       domains.each do |domain|
         # Skip deprecated domains unless they have always_emit items
-        if domain.deprecated && !has_always_emit(domain)
+        if domain.deprecated? && !has_always_emit(domain)
           Util.logf("SKIPPING(domain): %s [deprecated]", domain.domain)
           next
         end
@@ -304,9 +304,9 @@ module Pdlgen
     end
 
     private def has_always_emit(d : Pdl::Domain) : Bool
-      d.types.any?(&.always_emit) ||
-        d.events.any?(&.always_emit) ||
-        d.commands.any?(&.always_emit)
+      d.types.any?(&.always_emit?) ||
+        d.events.any?(&.always_emit?) ||
+        d.commands.any?(&.always_emit?)
     end
 
     private def cleanup_types(n : String, dtyp : String, typs : Array(Pdl::Type)) : Array(Pdl::Type)
@@ -314,12 +314,12 @@ module Pdlgen
 
       typs.each do |type|
         typ = dtyp + "." + type.name
-        if false && type.deprecated && !type.always_emit
+        if false && type.deprecated? && !type.always_emit?
           Util.logf("SKIPPING(%s): %s [deprecated]", n.ljust(7), typ)
           next
         end
 
-        if type.redirect && !type.always_emit
+        if type.redirect && !type.always_emit?
           Util.logf("SKIPPING(%s): %s [redirect:%s]", n.ljust(7), typ, type.redirect)
           next
         end

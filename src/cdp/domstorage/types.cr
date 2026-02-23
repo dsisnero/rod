@@ -2,6 +2,8 @@ require "../cdp"
 require "json"
 require "time"
 
+require "../dom/dom"
+
 module Cdp::DOMStorage
   alias SerializedStorageKey = String
 
@@ -10,7 +12,7 @@ module Cdp::DOMStorage
     @[JSON::Field(emit_null: false)]
     property security_origin : String?
     @[JSON::Field(emit_null: false)]
-    property storage_key : SerializedStorageKey?
+    property storage_key : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property? is_local_storage : Bool
   end

@@ -18,5 +18,10 @@ module Cdp::Tethering
     def proto_event : String
       "Tethering.accepted"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "Tethering.accepted"
+    end
   end
 end

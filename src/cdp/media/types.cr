@@ -12,7 +12,7 @@ module Cdp::Media
   struct PlayerMessage
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property level : PlayerMessageLevel
+    property level : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property message : String
   end
@@ -28,7 +28,7 @@ module Cdp::Media
   struct PlayerEvent
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property timestamp : Timestamp
+    property timestamp : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property value : String
   end
@@ -48,9 +48,9 @@ module Cdp::Media
     @[JSON::Field(emit_null: false)]
     property code : Int64
     @[JSON::Field(emit_null: false)]
-    property stack : Array(PlayerErrorSourceLocation)
+    property stack : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property cause : Array(PlayerError)
+    property cause : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property data : JSON::Any
   end
@@ -58,9 +58,9 @@ module Cdp::Media
   struct Player
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property player_id : PlayerId
+    property player_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property dom_node_id : Cdp::DOM::BackendNodeId?
+    property dom_node_id : Cdp::NodeType?
   end
 
   alias PlayerMessageLevel = String

@@ -2,8 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../network/network"
-require "../serviceworker/serviceworker"
+require "../dom/dom"
 
 require "./types"
 require "./events"
@@ -16,9 +15,9 @@ module Cdp::BackgroundService
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property service : ServiceName
+    property service : Cdp::NodeType
 
-    def initialize(@service : ServiceName)
+    def initialize(@service : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -36,9 +35,9 @@ module Cdp::BackgroundService
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property service : ServiceName
+    property service : Cdp::NodeType
 
-    def initialize(@service : ServiceName)
+    def initialize(@service : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -58,9 +57,9 @@ module Cdp::BackgroundService
     @[JSON::Field(emit_null: false)]
     property? should_record : Bool
     @[JSON::Field(emit_null: false)]
-    property service : ServiceName
+    property service : Cdp::NodeType
 
-    def initialize(@should_record : Bool, @service : ServiceName)
+    def initialize(@should_record : Bool, @service : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -78,9 +77,9 @@ module Cdp::BackgroundService
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property service : ServiceName
+    property service : Cdp::NodeType
 
-    def initialize(@service : ServiceName)
+    def initialize(@service : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.

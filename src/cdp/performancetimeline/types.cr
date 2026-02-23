@@ -2,17 +2,15 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../network/network"
 require "../dom/dom"
-require "../page/page"
 
 module Cdp::PerformanceTimeline
   struct LargestContentfulPaint
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property render_time : Cdp::Network::TimeSinceEpoch
+    property render_time : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property load_time : Cdp::Network::TimeSinceEpoch
+    property load_time : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property size : Float64
     @[JSON::Field(emit_null: false)]
@@ -20,17 +18,17 @@ module Cdp::PerformanceTimeline
     @[JSON::Field(emit_null: false)]
     property url : String?
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::DOM::BackendNodeId?
+    property node_id : Cdp::NodeType?
   end
 
   struct LayoutShiftAttribution
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property previous_rect : Cdp::DOM::Rect
+    property previous_rect : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property current_rect : Cdp::DOM::Rect
+    property current_rect : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::DOM::BackendNodeId?
+    property node_id : Cdp::NodeType?
   end
 
   struct LayoutShift
@@ -40,26 +38,26 @@ module Cdp::PerformanceTimeline
     @[JSON::Field(emit_null: false)]
     property? had_recent_input : Bool
     @[JSON::Field(emit_null: false)]
-    property last_input_time : Cdp::Network::TimeSinceEpoch
+    property last_input_time : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property sources : Array(LayoutShiftAttribution)
+    property sources : Array(Cdp::NodeType)
   end
 
   struct TimelineEvent
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property frame_id : Cdp::Page::FrameId
+    property frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property type : String
     @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
-    property time : Cdp::Network::TimeSinceEpoch
+    property time : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property duration : Float64?
     @[JSON::Field(emit_null: false)]
-    property lcp_details : LargestContentfulPaint?
+    property lcp_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property layout_shift_details : LayoutShift?
+    property layout_shift_details : Cdp::NodeType?
   end
 end

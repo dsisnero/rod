@@ -2,8 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../network/network"
-require "../storage/storage"
+require "../dom/dom"
 
 module Cdp::FileSystem
   struct File
@@ -11,7 +10,7 @@ module Cdp::FileSystem
     @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
-    property last_modified : Cdp::Network::TimeSinceEpoch
+    property last_modified : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property size : Float64
     @[JSON::Field(emit_null: false)]
@@ -25,13 +24,13 @@ module Cdp::FileSystem
     @[JSON::Field(emit_null: false)]
     property nested_directories : Array(String)
     @[JSON::Field(emit_null: false)]
-    property nested_files : Array(File)
+    property nested_files : Array(Cdp::NodeType)
   end
 
   struct BucketFileSystemLocator
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property storage_key : Cdp::Storage::SerializedStorageKey
+    property storage_key : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property bucket_name : String?
     @[JSON::Field(emit_null: false)]

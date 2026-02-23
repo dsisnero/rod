@@ -2,7 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../storage/storage"
+require "../dom/dom"
 
 require "./types"
 
@@ -12,29 +12,29 @@ module Cdp::CacheStorage
   struct RequestCacheNamesResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property caches : Array(Cache)
+    property caches : Array(Cdp::NodeType)
 
-    def initialize(@caches : Array(Cache))
+    def initialize(@caches : Array(Cdp::NodeType))
     end
   end
 
   struct RequestCachedResponseResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property response : CachedResponse
+    property response : Cdp::NodeType
 
-    def initialize(@response : CachedResponse)
+    def initialize(@response : Cdp::NodeType)
     end
   end
 
   struct RequestEntriesResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property cache_data_entries : Array(DataEntry)
+    property cache_data_entries : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property return_count : Float64
 
-    def initialize(@cache_data_entries : Array(DataEntry), @return_count : Float64)
+    def initialize(@cache_data_entries : Array(Cdp::NodeType), @return_count : Float64)
     end
   end
 
@@ -43,9 +43,9 @@ module Cdp::CacheStorage
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property cache_id : CacheId
+    property cache_id : Cdp::NodeType
 
-    def initialize(@cache_id : CacheId)
+    def initialize(@cache_id : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -63,11 +63,11 @@ module Cdp::CacheStorage
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property cache_id : CacheId
+    property cache_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property request : String
 
-    def initialize(@cache_id : CacheId, @request : String)
+    def initialize(@cache_id : Cdp::NodeType, @request : String)
     end
 
     # ProtoReq returns the protocol method name.
@@ -89,9 +89,9 @@ module Cdp::CacheStorage
     @[JSON::Field(emit_null: false)]
     property storage_key : String?
     @[JSON::Field(emit_null: false)]
-    property storage_bucket : Cdp::Storage::StorageBucket?
+    property storage_bucket : Cdp::NodeType?
 
-    def initialize(@security_origin : String?, @storage_key : String?, @storage_bucket : Cdp::Storage::StorageBucket?)
+    def initialize(@security_origin : String?, @storage_key : String?, @storage_bucket : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -111,13 +111,13 @@ module Cdp::CacheStorage
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property cache_id : CacheId
+    property cache_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property request_url : String
     @[JSON::Field(emit_null: false)]
-    property request_headers : Array(Header)
+    property request_headers : Array(Cdp::NodeType)
 
-    def initialize(@cache_id : CacheId, @request_url : String, @request_headers : Array(Header))
+    def initialize(@cache_id : Cdp::NodeType, @request_url : String, @request_headers : Array(Cdp::NodeType))
     end
 
     # ProtoReq returns the protocol method name.
@@ -137,7 +137,7 @@ module Cdp::CacheStorage
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property cache_id : CacheId
+    property cache_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property skip_count : Int64?
     @[JSON::Field(emit_null: false)]
@@ -145,7 +145,7 @@ module Cdp::CacheStorage
     @[JSON::Field(emit_null: false)]
     property path_filter : String?
 
-    def initialize(@cache_id : CacheId, @skip_count : Int64?, @page_size : Int64?, @path_filter : String?)
+    def initialize(@cache_id : Cdp::NodeType, @skip_count : Int64?, @page_size : Int64?, @path_filter : String?)
     end
 
     # ProtoReq returns the protocol method name.

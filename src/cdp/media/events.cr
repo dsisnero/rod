@@ -9,15 +9,20 @@ module Cdp::Media
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property player_id : PlayerId
+    property player_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property properties : Array(PlayerProperty)
+    property properties : Array(Cdp::NodeType)
 
-    def initialize(@player_id : PlayerId, @properties : Array(PlayerProperty))
+    def initialize(@player_id : Cdp::NodeType, @properties : Array(Cdp::NodeType))
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Media.playerPropertiesChanged"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Media.playerPropertiesChanged"
     end
   end
@@ -26,15 +31,20 @@ module Cdp::Media
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property player_id : PlayerId
+    property player_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property events : Array(PlayerEvent)
+    property events : Array(Cdp::NodeType)
 
-    def initialize(@player_id : PlayerId, @events : Array(PlayerEvent))
+    def initialize(@player_id : Cdp::NodeType, @events : Array(Cdp::NodeType))
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Media.playerEventsAdded"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Media.playerEventsAdded"
     end
   end
@@ -43,15 +53,20 @@ module Cdp::Media
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property player_id : PlayerId
+    property player_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property messages : Array(PlayerMessage)
+    property messages : Array(Cdp::NodeType)
 
-    def initialize(@player_id : PlayerId, @messages : Array(PlayerMessage))
+    def initialize(@player_id : Cdp::NodeType, @messages : Array(Cdp::NodeType))
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Media.playerMessagesLogged"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Media.playerMessagesLogged"
     end
   end
@@ -60,15 +75,20 @@ module Cdp::Media
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property player_id : PlayerId
+    property player_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property errors : Array(PlayerError)
+    property errors : Array(Cdp::NodeType)
 
-    def initialize(@player_id : PlayerId, @errors : Array(PlayerError))
+    def initialize(@player_id : Cdp::NodeType, @errors : Array(Cdp::NodeType))
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Media.playerErrorsRaised"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Media.playerErrorsRaised"
     end
   end
@@ -77,13 +97,18 @@ module Cdp::Media
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property player : Player
+    property player : Cdp::NodeType
 
-    def initialize(@player : Player)
+    def initialize(@player : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Media.playerCreated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Media.playerCreated"
     end
   end

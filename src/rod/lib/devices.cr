@@ -12,9 +12,9 @@ module Rod::Lib::Devices
     property width : Int32
     property height : Int32
     property device_scale_factor : Float64
-    property is_mobile : Bool
-    property has_touch : Bool
-    property is_landscape : Bool
+    property? is_mobile : Bool
+    property? has_touch : Bool
+    property? is_landscape : Bool
 
     def initialize(@width, @height, @device_scale_factor = 1.0, @is_mobile = false, @has_touch = false, @is_landscape = false)
     end

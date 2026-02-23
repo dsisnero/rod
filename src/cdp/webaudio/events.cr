@@ -9,13 +9,18 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context : BaseAudioContext
+    property context : Cdp::NodeType
 
-    def initialize(@context : BaseAudioContext)
+    def initialize(@context : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "WebAudio.contextCreated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "WebAudio.contextCreated"
     end
   end
@@ -24,13 +29,18 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context_id : GraphObjectId
+    property context_id : Cdp::NodeType
 
-    def initialize(@context_id : GraphObjectId)
+    def initialize(@context_id : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "WebAudio.contextWillBeDestroyed"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "WebAudio.contextWillBeDestroyed"
     end
   end
@@ -39,13 +49,18 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context : BaseAudioContext
+    property context : Cdp::NodeType
 
-    def initialize(@context : BaseAudioContext)
+    def initialize(@context : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "WebAudio.contextChanged"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "WebAudio.contextChanged"
     end
   end
@@ -54,13 +69,18 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property listener : AudioListener
+    property listener : Cdp::NodeType
 
-    def initialize(@listener : AudioListener)
+    def initialize(@listener : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "WebAudio.audioListenerCreated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "WebAudio.audioListenerCreated"
     end
   end
@@ -69,15 +89,20 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context_id : GraphObjectId
+    property context_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property listener_id : GraphObjectId
+    property listener_id : Cdp::NodeType
 
-    def initialize(@context_id : GraphObjectId, @listener_id : GraphObjectId)
+    def initialize(@context_id : Cdp::NodeType, @listener_id : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "WebAudio.audioListenerWillBeDestroyed"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "WebAudio.audioListenerWillBeDestroyed"
     end
   end
@@ -86,13 +111,18 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property node : AudioNode
+    property node : Cdp::NodeType
 
-    def initialize(@node : AudioNode)
+    def initialize(@node : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "WebAudio.audioNodeCreated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "WebAudio.audioNodeCreated"
     end
   end
@@ -101,15 +131,20 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context_id : GraphObjectId
+    property context_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property node_id : GraphObjectId
+    property node_id : Cdp::NodeType
 
-    def initialize(@context_id : GraphObjectId, @node_id : GraphObjectId)
+    def initialize(@context_id : Cdp::NodeType, @node_id : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "WebAudio.audioNodeWillBeDestroyed"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "WebAudio.audioNodeWillBeDestroyed"
     end
   end
@@ -118,13 +153,18 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property param : AudioParam
+    property param : Cdp::NodeType
 
-    def initialize(@param : AudioParam)
+    def initialize(@param : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "WebAudio.audioParamCreated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "WebAudio.audioParamCreated"
     end
   end
@@ -133,17 +173,22 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context_id : GraphObjectId
+    property context_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property node_id : GraphObjectId
+    property node_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property param_id : GraphObjectId
+    property param_id : Cdp::NodeType
 
-    def initialize(@context_id : GraphObjectId, @node_id : GraphObjectId, @param_id : GraphObjectId)
+    def initialize(@context_id : Cdp::NodeType, @node_id : Cdp::NodeType, @param_id : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "WebAudio.audioParamWillBeDestroyed"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "WebAudio.audioParamWillBeDestroyed"
     end
   end
@@ -152,21 +197,26 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context_id : GraphObjectId
+    property context_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property source_id : GraphObjectId
+    property source_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property destination_id : GraphObjectId
+    property destination_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property source_output_index : Float64?
     @[JSON::Field(emit_null: false)]
     property destination_input_index : Float64?
 
-    def initialize(@context_id : GraphObjectId, @source_id : GraphObjectId, @destination_id : GraphObjectId, @source_output_index : Float64?, @destination_input_index : Float64?)
+    def initialize(@context_id : Cdp::NodeType, @source_id : Cdp::NodeType, @destination_id : Cdp::NodeType, @source_output_index : Float64?, @destination_input_index : Float64?)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "WebAudio.nodesConnected"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "WebAudio.nodesConnected"
     end
   end
@@ -175,21 +225,26 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context_id : GraphObjectId
+    property context_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property source_id : GraphObjectId
+    property source_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property destination_id : GraphObjectId
+    property destination_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property source_output_index : Float64?
     @[JSON::Field(emit_null: false)]
     property destination_input_index : Float64?
 
-    def initialize(@context_id : GraphObjectId, @source_id : GraphObjectId, @destination_id : GraphObjectId, @source_output_index : Float64?, @destination_input_index : Float64?)
+    def initialize(@context_id : Cdp::NodeType, @source_id : Cdp::NodeType, @destination_id : Cdp::NodeType, @source_output_index : Float64?, @destination_input_index : Float64?)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "WebAudio.nodesDisconnected"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "WebAudio.nodesDisconnected"
     end
   end
@@ -198,19 +253,24 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context_id : GraphObjectId
+    property context_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property source_id : GraphObjectId
+    property source_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property destination_id : GraphObjectId
+    property destination_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property source_output_index : Float64?
 
-    def initialize(@context_id : GraphObjectId, @source_id : GraphObjectId, @destination_id : GraphObjectId, @source_output_index : Float64?)
+    def initialize(@context_id : Cdp::NodeType, @source_id : Cdp::NodeType, @destination_id : Cdp::NodeType, @source_output_index : Float64?)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "WebAudio.nodeParamConnected"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "WebAudio.nodeParamConnected"
     end
   end
@@ -219,19 +279,24 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context_id : GraphObjectId
+    property context_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property source_id : GraphObjectId
+    property source_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property destination_id : GraphObjectId
+    property destination_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property source_output_index : Float64?
 
-    def initialize(@context_id : GraphObjectId, @source_id : GraphObjectId, @destination_id : GraphObjectId, @source_output_index : Float64?)
+    def initialize(@context_id : Cdp::NodeType, @source_id : Cdp::NodeType, @destination_id : Cdp::NodeType, @source_output_index : Float64?)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "WebAudio.nodeParamDisconnected"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "WebAudio.nodeParamDisconnected"
     end
   end

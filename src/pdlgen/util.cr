@@ -90,7 +90,7 @@ module Pdlgen
           buf = response.body.to_slice
 
           # decode if needed
-          if cache.decode
+          if cache.decode?
             str = String.new(buf)
             buf = Base64.decode(str)
           end

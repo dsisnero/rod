@@ -2,6 +2,8 @@ require "../cdp"
 require "json"
 require "time"
 
+require "../dom/dom"
+
 require "./types"
 require "./events"
 
@@ -75,9 +77,9 @@ module Cdp::FedCm
     @[JSON::Field(emit_null: false)]
     property dialog_id : String
     @[JSON::Field(emit_null: false)]
-    property dialog_button : DialogButton
+    property dialog_button : Cdp::NodeType
 
-    def initialize(@dialog_id : String, @dialog_button : DialogButton)
+    def initialize(@dialog_id : String, @dialog_button : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -99,9 +101,9 @@ module Cdp::FedCm
     @[JSON::Field(emit_null: false)]
     property account_index : Int64
     @[JSON::Field(emit_null: false)]
-    property account_url_type : AccountUrlType
+    property account_url_type : Cdp::NodeType
 
-    def initialize(@dialog_id : String, @account_index : Int64, @account_url_type : AccountUrlType)
+    def initialize(@dialog_id : String, @account_index : Int64, @account_url_type : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.

@@ -3,8 +3,6 @@ require "json"
 require "time"
 
 require "../dom/dom"
-require "../page/page"
-require "../runtime/runtime"
 
 module Cdp::Accessibility
   @[Experimental]
@@ -12,13 +10,18 @@ module Cdp::Accessibility
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property root : Node
+    property root : Cdp::NodeType
 
-    def initialize(@root : Node)
+    def initialize(@root : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Accessibility.loadComplete"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Accessibility.loadComplete"
     end
   end
@@ -28,13 +31,18 @@ module Cdp::Accessibility
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property nodes : Array(Node)
+    property nodes : Array(Cdp::NodeType)
 
-    def initialize(@nodes : Array(Node))
+    def initialize(@nodes : Array(Cdp::NodeType))
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Accessibility.nodesUpdated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Accessibility.nodesUpdated"
     end
   end

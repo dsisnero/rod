@@ -2,7 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../runtime/runtime"
+require "../dom/dom"
 
 module Cdp::HeapProfiler
   alias HeapSnapshotObjectId = String
@@ -10,13 +10,13 @@ module Cdp::HeapProfiler
   struct SamplingHeapProfileNode
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property call_frame : Cdp::Runtime::CallFrame
+    property call_frame : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property self_size : Float64
     @[JSON::Field(emit_null: false)]
     property id : Int64
     @[JSON::Field(emit_null: false)]
-    property children : Array(SamplingHeapProfileNode)
+    property children : Array(Cdp::NodeType)
   end
 
   struct SamplingHeapProfileSample
@@ -32,8 +32,8 @@ module Cdp::HeapProfiler
   struct SamplingHeapProfile
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property head : SamplingHeapProfileNode
+    property head : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property samples : Array(SamplingHeapProfileSample)
+    property samples : Array(Cdp::NodeType)
   end
 end

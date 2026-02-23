@@ -2,6 +2,8 @@ require "../cdp"
 require "json"
 require "time"
 
+require "../dom/dom"
+
 require "./types"
 
 #
@@ -23,36 +25,36 @@ module Cdp::Memory
   struct GetDOMCountersForLeakDetectionResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property counters : Array(DOMCounter)
+    property counters : Array(Cdp::NodeType)
 
-    def initialize(@counters : Array(DOMCounter))
+    def initialize(@counters : Array(Cdp::NodeType))
     end
   end
 
   struct GetAllTimeSamplingProfileResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property profile : SamplingProfile
+    property profile : Cdp::NodeType
 
-    def initialize(@profile : SamplingProfile)
+    def initialize(@profile : Cdp::NodeType)
     end
   end
 
   struct GetBrowserSamplingProfileResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property profile : SamplingProfile
+    property profile : Cdp::NodeType
 
-    def initialize(@profile : SamplingProfile)
+    def initialize(@profile : Cdp::NodeType)
     end
   end
 
   struct GetSamplingProfileResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property profile : SamplingProfile
+    property profile : Cdp::NodeType
 
-    def initialize(@profile : SamplingProfile)
+    def initialize(@profile : Cdp::NodeType)
     end
   end
 
@@ -157,9 +159,9 @@ module Cdp::Memory
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property level : PressureLevel
+    property level : Cdp::NodeType
 
-    def initialize(@level : PressureLevel)
+    def initialize(@level : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.

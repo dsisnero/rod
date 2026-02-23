@@ -2,6 +2,8 @@ require "../cdp"
 require "json"
 require "time"
 
+require "../dom/dom"
+
 module Cdp::SystemInfo
   struct GPUDevice
     include JSON::Serializable
@@ -36,9 +38,9 @@ module Cdp::SystemInfo
     @[JSON::Field(emit_null: false)]
     property profile : String
     @[JSON::Field(emit_null: false)]
-    property max_resolution : Size
+    property max_resolution : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property min_resolution : Size
+    property min_resolution : Cdp::NodeType
   end
 
   struct VideoEncodeAcceleratorCapability
@@ -46,7 +48,7 @@ module Cdp::SystemInfo
     @[JSON::Field(emit_null: false)]
     property profile : String
     @[JSON::Field(emit_null: false)]
-    property max_resolution : Size
+    property max_resolution : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property max_framerate_numerator : Int64
     @[JSON::Field(emit_null: false)]
@@ -66,7 +68,7 @@ module Cdp::SystemInfo
   struct GPUInfo
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property devices : Array(GPUDevice)
+    property devices : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property aux_attributes : JSON::Any?
     @[JSON::Field(emit_null: false)]
@@ -74,9 +76,9 @@ module Cdp::SystemInfo
     @[JSON::Field(emit_null: false)]
     property driver_bug_workarounds : Array(String)
     @[JSON::Field(emit_null: false)]
-    property video_decoding : Array(VideoDecodeAcceleratorCapability)
+    property video_decoding : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property video_encoding : Array(VideoEncodeAcceleratorCapability)
+    property video_encoding : Array(Cdp::NodeType)
   end
 
   struct ProcessInfo

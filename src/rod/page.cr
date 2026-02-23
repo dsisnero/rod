@@ -144,10 +144,25 @@ module Rod
     property mouse : Mouse?
     property touch : Touch?
     property element : Element?
+    @e : EFunc?
 
     # IsIframe tells if it's iframe.
     def iframe? : Bool
       !@element.nil?
+    end
+
+    # e is the error handler for Must methods.
+    # It calls the configured EFunc with the error.
+    protected def e(err : Exception?) : Nil
+      @e.try &.call(err)
+    end
+
+    # WithPanic returns a page clone with the specified panic function.
+    # The fail must stop the current goroutine's execution immediately.
+    def with_panic(fail : Proc(Exception, Nil)) : Page
+      new_obj = self.clone
+      new_obj.instance_variable_set("@e", Browser.gen_e(fail))
+      new_obj
     end
 
     # Sleeper for retry logic
@@ -177,6 +192,7 @@ module Rod
     end
 
     def initialize(@browser, @target_id, @session_id = nil, @frame_id = nil, @ctx : Context = Context.background, @sleeper = -> { Rod::Utils::Sleeper.new }, @element = nil)
+      @e = ->(err : Exception?) { @browser.e(err) }
     end
 
     # Retry a block that may raise NotFoundError until it succeeds or timeout expires.
@@ -280,6 +296,59 @@ module Rod
       new_obj = self.clone
       new_obj.sleeper = sleeper
       new_obj
+    end
+
+    # EachEvent is similar to Browser.EachEvent, but catches events of the current page only.
+    macro eachevent(*callbacks)
+      \{% begin %}
+        {
+          cb_map = {} of String => Browser::CallbackInfo
+          \{% for cb in callbacks %}
+            \{% t = cb.type %}
+            \{% unless t.is_a?(Proc) %}
+              \{% raise "EachEvent expects Proc(...) callbacks; got #{t}" %}
+            \{% end %}
+            \{% event_t = t.type_vars[0] %}
+            \{% if event_t.is_a?(Union) %}
+              \{% non_nil = event_t.types.reject(&.==(Nil)).first %}
+              \{% event_t = non_nil %}
+            \{% end %}
+            \{% event_class = event_t.resolve %}
+            \{% event_name = event_class.proto_event %}
+            \{% num_args = t.type_vars.size - 1 %}
+            \{% if num_args == 1 %}
+              # Original callback takes event only
+              wrapper = ->(event : Cdp::Event, session_id : SessionID?) do
+                typed_event = event.as(\{{event_class}})
+                \{{cb}}.call(typed_event)
+              end
+            \{% elsif num_args == 2 %}
+              # Original callback takes event and session_id
+              wrapper = ->(event : Cdp::Event, session_id : SessionID?) do
+                typed_event = event.as(\{{event_class}})
+                \{{cb}}.call(typed_event, session_id)
+              end
+            \{% else %}
+              \{% raise "EachEvent callback must have 1 or 2 arguments" %}
+            \{% end %}
+            cb_map[\{{event_name}}] = Browser::CallbackInfo.new(
+              \{{event_class}},
+              wrapper
+            )
+          \{% end %}
+          browser.context(@ctx).each_event(@session_id, cb_map)
+        \\\\}
+      \{% end %}
+    end
+
+    # EachEvent public API with uppercase name
+    # def EachEvent(*callbacks)
+    #   eachevent(*callbacks)
+    # end
+
+    # WaitEvent waits for the next event for one time. It will also load the data into the event object.
+    def wait_event(e : Cdp::Event) : Proc(Nil)
+      browser.context(@ctx).wait_event(e, @session_id)
     end
 
     # Sessionable implementation

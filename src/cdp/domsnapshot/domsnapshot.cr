@@ -3,8 +3,6 @@ require "json"
 require "time"
 
 require "../dom/dom"
-require "../page/page"
-require "../domdebugger/domdebugger"
 
 require "./types"
 
@@ -14,11 +12,11 @@ module Cdp::DOMSnapshot
   struct CaptureSnapshotResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property documents : Array(DocumentSnapshot)
+    property documents : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property strings : Array(String)
 
-    def initialize(@documents : Array(DocumentSnapshot), @strings : Array(String))
+    def initialize(@documents : Array(Cdp::NodeType), @strings : Array(String))
     end
   end
 

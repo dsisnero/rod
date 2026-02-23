@@ -2,9 +2,6 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../network/network"
-require "../page/page"
-require "../runtime/runtime"
 require "../dom/dom"
 
 module Cdp::Audits
@@ -21,7 +18,7 @@ module Cdp::Audits
   struct AffectedRequest
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::Network::RequestId?
+    property request_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property url : String
   end
@@ -29,7 +26,7 @@ module Cdp::Audits
   struct AffectedFrame
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property frame_id : Cdp::Page::FrameId
+    property frame_id : Cdp::NodeType
   end
 
   alias CookieExclusionReason = String
@@ -71,7 +68,7 @@ module Cdp::Audits
   struct CookieIssueInsight
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property type : InsightType
+    property type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property table_entry_url : String?
   end
@@ -79,23 +76,23 @@ module Cdp::Audits
   struct CookieIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property cookie : AffectedCookie?
+    property cookie : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property raw_cookie_line : String?
     @[JSON::Field(emit_null: false)]
-    property cookie_warning_reasons : Array(CookieWarningReason)
+    property cookie_warning_reasons : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property cookie_exclusion_reasons : Array(CookieExclusionReason)
+    property cookie_exclusion_reasons : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property operation : CookieOperation
+    property operation : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property site_for_cookies : String?
     @[JSON::Field(emit_null: false)]
     property cookie_url : String?
     @[JSON::Field(emit_null: false)]
-    property request : AffectedRequest?
+    property request : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property insight : CookieIssueInsight?
+    property insight : Cdp::NodeType?
   end
 
   alias PerformanceIssueType = String
@@ -104,9 +101,9 @@ module Cdp::Audits
   struct PerformanceIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property performance_issue_type : PerformanceIssueType
+    property performance_issue_type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property source_code_location : SourceCodeLocation?
+    property source_code_location : Cdp::NodeType?
   end
 
   alias MixedContentResolutionStatus = String
@@ -148,17 +145,17 @@ module Cdp::Audits
   struct MixedContentIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property resource_type : MixedContentResourceType?
+    property resource_type : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property resolution_status : MixedContentResolutionStatus
+    property resolution_status : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property insecure_url : String
     @[JSON::Field(emit_null: false)]
     property main_resource_url : String
     @[JSON::Field(emit_null: false)]
-    property request : AffectedRequest?
+    property request : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property frame : AffectedFrame?
+    property frame : Cdp::NodeType?
   end
 
   alias BlockedByResponseReason = String
@@ -174,13 +171,13 @@ module Cdp::Audits
   struct BlockedByResponseIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property request : AffectedRequest
+    property request : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property parent_frame : AffectedFrame?
+    property parent_frame : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property blocked_frame : AffectedFrame?
+    property blocked_frame : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property reason : BlockedByResponseReason
+    property reason : Cdp::NodeType
   end
 
   alias HeavyAdResolutionStatus = String
@@ -195,11 +192,11 @@ module Cdp::Audits
   struct HeavyAdIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property resolution : HeavyAdResolutionStatus
+    property resolution : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property reason : HeavyAdReason
+    property reason : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property frame : AffectedFrame
+    property frame : Cdp::NodeType
   end
 
   alias ContentSecurityPolicyViolationType = String
@@ -214,7 +211,7 @@ module Cdp::Audits
   struct SourceCodeLocation
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property script_id : Cdp::Runtime::ScriptId?
+    property script_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property url : String
     @[JSON::Field(emit_null: false)]
@@ -232,13 +229,13 @@ module Cdp::Audits
     @[JSON::Field(emit_null: false)]
     property? is_report_only : Bool
     @[JSON::Field(emit_null: false)]
-    property content_security_policy_violation_type : ContentSecurityPolicyViolationType
+    property content_security_policy_violation_type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property frame_ancestor : AffectedFrame?
+    property frame_ancestor : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property source_code_location : SourceCodeLocation?
+    property source_code_location : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property violating_node_id : Cdp::DOM::BackendNodeId?
+    property violating_node_id : Cdp::NodeType?
   end
 
   alias SharedArrayBufferIssueType = String
@@ -248,17 +245,17 @@ module Cdp::Audits
   struct SharedArrayBufferIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property source_code_location : SourceCodeLocation
+    property source_code_location : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property? is_warning : Bool
     @[JSON::Field(emit_null: false)]
-    property type : SharedArrayBufferIssueType
+    property type : Cdp::NodeType
   end
 
   struct LowTextContrastIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property violating_node_id : Cdp::DOM::BackendNodeId
+    property violating_node_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property violating_node_selector : String
     @[JSON::Field(emit_null: false)]
@@ -276,19 +273,19 @@ module Cdp::Audits
   struct CorsIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property cors_error_status : Cdp::Network::CorsErrorStatus
+    property cors_error_status : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property? is_warning : Bool
     @[JSON::Field(emit_null: false)]
-    property request : AffectedRequest
+    property request : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property location : SourceCodeLocation?
+    property location : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property initiator_origin : String?
     @[JSON::Field(emit_null: false)]
-    property resource_ip_address_space : Cdp::Network::IPAddressSpace?
+    property resource_ip_address_space : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property client_security_state : Cdp::Network::ClientSecurityState?
+    property client_security_state : Cdp::NodeType?
   end
 
   alias AttributionReportingIssueType = String
@@ -381,11 +378,11 @@ module Cdp::Audits
   struct AttributionReportingIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property violation_type : AttributionReportingIssueType
+    property violation_type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property request : AffectedRequest?
+    property request : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property violating_node_id : Cdp::DOM::BackendNodeId?
+    property violating_node_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property invalid_parameter : String?
   end
@@ -395,49 +392,49 @@ module Cdp::Audits
     @[JSON::Field(emit_null: false)]
     property? is_limited_quirks_mode : Bool
     @[JSON::Field(emit_null: false)]
-    property document_node_id : Cdp::DOM::BackendNodeId
+    property document_node_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property url : String
     @[JSON::Field(emit_null: false)]
-    property frame_id : Cdp::Page::FrameId
+    property frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property loader_id : Cdp::Network::LoaderId
+    property loader_id : Cdp::NodeType
   end
 
   struct SharedDictionaryIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property shared_dictionary_error : SharedDictionaryError
+    property shared_dictionary_error : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property request : AffectedRequest
+    property request : Cdp::NodeType
   end
 
   struct SRIMessageSignatureIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property error : SRIMessageSignatureError
+    property error : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property signature_base : String
     @[JSON::Field(emit_null: false)]
     property integrity_assertions : Array(String)
     @[JSON::Field(emit_null: false)]
-    property request : AffectedRequest
+    property request : Cdp::NodeType
   end
 
   struct UnencodedDigestIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property error : UnencodedDigestError
+    property error : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property request : AffectedRequest
+    property request : Cdp::NodeType
   end
 
   struct ConnectionAllowlistIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property error : ConnectionAllowlistError
+    property error : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property request : AffectedRequest
+    property request : Cdp::NodeType
   end
 
   alias GenericIssueErrorType = String
@@ -460,23 +457,23 @@ module Cdp::Audits
   struct GenericIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property error_type : GenericIssueErrorType
+    property error_type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property frame_id : Cdp::Page::FrameId?
+    property frame_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property violating_node_id : Cdp::DOM::BackendNodeId?
+    property violating_node_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property violating_node_attribute : String?
     @[JSON::Field(emit_null: false)]
-    property request : AffectedRequest?
+    property request : Cdp::NodeType?
   end
 
   struct DeprecationIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property affected_frame : AffectedFrame?
+    property affected_frame : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property source_code_location : SourceCodeLocation
+    property source_code_location : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property type : String
   end
@@ -496,7 +493,7 @@ module Cdp::Audits
     @[JSON::Field(emit_null: false)]
     property? is_opt_out_top_level : Bool
     @[JSON::Field(emit_null: false)]
-    property operation : CookieOperation
+    property operation : Cdp::NodeType
   end
 
   alias ClientHintIssueReason = String
@@ -506,7 +503,7 @@ module Cdp::Audits
   struct FederatedAuthRequestIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property federated_auth_request_issue_reason : FederatedAuthRequestIssueReason
+    property federated_auth_request_issue_reason : Cdp::NodeType
   end
 
   alias FederatedAuthRequestIssueReason = String
@@ -556,7 +553,7 @@ module Cdp::Audits
   struct FederatedAuthUserInfoRequestIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property federated_auth_user_info_request_issue_reason : FederatedAuthUserInfoRequestIssueReason
+    property federated_auth_user_info_request_issue_reason : Cdp::NodeType
   end
 
   alias FederatedAuthUserInfoRequestIssueReason = String
@@ -573,9 +570,9 @@ module Cdp::Audits
   struct ClientHintIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property source_code_location : SourceCodeLocation
+    property source_code_location : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property client_hint_issue_reason : ClientHintIssueReason
+    property client_hint_issue_reason : Cdp::NodeType
   end
 
   struct FailedRequestInfo
@@ -585,7 +582,7 @@ module Cdp::Audits
     @[JSON::Field(emit_null: false)]
     property failure_message : String
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::Network::RequestId?
+    property request_id : Cdp::NodeType?
   end
 
   alias PartitioningBlobURLInfo = String
@@ -597,7 +594,7 @@ module Cdp::Audits
     @[JSON::Field(emit_null: false)]
     property url : String
     @[JSON::Field(emit_null: false)]
-    property partitioning_blob_url_info : PartitioningBlobURLInfo
+    property partitioning_blob_url_info : Cdp::NodeType
   end
 
   alias ElementAccessibilityIssueReason = String
@@ -611,9 +608,9 @@ module Cdp::Audits
   struct ElementAccessibilityIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::DOM::BackendNodeId
+    property node_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property element_accessibility_issue_reason : ElementAccessibilityIssueReason
+    property element_accessibility_issue_reason : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property? has_disallowed_attributes : Bool
   end
@@ -625,11 +622,11 @@ module Cdp::Audits
   struct StylesheetLoadingIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property source_code_location : SourceCodeLocation
+    property source_code_location : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property style_sheet_loading_issue_reason : StyleSheetLoadingIssueReason
+    property style_sheet_loading_issue_reason : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property failed_request_info : FailedRequestInfo?
+    property failed_request_info : Cdp::NodeType?
   end
 
   alias PropertyRuleIssueReason = String
@@ -641,9 +638,9 @@ module Cdp::Audits
   struct PropertyRuleIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property source_code_location : SourceCodeLocation
+    property source_code_location : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property property_rule_issue_reason : PropertyRuleIssueReason
+    property property_rule_issue_reason : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property property_value : String?
   end
@@ -656,11 +653,11 @@ module Cdp::Audits
   struct UserReidentificationIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property type : UserReidentificationIssueType
+    property type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property request : AffectedRequest?
+    property request : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property source_code_location : SourceCodeLocation?
+    property source_code_location : Cdp::NodeType?
   end
 
   alias PermissionElementIssueType = String
@@ -689,11 +686,11 @@ module Cdp::Audits
   struct PermissionElementIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property issue_type : PermissionElementIssueType
+    property issue_type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property type : String?
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::DOM::BackendNodeId?
+    property node_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property? is_warning : Bool?
     @[JSON::Field(emit_null: false)]
@@ -740,63 +737,63 @@ module Cdp::Audits
   struct InspectorIssueDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property cookie_issue_details : CookieIssueDetails?
+    property cookie_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property mixed_content_issue_details : MixedContentIssueDetails?
+    property mixed_content_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property blocked_by_response_issue_details : BlockedByResponseIssueDetails?
+    property blocked_by_response_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property heavy_ad_issue_details : HeavyAdIssueDetails?
+    property heavy_ad_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property content_security_policy_issue_details : ContentSecurityPolicyIssueDetails?
+    property content_security_policy_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property shared_array_buffer_issue_details : SharedArrayBufferIssueDetails?
+    property shared_array_buffer_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property low_text_contrast_issue_details : LowTextContrastIssueDetails?
+    property low_text_contrast_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property cors_issue_details : CorsIssueDetails?
+    property cors_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property attribution_reporting_issue_details : AttributionReportingIssueDetails?
+    property attribution_reporting_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property quirks_mode_issue_details : QuirksModeIssueDetails?
+    property quirks_mode_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property partitioning_blob_url_issue_details : PartitioningBlobURLIssueDetails?
+    property partitioning_blob_url_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property navigator_user_agent_issue_details : NavigatorUserAgentIssueDetails?
+    property navigator_user_agent_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property generic_issue_details : GenericIssueDetails?
+    property generic_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property deprecation_issue_details : DeprecationIssueDetails?
+    property deprecation_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property client_hint_issue_details : ClientHintIssueDetails?
+    property client_hint_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property federated_auth_request_issue_details : FederatedAuthRequestIssueDetails?
+    property federated_auth_request_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property bounce_tracking_issue_details : BounceTrackingIssueDetails?
+    property bounce_tracking_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property cookie_deprecation_metadata_issue_details : CookieDeprecationMetadataIssueDetails?
+    property cookie_deprecation_metadata_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property stylesheet_loading_issue_details : StylesheetLoadingIssueDetails?
+    property stylesheet_loading_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property property_rule_issue_details : PropertyRuleIssueDetails?
+    property property_rule_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property federated_auth_user_info_request_issue_details : FederatedAuthUserInfoRequestIssueDetails?
+    property federated_auth_user_info_request_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property shared_dictionary_issue_details : SharedDictionaryIssueDetails?
+    property shared_dictionary_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property element_accessibility_issue_details : ElementAccessibilityIssueDetails?
+    property element_accessibility_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property sri_message_signature_issue_details : SRIMessageSignatureIssueDetails?
+    property sri_message_signature_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property unencoded_digest_issue_details : UnencodedDigestIssueDetails?
+    property unencoded_digest_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property connection_allowlist_issue_details : ConnectionAllowlistIssueDetails?
+    property connection_allowlist_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property user_reidentification_issue_details : UserReidentificationIssueDetails?
+    property user_reidentification_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property permission_element_issue_details : PermissionElementIssueDetails?
+    property permission_element_issue_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property performance_issue_details : PerformanceIssueDetails?
+    property performance_issue_details : Cdp::NodeType?
   end
 
   alias IssueId = String
@@ -804,11 +801,11 @@ module Cdp::Audits
   struct InspectorIssue
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property code : InspectorIssueCode
+    property code : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property details : InspectorIssueDetails
+    property details : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property issue_id : IssueId?
+    property issue_id : Cdp::NodeType?
   end
 
   alias GetEncodedResponseEncoding = String

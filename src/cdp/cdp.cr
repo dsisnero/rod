@@ -71,8 +71,21 @@ module Cdp
   # GetType from method name of this package,
   # such as Cdp.get_type("Page.enable") will return the type of Cdp::Page::Enable.
   def self.get_type(method_name : String) : Class
-    # TODO: Implement type lookup from method name
-    raise "Not implemented: get_type for #{method_name}"
+    domain, name = parse_method_name(method_name)
+    domain_module = Cdp.const_get(domain.camelcase).as(Module)
+    # Try event name: NameEvent
+    event_name = name.camelcase + "Event"
+    if domain_module.const_defined?(event_name)
+      return domain_module.const_get(event_name).as(Class)
+    end
+    # Try command name: Name
+    cmd_name = name.camelcase
+    if domain_module.const_defined?(cmd_name)
+      return domain_module.const_get(cmd_name).as(Class)
+    end
+    raise "Unknown method: #{method_name}"
+  rescue ex : KeyError
+    raise "Unknown method: #{method_name}"
   end
 
   # ParseMethodName to domain and name.

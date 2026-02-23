@@ -3,8 +3,6 @@ require "json"
 require "time"
 
 require "../dom/dom"
-require "../page/page"
-require "../runtime/runtime"
 
 module Cdp::Accessibility
   alias NodeId = String
@@ -51,19 +49,19 @@ module Cdp::Accessibility
   struct ValueSource
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property type : ValueSourceType
+    property type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property value : Value?
+    property value : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property attribute : String?
     @[JSON::Field(emit_null: false)]
-    property attribute_value : Value?
+    property attribute_value : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property? superseded : Bool?
     @[JSON::Field(emit_null: false)]
-    property native_source : ValueNativeSourceType?
+    property native_source : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property native_source_value : Value?
+    property native_source_value : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property? invalid : Bool?
     @[JSON::Field(emit_null: false)]
@@ -73,7 +71,7 @@ module Cdp::Accessibility
   struct RelatedNode
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property backend_dom_node_id : Cdp::DOM::BackendNodeId
+    property backend_dom_node_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property idref : String?
     @[JSON::Field(emit_null: false)]
@@ -83,21 +81,21 @@ module Cdp::Accessibility
   struct Property
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property name : PropertyName
+    property name : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property value : Value
+    property value : Cdp::NodeType
   end
 
   struct Value
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property type : ValueType
+    property type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property value : JSON::Any?
     @[JSON::Field(emit_null: false)]
-    property related_nodes : Array(RelatedNode)?
+    property related_nodes : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property sources : Array(ValueSource)?
+    property sources : Array(Cdp::NodeType)?
   end
 
   alias PropertyName = String
@@ -163,30 +161,30 @@ module Cdp::Accessibility
   struct Node
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property node_id : NodeId
+    property node_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property? ignored : Bool
     @[JSON::Field(emit_null: false)]
-    property ignored_reasons : Array(Property)?
+    property ignored_reasons : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property role : Value?
+    property role : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property chrome_role : Value?
+    property chrome_role : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property name : Value?
+    property name : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property description : Value?
+    property description : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property value : Value?
+    property value : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property properties : Array(Property)?
+    property properties : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property parent_id : NodeId?
+    property parent_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property child_ids : Array(NodeId)?
+    property child_ids : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property backend_dom_node_id : Cdp::DOM::BackendNodeId?
+    property backend_dom_node_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property frame_id : Cdp::Page::FrameId?
+    property frame_id : Cdp::NodeType?
   end
 end

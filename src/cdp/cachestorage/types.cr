@@ -2,7 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../storage/storage"
+require "../dom/dom"
 
 module Cdp::CacheStorage
   alias CacheId = String
@@ -22,7 +22,7 @@ module Cdp::CacheStorage
     @[JSON::Field(emit_null: false)]
     property request_method : String
     @[JSON::Field(emit_null: false)]
-    property request_headers : Array(Header)
+    property request_headers : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property response_time : Float64
     @[JSON::Field(emit_null: false)]
@@ -30,21 +30,21 @@ module Cdp::CacheStorage
     @[JSON::Field(emit_null: false)]
     property response_status_text : String
     @[JSON::Field(emit_null: false)]
-    property response_type : CachedResponseType
+    property response_type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property response_headers : Array(Header)
+    property response_headers : Array(Cdp::NodeType)
   end
 
   struct Cache
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property cache_id : CacheId
+    property cache_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property security_origin : String
     @[JSON::Field(emit_null: false)]
     property storage_key : String
     @[JSON::Field(emit_null: false)]
-    property storage_bucket : Cdp::Storage::StorageBucket?
+    property storage_bucket : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property cache_name : String
   end

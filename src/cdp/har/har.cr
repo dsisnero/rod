@@ -2,8 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../log/log"
-require "../page/page"
+require "../dom/dom"
 
 require "./types"
 

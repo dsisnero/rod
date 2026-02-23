@@ -2,40 +2,43 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../network/network"
-require "../io/io"
-require "../page/page"
+require "../dom/dom"
 
 module Cdp::Fetch
   struct RequestPausedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : RequestId
+    property request_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property request : Cdp::Network::Request
+    property request : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property frame_id : Cdp::Page::FrameId
+    property frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property resource_type : Cdp::Network::ResourceType
+    property resource_type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property response_error_reason : Cdp::Network::ErrorReason?
+    property response_error_reason : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property response_status_code : Int64?
     @[JSON::Field(emit_null: false)]
     property response_status_text : String?
     @[JSON::Field(emit_null: false)]
-    property response_headers : Array(HeaderEntry)?
+    property response_headers : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property network_id : Cdp::Network::RequestId?
+    property network_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property redirected_request_id : RequestId?
+    property redirected_request_id : Cdp::NodeType?
 
-    def initialize(@request_id : RequestId, @request : Cdp::Network::Request, @frame_id : Cdp::Page::FrameId, @resource_type : Cdp::Network::ResourceType, @response_error_reason : Cdp::Network::ErrorReason?, @response_status_code : Int64?, @response_status_text : String?, @response_headers : Array(HeaderEntry)?, @network_id : Cdp::Network::RequestId?, @redirected_request_id : RequestId?)
+    def initialize(@request_id : Cdp::NodeType, @request : Cdp::NodeType, @frame_id : Cdp::NodeType, @resource_type : Cdp::NodeType, @response_error_reason : Cdp::NodeType?, @response_status_code : Int64?, @response_status_text : String?, @response_headers : Array(Cdp::NodeType)?, @network_id : Cdp::NodeType?, @redirected_request_id : Cdp::NodeType?)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Fetch.requestPaused"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Fetch.requestPaused"
     end
   end
@@ -44,21 +47,26 @@ module Cdp::Fetch
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : RequestId
+    property request_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property request : Cdp::Network::Request
+    property request : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property frame_id : Cdp::Page::FrameId
+    property frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property resource_type : Cdp::Network::ResourceType
+    property resource_type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property auth_challenge : AuthChallenge
+    property auth_challenge : Cdp::NodeType
 
-    def initialize(@request_id : RequestId, @request : Cdp::Network::Request, @frame_id : Cdp::Page::FrameId, @resource_type : Cdp::Network::ResourceType, @auth_challenge : AuthChallenge)
+    def initialize(@request_id : Cdp::NodeType, @request : Cdp::NodeType, @frame_id : Cdp::NodeType, @resource_type : Cdp::NodeType, @auth_challenge : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Fetch.authRequired"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Fetch.authRequired"
     end
   end

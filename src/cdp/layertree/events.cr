@@ -9,15 +9,20 @@ module Cdp::LayerTree
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property layer_id : LayerId
+    property layer_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property clip : Cdp::DOM::Rect
+    property clip : Cdp::NodeType
 
-    def initialize(@layer_id : LayerId, @clip : Cdp::DOM::Rect)
+    def initialize(@layer_id : Cdp::NodeType, @clip : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "LayerTree.layerPainted"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "LayerTree.layerPainted"
     end
   end
@@ -26,13 +31,18 @@ module Cdp::LayerTree
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property layers : Array(Layer)?
+    property layers : Array(Cdp::NodeType)?
 
-    def initialize(@layers : Array(Layer)?)
+    def initialize(@layers : Array(Cdp::NodeType)?)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "LayerTree.layerTreeDidChange"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "LayerTree.layerTreeDidChange"
     end
   end

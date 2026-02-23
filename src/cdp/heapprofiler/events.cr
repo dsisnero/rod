@@ -2,7 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../runtime/runtime"
+require "../dom/dom"
 
 module Cdp::HeapProfiler
   struct AddHeapSnapshotChunkEvent
@@ -16,6 +16,11 @@ module Cdp::HeapProfiler
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "HeapProfiler.addHeapSnapshotChunk"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "HeapProfiler.addHeapSnapshotChunk"
     end
   end
@@ -33,6 +38,11 @@ module Cdp::HeapProfiler
     def proto_event : String
       "HeapProfiler.heapStatsUpdate"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "HeapProfiler.heapStatsUpdate"
+    end
   end
 
   struct LastSeenObjectIdEvent
@@ -48,6 +58,11 @@ module Cdp::HeapProfiler
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "HeapProfiler.lastSeenObjectId"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "HeapProfiler.lastSeenObjectId"
     end
   end
@@ -69,6 +84,11 @@ module Cdp::HeapProfiler
     def proto_event : String
       "HeapProfiler.reportHeapSnapshotProgress"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "HeapProfiler.reportHeapSnapshotProgress"
+    end
   end
 
   struct ResetProfilesEvent
@@ -80,6 +100,11 @@ module Cdp::HeapProfiler
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "HeapProfiler.resetProfiles"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "HeapProfiler.resetProfiles"
     end
   end

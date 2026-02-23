@@ -1,0 +1,133 @@
+In Crystal, there are basically **two workable ways** to “extract the event type” from a callback:
+
+1. **Introspect the callback’s *type*** (i.e., `Proc(...)`) and grab the first type var
+2. **Avoid macro introspection entirely** by using a typed `on(T, &block)` API that lets the compiler infer `T` (often cleaner / less brittle)
+
+Given your exact macro shape (`EachEvent(*callbacks)`), the best you can do is (1), with a couple of important caveats.
+
+---
+
+## 1) Using `cb.type.type_vars[0]` (yes, this is the right idea)
+
+For a `Proc`, the type parameters are the argument types **followed by** the return type.
+
+So:
+
+* `Proc(Event, Bool?)` means: **arg0 = Event**, **return = Bool?**
+* `Proc(Event, SessionID?, Bool?)` means: **arg0 = Event**, **arg1 = SessionID?**, **return = Bool?**
+
+So the event type is reliably:
+
+```crystal
+{% event_t = cb.type.type_vars[0] %}
+```
+
+### A practical macro implementation
+
+```crystal
+macro EachEvent(*callbacks)
+  {% for cb in callbacks %}
+    {% t = cb.type %}
+
+    {%
+      # t should look like Proc(A0, A1, ..., R)
+      unless t.responds_to?(:type_vars) && t.type_vars.size >= 2
+        raise "EachEvent expects Proc(...) callbacks; got #{t}"
+      end
+    %}
+
+    {% event_t = t.type_vars[0] %}
+
+    {%
+      # If someone passed a nilable event type (rare but possible),
+      # strip Nil so you can call .proto_event on the real type.
+      if event_t.is_a?(Union)
+        non_nil = event_t.types.reject(&.==(Nil)).first?
+        if non_nil
+          event_t = non_nil
+        end
+      end
+    %}
+
+    _register_callback({{ event_t }}.proto_event, {{ cb }})
+  {% end %}
+
+  ->{ _wait_for_callbacks }
+end
+```
+
+### The big gotcha: **macros can only “see” types that are already explicit enough**
+
+This works great when `cb` is:
+
+* a proc literal with annotated args:
+
+  ```crystal
+  EachEvent(
+    ->(e : Cdp::Page::FrameNavigatedEvent) { true },
+    ->(e : Cdp::Runtime::ExceptionThrownEvent, sid : SessionID?) { true },
+  )
+  ```
+
+* or a proc variable that has an explicit Proc type somewhere:
+
+  ```crystal
+  cb : Proc(Cdp::Page::FrameNavigatedEvent, Bool?) = ->(e) { true }
+  EachEvent(cb)
+  ```
+
+It gets **fragile** if you pass something the compiler can’t type until later, or you pass a method reference without an explicit proc type. In those cases `cb.type` may be too generic (or you’ll get a compile error).
+
+**Rule of thumb:** if you want this macro pattern, require that the first param type is explicit (either in the proc literal or via an `.as(Proc(...))` cast).
+
+---
+
+## 2) A better pattern (often): don’t introspect — infer `T` via a typed `on`
+
+If you’re already doing “register callbacks for dynamic event handling”, Crystal can usually infer the event type without any macro reflection if you give it a generic method signature.
+
+Example:
+
+```crystal
+class Dispatcher
+  def on(&cb : (T) -> Bool?) forall T
+    _register_callback(T.proto_event, cb)
+  end
+
+  def on(&cb : (T, SessionID?) -> Bool?) forall T
+    _register_callback(T.proto_event, cb)
+  end
+end
+```
+
+Usage:
+
+```crystal
+d = Dispatcher.new
+
+d.on do |e : Cdp::Page::FrameNavigatedEvent|
+  true
+end
+
+d.on do |e : Cdp::Page::FrameNavigatedEvent, sid : SessionID?|
+  true
+end
+```
+
+This approach usually ends up:
+
+* more readable
+* less macro-magic
+* fewer “why can’t the macro see my type?” moments
+
+You can still offer `EachEvent(...)` as a convenience macro that just calls `on { ... }` repeatedly, but the *type extraction* becomes trivial because `T` is the generic type parameter.
+
+---
+
+## What I’d do in your port
+
+* If you want to keep the Go-like “list of callbacks” syntax: **use `cb.type.type_vars[0]`** exactly as you proposed, and **document** that callback procs must have explicit types (or be explicitly cast).
+* If you’re willing to adjust the API slightly: prefer a typed `on` method (with overloads for `(T)->R` and `(T, SessionID?)->R`) and make `EachEvent` a thin wrapper.
+
+If you paste one of your existing callback call-sites (how callers are passing `cb` today), I can tell you which of the two patterns will be most reliable and how to make it compile with the least ceremony.
+

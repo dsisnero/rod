@@ -2,40 +2,39 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../runtime/runtime"
-require "../network/network"
+require "../dom/dom"
 
 module Cdp::Log
   struct LogEntry
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property source : Source
+    property source : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property level : Level
+    property level : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property text : String
     @[JSON::Field(emit_null: false)]
-    property category : LogEntryCategory?
+    property category : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::Runtime::Timestamp
+    property timestamp : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property url : String?
     @[JSON::Field(emit_null: false)]
     property line_number : Int64?
     @[JSON::Field(emit_null: false)]
-    property stack_trace : Cdp::Runtime::StackTrace?
+    property stack_trace : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property network_request_id : Cdp::Network::RequestId?
+    property network_request_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property worker_id : String?
     @[JSON::Field(emit_null: false)]
-    property args : Array(Cdp::Runtime::RemoteObject)?
+    property args : Array(Cdp::NodeType)?
   end
 
   struct ViolationSetting
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property name : Violation
+    property name : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property threshold : Float64
   end

@@ -2,8 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../runtime/runtime"
-require "../debugger/debugger"
+require "../dom/dom"
 
 require "./types"
 require "./events"
@@ -13,9 +12,9 @@ module Cdp::Profiler
   struct GetBestEffortCoverageResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property result : Array(ScriptCoverage)
+    property result : Array(Cdp::NodeType)
 
-    def initialize(@result : Array(ScriptCoverage))
+    def initialize(@result : Array(Cdp::NodeType))
     end
   end
 
@@ -31,20 +30,20 @@ module Cdp::Profiler
   struct StopResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property profile : Profile
+    property profile : Cdp::NodeType
 
-    def initialize(@profile : Profile)
+    def initialize(@profile : Cdp::NodeType)
     end
   end
 
   struct TakePreciseCoverageResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property result : Array(ScriptCoverage)
+    property result : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property timestamp : Float64
 
-    def initialize(@result : Array(ScriptCoverage), @timestamp : Float64)
+    def initialize(@result : Array(Cdp::NodeType), @timestamp : Float64)
     end
   end
 

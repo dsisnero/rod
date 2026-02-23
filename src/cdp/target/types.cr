@@ -2,8 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../page/page"
-require "../browser/browser"
+require "../dom/dom"
 
 module Cdp::Target
   alias TargetID = String
@@ -13,7 +12,7 @@ module Cdp::Target
   struct TargetInfo
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property target_id : TargetID
+    property target_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property type : String
     @[JSON::Field(emit_null: false)]
@@ -23,15 +22,15 @@ module Cdp::Target
     @[JSON::Field(emit_null: false)]
     property? attached : Bool
     @[JSON::Field(emit_null: false)]
-    property opener_id : TargetID?
+    property opener_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property? can_access_opener : Bool
     @[JSON::Field(emit_null: false)]
-    property opener_frame_id : Cdp::Page::FrameId?
+    property opener_frame_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property parent_frame_id : Cdp::Page::FrameId?
+    property parent_frame_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property browser_context_id : Cdp::Browser::BrowserContextID?
+    property browser_context_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property subtype : String?
   end

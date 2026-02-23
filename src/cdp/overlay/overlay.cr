@@ -3,8 +3,6 @@ require "json"
 require "time"
 
 require "../dom/dom"
-require "../page/page"
-require "../runtime/runtime"
 
 require "./types"
 require "./events"
@@ -80,17 +78,17 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::DOM::NodeId
+    property node_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property? include_distance : Bool?
     @[JSON::Field(emit_null: false)]
     property? include_style : Bool?
     @[JSON::Field(emit_null: false)]
-    property color_format : ColorFormat?
+    property color_format : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property? show_accessibility_info : Bool?
 
-    def initialize(@node_id : Cdp::DOM::NodeId, @include_distance : Bool?, @include_style : Bool?, @color_format : ColorFormat?, @show_accessibility_info : Bool?)
+    def initialize(@node_id : Cdp::NodeType, @include_distance : Bool?, @include_style : Bool?, @color_format : Cdp::NodeType?, @show_accessibility_info : Bool?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -110,9 +108,9 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property node_ids : Array(Cdp::DOM::NodeId)
+    property node_ids : Array(Cdp::NodeType)
 
-    def initialize(@node_ids : Array(Cdp::DOM::NodeId))
+    def initialize(@node_ids : Array(Cdp::NodeType))
     end
 
     # ProtoReq returns the protocol method name.
@@ -132,9 +130,9 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::DOM::NodeId
+    property node_id : Cdp::NodeType
 
-    def initialize(@node_id : Cdp::DOM::NodeId)
+    def initialize(@node_id : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -172,17 +170,17 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property highlight_config : HighlightConfig
+    property highlight_config : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::DOM::NodeId?
+    property node_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property backend_node_id : Cdp::DOM::BackendNodeId?
+    property backend_node_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property object_id : Cdp::Runtime::RemoteObjectId?
+    property object_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property selector : String?
 
-    def initialize(@highlight_config : HighlightConfig, @node_id : Cdp::DOM::NodeId?, @backend_node_id : Cdp::DOM::BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?, @selector : String?)
+    def initialize(@highlight_config : Cdp::NodeType, @node_id : Cdp::NodeType?, @backend_node_id : Cdp::NodeType?, @object_id : Cdp::NodeType?, @selector : String?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -200,13 +198,13 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property quad : Cdp::DOM::Quad
+    property quad : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property color : Cdp::DOM::RGBA?
+    property color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property outline_color : Cdp::DOM::RGBA?
+    property outline_color : Cdp::NodeType?
 
-    def initialize(@quad : Cdp::DOM::Quad, @color : Cdp::DOM::RGBA?, @outline_color : Cdp::DOM::RGBA?)
+    def initialize(@quad : Cdp::NodeType, @color : Cdp::NodeType?, @outline_color : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -232,11 +230,11 @@ module Cdp::Overlay
     @[JSON::Field(emit_null: false)]
     property height : Int64
     @[JSON::Field(emit_null: false)]
-    property color : Cdp::DOM::RGBA?
+    property color : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property outline_color : Cdp::DOM::RGBA?
+    property outline_color : Cdp::NodeType?
 
-    def initialize(@x : Int64, @y : Int64, @width : Int64, @height : Int64, @color : Cdp::DOM::RGBA?, @outline_color : Cdp::DOM::RGBA?)
+    def initialize(@x : Int64, @y : Int64, @width : Int64, @height : Int64, @color : Cdp::NodeType?, @outline_color : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -254,15 +252,15 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property source_order_config : SourceOrderConfig
+    property source_order_config : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::DOM::NodeId?
+    property node_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property backend_node_id : Cdp::DOM::BackendNodeId?
+    property backend_node_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property object_id : Cdp::Runtime::RemoteObjectId?
+    property object_id : Cdp::NodeType?
 
-    def initialize(@source_order_config : SourceOrderConfig, @node_id : Cdp::DOM::NodeId?, @backend_node_id : Cdp::DOM::BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?)
+    def initialize(@source_order_config : Cdp::NodeType, @node_id : Cdp::NodeType?, @backend_node_id : Cdp::NodeType?, @object_id : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -280,11 +278,11 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property mode : InspectMode
+    property mode : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property highlight_config : HighlightConfig?
+    property highlight_config : Cdp::NodeType?
 
-    def initialize(@mode : InspectMode, @highlight_config : HighlightConfig?)
+    def initialize(@mode : Cdp::NodeType, @highlight_config : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -382,9 +380,9 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property grid_node_highlight_configs : Array(GridNodeHighlightConfig)
+    property grid_node_highlight_configs : Array(Cdp::NodeType)
 
-    def initialize(@grid_node_highlight_configs : Array(GridNodeHighlightConfig))
+    def initialize(@grid_node_highlight_configs : Array(Cdp::NodeType))
     end
 
     # ProtoReq returns the protocol method name.
@@ -402,9 +400,9 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property flex_node_highlight_configs : Array(FlexNodeHighlightConfig)
+    property flex_node_highlight_configs : Array(Cdp::NodeType)
 
-    def initialize(@flex_node_highlight_configs : Array(FlexNodeHighlightConfig))
+    def initialize(@flex_node_highlight_configs : Array(Cdp::NodeType))
     end
 
     # ProtoReq returns the protocol method name.
@@ -422,9 +420,9 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property scroll_snap_highlight_configs : Array(ScrollSnapHighlightConfig)
+    property scroll_snap_highlight_configs : Array(Cdp::NodeType)
 
-    def initialize(@scroll_snap_highlight_configs : Array(ScrollSnapHighlightConfig))
+    def initialize(@scroll_snap_highlight_configs : Array(Cdp::NodeType))
     end
 
     # ProtoReq returns the protocol method name.
@@ -442,9 +440,9 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property container_query_highlight_configs : Array(ContainerQueryHighlightConfig)
+    property container_query_highlight_configs : Array(Cdp::NodeType)
 
-    def initialize(@container_query_highlight_configs : Array(ContainerQueryHighlightConfig))
+    def initialize(@container_query_highlight_configs : Array(Cdp::NodeType))
     end
 
     # ProtoReq returns the protocol method name.
@@ -462,9 +460,9 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property inspected_element_anchor_config : InspectedElementAnchorConfig
+    property inspected_element_anchor_config : Cdp::NodeType
 
-    def initialize(@inspected_element_anchor_config : InspectedElementAnchorConfig)
+    def initialize(@inspected_element_anchor_config : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -562,9 +560,9 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property hinge_config : HingeConfig?
+    property hinge_config : Cdp::NodeType?
 
-    def initialize(@hinge_config : HingeConfig?)
+    def initialize(@hinge_config : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -582,9 +580,9 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property isolated_element_highlight_configs : Array(IsolatedElementHighlightConfig)
+    property isolated_element_highlight_configs : Array(Cdp::NodeType)
 
-    def initialize(@isolated_element_highlight_configs : Array(IsolatedElementHighlightConfig))
+    def initialize(@isolated_element_highlight_configs : Array(Cdp::NodeType))
     end
 
     # ProtoReq returns the protocol method name.
@@ -602,9 +600,9 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property window_controls_overlay_config : WindowControlsOverlayConfig?
+    property window_controls_overlay_config : Cdp::NodeType?
 
-    def initialize(@window_controls_overlay_config : WindowControlsOverlayConfig?)
+    def initialize(@window_controls_overlay_config : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.

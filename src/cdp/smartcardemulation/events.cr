@@ -2,6 +2,8 @@ require "../cdp"
 require "json"
 require "time"
 
+require "../dom/dom"
+
 module Cdp::SmartCardEmulation
   struct EstablishContextRequestedEvent
     include JSON::Serializable
@@ -14,6 +16,11 @@ module Cdp::SmartCardEmulation
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "SmartCardEmulation.establishContextRequested"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "SmartCardEmulation.establishContextRequested"
     end
   end
@@ -33,6 +40,11 @@ module Cdp::SmartCardEmulation
     def proto_event : String
       "SmartCardEmulation.releaseContextRequested"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "SmartCardEmulation.releaseContextRequested"
+    end
   end
 
   struct ListReadersRequestedEvent
@@ -50,6 +62,11 @@ module Cdp::SmartCardEmulation
     def proto_event : String
       "SmartCardEmulation.listReadersRequested"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "SmartCardEmulation.listReadersRequested"
+    end
   end
 
   struct GetStatusChangeRequestedEvent
@@ -60,15 +77,20 @@ module Cdp::SmartCardEmulation
     @[JSON::Field(emit_null: false)]
     property context_id : Int64
     @[JSON::Field(emit_null: false)]
-    property reader_states : Array(ReaderStateIn)
+    property reader_states : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property timeout : Int64?
 
-    def initialize(@request_id : String, @context_id : Int64, @reader_states : Array(ReaderStateIn), @timeout : Int64?)
+    def initialize(@request_id : String, @context_id : Int64, @reader_states : Array(Cdp::NodeType), @timeout : Int64?)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "SmartCardEmulation.getStatusChangeRequested"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "SmartCardEmulation.getStatusChangeRequested"
     end
   end
@@ -88,6 +110,11 @@ module Cdp::SmartCardEmulation
     def proto_event : String
       "SmartCardEmulation.cancelRequested"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "SmartCardEmulation.cancelRequested"
+    end
   end
 
   struct ConnectRequestedEvent
@@ -100,15 +127,20 @@ module Cdp::SmartCardEmulation
     @[JSON::Field(emit_null: false)]
     property reader : String
     @[JSON::Field(emit_null: false)]
-    property share_mode : ShareMode
+    property share_mode : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property preferred_protocols : ProtocolSet
+    property preferred_protocols : Cdp::NodeType
 
-    def initialize(@request_id : String, @context_id : Int64, @reader : String, @share_mode : ShareMode, @preferred_protocols : ProtocolSet)
+    def initialize(@request_id : String, @context_id : Int64, @reader : String, @share_mode : Cdp::NodeType, @preferred_protocols : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "SmartCardEmulation.connectRequested"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "SmartCardEmulation.connectRequested"
     end
   end
@@ -121,13 +153,18 @@ module Cdp::SmartCardEmulation
     @[JSON::Field(emit_null: false)]
     property handle : Int64
     @[JSON::Field(emit_null: false)]
-    property disposition : Disposition
+    property disposition : Cdp::NodeType
 
-    def initialize(@request_id : String, @handle : Int64, @disposition : Disposition)
+    def initialize(@request_id : String, @handle : Int64, @disposition : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "SmartCardEmulation.disconnectRequested"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "SmartCardEmulation.disconnectRequested"
     end
   end
@@ -142,13 +179,18 @@ module Cdp::SmartCardEmulation
     @[JSON::Field(emit_null: false)]
     property data : String
     @[JSON::Field(emit_null: false)]
-    property protocol : Protocol?
+    property protocol : Cdp::NodeType?
 
-    def initialize(@request_id : String, @handle : Int64, @data : String, @protocol : Protocol?)
+    def initialize(@request_id : String, @handle : Int64, @data : String, @protocol : Cdp::NodeType?)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "SmartCardEmulation.transmitRequested"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "SmartCardEmulation.transmitRequested"
     end
   end
@@ -172,6 +214,11 @@ module Cdp::SmartCardEmulation
     def proto_event : String
       "SmartCardEmulation.controlRequested"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "SmartCardEmulation.controlRequested"
+    end
   end
 
   struct GetAttribRequestedEvent
@@ -189,6 +236,11 @@ module Cdp::SmartCardEmulation
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "SmartCardEmulation.getAttribRequested"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "SmartCardEmulation.getAttribRequested"
     end
   end
@@ -212,6 +264,11 @@ module Cdp::SmartCardEmulation
     def proto_event : String
       "SmartCardEmulation.setAttribRequested"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "SmartCardEmulation.setAttribRequested"
+    end
   end
 
   struct StatusRequestedEvent
@@ -227,6 +284,11 @@ module Cdp::SmartCardEmulation
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "SmartCardEmulation.statusRequested"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "SmartCardEmulation.statusRequested"
     end
   end
@@ -246,6 +308,11 @@ module Cdp::SmartCardEmulation
     def proto_event : String
       "SmartCardEmulation.beginTransactionRequested"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "SmartCardEmulation.beginTransactionRequested"
+    end
   end
 
   struct EndTransactionRequestedEvent
@@ -256,13 +323,18 @@ module Cdp::SmartCardEmulation
     @[JSON::Field(emit_null: false)]
     property handle : Int64
     @[JSON::Field(emit_null: false)]
-    property disposition : Disposition
+    property disposition : Cdp::NodeType
 
-    def initialize(@request_id : String, @handle : Int64, @disposition : Disposition)
+    def initialize(@request_id : String, @handle : Int64, @disposition : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "SmartCardEmulation.endTransactionRequested"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "SmartCardEmulation.endTransactionRequested"
     end
   end

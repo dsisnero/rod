@@ -2,7 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../io/io"
+require "../dom/dom"
 
 module Cdp::Tracing
   @[Experimental]
@@ -23,6 +23,11 @@ module Cdp::Tracing
     def proto_event : String
       "Tracing.bufferUsage"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "Tracing.bufferUsage"
+    end
   end
 
   @[Experimental]
@@ -39,6 +44,11 @@ module Cdp::Tracing
     def proto_event : String
       "Tracing.dataCollected"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "Tracing.dataCollected"
+    end
   end
 
   struct TracingCompleteEvent
@@ -47,17 +57,22 @@ module Cdp::Tracing
     @[JSON::Field(emit_null: false)]
     property? data_loss_occurred : Bool
     @[JSON::Field(emit_null: false)]
-    property stream : Cdp::IO::StreamHandle?
+    property stream : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property trace_format : StreamFormat?
+    property trace_format : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property stream_compression : StreamCompression?
+    property stream_compression : Cdp::NodeType?
 
-    def initialize(@data_loss_occurred : Bool, @stream : Cdp::IO::StreamHandle?, @trace_format : StreamFormat?, @stream_compression : StreamCompression?)
+    def initialize(@data_loss_occurred : Bool, @stream : Cdp::NodeType?, @trace_format : Cdp::NodeType?, @stream_compression : Cdp::NodeType?)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Tracing.tracingComplete"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Tracing.tracingComplete"
     end
   end

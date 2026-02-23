@@ -2,10 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../network/network"
-require "../target/target"
-require "../page/page"
-require "../browser/browser"
+require "../dom/dom"
 
 module Cdp::Storage
   struct CacheStorageContentUpdatedEvent
@@ -27,6 +24,11 @@ module Cdp::Storage
     def proto_event : String
       "Storage.cacheStorageContentUpdated"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "Storage.cacheStorageContentUpdated"
+    end
   end
 
   struct CacheStorageListUpdatedEvent
@@ -44,6 +46,11 @@ module Cdp::Storage
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Storage.cacheStorageListUpdated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Storage.cacheStorageListUpdated"
     end
   end
@@ -69,6 +76,11 @@ module Cdp::Storage
     def proto_event : String
       "Storage.indexedDBContentUpdated"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "Storage.indexedDBContentUpdated"
+    end
   end
 
   struct IndexedDBListUpdatedEvent
@@ -88,15 +100,20 @@ module Cdp::Storage
     def proto_event : String
       "Storage.indexedDBListUpdated"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "Storage.indexedDBListUpdated"
+    end
   end
 
   struct InterestGroupAccessedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property access_time : Cdp::Network::TimeSinceEpoch
+    property access_time : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property type : InterestGroupAccessType
+    property type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property owner_origin : String
     @[JSON::Field(emit_null: false)]
@@ -108,13 +125,18 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property bid_currency : String?
     @[JSON::Field(emit_null: false)]
-    property unique_auction_id : InterestGroupAuctionId?
+    property unique_auction_id : Cdp::NodeType?
 
-    def initialize(@access_time : Cdp::Network::TimeSinceEpoch, @type : InterestGroupAccessType, @owner_origin : String, @name : String, @component_seller_origin : String?, @bid : Float64?, @bid_currency : String?, @unique_auction_id : InterestGroupAuctionId?)
+    def initialize(@access_time : Cdp::NodeType, @type : Cdp::NodeType, @owner_origin : String, @name : String, @component_seller_origin : String?, @bid : Float64?, @bid_currency : String?, @unique_auction_id : Cdp::NodeType?)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Storage.interestGroupAccessed"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Storage.interestGroupAccessed"
     end
   end
@@ -123,21 +145,26 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property event_time : Cdp::Network::TimeSinceEpoch
+    property event_time : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property type : InterestGroupAuctionEventType
+    property type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property unique_auction_id : InterestGroupAuctionId
+    property unique_auction_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property parent_auction_id : InterestGroupAuctionId?
+    property parent_auction_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property auction_config : JSON::Any?
 
-    def initialize(@event_time : Cdp::Network::TimeSinceEpoch, @type : InterestGroupAuctionEventType, @unique_auction_id : InterestGroupAuctionId, @parent_auction_id : InterestGroupAuctionId?, @auction_config : JSON::Any?)
+    def initialize(@event_time : Cdp::NodeType, @type : Cdp::NodeType, @unique_auction_id : Cdp::NodeType, @parent_auction_id : Cdp::NodeType?, @auction_config : JSON::Any?)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Storage.interestGroupAuctionEventOccurred"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Storage.interestGroupAuctionEventOccurred"
     end
   end
@@ -146,17 +173,22 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property type : InterestGroupAuctionFetchType
+    property type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::Network::RequestId
+    property request_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property auctions : Array(InterestGroupAuctionId)
+    property auctions : Array(Cdp::NodeType)
 
-    def initialize(@type : InterestGroupAuctionFetchType, @request_id : Cdp::Network::RequestId, @auctions : Array(InterestGroupAuctionId))
+    def initialize(@type : Cdp::NodeType, @request_id : Cdp::NodeType, @auctions : Array(Cdp::NodeType))
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Storage.interestGroupAuctionNetworkRequestCreated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Storage.interestGroupAuctionNetworkRequestCreated"
     end
   end
@@ -165,25 +197,30 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property access_time : Cdp::Network::TimeSinceEpoch
+    property access_time : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property scope : SharedStorageAccessScope
+    property scope : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property method : SharedStorageAccessMethod
+    property method : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property main_frame_id : Cdp::Page::FrameId
+    property main_frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property owner_origin : String
     @[JSON::Field(emit_null: false)]
     property owner_site : String
     @[JSON::Field(emit_null: false)]
-    property params : SharedStorageAccessParams
+    property params : Cdp::NodeType
 
-    def initialize(@access_time : Cdp::Network::TimeSinceEpoch, @scope : SharedStorageAccessScope, @method : SharedStorageAccessMethod, @main_frame_id : Cdp::Page::FrameId, @owner_origin : String, @owner_site : String, @params : SharedStorageAccessParams)
+    def initialize(@access_time : Cdp::NodeType, @scope : Cdp::NodeType, @method : Cdp::NodeType, @main_frame_id : Cdp::NodeType, @owner_origin : String, @owner_site : String, @params : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Storage.sharedStorageAccessed"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Storage.sharedStorageAccessed"
     end
   end
@@ -192,25 +229,30 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property finished_time : Cdp::Network::TimeSinceEpoch
+    property finished_time : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property execution_time : Int64
     @[JSON::Field(emit_null: false)]
-    property method : SharedStorageAccessMethod
+    property method : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property operation_id : String
     @[JSON::Field(emit_null: false)]
-    property worklet_target_id : Cdp::Target::TargetID
+    property worklet_target_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property main_frame_id : Cdp::Page::FrameId
+    property main_frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property owner_origin : String
 
-    def initialize(@finished_time : Cdp::Network::TimeSinceEpoch, @execution_time : Int64, @method : SharedStorageAccessMethod, @operation_id : String, @worklet_target_id : Cdp::Target::TargetID, @main_frame_id : Cdp::Page::FrameId, @owner_origin : String)
+    def initialize(@finished_time : Cdp::NodeType, @execution_time : Int64, @method : Cdp::NodeType, @operation_id : String, @worklet_target_id : Cdp::NodeType, @main_frame_id : Cdp::NodeType, @owner_origin : String)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Storage.sharedStorageWorkletOperationExecutionFinished"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Storage.sharedStorageWorkletOperationExecutionFinished"
     end
   end
@@ -219,13 +261,18 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property bucket_info : StorageBucketInfo
+    property bucket_info : Cdp::NodeType
 
-    def initialize(@bucket_info : StorageBucketInfo)
+    def initialize(@bucket_info : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Storage.storageBucketCreatedOrUpdated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Storage.storageBucketCreatedOrUpdated"
     end
   end
@@ -243,6 +290,11 @@ module Cdp::Storage
     def proto_event : String
       "Storage.storageBucketDeleted"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "Storage.storageBucketDeleted"
+    end
   end
 
   @[Experimental]
@@ -250,15 +302,20 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property registration : AttributionReportingSourceRegistration
+    property registration : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property result : AttributionReportingSourceRegistrationResult
+    property result : Cdp::NodeType
 
-    def initialize(@registration : AttributionReportingSourceRegistration, @result : AttributionReportingSourceRegistrationResult)
+    def initialize(@registration : Cdp::NodeType, @result : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Storage.attributionReportingSourceRegistered"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Storage.attributionReportingSourceRegistered"
     end
   end
@@ -268,17 +325,22 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property registration : AttributionReportingTriggerRegistration
+    property registration : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property event_level : AttributionReportingEventLevelResult
+    property event_level : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property aggregatable : AttributionReportingAggregatableResult
+    property aggregatable : Cdp::NodeType
 
-    def initialize(@registration : AttributionReportingTriggerRegistration, @event_level : AttributionReportingEventLevelResult, @aggregatable : AttributionReportingAggregatableResult)
+    def initialize(@registration : Cdp::NodeType, @event_level : Cdp::NodeType, @aggregatable : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Storage.attributionReportingTriggerRegistered"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Storage.attributionReportingTriggerRegistered"
     end
   end
@@ -292,7 +354,7 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property body : JSON::Any
     @[JSON::Field(emit_null: false)]
-    property result : AttributionReportingReportResult
+    property result : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property net_error : Int64?
     @[JSON::Field(emit_null: false)]
@@ -300,11 +362,16 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property http_status_code : Int64?
 
-    def initialize(@url : String, @body : JSON::Any, @result : AttributionReportingReportResult, @net_error : Int64?, @net_error_name : String?, @http_status_code : Int64?)
+    def initialize(@url : String, @body : JSON::Any, @result : Cdp::NodeType, @net_error : Int64?, @net_error_name : String?, @http_status_code : Int64?)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Storage.attributionReportingReportSent"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Storage.attributionReportingReportSent"
     end
   end
@@ -329,6 +396,11 @@ module Cdp::Storage
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Storage.attributionReportingVerboseDebugReportSent"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Storage.attributionReportingVerboseDebugReportSent"
     end
   end

@@ -2,9 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../network/network"
 require "../dom/dom"
-require "../page/page"
 
 module Cdp::Preload
   alias RuleSetId = String
@@ -12,19 +10,19 @@ module Cdp::Preload
   struct RuleSet
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property id : RuleSetId
+    property id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property loader_id : Cdp::Network::LoaderId
+    property loader_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property source_text : String
     @[JSON::Field(emit_null: false)]
-    property backend_node_id : Cdp::DOM::BackendNodeId?
+    property backend_node_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property url : String?
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::Network::RequestId?
+    property request_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property error_type : RuleSetErrorType?
+    property error_type : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property tag : String?
   end
@@ -46,23 +44,23 @@ module Cdp::Preload
   struct PreloadingAttemptKey
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property loader_id : Cdp::Network::LoaderId
+    property loader_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property action : SpeculationAction
+    property action : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property url : String
     @[JSON::Field(emit_null: false)]
-    property target_hint : SpeculationTargetHint?
+    property target_hint : Cdp::NodeType?
   end
 
   struct PreloadingAttemptSource
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property key : PreloadingAttemptKey
+    property key : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property rule_set_ids : Array(RuleSetId)
+    property rule_set_ids : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property node_ids : Array(Cdp::DOM::BackendNodeId)
+    property node_ids : Array(Cdp::NodeType)
   end
 
   alias PreloadPipelineId = String

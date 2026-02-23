@@ -3,8 +3,6 @@ require "json"
 require "time"
 
 require "../dom/dom"
-require "../page/page"
-require "../network/network"
 
 module Cdp::Emulation
   @[Experimental]
@@ -17,6 +15,11 @@ module Cdp::Emulation
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Emulation.virtualTimeBudgetExpired"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Emulation.virtualTimeBudgetExpired"
     end
   end

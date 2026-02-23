@@ -14,9 +14,9 @@ module Cdp::WebAudio
   struct GetRealtimeDataResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property realtime_data : ContextRealtimeData
+    property realtime_data : Cdp::NodeType
 
-    def initialize(@realtime_data : ContextRealtimeData)
+    def initialize(@realtime_data : Cdp::NodeType)
     end
   end
 
@@ -61,9 +61,9 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property context_id : GraphObjectId
+    property context_id : Cdp::NodeType
 
-    def initialize(@context_id : GraphObjectId)
+    def initialize(@context_id : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.

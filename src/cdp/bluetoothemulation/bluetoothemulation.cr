@@ -2,6 +2,8 @@ require "../cdp"
 require "json"
 require "time"
 
+require "../dom/dom"
+
 require "./types"
 require "./events"
 
@@ -41,11 +43,11 @@ module Cdp::BluetoothEmulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property state : CentralState
+    property state : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property? le_supported : Bool
 
-    def initialize(@state : CentralState, @le_supported : Bool)
+    def initialize(@state : Cdp::NodeType, @le_supported : Bool)
     end
 
     # ProtoReq returns the protocol method name.
@@ -63,9 +65,9 @@ module Cdp::BluetoothEmulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property state : CentralState
+    property state : Cdp::NodeType
 
-    def initialize(@state : CentralState)
+    def initialize(@state : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -105,11 +107,11 @@ module Cdp::BluetoothEmulation
     @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
-    property manufacturer_data : Array(ManufacturerData)
+    property manufacturer_data : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property known_service_uuids : Array(String)
 
-    def initialize(@address : String, @name : String, @manufacturer_data : Array(ManufacturerData), @known_service_uuids : Array(String))
+    def initialize(@address : String, @name : String, @manufacturer_data : Array(Cdp::NodeType), @known_service_uuids : Array(String))
     end
 
     # ProtoReq returns the protocol method name.
@@ -127,9 +129,9 @@ module Cdp::BluetoothEmulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property entry : ScanEntry
+    property entry : Cdp::NodeType
 
-    def initialize(@entry : ScanEntry)
+    def initialize(@entry : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -149,11 +151,11 @@ module Cdp::BluetoothEmulation
     @[JSON::Field(emit_null: false)]
     property address : String
     @[JSON::Field(emit_null: false)]
-    property type : GATTOperationType
+    property type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property code : Int64
 
-    def initialize(@address : String, @type : GATTOperationType, @code : Int64)
+    def initialize(@address : String, @type : Cdp::NodeType, @code : Int64)
     end
 
     # ProtoReq returns the protocol method name.
@@ -173,13 +175,13 @@ module Cdp::BluetoothEmulation
     @[JSON::Field(emit_null: false)]
     property characteristic_id : String
     @[JSON::Field(emit_null: false)]
-    property type : CharacteristicOperationType
+    property type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property code : Int64
     @[JSON::Field(emit_null: false)]
     property data : String?
 
-    def initialize(@characteristic_id : String, @type : CharacteristicOperationType, @code : Int64, @data : String?)
+    def initialize(@characteristic_id : String, @type : Cdp::NodeType, @code : Int64, @data : String?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -199,13 +201,13 @@ module Cdp::BluetoothEmulation
     @[JSON::Field(emit_null: false)]
     property descriptor_id : String
     @[JSON::Field(emit_null: false)]
-    property type : DescriptorOperationType
+    property type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property code : Int64
     @[JSON::Field(emit_null: false)]
     property data : String?
 
-    def initialize(@descriptor_id : String, @type : DescriptorOperationType, @code : Int64, @data : String?)
+    def initialize(@descriptor_id : String, @type : Cdp::NodeType, @code : Int64, @data : String?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -271,9 +273,9 @@ module Cdp::BluetoothEmulation
     @[JSON::Field(emit_null: false)]
     property characteristic_uuid : String
     @[JSON::Field(emit_null: false)]
-    property properties : CharacteristicProperties
+    property properties : Cdp::NodeType
 
-    def initialize(@service_id : String, @characteristic_uuid : String, @properties : CharacteristicProperties)
+    def initialize(@service_id : String, @characteristic_uuid : String, @properties : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.

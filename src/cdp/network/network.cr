@@ -2,11 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../security/security"
-require "../runtime/runtime"
-require "../io/io"
-require "../debugger/debugger"
-require "../page/page"
+require "../dom/dom"
 
 require "./types"
 require "./events"
@@ -37,9 +33,9 @@ module Cdp::Network
   struct GetCookiesResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property cookies : Array(Cookie)
+    property cookies : Array(Cdp::NodeType)
 
-    def initialize(@cookies : Array(Cookie))
+    def initialize(@cookies : Array(Cdp::NodeType))
     end
   end
 
@@ -81,9 +77,9 @@ module Cdp::Network
   struct TakeResponseBodyForInterceptionAsStreamResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property stream : Cdp::IO::StreamHandle
+    property stream : Cdp::NodeType
 
-    def initialize(@stream : Cdp::IO::StreamHandle)
+    def initialize(@stream : Cdp::NodeType)
     end
   end
 
@@ -91,9 +87,9 @@ module Cdp::Network
   struct SearchInResponseBodyResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property result : Array(Cdp::Debugger::SearchMatch)
+    property result : Array(Cdp::NodeType)
 
-    def initialize(@result : Array(Cdp::Debugger::SearchMatch))
+    def initialize(@result : Array(Cdp::NodeType))
     end
   end
 
@@ -118,9 +114,9 @@ module Cdp::Network
   struct GetSecurityIsolationStatusResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property status : SecurityIsolationStatus
+    property status : Cdp::NodeType
 
-    def initialize(@status : SecurityIsolationStatus)
+    def initialize(@status : Cdp::NodeType)
     end
   end
 
@@ -138,9 +134,9 @@ module Cdp::Network
   struct LoadNetworkResourceResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property resource : LoadNetworkResourcePageResult
+    property resource : Cdp::NodeType
 
-    def initialize(@resource : LoadNetworkResourcePageResult)
+    def initialize(@resource : Cdp::NodeType)
     end
   end
 
@@ -150,9 +146,9 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property encodings : Array(ContentEncoding)
+    property encodings : Array(Cdp::NodeType)
 
-    def initialize(@encodings : Array(ContentEncoding))
+    def initialize(@encodings : Array(Cdp::NodeType))
     end
 
     # ProtoReq returns the protocol method name.
@@ -233,9 +229,9 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property path : String?
     @[JSON::Field(emit_null: false)]
-    property partition_key : CookiePartitionKey?
+    property partition_key : Cdp::NodeType?
 
-    def initialize(@name : String, @url : String?, @domain : String?, @path : String?, @partition_key : CookiePartitionKey?)
+    def initialize(@name : String, @url : String?, @domain : String?, @path : String?, @partition_key : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -274,9 +270,9 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property? offline : Bool
     @[JSON::Field(emit_null: false)]
-    property matched_network_conditions : Array(NetworkConditions)
+    property matched_network_conditions : Array(Cdp::NodeType)
 
-    def initialize(@offline : Bool, @matched_network_conditions : Array(NetworkConditions))
+    def initialize(@offline : Bool, @matched_network_conditions : Array(Cdp::NodeType))
     end
 
     # ProtoReq returns the protocol method name.
@@ -305,9 +301,9 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property upload_throughput : Float64
     @[JSON::Field(emit_null: false)]
-    property connection_type : ConnectionType?
+    property connection_type : Cdp::NodeType?
 
-    def initialize(@offline : Bool, @latency : Float64, @download_throughput : Float64, @upload_throughput : Float64, @connection_type : ConnectionType?)
+    def initialize(@offline : Bool, @latency : Float64, @download_throughput : Float64, @upload_throughput : Float64, @connection_type : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -421,9 +417,9 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property request_id : RequestId
+    property request_id : Cdp::NodeType
 
-    def initialize(@request_id : RequestId)
+    def initialize(@request_id : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -443,9 +439,9 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property request_id : RequestId
+    property request_id : Cdp::NodeType
 
-    def initialize(@request_id : RequestId)
+    def initialize(@request_id : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -466,9 +462,9 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property interception_id : InterceptionId
+    property interception_id : Cdp::NodeType
 
-    def initialize(@interception_id : InterceptionId)
+    def initialize(@interception_id : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -489,9 +485,9 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property interception_id : InterceptionId
+    property interception_id : Cdp::NodeType
 
-    def initialize(@interception_id : InterceptionId)
+    def initialize(@interception_id : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -512,9 +508,9 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property request_id : RequestId
+    property request_id : Cdp::NodeType
 
-    def initialize(@request_id : RequestId)
+    def initialize(@request_id : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -533,7 +529,7 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property request_id : RequestId
+    property request_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property query : String
     @[JSON::Field(emit_null: false)]
@@ -541,7 +537,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property? is_regex : Bool?
 
-    def initialize(@request_id : RequestId, @query : String, @case_sensitive : Bool?, @is_regex : Bool?)
+    def initialize(@request_id : Cdp::NodeType, @query : String, @case_sensitive : Bool?, @is_regex : Bool?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -562,11 +558,11 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property url_patterns : Array(BlockPattern)?
+    property url_patterns : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
     property urls : Array(String)?
 
-    def initialize(@url_patterns : Array(BlockPattern)?, @urls : Array(String)?)
+    def initialize(@url_patterns : Array(Cdp::NodeType)?, @urls : Array(String)?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -638,19 +634,19 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property? http_only : Bool?
     @[JSON::Field(emit_null: false)]
-    property same_site : CookieSameSite?
+    property same_site : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property expires : TimeSinceEpoch?
+    property expires : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property priority : CookiePriority?
+    property priority : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property source_scheme : CookieSourceScheme?
+    property source_scheme : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property source_port : Int64?
     @[JSON::Field(emit_null: false)]
-    property partition_key : CookiePartitionKey?
+    property partition_key : Cdp::NodeType?
 
-    def initialize(@name : String, @value : String, @url : String?, @domain : String?, @path : String?, @secure : Bool?, @http_only : Bool?, @same_site : CookieSameSite?, @expires : TimeSinceEpoch?, @priority : CookiePriority?, @source_scheme : CookieSourceScheme?, @source_port : Int64?, @partition_key : CookiePartitionKey?)
+    def initialize(@name : String, @value : String, @url : String?, @domain : String?, @path : String?, @secure : Bool?, @http_only : Bool?, @same_site : Cdp::NodeType?, @expires : Cdp::NodeType?, @priority : Cdp::NodeType?, @source_scheme : Cdp::NodeType?, @source_port : Int64?, @partition_key : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -670,9 +666,9 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property cookies : Array(CookieParam)
+    property cookies : Array(Cdp::NodeType)
 
-    def initialize(@cookies : Array(CookieParam))
+    def initialize(@cookies : Array(Cdp::NodeType))
     end
 
     # ProtoReq returns the protocol method name.
@@ -690,9 +686,9 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property headers : Headers
+    property headers : Cdp::NodeType
 
-    def initialize(@headers : Headers)
+    def initialize(@headers : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -732,9 +728,9 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property request_id : RequestId
+    property request_id : Cdp::NodeType
 
-    def initialize(@request_id : RequestId)
+    def initialize(@request_id : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -755,9 +751,9 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property frame_id : Cdp::Page::FrameId?
+    property frame_id : Cdp::NodeType?
 
-    def initialize(@frame_id : Cdp::Page::FrameId?)
+    def initialize(@frame_id : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -843,13 +839,13 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property frame_id : Cdp::Page::FrameId?
+    property frame_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property url : String
     @[JSON::Field(emit_null: false)]
-    property options : LoadNetworkResourceOptions
+    property options : Cdp::NodeType
 
-    def initialize(@frame_id : Cdp::Page::FrameId?, @url : String, @options : LoadNetworkResourceOptions)
+    def initialize(@frame_id : Cdp::NodeType?, @url : String, @options : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.

@@ -2,8 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../page/page"
-require "../browser/browser"
+require "../dom/dom"
 
 require "./types"
 require "./events"
@@ -13,9 +12,9 @@ module Cdp::Target
   struct AttachToTargetResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property session_id : SessionID
+    property session_id : Cdp::NodeType
 
-    def initialize(@session_id : SessionID)
+    def initialize(@session_id : Cdp::NodeType)
     end
   end
 
@@ -23,9 +22,9 @@ module Cdp::Target
   struct AttachToBrowserTargetResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property session_id : SessionID
+    property session_id : Cdp::NodeType
 
-    def initialize(@session_id : SessionID)
+    def initialize(@session_id : Cdp::NodeType)
     end
   end
 
@@ -39,29 +38,29 @@ module Cdp::Target
   struct CreateBrowserContextResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property browser_context_id : Cdp::Browser::BrowserContextID
+    property browser_context_id : Cdp::NodeType
 
-    def initialize(@browser_context_id : Cdp::Browser::BrowserContextID)
+    def initialize(@browser_context_id : Cdp::NodeType)
     end
   end
 
   struct GetBrowserContextsResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property browser_context_ids : Array(Cdp::Browser::BrowserContextID)
+    property browser_context_ids : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property default_browser_context_id : Cdp::Browser::BrowserContextID?
+    property default_browser_context_id : Cdp::NodeType?
 
-    def initialize(@browser_context_ids : Array(Cdp::Browser::BrowserContextID), @default_browser_context_id : Cdp::Browser::BrowserContextID?)
+    def initialize(@browser_context_ids : Array(Cdp::NodeType), @default_browser_context_id : Cdp::NodeType?)
     end
   end
 
   struct CreateTargetResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property target_id : TargetID
+    property target_id : Cdp::NodeType
 
-    def initialize(@target_id : TargetID)
+    def initialize(@target_id : Cdp::NodeType)
     end
   end
 
@@ -69,18 +68,18 @@ module Cdp::Target
   struct GetTargetInfoResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property target_info : TargetInfo
+    property target_info : Cdp::NodeType
 
-    def initialize(@target_info : TargetInfo)
+    def initialize(@target_info : Cdp::NodeType)
     end
   end
 
   struct GetTargetsResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property target_infos : Array(TargetInfo)
+    property target_infos : Array(Cdp::NodeType)
 
-    def initialize(@target_infos : Array(TargetInfo))
+    def initialize(@target_infos : Array(Cdp::NodeType))
     end
   end
 
@@ -88,9 +87,9 @@ module Cdp::Target
   struct GetDevToolsTargetResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property target_id : TargetID?
+    property target_id : Cdp::NodeType?
 
-    def initialize(@target_id : TargetID?)
+    def initialize(@target_id : Cdp::NodeType?)
     end
   end
 
@@ -98,9 +97,9 @@ module Cdp::Target
   struct OpenDevToolsResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property target_id : TargetID
+    property target_id : Cdp::NodeType
 
-    def initialize(@target_id : TargetID)
+    def initialize(@target_id : Cdp::NodeType)
     end
   end
 
@@ -109,9 +108,9 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property target_id : TargetID
+    property target_id : Cdp::NodeType
 
-    def initialize(@target_id : TargetID)
+    def initialize(@target_id : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -129,11 +128,11 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property target_id : TargetID
+    property target_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property? flatten : Bool?
 
-    def initialize(@target_id : TargetID, @flatten : Bool?)
+    def initialize(@target_id : Cdp::NodeType, @flatten : Bool?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -174,9 +173,9 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property target_id : TargetID
+    property target_id : Cdp::NodeType
 
-    def initialize(@target_id : TargetID)
+    def initialize(@target_id : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -197,13 +196,13 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property target_id : TargetID
+    property target_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property binding_name : String?
     @[JSON::Field(emit_null: false)]
     property? inherit_permissions : Bool?
 
-    def initialize(@target_id : TargetID, @binding_name : String?, @inherit_permissions : Bool?)
+    def initialize(@target_id : Cdp::NodeType, @binding_name : String?, @inherit_permissions : Bool?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -279,9 +278,9 @@ module Cdp::Target
     @[JSON::Field(emit_null: false)]
     property height : Int64?
     @[JSON::Field(emit_null: false)]
-    property window_state : WindowState?
+    property window_state : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property browser_context_id : Cdp::Browser::BrowserContextID?
+    property browser_context_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property? enable_begin_frame_control : Bool?
     @[JSON::Field(emit_null: false)]
@@ -295,7 +294,7 @@ module Cdp::Target
     @[JSON::Field(emit_null: false)]
     property? focus : Bool?
 
-    def initialize(@url : String, @left : Int64?, @top : Int64?, @width : Int64?, @height : Int64?, @window_state : WindowState?, @browser_context_id : Cdp::Browser::BrowserContextID?, @enable_begin_frame_control : Bool?, @new_window : Bool?, @background : Bool?, @for_tab : Bool?, @hidden : Bool?, @focus : Bool?)
+    def initialize(@url : String, @left : Int64?, @top : Int64?, @width : Int64?, @height : Int64?, @window_state : Cdp::NodeType?, @browser_context_id : Cdp::NodeType?, @enable_begin_frame_control : Bool?, @new_window : Bool?, @background : Bool?, @for_tab : Bool?, @hidden : Bool?, @focus : Bool?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -315,11 +314,11 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property session_id : SessionID?
+    property session_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property target_id : TargetID?
+    property target_id : Cdp::NodeType?
 
-    def initialize(@session_id : SessionID?, @target_id : TargetID?)
+    def initialize(@session_id : Cdp::NodeType?, @target_id : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -337,9 +336,9 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property browser_context_id : Cdp::Browser::BrowserContextID
+    property browser_context_id : Cdp::NodeType
 
-    def initialize(@browser_context_id : Cdp::Browser::BrowserContextID)
+    def initialize(@browser_context_id : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -358,9 +357,9 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property target_id : TargetID?
+    property target_id : Cdp::NodeType?
 
-    def initialize(@target_id : TargetID?)
+    def initialize(@target_id : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -380,9 +379,9 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property filter : TargetFilter?
+    property filter : Cdp::NodeType?
 
-    def initialize(@filter : TargetFilter?)
+    def initialize(@filter : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -408,9 +407,9 @@ module Cdp::Target
     @[JSON::Field(emit_null: false)]
     property? flatten : Bool?
     @[JSON::Field(emit_null: false)]
-    property filter : TargetFilter?
+    property filter : Cdp::NodeType?
 
-    def initialize(@auto_attach : Bool, @wait_for_debugger_on_start : Bool, @flatten : Bool?, @filter : TargetFilter?)
+    def initialize(@auto_attach : Bool, @wait_for_debugger_on_start : Bool, @flatten : Bool?, @filter : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -429,13 +428,13 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property target_id : TargetID
+    property target_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property? wait_for_debugger_on_start : Bool
     @[JSON::Field(emit_null: false)]
-    property filter : TargetFilter?
+    property filter : Cdp::NodeType?
 
-    def initialize(@target_id : TargetID, @wait_for_debugger_on_start : Bool, @filter : TargetFilter?)
+    def initialize(@target_id : Cdp::NodeType, @wait_for_debugger_on_start : Bool, @filter : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -455,9 +454,9 @@ module Cdp::Target
     @[JSON::Field(emit_null: false)]
     property? discover : Bool
     @[JSON::Field(emit_null: false)]
-    property filter : TargetFilter?
+    property filter : Cdp::NodeType?
 
-    def initialize(@discover : Bool, @filter : TargetFilter?)
+    def initialize(@discover : Bool, @filter : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -476,9 +475,9 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property locations : Array(RemoteLocation)
+    property locations : Array(Cdp::NodeType)
 
-    def initialize(@locations : Array(RemoteLocation))
+    def initialize(@locations : Array(Cdp::NodeType))
     end
 
     # ProtoReq returns the protocol method name.
@@ -497,9 +496,9 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property target_id : TargetID
+    property target_id : Cdp::NodeType
 
-    def initialize(@target_id : TargetID)
+    def initialize(@target_id : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -520,11 +519,11 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property target_id : TargetID
+    property target_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property panel_id : String?
 
-    def initialize(@target_id : TargetID, @panel_id : String?)
+    def initialize(@target_id : Cdp::NodeType, @panel_id : String?)
     end
 
     # ProtoReq returns the protocol method name.

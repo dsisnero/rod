@@ -2,6 +2,8 @@ require "../cdp"
 require "json"
 require "time"
 
+require "../dom/dom"
+
 require "./types"
 
 # The SystemInfo domain defines methods and events for querying low-level system information.
@@ -10,7 +12,7 @@ module Cdp::SystemInfo
   struct GetInfoResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property gpu : GPUInfo
+    property gpu : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property model_name : String
     @[JSON::Field(emit_null: false)]
@@ -18,7 +20,7 @@ module Cdp::SystemInfo
     @[JSON::Field(emit_null: false)]
     property command_line : String
 
-    def initialize(@gpu : GPUInfo, @model_name : String, @model_version : String, @command_line : String)
+    def initialize(@gpu : Cdp::NodeType, @model_name : String, @model_version : String, @command_line : String)
     end
   end
 
@@ -34,9 +36,9 @@ module Cdp::SystemInfo
   struct GetProcessInfoResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property process_info : Array(ProcessInfo)
+    property process_info : Array(Cdp::NodeType)
 
-    def initialize(@process_info : Array(ProcessInfo))
+    def initialize(@process_info : Array(Cdp::NodeType))
     end
   end
 

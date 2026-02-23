@@ -3,8 +3,6 @@ require "json"
 require "time"
 
 require "../dom/dom"
-require "../page/page"
-require "../network/network"
 
 module Cdp::Emulation
   @[Experimental]
@@ -31,7 +29,7 @@ module Cdp::Emulation
   struct ScreenOrientation
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property type : OrientationType
+    property type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property angle : Int64
   end
@@ -39,7 +37,7 @@ module Cdp::Emulation
   struct DisplayFeature
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property orientation : DisplayFeatureOrientation
+    property orientation : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property offset : Int64
     @[JSON::Field(emit_null: false)]
@@ -49,7 +47,7 @@ module Cdp::Emulation
   struct DevicePosture
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property type : DevicePostureType
+    property type : Cdp::NodeType
   end
 
   struct MediaFeature
@@ -79,9 +77,9 @@ module Cdp::Emulation
   struct UserAgentMetadata
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property brands : Array(UserAgentBrandVersion)?
+    property brands : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property full_version_list : Array(UserAgentBrandVersion)?
+    property full_version_list : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
     property platform : String
     @[JSON::Field(emit_null: false)]
@@ -157,11 +155,11 @@ module Cdp::Emulation
   struct SensorReading
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property single : SensorReadingSingle?
+    property single : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property xyz : SensorReadingXYZ?
+    property xyz : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property quaternion : SensorReadingQuaternion?
+    property quaternion : Cdp::NodeType?
   end
 
   @[Experimental]
@@ -220,7 +218,7 @@ module Cdp::Emulation
     @[JSON::Field(emit_null: false)]
     property device_pixel_ratio : Float64
     @[JSON::Field(emit_null: false)]
-    property orientation : ScreenOrientation
+    property orientation : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property color_depth : Int64
     @[JSON::Field(emit_null: false)]
@@ -232,7 +230,7 @@ module Cdp::Emulation
     @[JSON::Field(emit_null: false)]
     property label : String
     @[JSON::Field(emit_null: false)]
-    property id : ScreenId
+    property id : Cdp::NodeType
   end
 
   @[Experimental]

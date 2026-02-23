@@ -3,7 +3,6 @@ require "json"
 require "time"
 
 require "../dom/dom"
-require "../runtime/runtime"
 
 require "./types"
 require "./events"
@@ -32,9 +31,9 @@ module Cdp::Animation
   struct ResolveAnimationResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property remote_object : Cdp::Runtime::RemoteObject
+    property remote_object : Cdp::NodeType
 
-    def initialize(@remote_object : Cdp::Runtime::RemoteObject)
+    def initialize(@remote_object : Cdp::NodeType)
     end
   end
 

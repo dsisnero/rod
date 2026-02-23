@@ -2,11 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../runtime/runtime"
-require "../network/network"
 require "../dom/dom"
-require "../io/io"
-require "../debugger/debugger"
 
 module Cdp::Page
   alias FrameId = String
@@ -27,25 +23,25 @@ module Cdp::Page
   struct AdFrameStatus
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property ad_frame_type : AdFrameType
+    property ad_frame_type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property explanations : Array(AdFrameExplanation)?
+    property explanations : Array(Cdp::NodeType)?
   end
 
   @[Experimental]
   struct AdScriptId
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property script_id : Cdp::Runtime::ScriptId
+    property script_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property debugger_id : Cdp::Runtime::UniqueDebuggerId
+    property debugger_id : Cdp::NodeType
   end
 
   @[Experimental]
   struct AdScriptAncestry
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property ancestry_chain : Array(AdScriptId)
+    property ancestry_chain : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property root_script_filterlist_rule : String?
   end
@@ -194,20 +190,20 @@ module Cdp::Page
   struct PermissionsPolicyBlockLocator
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property frame_id : FrameId
+    property frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property block_reason : PermissionsPolicyBlockReason
+    property block_reason : Cdp::NodeType
   end
 
   @[Experimental]
   struct PermissionsPolicyFeatureState
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property feature : PermissionsPolicyFeature
+    property feature : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property? allowed : Bool
     @[JSON::Field(emit_null: false)]
-    property locator : PermissionsPolicyBlockLocator?
+    property locator : Cdp::NodeType?
   end
 
   @[Experimental]
@@ -247,11 +243,11 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property trial_name : String
     @[JSON::Field(emit_null: false)]
-    property expiry_time : Cdp::Network::TimeSinceEpoch
+    property expiry_time : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property? is_third_party : Bool
     @[JSON::Field(emit_null: false)]
-    property usage_restriction : OriginTrialUsageRestriction
+    property usage_restriction : Cdp::NodeType
   end
 
   @[Experimental]
@@ -260,9 +256,9 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property raw_token_text : String
     @[JSON::Field(emit_null: false)]
-    property parsed_token : OriginTrialToken?
+    property parsed_token : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property status : OriginTrialTokenStatus
+    property status : Cdp::NodeType
   end
 
   @[Experimental]
@@ -271,9 +267,9 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property trial_name : String
     @[JSON::Field(emit_null: false)]
-    property status : OriginTrialStatus
+    property status : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property tokens_with_status : Array(OriginTrialTokenWithStatus)
+    property tokens_with_status : Array(Cdp::NodeType)
   end
 
   @[Experimental]
@@ -286,11 +282,11 @@ module Cdp::Page
   struct Frame
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property id : FrameId
+    property id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property parent_id : FrameId?
+    property parent_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property loader_id : Cdp::Network::LoaderId
+    property loader_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property name : String?
     @[JSON::Field(emit_null: false)]
@@ -302,19 +298,19 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property security_origin : String
     @[JSON::Field(emit_null: false)]
-    property security_origin_details : SecurityOriginDetails?
+    property security_origin_details : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property mime_type : String
     @[JSON::Field(emit_null: false)]
     property unreachable_url : String?
     @[JSON::Field(emit_null: false)]
-    property ad_frame_status : AdFrameStatus?
+    property ad_frame_status : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property secure_context_type : SecureContextType
+    property secure_context_type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property cross_origin_isolated_context_type : CrossOriginIsolatedContextType
+    property cross_origin_isolated_context_type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property gated_api_features : Array(GatedAPIFeatures)
+    property gated_api_features : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property state : FrameState
     @[JSON::Field(emit_null: false)]
@@ -346,11 +342,11 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property url : String
     @[JSON::Field(emit_null: false)]
-    property type : Cdp::Network::ResourceType
+    property type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property mime_type : String
     @[JSON::Field(emit_null: false)]
-    property last_modified : Cdp::Network::TimeSinceEpoch?
+    property last_modified : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property content_size : Float64?
     @[JSON::Field(emit_null: false)]
@@ -363,19 +359,19 @@ module Cdp::Page
   struct FrameResourceTree
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property frame : Frame
+    property frame : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property child_frames : Array(FrameResourceTree)?
+    property child_frames : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property resources : Array(FrameResource)
+    property resources : Array(Cdp::NodeType)
   end
 
   struct FrameTree
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property frame : Frame
+    property frame : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property child_frames : Array(FrameTree)?
+    property child_frames : Array(Cdp::NodeType)?
   end
 
   alias ScriptIdentifier = String
@@ -406,7 +402,7 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property title : String
     @[JSON::Field(emit_null: false)]
-    property transition_type : TransitionType
+    property transition_type : Cdp::NodeType
   end
 
   @[Experimental]
@@ -425,7 +421,7 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property scroll_offset_y : Float64
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::Network::TimeSinceEpoch?
+    property timestamp : Cdp::NodeType?
   end
 
   alias DialogType = String
@@ -524,7 +520,7 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property script : String
     @[JSON::Field(emit_null: false)]
-    property font_families : FontFamilies
+    property font_families : Cdp::NodeType
   end
 
   @[Experimental]
@@ -571,7 +567,7 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property error_id : String
     @[JSON::Field(emit_null: false)]
-    property error_arguments : Array(InstallabilityErrorArgument)
+    property error_arguments : Array(Cdp::NodeType)
   end
 
   @[Experimental]
@@ -611,9 +607,9 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
-    property icons : Array(ImageResource)?
+    property icons : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property accepts : Array(FileFilter)?
+    property accepts : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
     property launch_type : String
   end
@@ -667,7 +663,7 @@ module Cdp::Page
   struct Screenshot
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property image : ImageResource
+    property image : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property form_factor : String
     @[JSON::Field(emit_null: false)]
@@ -690,7 +686,7 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property url : String?
     @[JSON::Field(emit_null: false)]
-    property files : Array(FileFilter)?
+    property files : Array(Cdp::NodeType)?
   end
 
   @[Experimental]
@@ -716,15 +712,15 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property display_overrides : Array(String)?
     @[JSON::Field(emit_null: false)]
-    property file_handlers : Array(FileHandler)?
+    property file_handlers : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property icons : Array(ImageResource)?
+    property icons : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
     property id : String?
     @[JSON::Field(emit_null: false)]
     property lang : String?
     @[JSON::Field(emit_null: false)]
-    property launch_handler : LaunchHandler?
+    property launch_handler : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property name : String?
     @[JSON::Field(emit_null: false)]
@@ -732,21 +728,21 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property? prefer_related_applications : Bool?
     @[JSON::Field(emit_null: false)]
-    property protocol_handlers : Array(ProtocolHandler)?
+    property protocol_handlers : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property related_applications : Array(RelatedApplication)?
+    property related_applications : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
     property scope : String?
     @[JSON::Field(emit_null: false)]
-    property scope_extensions : Array(ScopeExtension)?
+    property scope_extensions : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property screenshots : Array(Screenshot)?
+    property screenshots : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property share_target : ShareTarget?
+    property share_target : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property short_name : String?
     @[JSON::Field(emit_null: false)]
-    property shortcuts : Array(Shortcut)?
+    property shortcuts : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
     property start_url : String?
     @[JSON::Field(emit_null: false)]
@@ -930,13 +926,13 @@ module Cdp::Page
   struct BackForwardCacheNotRestoredExplanation
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property type : BackForwardCacheNotRestoredReasonType
+    property type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property reason : BackForwardCacheNotRestoredReason
+    property reason : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property context : String?
     @[JSON::Field(emit_null: false)]
-    property details : Array(BackForwardCacheBlockingDetails)?
+    property details : Array(Cdp::NodeType)?
   end
 
   @[Experimental]
@@ -945,9 +941,9 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property url : String
     @[JSON::Field(emit_null: false)]
-    property explanations : Array(BackForwardCacheNotRestoredExplanation)
+    property explanations : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property children : Array(BackForwardCacheNotRestoredExplanationTree)
+    property children : Array(Cdp::NodeType)
   end
 
   alias FileChooserOpenedMode = String

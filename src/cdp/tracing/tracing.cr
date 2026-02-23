@@ -2,7 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../io/io"
+require "../dom/dom"
 
 require "./types"
 require "./events"
@@ -130,9 +130,9 @@ module Cdp::Tracing
     @[JSON::Field(emit_null: false)]
     property? deterministic : Bool?
     @[JSON::Field(emit_null: false)]
-    property level_of_detail : MemoryDumpLevelOfDetail?
+    property level_of_detail : Cdp::NodeType?
 
-    def initialize(@deterministic : Bool?, @level_of_detail : MemoryDumpLevelOfDetail?)
+    def initialize(@deterministic : Bool?, @level_of_detail : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -154,19 +154,19 @@ module Cdp::Tracing
     @[JSON::Field(emit_null: false)]
     property buffer_usage_reporting_interval : Float64?
     @[JSON::Field(emit_null: false)]
-    property transfer_mode : TransferMode?
+    property transfer_mode : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property stream_format : StreamFormat?
+    property stream_format : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property stream_compression : StreamCompression?
+    property stream_compression : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property trace_config : TraceConfig?
+    property trace_config : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property perfetto_config : String?
     @[JSON::Field(emit_null: false)]
-    property tracing_backend : TracingBackend?
+    property tracing_backend : Cdp::NodeType?
 
-    def initialize(@buffer_usage_reporting_interval : Float64?, @transfer_mode : TransferMode?, @stream_format : StreamFormat?, @stream_compression : StreamCompression?, @trace_config : TraceConfig?, @perfetto_config : String?, @tracing_backend : TracingBackend?)
+    def initialize(@buffer_usage_reporting_interval : Float64?, @transfer_mode : Cdp::NodeType?, @stream_format : Cdp::NodeType?, @stream_compression : Cdp::NodeType?, @trace_config : Cdp::NodeType?, @perfetto_config : String?, @tracing_backend : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.

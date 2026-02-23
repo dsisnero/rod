@@ -2,8 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../runtime/runtime"
-require "../debugger/debugger"
+require "../dom/dom"
 
 module Cdp::Profiler
   struct ProfileNode
@@ -11,7 +10,7 @@ module Cdp::Profiler
     @[JSON::Field(emit_null: false)]
     property id : Int64
     @[JSON::Field(emit_null: false)]
-    property call_frame : Cdp::Runtime::CallFrame
+    property call_frame : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property hit_count : Int64?
     @[JSON::Field(emit_null: false)]
@@ -19,13 +18,13 @@ module Cdp::Profiler
     @[JSON::Field(emit_null: false)]
     property deopt_reason : String?
     @[JSON::Field(emit_null: false)]
-    property position_ticks : Array(PositionTickInfo)?
+    property position_ticks : Array(Cdp::NodeType)?
   end
 
   struct Profile
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property nodes : Array(ProfileNode)
+    property nodes : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property start_time : Float64
     @[JSON::Field(emit_null: false)]
@@ -59,7 +58,7 @@ module Cdp::Profiler
     @[JSON::Field(emit_null: false)]
     property function_name : String
     @[JSON::Field(emit_null: false)]
-    property ranges : Array(CoverageRange)
+    property ranges : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property? is_block_coverage : Bool
   end
@@ -67,10 +66,10 @@ module Cdp::Profiler
   struct ScriptCoverage
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property script_id : Cdp::Runtime::ScriptId
+    property script_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property url : String
     @[JSON::Field(emit_null: false)]
-    property functions : Array(FunctionCoverage)
+    property functions : Array(Cdp::NodeType)
   end
 end

@@ -2,18 +2,25 @@ require "../cdp"
 require "json"
 require "time"
 
+require "../dom/dom"
+
 module Cdp::Inspector
   struct DetachedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property reason : DetachReason
+    property reason : Cdp::NodeType
 
-    def initialize(@reason : DetachReason)
+    def initialize(@reason : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Inspector.detached"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Inspector.detached"
     end
   end
@@ -29,6 +36,11 @@ module Cdp::Inspector
     def proto_event : String
       "Inspector.targetCrashed"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "Inspector.targetCrashed"
+    end
   end
 
   struct TargetReloadedAfterCrashEvent
@@ -40,6 +52,11 @@ module Cdp::Inspector
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Inspector.targetReloadedAfterCrash"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Inspector.targetReloadedAfterCrash"
     end
   end
@@ -54,6 +71,11 @@ module Cdp::Inspector
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Inspector.workerScriptLoaded"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Inspector.workerScriptLoaded"
     end
   end

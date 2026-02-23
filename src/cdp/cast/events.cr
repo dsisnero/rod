@@ -2,18 +2,25 @@ require "../cdp"
 require "json"
 require "time"
 
+require "../dom/dom"
+
 module Cdp::Cast
   struct SinksUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property sinks : Array(Sink)
+    property sinks : Array(Cdp::NodeType)
 
-    def initialize(@sinks : Array(Sink))
+    def initialize(@sinks : Array(Cdp::NodeType))
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Cast.sinksUpdated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Cast.sinksUpdated"
     end
   end
@@ -29,6 +36,11 @@ module Cdp::Cast
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Cast.issueUpdated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Cast.issueUpdated"
     end
   end

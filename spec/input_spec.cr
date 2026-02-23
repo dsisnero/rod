@@ -7,8 +7,7 @@ def create_test_page
     browser: browser,
     target_id: Rod::TargetID.new("test-target"),
     session_id: nil,
-    frame_id: nil,
-    ctx: nil
+    frame_id: nil
   )
 end
 

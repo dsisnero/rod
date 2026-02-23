@@ -119,25 +119,25 @@ module Pdlgen
             )
           end
 
-          domain.types.each do |t|
-            case t.name
+          domain.types.each do |typ|
+            case typ.name
             when "GestureSourceType"
-              t.name = "GestureType"
+              typ.name = "GestureType"
             when "TimeSinceEpoch"
-              t.type = Pdl::TypeEnum::Timestamp
-              t.timestamp_type = Pdl::TimestampType::Second
+              typ.type = Pdl::TypeEnum::Timestamp
+              typ.timestamp_type = Pdl::TimestampType::Second
               # TODO: add extra timestamp template
-              # t.extra += gotpl.ExtraTimestampTemplate(t, domain)
+              # typ.extra += gotpl.ExtraTimestampTemplate(typ, domain)
             end
           end
 
-          domain.commands.each do |c|
-            case c.name
+          domain.commands.each do |cmd|
+            case cmd.name
             when "dispatchKeyEvent"
-              c.parameters.each do |p|
-                case p.name
+              cmd.parameters.each do |param|
+                case param.name
                 when "autoRepeat", "isKeypad", "isSystemKey"
-                  p.always_emit = true
+                  param.always_emit = true
                 end
               end
             end
@@ -154,9 +154,9 @@ module Pdlgen
           )
 
           # find detached event's reason parameter and change type
-          domain.events.each do |e|
-            if e.name == "detached"
-              e.parameters.each do |param|
+          domain.events.each do |event|
+            if event.name == "detached"
+              event.parameters.each do |param|
                 if param.name == "reason"
                   param.ref = "DetachReason"
                   param.type = Pdl::TypeEnum::Any
@@ -167,38 +167,38 @@ module Pdlgen
             end
           end
         when "Network"
-          domain.types.each do |t|
+          domain.types.each do |typ|
             # change Monotonic to TypeTimestamp and add extra unmarshaling template
-            if t.name == "TimeSinceEpoch"
-              t.type = Pdl::TypeEnum::Timestamp
-              t.timestamp_type = Pdl::TimestampType::Second
+            if typ.name == "TimeSinceEpoch"
+              typ.type = Pdl::TypeEnum::Timestamp
+              typ.timestamp_type = Pdl::TimestampType::Second
               # TODO: add extra timestamp template
-              t.extra += Gen::CrystalExtras.extra_timestamp_template(t, domain)
+              typ.extra += Gen::CrystalExtras.extra_timestamp_template(typ, domain)
             end
 
             # change Monotonic to TypeTimestamp and add extra unmarshaling template
-            if t.name == "MonotonicTime"
-              t.type = Pdl::TypeEnum::Timestamp
-              t.timestamp_type = Pdl::TimestampType::Second
+            if typ.name == "MonotonicTime"
+              typ.type = Pdl::TypeEnum::Timestamp
+              typ.timestamp_type = Pdl::TimestampType::Second
               # TODO: add extra timestamp template
-              t.extra += Gen::CrystalExtras.extra_timestamp_template(t, domain)
+              typ.extra += Gen::CrystalExtras.extra_timestamp_template(typ, domain)
             end
 
             # change Headers to be a Hash(String, JSON::Any)
-            if t.name == "Headers"
-              t.type = Pdl::TypeEnum::Any
-              t.ref = "Hash(String, JSON::Any)"
+            if typ.name == "Headers"
+              typ.type = Pdl::TypeEnum::Any
+              typ.ref = "Hash(String, JSON::Any)"
             end
           end
         when "Page"
-          domain.types.each do |t|
-            case t.name
+          domain.types.each do |typ|
+            case typ.name
             when "FrameId"
               # TODO: add extra unmarshaler
-              # t.extra += gotpl.ExtraFixStringUnmarshaler(snaker.ForceCamelIdentifier(t.name), "", "")
+              # typ.extra += gotpl.ExtraFixStringUnmarshaler(snaker.ForceCamelIdentifier(typ.name), "", "")
 
             when "Frame"
-              t.properties.concat([
+              typ.properties.concat([
                 Pdl::Type.new(
                   name: "State",
                   ref: "FrameState",
@@ -229,40 +229,40 @@ module Pdlgen
                 ),
               ])
               # TODO: add extra frame template
-              t.extra += Gen::CrystalExtras.extra_frame_template
+              typ.extra += Gen::CrystalExtras.extra_frame_template
 
               # convert Frame.id/parentId to $ref of FrameID
-              t.properties.each do |p|
-                if p.name == "id" || p.name == "parentId"
-                  p.ref = "FrameId"
-                  p.type = Pdl::TypeEnum::Any
+              typ.properties.each do |prop|
+                if prop.name == "id" || prop.name == "parentId"
+                  prop.ref = "FrameId"
+                  prop.type = Pdl::TypeEnum::Any
                 end
               end
             end
           end
 
-          domain.commands.each do |c|
-            case c.name
+          domain.commands.each do |cmd|
+            case cmd.name
             when "printToPDF"
-              c.parameters.each do |p|
-                case p.name
+              cmd.parameters.each do |param|
+                case param.name
                 when "marginTop", "marginBottom", "marginLeft", "marginRight"
-                  p.always_emit = true
+                  param.always_emit = true
                 end
               end
             end
           end
         when "Runtime"
           typs = [] of Pdl::Type
-          domain.types.each do |t|
-            case t.name
+          domain.types.each do |typ|
+            case typ.name
             when "Timestamp"
-              t.type = Pdl::TypeEnum::Timestamp
-              t.timestamp_type = Pdl::TimestampType::Millisecond
+              typ.type = Pdl::TypeEnum::Timestamp
+              typ.timestamp_type = Pdl::TimestampType::Millisecond
               # TODO: add extra timestamp template
-              t.extra += Gen::CrystalExtras.extra_timestamp_template(t, domain)
+              typ.extra += Gen::CrystalExtras.extra_timestamp_template(typ, domain)
             when "ExceptionDetails"
-              t.extra += %(# Error satisfies the error interface.
+              typ.extra += %(# Error satisfies the error interface.
   def error : String
     String.build do |b|
       # TODO: watch script parsed events and match the ExceptionDetails.ScriptID
@@ -282,15 +282,15 @@ module Pdlgen
   end
 )
             end
-            typs << t
+            typs << typ
           end
           domain.types = typs
         end
 
         # convert object properties
-        domain.types.each do |t|
-          if t.properties
-            t.properties = convert_object_properties(t.properties, t, domain, t.name)
+        domain.types.each do |typ|
+          if typ.properties
+            typ.properties = convert_object_properties(typ.properties, typ, domain, typ.name)
           end
         end
 
@@ -300,45 +300,45 @@ module Pdlgen
 
         # fix input enums
         if domain.domain == "Input"
-          domain.types.each do |t|
-            if t.enum && t.name != "Modifier"
-              t.enum_value_name_map = Hash(String, String).new
-              t.enum.not_nil!.each do |v|
+          domain.types.each do |typ|
+            if (enum_vals = typ.enum) && typ.name != "Modifier"
+              typ.enum_value_name_map = Hash(String, String).new
+              enum_vals.each do |value|
                 prefix = ""
-                case t.name
+                case typ.name
                 when "GestureType"
                   prefix = "Gesture"
                 when "ButtonType"
                   prefix = "Button"
                 end
-                n = prefix + snaker_force_camel_identifier(v)
-                if t.name == "KeyType"
+                n = prefix + snaker_force_camel_identifier(value)
+                if typ.name == "KeyType"
                   n = "Key" + n.gsub("Key", "")
                 end
                 n = n.gsub("Cancell", "Cancel")
-                t.enum_value_name_map[v] = n
+                typ.enum_value_name_map[value] = n
               end
             end
           end
         end
 
         # fix type stuttering
-        domain.types.each do |t|
-          if !t.no_expose && !t.no_resolve && !t.is_circular_dep
-            name = t.raw_name.sub(/^#{Regex.escape(domain.domain)}\\.?/, "")
-            if t.raw_name.starts_with?("Accessibility.")
-              name = t.raw_name.sub(/^Accessibility\./, "").gsub(AX_RE, "")
+        domain.types.each do |typ|
+          if !typ.no_expose? && !typ.no_resolve? && !typ.is_circular_dep?
+            name = typ.raw_name.sub(/^#{Regex.escape(domain.domain)}\\.?/, "")
+            if typ.raw_name.starts_with?("Accessibility.")
+              name = typ.raw_name.sub(/^Accessibility\./, "").gsub(AX_RE, "")
             end
-            if t.name != name && name != ""
-              t.name = name
+            if typ.name != name && name != ""
+              typ.name = name
             end
           end
         end
 
         # Deduplicate types by name within domain
         unique_types = Hash(String, Pdl::Type).new
-        domain.types.each do |t|
-          unique_types[t.name] = t
+        domain.types.each do |typ|
+          unique_types[typ.name] = typ
         end
         domain.types = unique_types.values
       end
@@ -347,10 +347,10 @@ module Pdlgen
     # convertObjects converts the Parameters and Returns properties of the object
     # types.
     private def self.convert_objects(d : Pdl::Domain, typs : Array(Pdl::Type))
-      typs.each do |t|
-        t.parameters = convert_object_properties(t.parameters, t, d, t.name)
-        if t.returns
-          t.returns = convert_object_properties(t.returns, t, d, t.name)
+      typs.each do |typ|
+        typ.parameters = convert_object_properties(typ.parameters, typ, d, typ.name)
+        if typ.returns
+          typ.returns = convert_object_properties(typ.returns, typ, d, typ.name)
         end
       end
     end
@@ -358,97 +358,87 @@ module Pdlgen
     # convertObjectProperties converts object properties.
     private def self.convert_object_properties(params : Array(Pdl::Type), parent : Pdl::Type, d : Pdl::Domain, name : String) : Array(Pdl::Type)
       r = [] of Pdl::Type
-      params.each do |p|
-        if p.items
+      params.each do |param|
+        if items = param.items
           r << Pdl::Type.new(
-            raw_type: p.raw_type,
-            raw_name: p.raw_name,
-            is_circular_dep: p.is_circular_dep,
-            name: p.name,
+            raw_type: param.raw_type,
+            raw_name: param.raw_name,
+            is_circular_dep: param.is_circular_dep?,
+            name: param.name,
             type: Pdl::TypeEnum::Array,
-            description: p.description,
-            optional: p.optional,
-            always_emit: p.always_emit,
-            items: convert_object_properties([p.items.not_nil!], parent, d, name + "." + p.name)[0]
+            description: param.description,
+            optional: param.optional?,
+            always_emit: param.always_emit?,
+            items: convert_object_properties([items], parent, d, name + "." + param.name)[0]
           )
-        elsif (enum_vals = p.enum) && !enum_vals.empty?
-          r << fixup_enum_parameter(name, p, parent, d)
-        elsif p.name == "modifiers"
+        elsif (enum_vals = param.enum) && !enum_vals.empty?
+          r << fixup_enum_parameter(name, param, parent, d)
+        elsif param.name == "modifiers"
           r << Pdl::Type.new(
-            raw_type: p.raw_type,
-            raw_name: p.raw_name,
-            is_circular_dep: p.is_circular_dep,
-            name: p.name,
+            raw_type: param.raw_type,
+            raw_name: param.raw_name,
+            is_circular_dep: param.is_circular_dep?,
+            name: param.name,
             ref: "Modifier",
-            description: p.description,
-            optional: p.optional,
+            description: param.description,
+            optional: param.optional?,
             always_emit: true
           )
-        elsif p.name == "nodeType"
+        elsif param.name == "nodeType"
           r << Pdl::Type.new(
-            raw_type: p.raw_type,
-            raw_name: p.raw_name.sub("nodeType", "NodeType"),
-            is_circular_dep: p.is_circular_dep,
-            name: p.name,
+            raw_type: param.raw_type,
+            raw_name: param.raw_name.sub("nodeType", "NodeType"),
+            is_circular_dep: param.is_circular_dep?,
+            name: param.name,
             ref: "DOM.NodeType",
-            description: p.description,
-            optional: p.optional,
-            always_emit: p.always_emit
+            description: param.description,
+            optional: param.optional?,
+            always_emit: param.always_emit?
           )
-        elsif !p.ref.empty? && !p.no_expose && !p.no_resolve
+        elsif !param.ref.empty? && !param.no_expose? && !param.no_resolve?
           r << Pdl::Type.new(
-            raw_type: p.raw_type,
-            raw_name: p.raw_name,
-            is_circular_dep: p.is_circular_dep,
-            name: p.name,
-            ref: p.ref,
-            description: p.description,
-            optional: p.optional,
-            always_emit: p.always_emit
+            raw_name: param.raw_name.sub("nodeType", "NodeType"),
+            is_circular_dep: param.is_circular_dep?,
+            name: param.name,
+            ref: "DOM.NodeType",
+            description: param.description,
+            optional: param.optional?,
+            always_emit: param.always_emit?
           )
         else
-          r << p
+          r << param
         end
       end
       r
     end
 
     # addEnumValues adds orig.Enum values to type named n's Enum values in domain.
-    private def self.add_enum_values(n : String, p : Pdl::Type, parent : Pdl::Type, d : Pdl::Domain)
+    private def self.add_enum_values(n : String, param : Pdl::Type, parent : Pdl::Type, d : Pdl::Domain)
       # find type
-      typ = d.types.find { |t| t.raw_name == n }
+      typ = d.types.find { |type_elem| type_elem.raw_name == n }
       if typ.nil?
-        see_type = "type"
-        case parent.raw_type
-        when "command"
-          see_type = "method"
-        when "event"
-          see_type = "event"
-        end
-
         typ = Pdl::Type.new(
-          raw_see: "https://chromedevtools.github.io/devtools-protocol/tot/" + parent.raw_name.gsub(".", "#" + see_type + "-"),
-          raw_type: p.raw_type,
+          raw_type: param.raw_type,
           raw_name: n,
-          is_circular_dep: p.is_circular_dep,
+          is_circular_dep: param.is_circular_dep?,
           name: n.sub(/^#{Regex.escape(d.domain)}\\./, ""),
           type: Pdl::TypeEnum::String,
-          description: p.description,
-          optional: p.optional,
-          always_emit: p.always_emit,
+          description: param.description,
+          optional: param.optional?,
+          always_emit: param.always_emit?,
           enum: [] of String
         )
         d.types << typ
       end
 
       # combine typ.Enum and vals
-      v = Set(String).new
-      all = (typ.enum || [] of String) + (p.enum || [] of String)
-      all.each do |z|
-        v << z
+      values_set = Set(String).new
+      all = (typ.enum || [] of String) + (param.enum || [] of String)
+      all.each do |value|
+        values_set << value
       end
 
-      typ.enum = v.to_a
+      typ.enum = values_set.to_a
     end
 
     # enumRefMap is the fully qualified parameter name to ref.
@@ -504,8 +494,8 @@ module Pdlgen
         name: p.name,
         ref: ref,
         description: p.description,
-        optional: p.optional,
-        always_emit: p.always_emit
+        optional: p.optional?,
+        always_emit: p.always_emit?
       )
     end
 

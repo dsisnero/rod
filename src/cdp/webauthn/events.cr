@@ -2,20 +2,27 @@ require "../cdp"
 require "json"
 require "time"
 
+require "../dom/dom"
+
 module Cdp::WebAuthn
   struct CredentialAddedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property authenticator_id : AuthenticatorId
+    property authenticator_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property credential : Credential
+    property credential : Cdp::NodeType
 
-    def initialize(@authenticator_id : AuthenticatorId, @credential : Credential)
+    def initialize(@authenticator_id : Cdp::NodeType, @credential : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "WebAuthn.credentialAdded"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "WebAuthn.credentialAdded"
     end
   end
@@ -24,15 +31,20 @@ module Cdp::WebAuthn
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property authenticator_id : AuthenticatorId
+    property authenticator_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property credential_id : String
 
-    def initialize(@authenticator_id : AuthenticatorId, @credential_id : String)
+    def initialize(@authenticator_id : Cdp::NodeType, @credential_id : String)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "WebAuthn.credentialDeleted"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "WebAuthn.credentialDeleted"
     end
   end
@@ -41,15 +53,20 @@ module Cdp::WebAuthn
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property authenticator_id : AuthenticatorId
+    property authenticator_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property credential : Credential
+    property credential : Cdp::NodeType
 
-    def initialize(@authenticator_id : AuthenticatorId, @credential : Credential)
+    def initialize(@authenticator_id : Cdp::NodeType, @credential : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "WebAuthn.credentialUpdated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "WebAuthn.credentialUpdated"
     end
   end
@@ -58,15 +75,20 @@ module Cdp::WebAuthn
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property authenticator_id : AuthenticatorId
+    property authenticator_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property credential : Credential
+    property credential : Cdp::NodeType
 
-    def initialize(@authenticator_id : AuthenticatorId, @credential : Credential)
+    def initialize(@authenticator_id : Cdp::NodeType, @credential : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "WebAuthn.credentialAsserted"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "WebAuthn.credentialAsserted"
     end
   end

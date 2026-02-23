@@ -2,7 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../runtime/runtime"
+require "../dom/dom"
 
 require "./types"
 require "./events"
@@ -13,36 +13,36 @@ module Cdp::HeapProfiler
   struct GetHeapObjectIdResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property heap_snapshot_object_id : HeapSnapshotObjectId
+    property heap_snapshot_object_id : Cdp::NodeType
 
-    def initialize(@heap_snapshot_object_id : HeapSnapshotObjectId)
+    def initialize(@heap_snapshot_object_id : Cdp::NodeType)
     end
   end
 
   struct GetObjectByHeapObjectIdResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property result : Cdp::Runtime::RemoteObject
+    property result : Cdp::NodeType
 
-    def initialize(@result : Cdp::Runtime::RemoteObject)
+    def initialize(@result : Cdp::NodeType)
     end
   end
 
   struct GetSamplingProfileResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property profile : SamplingHeapProfile
+    property profile : Cdp::NodeType
 
-    def initialize(@profile : SamplingHeapProfile)
+    def initialize(@profile : Cdp::NodeType)
     end
   end
 
   struct StopSamplingResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property profile : SamplingHeapProfile
+    property profile : Cdp::NodeType
 
-    def initialize(@profile : SamplingHeapProfile)
+    def initialize(@profile : Cdp::NodeType)
     end
   end
 
@@ -51,9 +51,9 @@ module Cdp::HeapProfiler
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property heap_object_id : HeapSnapshotObjectId
+    property heap_object_id : Cdp::NodeType
 
-    def initialize(@heap_object_id : HeapSnapshotObjectId)
+    def initialize(@heap_object_id : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -125,9 +125,9 @@ module Cdp::HeapProfiler
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property object_id : Cdp::Runtime::RemoteObjectId
+    property object_id : Cdp::NodeType
 
-    def initialize(@object_id : Cdp::Runtime::RemoteObjectId)
+    def initialize(@object_id : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -147,11 +147,11 @@ module Cdp::HeapProfiler
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property object_id : HeapSnapshotObjectId
+    property object_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property object_group : String?
 
-    def initialize(@object_id : HeapSnapshotObjectId, @object_group : String?)
+    def initialize(@object_id : Cdp::NodeType, @object_group : String?)
     end
 
     # ProtoReq returns the protocol method name.

@@ -63,42 +63,48 @@ module Pdlgen
 
           # dependencies
           if match = line.match(DEPENDS_RE)
-            domain.not_nil!.dependencies << match[1]
+            if domain
+              domain.dependencies << match[1]
+            end
             next
           end
 
           # type
           if match = line.match(TYPE_RE)
-            item = Type.new(
-              raw_type: "type",
-              raw_name: "#{domain.not_nil!.domain}.#{match[3]}",
-              is_circular_dep: is_circular_dep(domain.not_nil!.domain, match[3]),
-              name: match[3],
-              experimental: !match[1]?.nil?,
-              deprecated: !match[2]?.nil?,
-              description: desc.strip
-            )
-            assign_type(item, match[5], !match[4]?.nil?)
-            domain.not_nil!.types << item
+            if domain
+              item = Type.new(
+                raw_type: "type",
+                raw_name: "#{domain.domain}.#{match[3]}",
+                is_circular_dep: circular_dep?(domain.domain, match[3]),
+                name: match[3],
+                experimental: !match[1]?.nil?,
+                deprecated: !match[2]?.nil?,
+                description: desc.strip
+              )
+              assign_type(item, match[5], !match[4]?.nil?)
+              domain.types << item
+            end
             next
           end
 
           # command or event
           if match = line.match(COMMAND_EVENT_RE)
-            item = Type.new(
-              raw_name: "#{domain.not_nil!.domain}.#{match[4]}",
-              is_circular_dep: is_circular_dep(domain.not_nil!.domain, match[4]),
-              name: match[4],
-              experimental: !match[1]?.nil?,
-              deprecated: !match[2]?.nil?,
-              description: desc.strip
-            )
-            if match[3] == "command"
-              item.raw_type = "command"
-              domain.not_nil!.commands << item
-            else
-              item.raw_type = "event"
-              domain.not_nil!.events << item
+            if domain
+              item = Type.new(
+                raw_name: "#{domain.domain}.#{match[4]}",
+                is_circular_dep: circular_dep?(domain.domain, match[4]),
+                name: match[4],
+                experimental: !match[1]?.nil?,
+                deprecated: !match[2]?.nil?,
+                description: desc.strip
+              )
+              if match[3] == "command"
+                item.raw_type = "command"
+                domain.commands << item
+              else
+                item.raw_type = "event"
+                domain.events << item
+              end
             end
             next
           end
@@ -106,8 +112,8 @@ module Pdlgen
           # member to params / returns / properties
           if match = line.match(MEMBER_RE)
             param = Type.new(
-              raw_name: "#{domain.not_nil!.domain}.#{match[6]}",
-              is_circular_dep: is_circular_dep(domain.not_nil!.domain, match[6]),
+              raw_name: "#{domain.try &.domain || ""}.#{match[6]}",
+              is_circular_dep: circular_dep?(domain.try &.domain || "", match[6]),
               name: match[6],
               experimental: !match[1]?.nil?,
               deprecated: !match[2]?.nil?,
@@ -119,7 +125,9 @@ module Pdlgen
               param.enum = [] of String
               enumliterals = param.enum
             end
-            subitems.not_nil! << param
+            if subitems
+              subitems << param
+            end
             next
           end
 
@@ -127,11 +135,11 @@ module Pdlgen
           if match = line.match(PARAMS_RETS_PROPS_RE)
             case match[1]
             when "parameters"
-              item.not_nil!.parameters = [] of Type
-              subitems = item.not_nil!.parameters
+              item.not_nil!.parameters = [] of Type # ameba:disable Lint/NotNil
+              subitems = item.not_nil!.parameters   # ameba:disable Lint/NotNil
             when "returns"
-              item.not_nil!.returns = [] of Type
-              subitems = item.not_nil!.returns
+              item.not_nil!.returns = [] of Type # ameba:disable Lint/NotNil
+              subitems = item.not_nil!.returns   # ameba:disable Lint/NotNil
             when "properties"
               item.not_nil!.properties = [] of Type
               subitems = item.not_nil!.properties
@@ -141,8 +149,8 @@ module Pdlgen
 
           # enum
           if line.match(ENUM_RE)
-            item.not_nil!.enum = [] of String
-            enumliterals = item.not_nil!.enum
+            item.not_nil!.enum = [] of String # ameba:disable Lint/NotNil
+            enumliterals = item.not_nil!.enum # ameba:disable Lint/NotNil
             next
           end
 
@@ -154,32 +162,32 @@ module Pdlgen
 
           # version major
           if match = line.match(MAJOR_RE)
-            pdl.version.not_nil!.major = match[1].to_i
+            pdl.version.not_nil!.major = match[1].to_i # ameba:disable Lint/NotNil
             next
           end
 
           # version minor
           if match = line.match(MINOR_RE)
-            pdl.version.not_nil!.minor = match[1].to_i
+            pdl.version.not_nil!.minor = match[1].to_i # ameba:disable Lint/NotNil
             next
           end
 
           # redirect
           if match = line.match(REDIRECT_RE)
-            item.not_nil!.redirect = Redirect.new(match[1], "")
+            item.not_nil!.redirect = Redirect.new(match[1], "") # ameba:disable Lint/NotNil
             if desc_match = desc.match(REDIRECT_COMMENT_RE)
               name = desc_match[1]
               if idx = name.rindex('.')
                 name = name[idx + 1..]
               end
-              item.not_nil!.redirect.not_nil!.name = name
+              item.not_nil!.redirect.not_nil!.name = name # ameba:disable Lint/NotNil
             end
             next
           end
 
           # enum literal
           if line.match(ENUM_LITERAL_RE)
-            enumliterals.not_nil! << trimmed
+            enumliterals.not_nil! << trimmed # ameba:disable Lint/NotNil
             next
           end
 
@@ -193,7 +201,7 @@ module Pdlgen
         if is_array
           item.type = TypeEnum::Array
           item.items = Type.new
-          assign_type(item.items.not_nil!, typ, false)
+          assign_type(item.items.not_nil!, typ, false) # ameba:disable Lint/NotNil
           return
         end
 
@@ -208,8 +216,8 @@ module Pdlgen
         end
       end
 
-      private def is_circular_dep(dtyp : String, typ : String) : Bool
-        Pdl.is_circular_dep(dtyp, typ)
+      private def circular_dep?(dtyp : String, typ : String) : Bool
+        Pdl.circular_dep?(dtyp, typ)
       end
     end
   end

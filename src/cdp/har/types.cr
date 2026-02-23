@@ -2,16 +2,15 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../log/log"
-require "../page/page"
+require "../dom/dom"
 
 module Cdp::HAR
   struct Cache
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property before_request : CacheData?
+    property before_request : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property after_request : CacheData?
+    property after_request : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property comment : String?
   end
@@ -85,13 +84,13 @@ module Cdp::HAR
     @[JSON::Field(emit_null: false)]
     property time : Float64
     @[JSON::Field(emit_null: false)]
-    property request : Request
+    property request : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property response : Response
+    property response : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property cache : Cache
+    property cache : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property timings : Timings
+    property timings : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property server_ip_address : String?
     @[JSON::Field(emit_null: false)]
@@ -103,7 +102,7 @@ module Cdp::HAR
   struct HAR
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property log : Log
+    property log : Cdp::NodeType
   end
 
   struct Log
@@ -111,13 +110,13 @@ module Cdp::HAR
     @[JSON::Field(emit_null: false)]
     property version : String
     @[JSON::Field(emit_null: false)]
-    property creator : Creator
+    property creator : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property browser : Creator?
+    property browser : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property pages : Array(Page)?
+    property pages : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property entries : Array(Entry)
+    property entries : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property comment : String?
   end
@@ -141,7 +140,7 @@ module Cdp::HAR
     @[JSON::Field(emit_null: false)]
     property title : String
     @[JSON::Field(emit_null: false)]
-    property page_timings : PageTimings
+    property page_timings : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property comment : String?
   end
@@ -175,7 +174,7 @@ module Cdp::HAR
     @[JSON::Field(emit_null: false)]
     property mime_type : String
     @[JSON::Field(emit_null: false)]
-    property params : Array(Param)
+    property params : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property text : String
     @[JSON::Field(emit_null: false)]
@@ -191,13 +190,13 @@ module Cdp::HAR
     @[JSON::Field(emit_null: false)]
     property http_version : String
     @[JSON::Field(emit_null: false)]
-    property cookies : Array(Cookie)
+    property cookies : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property headers : Array(NameValuePair)
+    property headers : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property query_string : Array(NameValuePair)
+    property query_string : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property post_data : PostData?
+    property post_data : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property headers_size : Int64
     @[JSON::Field(emit_null: false)]
@@ -215,11 +214,11 @@ module Cdp::HAR
     @[JSON::Field(emit_null: false)]
     property http_version : String
     @[JSON::Field(emit_null: false)]
-    property cookies : Array(Cookie)
+    property cookies : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property headers : Array(NameValuePair)
+    property headers : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property content : Content
+    property content : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property redirect_url : String
     @[JSON::Field(emit_null: false)]

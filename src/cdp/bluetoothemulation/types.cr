@@ -2,6 +2,8 @@ require "../cdp"
 require "json"
 require "time"
 
+require "../dom/dom"
+
 module Cdp::BluetoothEmulation
   alias CentralState = String
   CentralStateAbsent     = "absent"
@@ -46,7 +48,7 @@ module Cdp::BluetoothEmulation
     @[JSON::Field(emit_null: false)]
     property tx_power : Int64?
     @[JSON::Field(emit_null: false)]
-    property manufacturer_data : Array(ManufacturerData)?
+    property manufacturer_data : Array(Cdp::NodeType)?
   end
 
   struct ScanEntry
@@ -56,7 +58,7 @@ module Cdp::BluetoothEmulation
     @[JSON::Field(emit_null: false)]
     property rssi : Int64
     @[JSON::Field(emit_null: false)]
-    property scan_record : ScanRecord
+    property scan_record : Cdp::NodeType
   end
 
   struct CharacteristicProperties

@@ -2,24 +2,25 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../runtime/runtime"
-require "../network/network"
 require "../dom/dom"
-require "../io/io"
-require "../debugger/debugger"
 
 module Cdp::Page
   struct DomContentEventFiredEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::Network::MonotonicTime
+    property timestamp : Cdp::NodeType
 
-    def initialize(@timestamp : Cdp::Network::MonotonicTime)
+    def initialize(@timestamp : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Page.domContentEventFired"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Page.domContentEventFired"
     end
   end
@@ -28,17 +29,22 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property frame_id : FrameId
+    property frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property mode : FileChooserOpenedMode
+    property mode : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property backend_node_id : Cdp::DOM::BackendNodeId?
+    property backend_node_id : Cdp::NodeType?
 
-    def initialize(@frame_id : FrameId, @mode : FileChooserOpenedMode, @backend_node_id : Cdp::DOM::BackendNodeId?)
+    def initialize(@frame_id : Cdp::NodeType, @mode : Cdp::NodeType, @backend_node_id : Cdp::NodeType?)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Page.fileChooserOpened"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Page.fileChooserOpened"
     end
   end
@@ -47,17 +53,22 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property frame_id : FrameId
+    property frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property parent_frame_id : FrameId
+    property parent_frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property stack : Cdp::Runtime::StackTrace?
+    property stack : Cdp::NodeType?
 
-    def initialize(@frame_id : FrameId, @parent_frame_id : FrameId, @stack : Cdp::Runtime::StackTrace?)
+    def initialize(@frame_id : Cdp::NodeType, @parent_frame_id : Cdp::NodeType, @stack : Cdp::NodeType?)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Page.frameAttached"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Page.frameAttached"
     end
   end
@@ -66,15 +77,20 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property frame_id : FrameId
+    property frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property reason : FrameDetachedReason
+    property reason : Cdp::NodeType
 
-    def initialize(@frame_id : FrameId, @reason : FrameDetachedReason)
+    def initialize(@frame_id : Cdp::NodeType, @reason : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Page.frameDetached"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Page.frameDetached"
     end
   end
@@ -84,13 +100,18 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property frame_id : FrameId
+    property frame_id : Cdp::NodeType
 
-    def initialize(@frame_id : FrameId)
+    def initialize(@frame_id : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Page.frameSubtreeWillBeDetached"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Page.frameSubtreeWillBeDetached"
     end
   end
@@ -99,15 +120,20 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property frame : Frame
+    property frame : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property type : NavigationType
+    property type : Cdp::NodeType
 
-    def initialize(@frame : Frame, @type : NavigationType)
+    def initialize(@frame : Cdp::NodeType, @type : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Page.frameNavigated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Page.frameNavigated"
     end
   end
@@ -117,13 +143,18 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property frame : Frame
+    property frame : Cdp::NodeType
 
-    def initialize(@frame : Frame)
+    def initialize(@frame : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Page.documentOpened"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Page.documentOpened"
     end
   end
@@ -140,6 +171,11 @@ module Cdp::Page
     def proto_event : String
       "Page.frameResized"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "Page.frameResized"
+    end
   end
 
   @[Experimental]
@@ -147,19 +183,24 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property frame_id : FrameId
+    property frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property url : String
     @[JSON::Field(emit_null: false)]
-    property loader_id : Cdp::Network::LoaderId
+    property loader_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property navigation_type : FrameStartedNavigatingNavigationType
+    property navigation_type : Cdp::NodeType
 
-    def initialize(@frame_id : FrameId, @url : String, @loader_id : Cdp::Network::LoaderId, @navigation_type : FrameStartedNavigatingNavigationType)
+    def initialize(@frame_id : Cdp::NodeType, @url : String, @loader_id : Cdp::NodeType, @navigation_type : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Page.frameStartedNavigating"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Page.frameStartedNavigating"
     end
   end
@@ -169,19 +210,24 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property frame_id : FrameId
+    property frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property reason : ClientNavigationReason
+    property reason : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property url : String
     @[JSON::Field(emit_null: false)]
-    property disposition : ClientNavigationDisposition
+    property disposition : Cdp::NodeType
 
-    def initialize(@frame_id : FrameId, @reason : ClientNavigationReason, @url : String, @disposition : ClientNavigationDisposition)
+    def initialize(@frame_id : Cdp::NodeType, @reason : Cdp::NodeType, @url : String, @disposition : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Page.frameRequestedNavigation"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Page.frameRequestedNavigation"
     end
   end
@@ -191,13 +237,18 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property frame_id : FrameId
+    property frame_id : Cdp::NodeType
 
-    def initialize(@frame_id : FrameId)
+    def initialize(@frame_id : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Page.frameStartedLoading"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Page.frameStartedLoading"
     end
   end
@@ -207,13 +258,18 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property frame_id : FrameId
+    property frame_id : Cdp::NodeType
 
-    def initialize(@frame_id : FrameId)
+    def initialize(@frame_id : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Page.frameStoppedLoading"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Page.frameStoppedLoading"
     end
   end
@@ -229,6 +285,11 @@ module Cdp::Page
     def proto_event : String
       "Page.interstitialHidden"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "Page.interstitialHidden"
+    end
   end
 
   struct InterstitialShownEvent
@@ -242,23 +303,33 @@ module Cdp::Page
     def proto_event : String
       "Page.interstitialShown"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "Page.interstitialShown"
+    end
   end
 
   struct JavascriptDialogClosedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property frame_id : FrameId
+    property frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property? result : Bool
     @[JSON::Field(emit_null: false)]
     property user_input : String
 
-    def initialize(@frame_id : FrameId, @result : Bool, @user_input : String)
+    def initialize(@frame_id : Cdp::NodeType, @result : Bool, @user_input : String)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Page.javascriptDialogClosed"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Page.javascriptDialogClosed"
     end
   end
@@ -269,21 +340,26 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property url : String
     @[JSON::Field(emit_null: false)]
-    property frame_id : FrameId
+    property frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property message : String
     @[JSON::Field(emit_null: false)]
-    property type : DialogType
+    property type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property? has_browser_handler : Bool
     @[JSON::Field(emit_null: false)]
     property default_prompt : String?
 
-    def initialize(@url : String, @frame_id : FrameId, @message : String, @type : DialogType, @has_browser_handler : Bool, @default_prompt : String?)
+    def initialize(@url : String, @frame_id : Cdp::NodeType, @message : String, @type : Cdp::NodeType, @has_browser_handler : Bool, @default_prompt : String?)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Page.javascriptDialogOpening"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Page.javascriptDialogOpening"
     end
   end
@@ -292,19 +368,24 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property frame_id : FrameId
+    property frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property loader_id : Cdp::Network::LoaderId
+    property loader_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::Network::MonotonicTime
+    property timestamp : Cdp::NodeType
 
-    def initialize(@frame_id : FrameId, @loader_id : Cdp::Network::LoaderId, @name : String, @timestamp : Cdp::Network::MonotonicTime)
+    def initialize(@frame_id : Cdp::NodeType, @loader_id : Cdp::NodeType, @name : String, @timestamp : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Page.lifecycleEvent"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Page.lifecycleEvent"
     end
   end
@@ -314,19 +395,24 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property loader_id : Cdp::Network::LoaderId
+    property loader_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property frame_id : FrameId
+    property frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property not_restored_explanations : Array(BackForwardCacheNotRestoredExplanation)
+    property not_restored_explanations : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property not_restored_explanations_tree : BackForwardCacheNotRestoredExplanationTree?
+    property not_restored_explanations_tree : Cdp::NodeType?
 
-    def initialize(@loader_id : Cdp::Network::LoaderId, @frame_id : FrameId, @not_restored_explanations : Array(BackForwardCacheNotRestoredExplanation), @not_restored_explanations_tree : BackForwardCacheNotRestoredExplanationTree?)
+    def initialize(@loader_id : Cdp::NodeType, @frame_id : Cdp::NodeType, @not_restored_explanations : Array(Cdp::NodeType), @not_restored_explanations_tree : Cdp::NodeType?)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Page.backForwardCacheNotUsed"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Page.backForwardCacheNotUsed"
     end
   end
@@ -335,13 +421,18 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::Network::MonotonicTime
+    property timestamp : Cdp::NodeType
 
-    def initialize(@timestamp : Cdp::Network::MonotonicTime)
+    def initialize(@timestamp : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Page.loadEventFired"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Page.loadEventFired"
     end
   end
@@ -351,17 +442,22 @@ module Cdp::Page
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property frame_id : FrameId
+    property frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property url : String
     @[JSON::Field(emit_null: false)]
-    property navigation_type : NavigatedWithinDocumentNavigationType
+    property navigation_type : Cdp::NodeType
 
-    def initialize(@frame_id : FrameId, @url : String, @navigation_type : NavigatedWithinDocumentNavigationType)
+    def initialize(@frame_id : Cdp::NodeType, @url : String, @navigation_type : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Page.navigatedWithinDocument"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Page.navigatedWithinDocument"
     end
   end
@@ -373,15 +469,20 @@ module Cdp::Page
     @[JSON::Field(emit_null: false)]
     property data : String
     @[JSON::Field(emit_null: false)]
-    property metadata : ScreencastFrameMetadata
+    property metadata : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property session_id : Int64
 
-    def initialize(@data : String, @metadata : ScreencastFrameMetadata, @session_id : Int64)
+    def initialize(@data : String, @metadata : Cdp::NodeType, @session_id : Int64)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Page.screencastFrame"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Page.screencastFrame"
     end
   end
@@ -398,6 +499,11 @@ module Cdp::Page
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Page.screencastVisibilityChanged"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Page.screencastVisibilityChanged"
     end
   end
@@ -421,6 +527,11 @@ module Cdp::Page
     def proto_event : String
       "Page.windowOpen"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "Page.windowOpen"
+    end
   end
 
   @[Experimental]
@@ -437,6 +548,11 @@ module Cdp::Page
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Page.compilationCacheProduced"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Page.compilationCacheProduced"
     end
   end

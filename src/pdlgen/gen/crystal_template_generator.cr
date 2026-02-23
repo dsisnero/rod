@@ -37,27 +37,27 @@ module Pdlgen
         generate_root_package(domains, base_pkg)
 
         # Generate individual domains
-        domains.each do |d|
+        domains.each do |domain|
           # Skip deprecated domains
-          next if d.deprecated
+          next if domain.deprecated?
 
           # Collect referenced domains for this domain
-          referenced_domains = collect_referenced_domains(d, domains)
+          referenced_domains = collect_referenced_domains(domain, domains)
 
           # Generate main domain file
-          domain_content = render_domain_module(d, domains, base_pkg, referenced_domains)
-          pkg_name = CrystalUtil.package_name(d)
+          domain_content = render_domain_module(domain, domains, base_pkg, referenced_domains)
+          pkg_name = CrystalUtil.package_name(domain)
           add_file("#{pkg_name}/#{pkg_name}.cr", domain_content)
 
           # Generate domain types file if there are types
-          if !d.types.empty?
-            types_content = render_domain_types(d, domains, base_pkg, referenced_domains)
+          if !domain.types.empty?
+            types_content = render_domain_types(domain, domains, base_pkg, referenced_domains)
             add_file("#{pkg_name}/types.cr", types_content)
           end
 
           # Generate domain events file if there are events
-          if !d.events.empty?
-            events_content = render_domain_events(d, domains, base_pkg, referenced_domains)
+          if !domain.events.empty?
+            events_content = render_domain_events(domain, domains, base_pkg, referenced_domains)
             add_file("#{pkg_name}/events.cr", events_content)
           end
         end
@@ -66,10 +66,10 @@ module Pdlgen
       private def generate_shared_types(domains : Array(Pdl::Domain), base_pkg : String)
         # Find circular dependency types, deduplicate by raw_name
         unique_types = Hash(String, Pdl::Type).new
-        domains.each do |d|
-          d.types.each do |t|
-            if t.is_circular_dep
-              unique_types[t.raw_name] = t
+        domains.each do |domain|
+          domain.types.each do |type|
+            if type.is_circular_dep?
+              unique_types[type.raw_name] = type
             end
           end
         end
@@ -79,8 +79,8 @@ module Pdlgen
         content = String.build do |io|
           io << "# Shared Chrome DevTools Protocol Domain types.\n"
           io << "module Cdp\n"
-          typs.each do |t|
-            generate_type_struct(io, t, nil, domains)
+          typs.each do |type|
+            generate_type_struct(io, type, nil, domains)
           end
           io << "end\n"
         end
@@ -93,70 +93,70 @@ module Pdlgen
         add_file("cdp.cr", content)
       end
 
-      private def collect_referenced_domains(d : Pdl::Domain, domains : Array(Pdl::Domain)) : Array(String)
+      private def collect_referenced_domains(domain : Pdl::Domain, domains : Array(Pdl::Domain)) : Array(String)
         referenced = Set(String).new
 
         # Check types
-        d.types.each do |t|
-          collect_references_from_type(t, d, domains, referenced)
+        domain.types.each do |type|
+          collect_references_from_type(type, domain, domains, referenced)
         end
 
         # Check commands
-        d.commands.each do |c|
-          c.parameters.each do |p|
-            collect_references_from_type(p, d, domains, referenced)
+        domain.commands.each do |command|
+          command.parameters.each do |param|
+            collect_references_from_type(param, domain, domains, referenced)
           end
-          c.returns.each do |r|
-            collect_references_from_type(r, d, domains, referenced)
+          command.returns.each do |return_param|
+            collect_references_from_type(return_param, domain, domains, referenced)
           end
         end
 
         # Check events
-        d.events.each do |e|
-          e.parameters.each do |p|
-            collect_references_from_type(p, d, domains, referenced)
+        domain.events.each do |event|
+          event.parameters.each do |param|
+            collect_references_from_type(param, domain, domains, referenced)
           end
         end
 
         referenced.to_a
       end
 
-      private def collect_references_from_type(t : Pdl::Type, d : Pdl::Domain, domains : Array(Pdl::Domain), referenced : Set(String))
+      private def collect_references_from_type(type : Pdl::Type, domain : Pdl::Domain, domains : Array(Pdl::Domain), referenced : Set(String))
         # Process this type's reference
-        if !t.ref.empty?
+        if !type.ref.empty?
           # Parse ref to get domain
-          n = t.ref.split('.', 2)
+          n = type.ref.split('.', 2)
           ref_domain = n[0]
 
           # Check if it's a different domain
-          if ref_domain != d.domain && domains.any? { |dom| dom.domain == ref_domain }
+          if ref_domain != domain.domain && domains.any? { |dom| dom.domain == ref_domain }
             referenced << ref_domain.downcase
           end
         end
 
         # Check array items
-        if t.type == Pdl::TypeEnum::Array && t.items
-          collect_references_from_type(t.items.not_nil!, d, domains, referenced)
+        if type.type == Pdl::TypeEnum::Array && (items = type.items)
+          collect_references_from_type(items, domain, domains, referenced)
         end
 
         # Check properties (for object types)
-        if t.properties && !t.properties.empty?
-          t.properties.each do |prop|
-            collect_references_from_type(prop, d, domains, referenced)
+        if type.properties && !type.properties.empty?
+          type.properties.each do |prop|
+            collect_references_from_type(prop, domain, domains, referenced)
           end
         end
 
         # Check parameters (for commands and events)
-        if t.parameters && !t.parameters.empty?
-          t.parameters.each do |param|
-            collect_references_from_type(param, d, domains, referenced)
+        if type.parameters && !type.parameters.empty?
+          type.parameters.each do |param|
+            collect_references_from_type(param, domain, domains, referenced)
           end
         end
 
         # Check returns (for commands)
-        if t.returns && !t.returns.empty?
-          t.returns.each do |ret|
-            collect_references_from_type(ret, d, domains, referenced)
+        if type.returns && !type.returns.empty?
+          type.returns.each do |ret|
+            collect_references_from_type(ret, domain, domains, referenced)
           end
         end
       end
@@ -218,7 +218,7 @@ module Pdlgen
         parts.map(&.camelcase).join
       end
 
-      private def is_bool_type?(type_str : String) : Bool
+      private def bool_type?(type_str : String) : Bool
         type_str == "Bool"
       end
 
@@ -256,10 +256,10 @@ module Pdlgen
       end
 
       private def generate_type_struct(io : IO, t : Pdl::Type, d : Pdl::Domain?, domains : Array(Pdl::Domain))
-        if t.deprecated
+        if t.deprecated?
           io << "  @[Deprecated]\n"
         end
-        if t.experimental
+        if t.experimental?
           io << "  @[Experimental]\n"
         end
 
@@ -277,20 +277,20 @@ module Pdlgen
             io << "  struct #{type_name_for_domain(t, d)}\n"
             io << "    include JSON::Serializable\n\n"
             if t.properties && !t.properties.empty?
-              t.properties.each do |p|
-                next if p.deprecated && !p.always_emit
-                next if p.name.empty?
+              t.properties.each do |property|
+                next if property.deprecated? && !property.always_emit?
+                next if property.name.empty?
 
-                type_str = d ? CrystalUtil.crystal_type(p, d, domains) : "JSON::Any"
-                if p.optional
+                type_str = d ? CrystalUtil.crystal_type(property, d, domains) : "JSON::Any"
+                if property.optional?
                   io << "    @[JSON::Field(emit_null: false)]\n"
                 end
-                if is_bool_type?(type_str)
-                  io << "    property? #{p.name.underscore} : #{type_str}"
+                if bool_type?(type_str)
+                  io << "    property? #{property.name.underscore} : #{type_str}"
                 else
-                  io << "    property #{p.name.underscore} : #{type_str}"
+                  io << "    property #{property.name.underscore} : #{type_str}"
                 end
-                io << "?" if p.optional
+                io << "?" if property.optional?
                 io << "\n"
               end
             end

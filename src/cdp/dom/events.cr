@@ -2,25 +2,27 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../page/page"
-require "../runtime/runtime"
-
 module Cdp::DOM
   struct AttributeModifiedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property node_id : NodeId
+    property node_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
     property value : String
 
-    def initialize(@node_id : NodeId, @name : String, @value : String)
+    def initialize(@node_id : Cdp::NodeType, @name : String, @value : String)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "DOM.attributeModified"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "DOM.attributeModified"
     end
   end
@@ -30,15 +32,20 @@ module Cdp::DOM
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property node_id : NodeId
+    property node_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property adopted_style_sheets : Array(StyleSheetId)
+    property adopted_style_sheets : Array(Cdp::NodeType)
 
-    def initialize(@node_id : NodeId, @adopted_style_sheets : Array(StyleSheetId))
+    def initialize(@node_id : Cdp::NodeType, @adopted_style_sheets : Array(Cdp::NodeType))
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "DOM.adoptedStyleSheetsModified"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "DOM.adoptedStyleSheetsModified"
     end
   end
@@ -47,15 +54,20 @@ module Cdp::DOM
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property node_id : NodeId
+    property node_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property name : String
 
-    def initialize(@node_id : NodeId, @name : String)
+    def initialize(@node_id : Cdp::NodeType, @name : String)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "DOM.attributeRemoved"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "DOM.attributeRemoved"
     end
   end
@@ -64,15 +76,20 @@ module Cdp::DOM
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property node_id : NodeId
+    property node_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property character_data : String
 
-    def initialize(@node_id : NodeId, @character_data : String)
+    def initialize(@node_id : Cdp::NodeType, @character_data : String)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "DOM.characterDataModified"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "DOM.characterDataModified"
     end
   end
@@ -81,15 +98,20 @@ module Cdp::DOM
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property node_id : NodeId
+    property node_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property child_node_count : Int64
 
-    def initialize(@node_id : NodeId, @child_node_count : Int64)
+    def initialize(@node_id : Cdp::NodeType, @child_node_count : Int64)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "DOM.childNodeCountUpdated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "DOM.childNodeCountUpdated"
     end
   end
@@ -98,17 +120,22 @@ module Cdp::DOM
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property parent_node_id : NodeId
+    property parent_node_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property previous_node_id : NodeId
+    property previous_node_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property node : Node
+    property node : Cdp::NodeType
 
-    def initialize(@parent_node_id : NodeId, @previous_node_id : NodeId, @node : Node)
+    def initialize(@parent_node_id : Cdp::NodeType, @previous_node_id : Cdp::NodeType, @node : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "DOM.childNodeInserted"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "DOM.childNodeInserted"
     end
   end
@@ -117,15 +144,20 @@ module Cdp::DOM
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property parent_node_id : NodeId
+    property parent_node_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property node_id : NodeId
+    property node_id : Cdp::NodeType
 
-    def initialize(@parent_node_id : NodeId, @node_id : NodeId)
+    def initialize(@parent_node_id : Cdp::NodeType, @node_id : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "DOM.childNodeRemoved"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "DOM.childNodeRemoved"
     end
   end
@@ -135,15 +167,20 @@ module Cdp::DOM
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property insertion_point_id : NodeId
+    property insertion_point_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property distributed_nodes : Array(BackendNode)
+    property distributed_nodes : Array(Cdp::NodeType)
 
-    def initialize(@insertion_point_id : NodeId, @distributed_nodes : Array(BackendNode))
+    def initialize(@insertion_point_id : Cdp::NodeType, @distributed_nodes : Array(Cdp::NodeType))
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "DOM.distributedNodesUpdated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "DOM.distributedNodesUpdated"
     end
   end
@@ -159,6 +196,11 @@ module Cdp::DOM
     def proto_event : String
       "DOM.documentUpdated"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "DOM.documentUpdated"
+    end
   end
 
   @[Experimental]
@@ -166,13 +208,18 @@ module Cdp::DOM
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property node_ids : Array(NodeId)
+    property node_ids : Array(Cdp::NodeType)
 
-    def initialize(@node_ids : Array(NodeId))
+    def initialize(@node_ids : Array(Cdp::NodeType))
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "DOM.inlineStyleInvalidated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "DOM.inlineStyleInvalidated"
     end
   end
@@ -182,15 +229,20 @@ module Cdp::DOM
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property parent_id : NodeId
+    property parent_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property pseudo_element : Node
+    property pseudo_element : Cdp::NodeType
 
-    def initialize(@parent_id : NodeId, @pseudo_element : Node)
+    def initialize(@parent_id : Cdp::NodeType, @pseudo_element : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "DOM.pseudoElementAdded"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "DOM.pseudoElementAdded"
     end
   end
@@ -207,6 +259,11 @@ module Cdp::DOM
     def proto_event : String
       "DOM.topLayerElementsUpdated"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "DOM.topLayerElementsUpdated"
+    end
   end
 
   @[Experimental]
@@ -214,15 +271,20 @@ module Cdp::DOM
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property node_id : NodeId
+    property node_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property? is_scrollable : Bool
 
-    def initialize(@node_id : NodeId, @is_scrollable : Bool)
+    def initialize(@node_id : Cdp::NodeType, @is_scrollable : Bool)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "DOM.scrollableFlagUpdated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "DOM.scrollableFlagUpdated"
     end
   end
@@ -232,15 +294,20 @@ module Cdp::DOM
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property node_id : NodeId
+    property node_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property? affected_by_starting_styles : Bool
 
-    def initialize(@node_id : NodeId, @affected_by_starting_styles : Bool)
+    def initialize(@node_id : Cdp::NodeType, @affected_by_starting_styles : Bool)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "DOM.affectedByStartingStylesFlagUpdated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "DOM.affectedByStartingStylesFlagUpdated"
     end
   end
@@ -250,15 +317,20 @@ module Cdp::DOM
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property parent_id : NodeId
+    property parent_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property pseudo_element_id : NodeId
+    property pseudo_element_id : Cdp::NodeType
 
-    def initialize(@parent_id : NodeId, @pseudo_element_id : NodeId)
+    def initialize(@parent_id : Cdp::NodeType, @pseudo_element_id : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "DOM.pseudoElementRemoved"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "DOM.pseudoElementRemoved"
     end
   end
@@ -267,15 +339,20 @@ module Cdp::DOM
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property parent_id : NodeId
+    property parent_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property nodes : Array(Node)
+    property nodes : Array(Cdp::NodeType)
 
-    def initialize(@parent_id : NodeId, @nodes : Array(Node))
+    def initialize(@parent_id : Cdp::NodeType, @nodes : Array(Cdp::NodeType))
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "DOM.setChildNodes"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "DOM.setChildNodes"
     end
   end
@@ -285,15 +362,20 @@ module Cdp::DOM
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property host_id : NodeId
+    property host_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property root_id : NodeId
+    property root_id : Cdp::NodeType
 
-    def initialize(@host_id : NodeId, @root_id : NodeId)
+    def initialize(@host_id : Cdp::NodeType, @root_id : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "DOM.shadowRootPopped"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "DOM.shadowRootPopped"
     end
   end
@@ -303,15 +385,20 @@ module Cdp::DOM
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property host_id : NodeId
+    property host_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property root : Node
+    property root : Cdp::NodeType
 
-    def initialize(@host_id : NodeId, @root : Node)
+    def initialize(@host_id : Cdp::NodeType, @root : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "DOM.shadowRootPushed"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "DOM.shadowRootPushed"
     end
   end

@@ -40,18 +40,18 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
       <%- end -%>
   struct <%= command_returns_type(command) %>
     include JSON::Serializable
-    <%- command.returns.each do |return_param| -%>
-      <%- next if return_param.deprecated? && !return_param.always_emit? -%>
-      <%- type_str = crystal_type(return_param, d, domains) -%>
+    <%- c.returns.each do |r| -%>
+      <%- next if r.deprecated && !r.always_emit -%>
+      <%- type_str = crystal_type(r, d, domains) -%>
     @[JSON::Field(emit_null: false)]
-    <%- if bool_type?(type_str) -%>
-    property? <%= return_param.name.underscore %> : <%= type_str %><%= "?" if return_param.optional? %>
+    <%- if is_bool_type?(type_str) -%>
+    property? <%= r.name.underscore %> : <%= type_str %><%= "?" if r.optional %>
     <%- else -%>
-    property <%= return_param.name.underscore %> : <%= type_str %><%= "?" if return_param.optional? %>
+    property <%= r.name.underscore %> : <%= type_str %><%= "?" if r.optional %>
     <%- end -%>
     <%- end -%>
 
-    def initialize(<%= command.returns.compact_map { |return_param| next if return_param.deprecated? && !return_param.always_emit?; "@#{return_param.name.underscore} : #{crystal_type(return_param, d, domains)}#{'?' if return_param.optional?}" }.join(", ") %>)
+    def initialize(<%= c.returns.map { |r| next if r.deprecated && !r.always_emit; "@#{r.name.underscore} : #{crystal_type(r, d, domains)}#{'?' if r.optional}" }.compact.join(", ") %>)
     end
   end
 
@@ -60,41 +60,41 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
 
   <%- if !d.commands.empty? -%>
   # Commands
-    <%- d.commands.each do |cmd| -%>
-      <%- next if cmd.deprecated? && !cmd.always_emit? -%>
-      <%- if cmd.deprecated? -%>
+    <%- d.commands.each do |c| -%>
+      <%- next if c.deprecated && !c.always_emit -%>
+      <%- if c.deprecated -%>
   @[Deprecated]
       <%- end -%>
-      <%- if cmd.experimental? -%>
+      <%- if c.experimental -%>
   @[Experimental]
       <%- end -%>
-  struct <%= command_type(cmd) %>
+  struct <%= command_type(c) %>
     include JSON::Serializable
     include <%= base_pkg %>::Request
-    <%- cmd.parameters.each do |param| -%>
-      <%- next if param.deprecated? && !param.always_emit? -%>
-      <%- next if param.name.empty? -%>
-      <%- type_str = crystal_type(param, d, domains) -%>
+    <%- c.parameters.each do |p| -%>
+      <%- next if p.deprecated && !p.always_emit -%>
+      <%- next if p.name.empty? -%>
+      <%- type_str = crystal_type(p, d, domains) -%>
     @[JSON::Field(emit_null: false)]
-    <%- if bool_type?(type_str) -%>
-    property? <%= param.name.underscore %> : <%= type_str %><%= "?" if param.optional? %>
+    <%- if is_bool_type?(type_str) -%>
+    property? <%= p.name.underscore %> : <%= type_str %><%= "?" if p.optional %>
     <%- else -%>
-    property <%= param.name.underscore %> : <%= type_str %><%= "?" if param.optional? %>
+    property <%= p.name.underscore %> : <%= type_str %><%= "?" if p.optional %>
     <%- end -%>
     <%- end -%>
 
-    def initialize(<%= cmd.parameters.compact_map { |param| next if param.deprecated? && !param.always_emit?; next if param.name.empty?; "@#{param.name.underscore} : #{crystal_type(param, d, domains)}#{'?' if param.optional?}" }.join(", ") %>)
+    def initialize(<%= c.parameters.map { |p| next if p.deprecated && !p.always_emit; next if p.name.empty?; "@#{p.name.underscore} : #{crystal_type(p, d, domains)}#{'?' if p.optional}" }.compact.join(", ") %>)
     end
 
     # ProtoReq returns the protocol method name.
     def proto_req : String
-      "<%= d.domain %>.<%= cmd.name %>"
+      "<%= d.domain %>.<%= c.name %>"
     end
 
-    <%- if !cmd.returns.empty? -%>
+    <%- if !c.returns.empty? -%>
     # Call sends the request and returns the result.
-    def call(c : <%= base_pkg %>::Client) : <%= command_returns_type(cmd) %>
-      res = <%= command_returns_type(cmd) %>.new
+    def call(c : <%= base_pkg %>::Client) : <%= command_returns_type(c) %>
+      res = <%= command_returns_type(c) %>.new
       <%= base_pkg %>.call(proto_req, self, res, c)
       res
     end

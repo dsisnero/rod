@@ -2,7 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../target/target"
+require "../dom/dom"
 
 module Cdp::PWA
   struct FileHandlerAccept
@@ -18,7 +18,7 @@ module Cdp::PWA
     @[JSON::Field(emit_null: false)]
     property action : String
     @[JSON::Field(emit_null: false)]
-    property accepts : Array(FileHandlerAccept)
+    property accepts : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property display_name : String
   end

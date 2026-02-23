@@ -2,37 +2,37 @@
 <%# Variables: d (Pdl::Domain), domains (Array(Pdl::Domain)), base_pkg (String) %>
 module <%= d.domain.camelcase %>
   # <%= d.description %>
-  <%- if d.deprecated -%>
+  <%- if d.deprecated? -%>
   @[Deprecated("This domain is deprecated")]
   <%- end -%>
-  <%- if d.experimental -%>
+  <%- if d.experimental? -%>
   @[Experimental]
   <%- end -%>
 
   <%- if !d.types.empty? -%>
   # Types
-  <%- d.types.each do |t| -%>
-  <%- if t.is_circular_dep -%>
-  # Circular dependency type: <%= t.name %>
+  <%- d.types.each do |type| -%>
+  <%- if type.is_circular_dep? -%>
+  # Circular dependency type: <%= type.name %>
   <%- end -%>
   <%- end -%>
   <%- end -%>
 
   <%- if !d.commands.empty? -%>
   # Commands
-  <%- d.commands.each do |c| -%>
-  <%- if c.deprecated -%>
+  <%- d.commands.each do |command| -%>
+  <%- if command.deprecated? -%>
   @[Deprecated]
   <%- end -%>
-  <%- if c.experimental -%>
+  <%- if command.experimental? -%>
   @[Experimental]
   <%- end -%>
-  struct <%= c.name.camelcase %>Params
-    <%- c.parameters.each do |p| -%>
-    property <%= p.name.underscore %> : <%= crystal_type(p, d, domains) %><%= "?" if p.optional %>
+  struct <%= command.name.camelcase %>Params
+    <%- command.parameters.each do |param| -%>
+    property <%= param.name.underscore %> : <%= crystal_type(param, d, domains) %><%= "?" if param.optional? %>
     <%- end -%>
 
-    def initialize(<%= c.parameters.map { |p| "@#{p.name.underscore} : #{crystal_type(p, d, domains)}#{'?' if p.optional}" }.join(", ") %>)
+    def initialize(<%= command.parameters.map { |param| "@#{param.name.underscore} : #{crystal_type(param, d, domains)}#{'?' if param.optional?}" }.join(", ") %>)
     end
   end
   <%- end -%>
@@ -40,19 +40,19 @@ module <%= d.domain.camelcase %>
 
   <%- if !d.events.empty? -%>
   # Events
-  <%- d.events.each do |e| -%>
-  <%- if e.deprecated -%>
+  <%- d.events.each do |event| -%>
+  <%- if event.deprecated? -%>
   @[Deprecated]
   <%- end -%>
-  <%- if e.experimental -%>
+  <%- if event.experimental? -%>
   @[Experimental]
   <%- end -%>
-  struct <%= e.name.camelcase %>Event
-    <%- e.parameters.each do |p| -%>
-    property <%= p.name.underscore %> : <%= crystal_type(p, d, domains) %><%= "?" if p.optional %>
+  struct <%= event.name.camelcase %>Event
+    <%- event.parameters.each do |param| -%>
+    property <%= param.name.underscore %> : <%= crystal_type(param, d, domains) %><%= "?" if param.optional? %>
     <%- end -%>
 
-    def initialize(<%= e.parameters.map { |p| "@#{p.name.underscore} : #{crystal_type(p, d, domains)}#{'?' if p.optional}" }.join(", ") %>)
+    def initialize(<%= event.parameters.map { |param| "@#{param.name.underscore} : #{crystal_type(param, d, domains)}#{'?' if param.optional?}" }.join(", ") %>)
     end
   end
   <%- end -%>

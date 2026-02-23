@@ -2,6 +2,8 @@ require "../cdp"
 require "json"
 require "time"
 
+require "../dom/dom"
+
 require "./types"
 
 # Defines commands and events for browser extensions.
@@ -98,11 +100,11 @@ module Cdp::Extensions
     @[JSON::Field(emit_null: false)]
     property id : String
     @[JSON::Field(emit_null: false)]
-    property storage_area : StorageArea
+    property storage_area : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property keys : Array(String)?
 
-    def initialize(@id : String, @storage_area : StorageArea, @keys : Array(String)?)
+    def initialize(@id : String, @storage_area : Cdp::NodeType, @keys : Array(String)?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -124,11 +126,11 @@ module Cdp::Extensions
     @[JSON::Field(emit_null: false)]
     property id : String
     @[JSON::Field(emit_null: false)]
-    property storage_area : StorageArea
+    property storage_area : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property keys : Array(String)
 
-    def initialize(@id : String, @storage_area : StorageArea, @keys : Array(String))
+    def initialize(@id : String, @storage_area : Cdp::NodeType, @keys : Array(String))
     end
 
     # ProtoReq returns the protocol method name.
@@ -148,9 +150,9 @@ module Cdp::Extensions
     @[JSON::Field(emit_null: false)]
     property id : String
     @[JSON::Field(emit_null: false)]
-    property storage_area : StorageArea
+    property storage_area : Cdp::NodeType
 
-    def initialize(@id : String, @storage_area : StorageArea)
+    def initialize(@id : String, @storage_area : Cdp::NodeType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -170,11 +172,11 @@ module Cdp::Extensions
     @[JSON::Field(emit_null: false)]
     property id : String
     @[JSON::Field(emit_null: false)]
-    property storage_area : StorageArea
+    property storage_area : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property values : JSON::Any
 
-    def initialize(@id : String, @storage_area : StorageArea, @values : JSON::Any)
+    def initialize(@id : String, @storage_area : Cdp::NodeType, @values : JSON::Any)
     end
 
     # ProtoReq returns the protocol method name.

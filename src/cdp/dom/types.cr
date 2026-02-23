@@ -2,9 +2,6 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../page/page"
-require "../runtime/runtime"
-
 module Cdp::DOM
   alias NodeId = Int64
 
@@ -19,7 +16,7 @@ module Cdp::DOM
     @[JSON::Field(emit_null: false)]
     property node_name : String
     @[JSON::Field(emit_null: false)]
-    property backend_node_id : BackendNodeId
+    property backend_node_id : Cdp::NodeType
   end
 
   alias PseudoType = String
@@ -91,11 +88,11 @@ module Cdp::DOM
   struct Node
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property node_id : NodeId
+    property node_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property parent_id : NodeId?
+    property parent_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property backend_node_id : BackendNodeId
+    property backend_node_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property node_type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
@@ -107,7 +104,7 @@ module Cdp::DOM
     @[JSON::Field(emit_null: false)]
     property child_node_count : Int64?
     @[JSON::Field(emit_null: false)]
-    property children : Array(Node)?
+    property children : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
     property attributes : Array(String)?
     @[JSON::Field(emit_null: false)]
@@ -127,37 +124,37 @@ module Cdp::DOM
     @[JSON::Field(emit_null: false)]
     property value : String?
     @[JSON::Field(emit_null: false)]
-    property pseudo_type : PseudoType?
+    property pseudo_type : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property pseudo_identifier : String?
     @[JSON::Field(emit_null: false)]
-    property shadow_root_type : ShadowRootType?
+    property shadow_root_type : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property frame_id : Cdp::Page::FrameId?
+    property frame_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property content_document : Node?
+    property content_document : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property shadow_roots : Array(Node)?
+    property shadow_roots : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property template_content : Node?
+    property template_content : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property pseudo_elements : Array(Node)?
+    property pseudo_elements : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property imported_document : Node?
+    property imported_document : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property distributed_nodes : Array(BackendNode)?
+    property distributed_nodes : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
     property? is_svg : Bool?
     @[JSON::Field(emit_null: false)]
-    property compatibility_mode : CompatibilityMode?
+    property compatibility_mode : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property assigned_slot : BackendNode?
+    property assigned_slot : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property? is_scrollable : Bool?
     @[JSON::Field(emit_null: false)]
     property? affected_by_starting_styles : Bool?
     @[JSON::Field(emit_null: false)]
-    property adopted_style_sheets : Array(StyleSheetId)?
+    property adopted_style_sheets : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
     property parent : DOM::Node?
     @[JSON::Field(emit_null: false)]
@@ -201,9 +198,9 @@ module Cdp::DOM
   struct DetachedElementInfo
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property tree_node : Node
+    property tree_node : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property retained_node_ids : Array(NodeId)
+    property retained_node_ids : Array(Cdp::NodeType)
   end
 
   struct RGBA
@@ -224,25 +221,25 @@ module Cdp::DOM
   struct BoxModel
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property content : Quad
+    property content : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property padding : Quad
+    property padding : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property border : Quad
+    property border : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property margin : Quad
+    property margin : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property width : Int64
     @[JSON::Field(emit_null: false)]
     property height : Int64
     @[JSON::Field(emit_null: false)]
-    property shape_outside : ShapeOutsideInfo?
+    property shape_outside : Cdp::NodeType?
   end
 
   struct ShapeOutsideInfo
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property bounds : Quad
+    property bounds : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property shape : Array(JSON::Any)
     @[JSON::Field(emit_null: false)]

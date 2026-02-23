@@ -2,8 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../network/network"
-require "../serviceworker/serviceworker"
+require "../dom/dom"
 
 module Cdp::BackgroundService
   alias ServiceName = String
@@ -25,19 +24,19 @@ module Cdp::BackgroundService
   struct BackgroundServiceEvent
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::Network::TimeSinceEpoch
+    property timestamp : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property origin : String
     @[JSON::Field(emit_null: false)]
-    property service_worker_registration_id : Cdp::ServiceWorker::RegistrationID
+    property service_worker_registration_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property service : ServiceName
+    property service : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property event_name : String
     @[JSON::Field(emit_null: false)]
     property instance_id : String
     @[JSON::Field(emit_null: false)]
-    property event_metadata : Array(EventMetadata)
+    property event_metadata : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property storage_key : String
   end

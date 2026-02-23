@@ -2,10 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../network/network"
-require "../target/target"
-require "../page/page"
-require "../browser/browser"
+require "../dom/dom"
 
 module Cdp::Storage
   alias SerializedStorageKey = String
@@ -28,7 +25,7 @@ module Cdp::Storage
   struct UsageForType
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property storage_type : StorageType
+    property storage_type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property usage : Float64
   end
@@ -102,7 +99,7 @@ module Cdp::Storage
   struct SharedStorageMetadata
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property creation_time : Cdp::Network::TimeSinceEpoch
+    property creation_time : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property length : Int64
     @[JSON::Field(emit_null: false)]
@@ -136,7 +133,7 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property url : String
     @[JSON::Field(emit_null: false)]
-    property reporting_metadata : Array(SharedStorageReportingMetadata)
+    property reporting_metadata : Array(Cdp::NodeType)
   end
 
   struct SharedStorageAccessParams
@@ -152,11 +149,11 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property? keep_alive : Bool?
     @[JSON::Field(emit_null: false)]
-    property private_aggregation_config : SharedStoragePrivateAggregationConfig?
+    property private_aggregation_config : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property serialized_data : String?
     @[JSON::Field(emit_null: false)]
-    property urls_with_metadata : Array(SharedStorageUrlWithMetadata)?
+    property urls_with_metadata : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
     property urn_uuid : String?
     @[JSON::Field(emit_null: false)]
@@ -168,7 +165,7 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property worklet_ordinal : Int64?
     @[JSON::Field(emit_null: false)]
-    property worklet_target_id : Cdp::Target::TargetID?
+    property worklet_target_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property with_lock : String?
     @[JSON::Field(emit_null: false)]
@@ -184,7 +181,7 @@ module Cdp::Storage
   struct StorageBucket
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property storage_key : SerializedStorageKey
+    property storage_key : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property name : String?
   end
@@ -192,17 +189,17 @@ module Cdp::Storage
   struct StorageBucketInfo
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property bucket : StorageBucket
+    property bucket : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property id : String
     @[JSON::Field(emit_null: false)]
-    property expiration : Cdp::Network::TimeSinceEpoch
+    property expiration : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property quota : Float64
     @[JSON::Field(emit_null: false)]
     property? persistent : Bool
     @[JSON::Field(emit_null: false)]
-    property durability : StorageBucketsDurability
+    property durability : Cdp::NodeType
   end
 
   @[Experimental]
@@ -232,7 +229,7 @@ module Cdp::Storage
   struct AttributionReportingFilterConfig
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property filter_values : Array(AttributionReportingFilterDataEntry)
+    property filter_values : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property lookback_window : Int64?
   end
@@ -241,9 +238,9 @@ module Cdp::Storage
   struct AttributionReportingFilterPair
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property filters : Array(AttributionReportingFilterConfig)
+    property filters : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property not_filters : Array(AttributionReportingFilterConfig)
+    property not_filters : Array(Cdp::NodeType)
   end
 
   @[Experimental]
@@ -252,7 +249,7 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property key : String
     @[JSON::Field(emit_null: false)]
-    property value : UnsignedInt128AsBase16
+    property value : Cdp::NodeType
   end
 
   @[Experimental]
@@ -273,7 +270,7 @@ module Cdp::Storage
   struct AttributionReportingAggregatableDebugReportingData
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property key_piece : UnsignedInt128AsBase16
+    property key_piece : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property value : Float64
     @[JSON::Field(emit_null: false)]
@@ -286,9 +283,9 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property budget : Float64?
     @[JSON::Field(emit_null: false)]
-    property key_piece : UnsignedInt128AsBase16
+    property key_piece : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property debug_data : Array(AttributionReportingAggregatableDebugReportingData)
+    property debug_data : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property aggregation_coordinator_origin : String?
   end
@@ -317,17 +314,17 @@ module Cdp::Storage
   struct AttributionReportingSourceRegistration
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property time : Cdp::Network::TimeSinceEpoch
+    property time : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property expiry : Int64
     @[JSON::Field(emit_null: false)]
     property trigger_data : Array(Float64)
     @[JSON::Field(emit_null: false)]
-    property event_report_windows : AttributionReportingEventReportWindows
+    property event_report_windows : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property aggregatable_report_window : Int64
     @[JSON::Field(emit_null: false)]
-    property type : AttributionReportingSourceType
+    property type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property source_origin : String
     @[JSON::Field(emit_null: false)]
@@ -335,27 +332,27 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property destination_sites : Array(String)
     @[JSON::Field(emit_null: false)]
-    property event_id : UnsignedInt64AsBase10
+    property event_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property priority : SignedInt64AsBase10
+    property priority : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property filter_data : Array(AttributionReportingFilterDataEntry)
+    property filter_data : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property aggregation_keys : Array(AttributionReportingAggregationKeysEntry)
+    property aggregation_keys : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property debug_key : UnsignedInt64AsBase10?
+    property debug_key : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property trigger_data_matching : AttributionReportingTriggerDataMatching
+    property trigger_data_matching : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property destination_limit_priority : SignedInt64AsBase10
+    property destination_limit_priority : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property aggregatable_debug_reporting_config : AttributionReportingAggregatableDebugReportingConfig
+    property aggregatable_debug_reporting_config : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property scopes_data : AttributionScopesData?
+    property scopes_data : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property max_event_level_reports : Int64
     @[JSON::Field(emit_null: false)]
-    property named_budgets : Array(AttributionReportingNamedBudgetDef)
+    property named_budgets : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property? debug_reporting : Bool
     @[JSON::Field(emit_null: false)]
@@ -394,49 +391,49 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property value : Float64
     @[JSON::Field(emit_null: false)]
-    property filtering_id : UnsignedInt64AsBase10
+    property filtering_id : Cdp::NodeType
   end
 
   @[Experimental]
   struct AttributionReportingAggregatableValueEntry
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property values : Array(AttributionReportingAggregatableValueDictEntry)
+    property values : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property filters : AttributionReportingFilterPair
+    property filters : Cdp::NodeType
   end
 
   @[Experimental]
   struct AttributionReportingEventTriggerData
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property data : UnsignedInt64AsBase10
+    property data : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property priority : SignedInt64AsBase10
+    property priority : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property dedup_key : UnsignedInt64AsBase10?
+    property dedup_key : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property filters : AttributionReportingFilterPair
+    property filters : Cdp::NodeType
   end
 
   @[Experimental]
   struct AttributionReportingAggregatableTriggerData
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property key_piece : UnsignedInt128AsBase16
+    property key_piece : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property source_keys : Array(String)
     @[JSON::Field(emit_null: false)]
-    property filters : AttributionReportingFilterPair
+    property filters : Cdp::NodeType
   end
 
   @[Experimental]
   struct AttributionReportingAggregatableDedupKey
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property dedup_key : UnsignedInt64AsBase10?
+    property dedup_key : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property filters : AttributionReportingFilterPair
+    property filters : Cdp::NodeType
   end
 
   @[Experimental]
@@ -445,24 +442,24 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property name : String?
     @[JSON::Field(emit_null: false)]
-    property filters : AttributionReportingFilterPair
+    property filters : Cdp::NodeType
   end
 
   @[Experimental]
   struct AttributionReportingTriggerRegistration
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property filters : AttributionReportingFilterPair
+    property filters : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property debug_key : UnsignedInt64AsBase10?
+    property debug_key : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property aggregatable_dedup_keys : Array(AttributionReportingAggregatableDedupKey)
+    property aggregatable_dedup_keys : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property event_trigger_data : Array(AttributionReportingEventTriggerData)
+    property event_trigger_data : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property aggregatable_trigger_data : Array(AttributionReportingAggregatableTriggerData)
+    property aggregatable_trigger_data : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property aggregatable_values : Array(AttributionReportingAggregatableValueEntry)
+    property aggregatable_values : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property aggregatable_filtering_id_max_bytes : Int64
     @[JSON::Field(emit_null: false)]
@@ -470,15 +467,15 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property aggregation_coordinator_origin : String?
     @[JSON::Field(emit_null: false)]
-    property source_registration_time_config : AttributionReportingSourceRegistrationTimeConfig
+    property source_registration_time_config : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property trigger_context_id : String?
     @[JSON::Field(emit_null: false)]
-    property aggregatable_debug_reporting_config : AttributionReportingAggregatableDebugReportingConfig
+    property aggregatable_debug_reporting_config : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property scopes : Array(String)
     @[JSON::Field(emit_null: false)]
-    property named_budgets : Array(AttributionReportingNamedBudgetCandidate)
+    property named_budgets : Array(Cdp::NodeType)
   end
 
   @[Experimental]

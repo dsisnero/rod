@@ -2,9 +2,6 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../network/network"
-require "../page/page"
-require "../runtime/runtime"
 require "../dom/dom"
 
 require "./types"
@@ -29,9 +26,9 @@ module Cdp::Audits
   struct CheckFormsIssuesResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property form_issues : Array(GenericIssueDetails)
+    property form_issues : Array(Cdp::NodeType)
 
-    def initialize(@form_issues : Array(GenericIssueDetails))
+    def initialize(@form_issues : Array(Cdp::NodeType))
     end
   end
 
@@ -40,15 +37,15 @@ module Cdp::Audits
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::Network::RequestId
+    property request_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property encoding : GetEncodedResponseEncoding
+    property encoding : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property quality : Float64?
     @[JSON::Field(emit_null: false)]
     property? size_only : Bool?
 
-    def initialize(@request_id : Cdp::Network::RequestId, @encoding : GetEncodedResponseEncoding, @quality : Float64?, @size_only : Bool?)
+    def initialize(@request_id : Cdp::NodeType, @encoding : Cdp::NodeType, @quality : Float64?, @size_only : Bool?)
     end
 
     # ProtoReq returns the protocol method name.

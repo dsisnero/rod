@@ -2,22 +2,25 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../network/network"
 require "../dom/dom"
-require "../page/page"
 
 module Cdp::Preload
   struct RuleSetUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property rule_set : RuleSet
+    property rule_set : Cdp::NodeType
 
-    def initialize(@rule_set : RuleSet)
+    def initialize(@rule_set : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Preload.ruleSetUpdated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Preload.ruleSetUpdated"
     end
   end
@@ -26,13 +29,18 @@ module Cdp::Preload
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property id : RuleSetId
+    property id : Cdp::NodeType
 
-    def initialize(@id : RuleSetId)
+    def initialize(@id : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Preload.ruleSetRemoved"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Preload.ruleSetRemoved"
     end
   end
@@ -58,31 +66,41 @@ module Cdp::Preload
     def proto_event : String
       "Preload.preloadEnabledStateUpdated"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "Preload.preloadEnabledStateUpdated"
+    end
   end
 
   struct PrefetchStatusUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property key : PreloadingAttemptKey
+    property key : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property pipeline_id : PreloadPipelineId
+    property pipeline_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property initiating_frame_id : Cdp::Page::FrameId
+    property initiating_frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property prefetch_url : String
     @[JSON::Field(emit_null: false)]
-    property status : PreloadingStatus
+    property status : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property prefetch_status : PrefetchStatus
+    property prefetch_status : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::Network::RequestId
+    property request_id : Cdp::NodeType
 
-    def initialize(@key : PreloadingAttemptKey, @pipeline_id : PreloadPipelineId, @initiating_frame_id : Cdp::Page::FrameId, @prefetch_url : String, @status : PreloadingStatus, @prefetch_status : PrefetchStatus, @request_id : Cdp::Network::RequestId)
+    def initialize(@key : Cdp::NodeType, @pipeline_id : Cdp::NodeType, @initiating_frame_id : Cdp::NodeType, @prefetch_url : String, @status : Cdp::NodeType, @prefetch_status : Cdp::NodeType, @request_id : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Preload.prefetchStatusUpdated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Preload.prefetchStatusUpdated"
     end
   end
@@ -91,23 +109,28 @@ module Cdp::Preload
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property key : PreloadingAttemptKey
+    property key : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property pipeline_id : PreloadPipelineId
+    property pipeline_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property status : PreloadingStatus
+    property status : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property prerender_status : PrerenderFinalStatus?
+    property prerender_status : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property disallowed_mojo_interface : String?
     @[JSON::Field(emit_null: false)]
-    property mismatched_headers : Array(PrerenderMismatchedHeaders)?
+    property mismatched_headers : Array(Cdp::NodeType)?
 
-    def initialize(@key : PreloadingAttemptKey, @pipeline_id : PreloadPipelineId, @status : PreloadingStatus, @prerender_status : PrerenderFinalStatus?, @disallowed_mojo_interface : String?, @mismatched_headers : Array(PrerenderMismatchedHeaders)?)
+    def initialize(@key : Cdp::NodeType, @pipeline_id : Cdp::NodeType, @status : Cdp::NodeType, @prerender_status : Cdp::NodeType?, @disallowed_mojo_interface : String?, @mismatched_headers : Array(Cdp::NodeType)?)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Preload.prerenderStatusUpdated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Preload.prerenderStatusUpdated"
     end
   end
@@ -116,15 +139,20 @@ module Cdp::Preload
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property loader_id : Cdp::Network::LoaderId
+    property loader_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property preloading_attempt_sources : Array(PreloadingAttemptSource)
+    property preloading_attempt_sources : Array(Cdp::NodeType)
 
-    def initialize(@loader_id : Cdp::Network::LoaderId, @preloading_attempt_sources : Array(PreloadingAttemptSource))
+    def initialize(@loader_id : Cdp::NodeType, @preloading_attempt_sources : Array(Cdp::NodeType))
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Preload.preloadingAttemptSourcesUpdated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Preload.preloadingAttemptSourcesUpdated"
     end
   end

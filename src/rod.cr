@@ -20,6 +20,7 @@ require "./rod/element"
 require "./rod/keyboard"
 require "./rod/mouse"
 require "./rod/touch"
+require "./rod/must"
 
 # JavaScript helpers
 require "./rod/lib/js"

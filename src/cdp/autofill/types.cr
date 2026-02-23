@@ -2,7 +2,6 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../page/page"
 require "../dom/dom"
 
 module Cdp::Autofill
@@ -31,19 +30,19 @@ module Cdp::Autofill
   struct AddressFields
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property fields : Array(AddressField)
+    property fields : Array(Cdp::NodeType)
   end
 
   struct Address
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property fields : Array(AddressField)
+    property fields : Array(Cdp::NodeType)
   end
 
   struct AddressUI
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property address_fields : Array(AddressFields)
+    property address_fields : Array(Cdp::NodeType)
   end
 
   alias FillingStrategy = String
@@ -63,10 +62,10 @@ module Cdp::Autofill
     @[JSON::Field(emit_null: false)]
     property autofill_type : String
     @[JSON::Field(emit_null: false)]
-    property filling_strategy : FillingStrategy
+    property filling_strategy : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property frame_id : Cdp::Page::FrameId
+    property frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property field_id : Cdp::DOM::BackendNodeId
+    property field_id : Cdp::NodeType
   end
 end

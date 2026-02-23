@@ -10,35 +10,40 @@ require "../<%= ref_domain %>/<%= ref_domain %>"
 <%- end -%>
 
 module <%= base_pkg %>::<%= d.domain.camelcase %>
-  <%- d.events.each do |e| -%>
-    <%- next if e.deprecated && !e.always_emit -%>
-    <%- if e.deprecated -%>
+  <%- d.events.each do |event| -%>
+    <%- next if event.deprecated? && !event.always_emit? -%>
+    <%- if event.deprecated? -%>
   @[Deprecated]
     <%- end -%>
-    <%- if e.experimental -%>
+    <%- if event.experimental? -%>
   @[Experimental]
     <%- end -%>
-  struct <%= e.name.camelcase %>Event
+  struct <%= event.name.camelcase %>Event
     include JSON::Serializable
     include <%= base_pkg %>::Event
-    <%- e.parameters.each do |p| -%>
-      <%- next if p.deprecated && !p.always_emit -%>
-      <%- next if p.name.empty? -%>
-      <%- type_str = crystal_type(p, d, domains) -%>
+    <%- event.parameters.each do |param| -%>
+      <%- next if param.deprecated? && !param.always_emit? -%>
+      <%- next if param.name.empty? -%>
+      <%- type_str = crystal_type(param, d, domains) -%>
     @[JSON::Field(emit_null: false)]
-    <%- if is_bool_type?(type_str) -%>
-    property? <%= p.name.underscore %> : <%= type_str %><%= "?" if p.optional %>
+    <%- if bool_type?(type_str) -%>
+    property? <%= param.name.underscore %> : <%= type_str %><%= "?" if param.optional? %>
     <%- else -%>
-    property <%= p.name.underscore %> : <%= type_str %><%= "?" if p.optional %>
+    property <%= param.name.underscore %> : <%= type_str %><%= "?" if param.optional? %>
     <%- end -%>
     <%- end -%>
 
-    def initialize(<%= e.parameters.map { |p| next if p.deprecated && !p.always_emit; next if p.name.empty?; "@#{p.name.underscore} : #{crystal_type(p, d, domains)}#{'?' if p.optional}" }.compact.join(", ") %>)
+    def initialize(<%= event.parameters.compact_map { |param| next if param.deprecated? && !param.always_emit?; next if param.name.empty?; "@#{param.name.underscore} : #{crystal_type(param, d, domains)}#{'?' if param.optional?}" }.join(", ") %>)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
-      "<%= d.domain %>.<%= e.name %>"
+      "<%= d.domain %>.<%= event.name %>"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "<%= d.domain %>.<%= event.name %>"
     end
   end
 

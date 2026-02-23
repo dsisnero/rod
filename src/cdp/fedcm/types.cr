@@ -2,6 +2,8 @@ require "../cdp"
 require "json"
 require "time"
 
+require "../dom/dom"
+
 module Cdp::FedCm
   alias LoginState = String
   LoginStateSignIn = "SignIn"
@@ -39,7 +41,7 @@ module Cdp::FedCm
     @[JSON::Field(emit_null: false)]
     property idp_login_url : String
     @[JSON::Field(emit_null: false)]
-    property login_state : LoginState
+    property login_state : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property terms_of_service_url : String?
     @[JSON::Field(emit_null: false)]

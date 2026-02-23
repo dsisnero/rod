@@ -3,20 +3,24 @@ require "json"
 require "time"
 
 require "../dom/dom"
-require "../page/page"
 
 module Cdp::CSS
   struct FontsUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property font : FontFace?
+    property font : Cdp::NodeType?
 
-    def initialize(@font : FontFace?)
+    def initialize(@font : Cdp::NodeType?)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "CSS.fontsUpdated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "CSS.fontsUpdated"
     end
   end
@@ -32,19 +36,29 @@ module Cdp::CSS
     def proto_event : String
       "CSS.mediaQueryResultChanged"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "CSS.mediaQueryResultChanged"
+    end
   end
 
   struct StyleSheetAddedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property header : CSSStyleSheetHeader
+    property header : Cdp::NodeType
 
-    def initialize(@header : CSSStyleSheetHeader)
+    def initialize(@header : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "CSS.styleSheetAdded"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "CSS.styleSheetAdded"
     end
   end
@@ -53,13 +67,18 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property style_sheet_id : Cdp::DOM::StyleSheetId
+    property style_sheet_id : Cdp::NodeType
 
-    def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId)
+    def initialize(@style_sheet_id : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "CSS.styleSheetChanged"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "CSS.styleSheetChanged"
     end
   end
@@ -68,13 +87,18 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property style_sheet_id : Cdp::DOM::StyleSheetId
+    property style_sheet_id : Cdp::NodeType
 
-    def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId)
+    def initialize(@style_sheet_id : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "CSS.styleSheetRemoved"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "CSS.styleSheetRemoved"
     end
   end
@@ -84,13 +108,18 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::DOM::NodeId
+    property node_id : Cdp::NodeType
 
-    def initialize(@node_id : Cdp::DOM::NodeId)
+    def initialize(@node_id : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "CSS.computedStyleUpdated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "CSS.computedStyleUpdated"
     end
   end

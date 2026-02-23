@@ -2,6 +2,8 @@ require "../cdp"
 require "json"
 require "time"
 
+require "../dom/dom"
+
 module Cdp::Input
   struct TouchPoint
     include JSON::Serializable
@@ -62,7 +64,7 @@ module Cdp::Input
   struct DragData
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property items : Array(DragDataItem)
+    property items : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property files : Array(String)?
     @[JSON::Field(emit_null: false)]

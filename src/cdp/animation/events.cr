@@ -3,7 +3,6 @@ require "json"
 require "time"
 
 require "../dom/dom"
-require "../runtime/runtime"
 
 module Cdp::Animation
   struct AnimationCanceledEvent
@@ -17,6 +16,11 @@ module Cdp::Animation
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Animation.animationCanceled"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Animation.animationCanceled"
     end
   end
@@ -34,19 +38,29 @@ module Cdp::Animation
     def proto_event : String
       "Animation.animationCreated"
     end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "Animation.animationCreated"
+    end
   end
 
   struct AnimationStartedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property animation : Animation
+    property animation : Cdp::NodeType
 
-    def initialize(@animation : Animation)
+    def initialize(@animation : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Animation.animationStarted"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Animation.animationStarted"
     end
   end
@@ -55,13 +69,18 @@ module Cdp::Animation
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property animation : Animation
+    property animation : Cdp::NodeType
 
-    def initialize(@animation : Animation)
+    def initialize(@animation : Cdp::NodeType)
     end
 
     # ProtoEvent returns the protocol event name.
     def proto_event : String
+      "Animation.animationUpdated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
       "Animation.animationUpdated"
     end
   end

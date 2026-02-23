@@ -10,41 +10,41 @@ require "../<%= ref_domain %>/<%= ref_domain %>"
 <%- end -%>
 
 module <%= base_pkg %>::<%= d.domain.camelcase %>
-  <%- d.types.each do |t| -%>
-    <%- next if t.is_circular_dep || t.deprecated && !t.always_emit -%>
-    <%- if t.deprecated -%>
+  <%- d.types.each do |type| -%>
+    <%- next if type.is_circular_dep? || type.deprecated? && !type.always_emit? -%>
+    <%- if type.deprecated? -%>
   @[Deprecated]
     <%- end -%>
-    <%- if t.experimental -%>
+    <%- if type.experimental? -%>
   @[Experimental]
     <%- end -%>
-    <%- if t.type == Pdl::TypeEnum::Object -%>
-      <%- if (enum_values = t.enum) && !enum_values.empty? -%>
-        <%- if t.enum_bit_mask -%>
+    <%- if type.type == Pdl::TypeEnum::Object -%>
+      <%- if (enum_values = type.enum) && !enum_values.empty? -%>
+        <%- if type.enum_bit_mask? -%>
   @[Flags]
         <%- end -%>
-  enum <%= type_name_for_domain(t, d) %>
+  enum <%= type_name_for_domain(type, d) %>
         <%- enum_values.each do |value| -%>
-    <%= t.enum_value_name_map[value]? || safe_enum_member_name(value) %>
+    <%= type.enum_value_name_map[value]? || safe_enum_member_name(value) %>
         <%- end -%>
   end
       <%- else -%>
-  struct <%= type_name_for_domain(t, d) %>
+  struct <%= type_name_for_domain(type, d) %>
     include JSON::Serializable
-        <%- if t.properties && !t.properties.empty? -%>
-          <%- t.properties.each do |p| -%>
-            <%- next if p.deprecated && !p.always_emit -%>
-            <%- next if p.name.empty? -%>
-            <%- type_str = crystal_type(p, d, domains) -%>
+        <%- if type.properties && !type.properties.empty? -%>
+          <%- type.properties.each do |prop| -%>
+            <%- next if prop.deprecated? && !prop.always_emit? -%>
+            <%- next if prop.name.empty? -%>
+            <%- type_str = crystal_type(prop, d, domains) -%>
     @[JSON::Field(emit_null: false)]
-    <%- if is_bool_type?(type_str) -%>
-    property? <%= p.name.underscore %> : <%= type_str %><%= "?" if p.optional %>
+    <%- if bool_type?(type_str) -%>
+    property? <%= prop.name.underscore %> : <%= type_str %><%= "?" if prop.optional? %>
     <%- else -%>
-    property <%= p.name.underscore %> : <%= type_str %><%= "?" if p.optional %>
+    property <%= prop.name.underscore %> : <%= type_str %><%= "?" if prop.optional? %>
     <%- end -%>
           <%- end -%>
         <%- end -%>
-        <%- if d.domain == "DOM" && type_name_for_domain(t, d) == "Node" -%>
+        <%- if d.domain == "DOM" && type_name_for_domain(type, d) == "Node" -%>
 
     # AttributeValue returns the named attribute for the node.
     def attribute_value(name : String) : String
@@ -66,44 +66,44 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
         <%- end -%>
   end
       <%- end -%>
-    <%- elsif t.type == Pdl::TypeEnum::String -%>
-      <%- if (enum_values = t.enum) && !enum_values.empty? -%>
-  alias <%= type_name_for_domain(t, d) %> = String
+    <%- elsif type.type == Pdl::TypeEnum::String -%>
+      <%- if (enum_values = type.enum) && !enum_values.empty? -%>
+  alias <%= type_name_for_domain(type, d) %> = String
         <%- enum_values.each do |value| -%>
-  <%= t.enum_value_name_map[value]? || string_enum_constant_name(t, value, d) %> = <%= value.inspect %>
+  <%= type.enum_value_name_map[value]? || string_enum_constant_name(type, value, d) %> = <%= value.inspect %>
         <%- end -%>
       <%- else -%>
-  alias <%= type_name_for_domain(t, d) %> = String
+  alias <%= type_name_for_domain(type, d) %> = String
       <%- end -%>
-    <%- elsif t.type == Pdl::TypeEnum::Integer -%>
-      <%- if (enum_values = t.enum) && !enum_values.empty? -%>
-        <%- if t.enum_bit_mask -%>
+    <%- elsif type.type == Pdl::TypeEnum::Integer -%>
+      <%- if (enum_values = type.enum) && !enum_values.empty? -%>
+        <%- if type.enum_bit_mask? -%>
   @[Flags]
         <%- end -%>
-  enum <%= type_name_for_domain(t, d) %> : Int64
+  enum <%= type_name_for_domain(type, d) %> : Int64
         <%- enum_values.each do |value| -%>
-    <%= t.enum_value_name_map[value]? || enum_member_name(value) %>
+    <%= type.enum_value_name_map[value]? || enum_member_name(value) %>
         <%- end -%>
   end
       <%- else -%>
-  alias <%= type_name_for_domain(t, d) %> = Int64
+  alias <%= type_name_for_domain(type, d) %> = Int64
       <%- end -%>
-    <%- elsif t.type == Pdl::TypeEnum::Boolean -%>
-  alias <%= type_name_for_domain(t, d) %> = Bool
-    <%- elsif t.type == Pdl::TypeEnum::Number -%>
-  alias <%= type_name_for_domain(t, d) %> = Float64
-    <%- elsif t.type == Pdl::TypeEnum::Any -%>
-  alias <%= type_name_for_domain(t, d) %> = JSON::Any
-    <%- elsif t.type == Pdl::TypeEnum::Timestamp -%>
-  alias <%= type_name_for_domain(t, d) %> = Time
-    <%- elsif t.type == Pdl::TypeEnum::Binary -%>
-  alias <%= type_name_for_domain(t, d) %> = String
+    <%- elsif type.type == Pdl::TypeEnum::Boolean -%>
+  alias <%= type_name_for_domain(type, d) %> = Bool
+    <%- elsif type.type == Pdl::TypeEnum::Number -%>
+  alias <%= type_name_for_domain(type, d) %> = Float64
+    <%- elsif type.type == Pdl::TypeEnum::Any -%>
+  alias <%= type_name_for_domain(type, d) %> = JSON::Any
+    <%- elsif type.type == Pdl::TypeEnum::Timestamp -%>
+  alias <%= type_name_for_domain(type, d) %> = Time
+    <%- elsif type.type == Pdl::TypeEnum::Binary -%>
+  alias <%= type_name_for_domain(type, d) %> = String
     <%- else -%>
-  # TODO: Implement type <%= t.type %> for <%= t.name %>
-  alias <%= type_name_for_domain(t, d) %> = JSON::Any
+  # TODO: Implement type <%= type.type %> for <%= type.name %>
+  alias <%= type_name_for_domain(type, d) %> = JSON::Any
     <%- end -%>
-  <%- if !t.extra.empty? -%>
-  <%= t.extra %>
+  <%- if !type.extra.empty? -%>
+  <%= type.extra %>
   <%- end -%>
 
           <%- end -%>

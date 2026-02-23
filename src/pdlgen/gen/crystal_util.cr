@@ -91,14 +91,14 @@ module Pdlgen
 
         # determine if ref points to an object
         resolved = nil
-        domains.each do |z|
-          if dtyp == z.domain
-            z.types.each do |j|
-              if z.domain == "cdp" && short_ref == j.raw_name.split('.', 2)[1].downcase
-                resolved = j
+        domains.each do |domain_iter|
+          if dtyp == domain_iter.domain
+            domain_iter.types.each do |type_iter|
+              if domain_iter.domain == "cdp" && short_ref == type_iter.raw_name.split('.', 2)[1].downcase
+                resolved = type_iter
                 break
-              elsif ref == j.raw_name.downcase
-                resolved = j
+              elsif ref == type_iter.raw_name.downcase
+                resolved = type_iter
                 break
               end
             end
@@ -118,7 +118,7 @@ module Pdlgen
       # Returns the domain of the underlying type, the underlying type (or the
       # original passed type if not a reference) and the fully qualified type name.
       def self.resolve_type(t : Pdl::Type, d : Pdl::Domain, domains : Array(Pdl::Domain)) : Tuple(String, Pdl::Type, String)
-        if t.no_expose || t.no_resolve || t.ref.starts_with?("*")
+        if t.no_expose? || t.no_resolve? || t.ref.starts_with?("*")
           return {d.domain, t, t.ref}
         end
 
@@ -127,7 +127,7 @@ module Pdlgen
 
           # add prefix if is a type defined as having circular dependency issues
           s = ""
-          if typ.is_circular_dep && d.domain != "cdp"
+          if typ.is_circular_dep? && d.domain != "cdp"
             s = "Cdp::"
           elsif dtyp != d.domain
             s = "Cdp::" + dtyp.camelcase + "::"
@@ -149,8 +149,12 @@ module Pdlgen
         end
 
         if t.type == Pdl::TypeEnum::Array
-          dtyp, typ, z = resolve_type(t.items.not_nil!, d, domains)
-          return {dtyp, typ, "Array(#{z})"}
+          if items = t.items
+            dtyp, typ, z = resolve_type(items, d, domains)
+            return {dtyp, typ, "Array(#{z})"}
+          else
+            raise "Array type missing items"
+          end
         end
 
         if t.type == Pdl::TypeEnum::Object && (t.properties.nil? || t.properties.empty?)

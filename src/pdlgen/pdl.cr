@@ -51,37 +51,43 @@ module Pdlgen
         end
 
         write_redirect = ->(typ : Type, indent : String) do
-          return unless typ.redirect
-          r = typ.redirect.not_nil!
-          if !r.name.empty?
-            io << indent << "# Use '" << r.domain << "." << r.name << "' instead\n"
+          if redirect = typ.redirect
+            if !redirect.name.empty?
+              io << indent << "# Use '" << redirect.domain << "." << redirect.name << "' instead\n"
+            end
+            io << indent << "redirect " << redirect.domain << "\n"
           end
-          io << indent << "redirect " << r.domain << "\n"
         end
 
         write_props = ->(typ : String, indent : String, props : Array(Type)) do
           return if props.empty?
           io << indent << typ << "\n"
-          props.each do |p|
-            ref = p.type.to_s
-            if !p.ref.empty?
-              ref = p.ref
+          props.each do |prop|
+            ref = prop.type.to_s
+            if !prop.ref.empty?
+              ref = prop.ref
             end
-            if p.type == TypeEnum::Array
-              ref = p.items.not_nil!.ref
-              if ref.empty?
-                ref = p.items.not_nil!.type.to_s
+            if prop.type == TypeEnum::Array
+              if items = prop.items
+                ref = items.ref
+                if ref.empty?
+                  ref = items.type.to_s
+                end
+                ref = "array of " + ref
               end
-              ref = "array of " + ref
             end
-            if p.enum && !p.enum.not_nil!.empty?
-              ref = "enum"
+            if enum_values = prop.enum
+              if !enum_values.empty?
+                ref = "enum"
+              end
             end
-            write_decl.call(ref, p.name, p.description, indent + "  ",
-              p.experimental, p.deprecated, p.optional, [] of String)
-            if p.enum && !p.enum.not_nil!.empty?
-              p.enum.not_nil!.each do |e|
-                io << indent << "    " << e << "\n"
+            write_decl.call(ref, prop.name, prop.description, indent + "  ",
+              prop.experimental?, prop.deprecated?, prop.optional?, [] of String)
+            if enum_values = prop.enum
+              if !enum_values.empty?
+                enum_values.each do |enum_value|
+                  io << indent << "    " << enum_value << "\n"
+                end
               end
             end
           end
@@ -106,39 +112,41 @@ module Pdlgen
         domains.sort_by!(&.domain)
 
         # Write each domain
-        domains.each do |d|
+        domains.each do |domain_obj|
           # Write domain stanza
-          write_decl.call("domain", d.domain, d.description, "", d.experimental, d.deprecated, false, [] of String)
+          write_decl.call("domain", domain_obj.domain, domain_obj.description, "", domain_obj.experimental?, domain_obj.deprecated?, false, [] of String)
 
           # Write depends
-          d.dependencies.each do |dep|
+          domain_obj.dependencies.each do |dep|
             io << "  depends on " << dep << "\n"
           end
           io << "\n"
 
           # Sort types
-          types = d.types.dup
+          types = domain_obj.types.dup
           types.sort_by!(&.name)
 
           # Write types
           types.each do |typ|
             extends = typ.type.to_s
             if typ.type == TypeEnum::Array
-              if typ.items
-                extends = typ.items.not_nil!.type.to_s
+              if items = typ.items
+                extends = items.type.to_s
                 if extends.empty?
-                  extends = typ.items.not_nil!.ref
+                  extends = items.ref
                 end
                 extends = "array of " + extends
               end
             end
             write_decl.call("type", typ.name, typ.description, "  ",
-              typ.experimental, typ.deprecated, typ.optional, ["extends", extends])
+              typ.experimental?, typ.deprecated?, typ.optional?, ["extends", extends])
             write_redirect.call(typ, "  ")
-            if typ.enum && !typ.enum.not_nil!.empty?
-              io << "    enum\n"
-              typ.enum.not_nil!.each do |e|
-                io << "     " << e << "\n"
+            if enum_values = typ.enum
+              if !enum_values.empty?
+                io << "    enum\n"
+                enum_values.each do |enum_value|
+                  io << "     " << enum_value << "\n"
+                end
               end
             end
             write_props.call("properties", "    ", typ.properties)
@@ -146,27 +154,27 @@ module Pdlgen
           end
 
           # Sort commands
-          commands = d.commands.dup
+          commands = domain_obj.commands.dup
           commands.sort_by!(&.name)
 
           # Write commands
-          commands.each do |c|
-            write_decl.call("command", c.name, c.description, "  ",
-              c.experimental, c.deprecated, c.optional, [] of String)
-            write_redirect.call(c, "    ")
-            write_props.call("parameters", "    ", c.parameters)
-            write_props.call("returns", "    ", c.returns)
+          commands.each do |cmd|
+            write_decl.call("command", cmd.name, cmd.description, "  ",
+              cmd.experimental?, cmd.deprecated?, cmd.optional?, [] of String)
+            write_redirect.call(cmd, "    ")
+            write_props.call("parameters", "    ", cmd.parameters)
+            write_props.call("returns", "    ", cmd.returns)
             io << "\n"
           end
 
           # Sort events
-          events = d.events.dup
+          events = domain_obj.events.dup
           events.sort_by!(&.name)
 
           # Write events
           events.each do |e|
             write_decl.call("event", e.name, e.description, "  ",
-              e.experimental, e.deprecated, e.optional, [] of String)
+              e.experimental?, e.deprecated?, e.optional?, [] of String)
             write_redirect.call(e, "    ")
             write_props.call("parameters", "    ", e.parameters)
             io << "\n"
@@ -195,8 +203,8 @@ module Pdlgen
 
       property domain : String
       property description : String
-      property experimental : Bool
-      property deprecated : Bool
+      property? experimental : Bool
+      property? deprecated : Bool
       property dependencies : Array(String)
       property types : Array(Type)
       property commands : Array(Type)
@@ -215,9 +223,9 @@ module Pdlgen
       property type : TypeEnum
       property name : String
       property description : String
-      property experimental : Bool
-      property deprecated : Bool
-      property optional : Bool
+      property? experimental : Bool
+      property? deprecated : Bool
+      property? optional : Bool
       property ref : String
 
       @[JSON::Field(ignore_serialize: true)]
@@ -240,15 +248,15 @@ module Pdlgen
       property raw_name : String
       property raw_see : String
       property timestamp_type : TimestampType
-      property is_circular_dep : Bool
-      property no_expose : Bool
-      property no_resolve : Bool
-      property always_emit : Bool
+      property? is_circular_dep : Bool
+      property? no_expose : Bool
+      property? no_resolve : Bool
+      property? always_emit : Bool
 
       @[JSON::Field(ignore_serialize: true)]
       property enum_value_name_map : Hash(String, String)
 
-      property enum_bit_mask : Bool
+      property? enum_bit_mask : Bool
       property extra : String
 
       def initialize(@type = TypeEnum::Any, @name = "", @description = "", @experimental = false,
@@ -328,22 +336,23 @@ module Pdlgen
     # Combine combines domains from multiple PDL definitions into a single PDL.
     def self.combine(pdls : Array(PDL)) : PDL
       pdl = PDL.new
-      pdls.each do |p|
+      pdls.each do |other|
         if pdl.copyright.empty?
-          pdl.copyright = p.copyright
+          pdl.copyright = other.copyright
         end
         if pdl.version.nil?
           pdl.version = Version.new
         end
-        if p.version
-          if pdl.version.not_nil!.major < p.version.not_nil!.major
-            pdl.version.not_nil!.major = p.version.not_nil!.major
-            pdl.version.not_nil!.minor = p.version.not_nil!.minor
-          elsif pdl.version.not_nil!.minor < p.version.not_nil!.minor
-            pdl.version.not_nil!.minor = p.version.not_nil!.minor
+        if other_version = other.version
+          pdl_version = pdl.version.as(Version)
+          if pdl_version.major < other_version.major
+            pdl_version.major = other_version.major
+            pdl_version.minor = other_version.minor
+          elsif pdl_version.minor < other_version.minor
+            pdl_version.minor = other_version.minor
           end
         end
-        pdl.domains.concat(p.domains)
+        pdl.domains.concat(other.domains)
       end
       pdl
     end

@@ -2,8 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../runtime/runtime"
-require "../network/network"
+require "../dom/dom"
 
 require "./types"
 require "./events"
@@ -69,9 +68,9 @@ module Cdp::Log
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property config : Array(ViolationSetting)
+    property config : Array(Cdp::NodeType)
 
-    def initialize(@config : Array(ViolationSetting))
+    def initialize(@config : Array(Cdp::NodeType))
     end
 
     # ProtoReq returns the protocol method name.

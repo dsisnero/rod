@@ -2,13 +2,15 @@ require "../cdp"
 require "json"
 require "time"
 
+require "../dom/dom"
+
 module Cdp::Runtime
   alias ScriptId = String
 
   struct SerializationOptions
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property serialization : SerializationOptionsSerialization
+    property serialization : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property max_depth : Int64?
     @[JSON::Field(emit_null: false)]
@@ -18,7 +20,7 @@ module Cdp::Runtime
   struct DeepSerializedValue
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property type : DeepSerializedValueType
+    property type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property value : JSON::Any?
     @[JSON::Field(emit_null: false)]
@@ -34,25 +36,25 @@ module Cdp::Runtime
   struct RemoteObject
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property type : Type
+    property type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property subtype : Subtype?
+    property subtype : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property class_name : String?
     @[JSON::Field(emit_null: false)]
     property value : JSON::Any?
     @[JSON::Field(emit_null: false)]
-    property unserializable_value : UnserializableValue?
+    property unserializable_value : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property description : String?
     @[JSON::Field(emit_null: false)]
-    property deep_serialized_value : DeepSerializedValue?
+    property deep_serialized_value : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property object_id : RemoteObjectId?
+    property object_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property preview : ObjectPreview?
+    property preview : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property custom_preview : CustomPreview?
+    property custom_preview : Cdp::NodeType?
   end
 
   @[Experimental]
@@ -61,24 +63,24 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property header : String
     @[JSON::Field(emit_null: false)]
-    property body_getter_id : RemoteObjectId?
+    property body_getter_id : Cdp::NodeType?
   end
 
   @[Experimental]
   struct ObjectPreview
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property type : Type
+    property type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property subtype : Subtype?
+    property subtype : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property description : String?
     @[JSON::Field(emit_null: false)]
     property? overflow : Bool
     @[JSON::Field(emit_null: false)]
-    property properties : Array(PropertyPreview)
+    property properties : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property entries : Array(EntryPreview)?
+    property entries : Array(Cdp::NodeType)?
   end
 
   @[Experimental]
@@ -87,22 +89,22 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
-    property type : Type
+    property type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property value : String?
     @[JSON::Field(emit_null: false)]
-    property value_preview : ObjectPreview?
+    property value_preview : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property subtype : Subtype?
+    property subtype : Cdp::NodeType?
   end
 
   @[Experimental]
   struct EntryPreview
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property key : ObjectPreview?
+    property key : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property value : ObjectPreview
+    property value : Cdp::NodeType
   end
 
   struct PropertyDescriptor
@@ -110,13 +112,13 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
-    property value : RemoteObject?
+    property value : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property? writable : Bool?
     @[JSON::Field(emit_null: false)]
-    property get : RemoteObject?
+    property get : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property set : RemoteObject?
+    property set : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property? configurable : Bool
     @[JSON::Field(emit_null: false)]
@@ -126,7 +128,7 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property? is_own : Bool?
     @[JSON::Field(emit_null: false)]
-    property symbol : RemoteObject?
+    property symbol : Cdp::NodeType?
   end
 
   struct InternalPropertyDescriptor
@@ -134,7 +136,7 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
-    property value : RemoteObject?
+    property value : Cdp::NodeType?
   end
 
   @[Experimental]
@@ -143,11 +145,11 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
-    property value : RemoteObject?
+    property value : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property get : RemoteObject?
+    property get : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property set : RemoteObject?
+    property set : Cdp::NodeType?
   end
 
   struct CallArgument
@@ -155,9 +157,9 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property value : JSON::Any?
     @[JSON::Field(emit_null: false)]
-    property unserializable_value : UnserializableValue?
+    property unserializable_value : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property object_id : RemoteObjectId?
+    property object_id : Cdp::NodeType?
   end
 
   alias ExecutionContextId = Int64
@@ -165,7 +167,7 @@ module Cdp::Runtime
   struct ExecutionContextDescription
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property id : ExecutionContextId
+    property id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property origin : String
     @[JSON::Field(emit_null: false)]
@@ -187,15 +189,15 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property column_number : Int64
     @[JSON::Field(emit_null: false)]
-    property script_id : ScriptId?
+    property script_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property url : String?
     @[JSON::Field(emit_null: false)]
-    property stack_trace : StackTrace?
+    property stack_trace : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property exception : RemoteObject?
+    property exception : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property execution_context_id : ExecutionContextId?
+    property execution_context_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property exception_meta_data : JSON::Any?
   end
@@ -228,7 +230,7 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property function_name : String
     @[JSON::Field(emit_null: false)]
-    property script_id : ScriptId
+    property script_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property url : String
     @[JSON::Field(emit_null: false)]
@@ -242,11 +244,11 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property description : String?
     @[JSON::Field(emit_null: false)]
-    property call_frames : Array(CallFrame)
+    property call_frames : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property parent : StackTrace?
+    property parent : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property parent_id : StackTraceId?
+    property parent_id : Cdp::NodeType?
   end
 
   @[Experimental]
@@ -258,7 +260,7 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property id : String
     @[JSON::Field(emit_null: false)]
-    property debugger_id : UniqueDebuggerId?
+    property debugger_id : Cdp::NodeType?
   end
 
   alias SerializationOptionsSerialization = String

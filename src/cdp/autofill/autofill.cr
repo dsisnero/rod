@@ -2,7 +2,6 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../page/page"
 require "../dom/dom"
 
 require "./types"
@@ -16,15 +15,15 @@ module Cdp::Autofill
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property field_id : Cdp::DOM::BackendNodeId
+    property field_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property frame_id : Cdp::Page::FrameId?
+    property frame_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property card : CreditCard?
+    property card : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property address : Address?
+    property address : Cdp::NodeType?
 
-    def initialize(@field_id : Cdp::DOM::BackendNodeId, @frame_id : Cdp::Page::FrameId?, @card : CreditCard?, @address : Address?)
+    def initialize(@field_id : Cdp::NodeType, @frame_id : Cdp::NodeType?, @card : Cdp::NodeType?, @address : Cdp::NodeType?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -42,9 +41,9 @@ module Cdp::Autofill
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property addresses : Array(Address)
+    property addresses : Array(Cdp::NodeType)
 
-    def initialize(@addresses : Array(Address))
+    def initialize(@addresses : Array(Cdp::NodeType))
     end
 
     # ProtoReq returns the protocol method name.

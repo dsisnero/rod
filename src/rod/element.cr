@@ -23,8 +23,24 @@ module Rod
 
     # Sleeper for retry logic
     property sleeper : Proc(Rod::Utils::Sleeper)
+    @e : EFunc?
 
     def initialize(@object : ::Cdp::Runtime::RemoteObject, @page : Page, @ctx : Context = Context.background, @sleeper = -> { Rod::Utils::Sleeper.new })
+      @e = ->(err : Exception?) { @page.e(err) }
+    end
+
+    # e is the error handler for Must methods.
+    # It calls the configured EFunc with the error.
+    protected def e(err : Exception?) : Nil
+      @e.try &.call(err)
+    end
+
+    # WithPanic returns an element clone with the specified panic function.
+    # The fail must stop the current goroutine's execution immediately.
+    def with_panic(fail : Proc(Exception, Nil)) : Element
+      new_obj = self.clone
+      new_obj.instance_variable_set("@e", Browser.gen_e(fail))
+      new_obj
     end
 
     # Get session ID from parent page

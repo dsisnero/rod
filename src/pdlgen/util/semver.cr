@@ -77,7 +77,7 @@ module Pdlgen
         when {_, nil}
           -1
         else
-          prerelease.not_nil! <=> other.prerelease.not_nil!
+          prerelease.as(String) <=> other.prerelease.as(String)
         end
       end
 

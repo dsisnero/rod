@@ -3,8 +3,6 @@ require "json"
 require "time"
 
 require "../dom/dom"
-require "../page/page"
-require "../domdebugger/domdebugger"
 
 module Cdp::DOMSnapshot
   struct DOMNode
@@ -24,11 +22,11 @@ module Cdp::DOMSnapshot
     @[JSON::Field(emit_null: false)]
     property? option_selected : Bool?
     @[JSON::Field(emit_null: false)]
-    property backend_node_id : Cdp::DOM::BackendNodeId
+    property backend_node_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property child_node_indexes : Array(Int64)?
     @[JSON::Field(emit_null: false)]
-    property attributes : Array(NameValue)?
+    property attributes : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
     property pseudo_element_indexes : Array(Int64)?
     @[JSON::Field(emit_null: false)]
@@ -46,17 +44,17 @@ module Cdp::DOMSnapshot
     @[JSON::Field(emit_null: false)]
     property system_id : String?
     @[JSON::Field(emit_null: false)]
-    property frame_id : Cdp::Page::FrameId?
+    property frame_id : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property content_document_index : Int64?
     @[JSON::Field(emit_null: false)]
-    property pseudo_type : Cdp::DOM::PseudoType?
+    property pseudo_type : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property shadow_root_type : Cdp::DOM::ShadowRootType?
+    property shadow_root_type : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
     property? is_clickable : Bool?
     @[JSON::Field(emit_null: false)]
-    property event_listeners : Array(Cdp::DOMDebugger::EventListener)?
+    property event_listeners : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
     property current_source_url : String?
     @[JSON::Field(emit_null: false)]
@@ -70,7 +68,7 @@ module Cdp::DOMSnapshot
   struct InlineTextBox
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property bounding_box : Cdp::DOM::Rect
+    property bounding_box : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property start_character_index : Int64
     @[JSON::Field(emit_null: false)]
@@ -82,11 +80,11 @@ module Cdp::DOMSnapshot
     @[JSON::Field(emit_null: false)]
     property dom_node_index : Int64
     @[JSON::Field(emit_null: false)]
-    property bounding_box : Cdp::DOM::Rect
+    property bounding_box : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property layout_text : String?
     @[JSON::Field(emit_null: false)]
-    property inline_text_nodes : Array(InlineTextBox)?
+    property inline_text_nodes : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
     property style_index : Int64?
     @[JSON::Field(emit_null: false)]
@@ -98,7 +96,7 @@ module Cdp::DOMSnapshot
   struct ComputedStyle
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property properties : Array(NameValue)
+    property properties : Array(Cdp::NodeType)
   end
 
   struct NameValue
@@ -119,7 +117,7 @@ module Cdp::DOMSnapshot
     @[JSON::Field(emit_null: false)]
     property index : Array(Int64)
     @[JSON::Field(emit_null: false)]
-    property value : Array(StringIndex)
+    property value : Array(Cdp::NodeType)
   end
 
   struct RareBooleanData
@@ -142,27 +140,27 @@ module Cdp::DOMSnapshot
   struct DocumentSnapshot
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property document_url : StringIndex
+    property document_url : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property title : StringIndex
+    property title : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property base_url : StringIndex
+    property base_url : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property content_language : StringIndex
+    property content_language : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property encoding_name : StringIndex
+    property encoding_name : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property public_id : StringIndex
+    property public_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property system_id : StringIndex
+    property system_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property frame_id : StringIndex
+    property frame_id : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property nodes : NodeTreeSnapshot
+    property nodes : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property layout : LayoutTreeSnapshot
+    property layout : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
-    property text_boxes : TextBoxSnapshot
+    property text_boxes : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property scroll_offset_x : Float64?
     @[JSON::Field(emit_null: false)]
@@ -180,35 +178,35 @@ module Cdp::DOMSnapshot
     @[JSON::Field(emit_null: false)]
     property node_type : Array(Int64)?
     @[JSON::Field(emit_null: false)]
-    property shadow_root_type : RareStringData?
+    property shadow_root_type : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property node_name : Array(StringIndex)?
+    property node_name : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property node_value : Array(StringIndex)?
+    property node_value : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property backend_node_id : Array(Cdp::DOM::BackendNodeId)?
+    property backend_node_id : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property attributes : Array(ArrayOfStrings)?
+    property attributes : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property text_value : RareStringData?
+    property text_value : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property input_value : RareStringData?
+    property input_value : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property input_checked : RareBooleanData?
+    property input_checked : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property option_selected : RareBooleanData?
+    property option_selected : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property content_document_index : RareIntegerData?
+    property content_document_index : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property pseudo_type : RareStringData?
+    property pseudo_type : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property pseudo_identifier : RareStringData?
+    property pseudo_identifier : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property is_clickable : RareBooleanData?
+    property is_clickable : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property current_source_url : RareStringData?
+    property current_source_url : Cdp::NodeType?
     @[JSON::Field(emit_null: false)]
-    property origin_url : RareStringData?
+    property origin_url : Cdp::NodeType?
   end
 
   struct LayoutTreeSnapshot
@@ -216,23 +214,23 @@ module Cdp::DOMSnapshot
     @[JSON::Field(emit_null: false)]
     property node_index : Array(Int64)
     @[JSON::Field(emit_null: false)]
-    property styles : Array(ArrayOfStrings)
+    property styles : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property bounds : Array(Rectangle)
+    property bounds : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property text : Array(StringIndex)
+    property text : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
-    property stacking_contexts : RareBooleanData
+    property stacking_contexts : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
     property paint_orders : Array(Int64)?
     @[JSON::Field(emit_null: false)]
-    property offset_rects : Array(Rectangle)?
+    property offset_rects : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property scroll_rects : Array(Rectangle)?
+    property scroll_rects : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property client_rects : Array(Rectangle)?
+    property client_rects : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
-    property blended_background_colors : Array(StringIndex)?
+    property blended_background_colors : Array(Cdp::NodeType)?
     @[JSON::Field(emit_null: false)]
     property text_color_opacities : Array(Float64)?
   end
@@ -242,7 +240,7 @@ module Cdp::DOMSnapshot
     @[JSON::Field(emit_null: false)]
     property layout_index : Array(Int64)
     @[JSON::Field(emit_null: false)]
-    property bounds : Array(Rectangle)
+    property bounds : Array(Cdp::NodeType)
     @[JSON::Field(emit_null: false)]
     property start : Array(Int64)
     @[JSON::Field(emit_null: false)]
