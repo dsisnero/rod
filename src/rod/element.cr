@@ -1,6 +1,9 @@
 require "./page"
 require "./types"
 require "./error"
+require "../cdp/dom/dom"
+require "./lib/quad"
+require "./lib/input/input"
 
 module Rod
   # Element represents a DOM element.
@@ -30,7 +33,7 @@ module Rod
 
     # Context implementation
     def context : Nil
-      @ctx # ameba:disable Lint/UnusedExpression
+      @ctx
     end
 
     # String representation
@@ -52,18 +55,157 @@ module Rod
       evaluate("() => this.scrollIntoViewIfNeeded()")
     end
 
-    # Click the element
+    # Click will press then release the button just like a human.
+    # Before the action, it will try to scroll to the element, hover the mouse over it,
+    # wait until the it's interactable and enabled.
     def click(button : String = "left", click_count : Int32 = 1) : Nil
-      # TODO: Implement proper mouse click with position
-      # For now, use JS click
-      evaluate("() => this.click()")
+      hover
+      wait_enabled
+      @page.mouse.click(button, click_count)
     end
 
-    # Hover over the element
+    # Type is similar with Keyboard.Type.
+    # Before the action, it will try to scroll to the element and focus on it.
+    def type(*keys : Input::Key) : Nil
+      focus
+      @page.keyboard.type(*keys)
+    end
+
+    # KeyActions is similar with Page.KeyActions.
+    # Before the action, it will try to scroll to the element and focus on it.
+    def key_actions : Keyboard::KeyActions
+      focus
+      @page.keyboard.key_actions
+    end
+
+    # SelectText selects the text that matches the regular expression.
+    # Before the action, it will try to scroll to the element and focus on it.
+    def select_text(regex : String) : Nil
+      focus
+      # TODO: Implement JavaScript helper for selecting text
+      evaluate(<<-JS, regex)
+        (regex) => {
+          const sel = window.getSelection();
+          const range = document.createRange();
+          const text = this.textContent || this.innerText || '';
+          const match = text.match(new RegExp(regex));
+          if (match) {
+            // Simplified implementation
+            range.selectNodeContents(this);
+            sel.removeAllRanges();
+            sel.addRange(range);
+          }
+        }
+      JS
+    end
+
+    # SelectAllText selects all text
+    # Before the action, it will try to scroll to the element and focus on it.
+    def select_all_text : Nil
+      focus
+      evaluate("() => {
+        const sel = window.getSelection();
+        const range = document.createRange();
+        range.selectNodeContents(this);
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }")
+    end
+
+    # Blur removes focus from the element.
+    def blur : Nil
+      evaluate("() => this.blur()")
+    end
+
+    # InputTime focuses on the element and inputs time to it.
+    # Before the action, it will scroll to the element, wait until it's visible, enabled and writable.
+    def input_time(t : Time) : Nil
+      focus
+      wait_enabled
+      # TODO: Implement proper time input for date/time input elements
+      evaluate("(time) => this.value = time.toISOString().slice(0, -1)", t)
+    end
+
+    # InputColor focuses on the element and inputs color to it.
+    # Before the action, it will scroll to the element, wait until it's visible, enabled and writable.
+    def input_color(color : String) : Nil
+      focus
+      wait_enabled
+      evaluate("(color) => this.value = color", color)
+    end
+
+    # Hover the mouse over the center of the element.
+    # Before the action, it will try to scroll to the element and wait until it's interactable.
     def hover : Nil
-      # TODO: Implement proper mouse hover
-      # For now, this is a placeholder
-      scroll_into_view
+      pt = wait_interactable
+      @page.mouse.move_to(pt)
+    end
+
+    # MoveMouseOut of the current element.
+    def move_mouse_out : Nil
+      shape_result = shape
+      quads = shape_result.quads
+      box = Rod::Lib::Quad.box(quads)
+      raise InvisibleShapeError.new(self) unless box
+      x, y, width, _height = box
+      @page.mouse.move_to(Point.new(x + width, y))
+    end
+
+    # Shape returns the content quads of the element.
+    # A 4-sides polygon is not necessary a rectangle. 4-sides polygons can be apart from each other.
+    # For example, we use 2 4-sides polygons to describe the shape below:
+    #
+    #   ____________          ____________
+    #  /        ___/    =    /___________/    +     _________
+    # /________/                                   /________/
+    def shape : ::Cdp::Dom::GetContentQuadsResult
+      object_id = @object.object_id
+      raise "Element has no object ID" unless object_id
+      ::Cdp::Dom::GetContentQuads.new(object_id: object_id).call(@page)
+    end
+
+    # Interactable checks if the element is interactable with cursor.
+    # The cursor can be mouse, finger, stylus, etc.
+    # If not interactable raises an error (NotInteractableError or subtypes).
+    # Returns a point inside the element that can be used for interaction.
+    def interactable : Point
+      # Check pointer-events CSS property
+      no_pointer_events = evaluate("() => getComputedStyle(this).pointerEvents === 'none'")
+      if no_pointer_events.value.as_bool?
+        raise NoPointerEventsError.new(self)
+      end
+
+      # Get shape
+      shape_result = shape
+      quads = shape_result.quads
+      point = Rod::Lib::Quad.one_point_inside(quads)
+      if point.nil?
+        raise InvisibleShapeError.new(self)
+      end
+
+      # TODO: Check if element is covered by another element
+      # For now, assume it's not covered
+      point
+    end
+
+    # WaitInteractable waits for the element to become interactable.
+    # Returns a point inside the element that can be used for interaction.
+    def wait_interactable(timeout : Time::Span = 5.seconds) : Point
+      start = Time.monotonic
+      loop do
+        begin
+          return interactable
+        rescue e : RodError
+          if Rod.is?(e, NotInteractableError)
+            if Time.monotonic - start > timeout
+              raise e
+            end
+            sleep(100.milliseconds)
+          else
+            raise e
+          end
+        end
+      end
     end
 
     # Get element text content
@@ -102,13 +244,20 @@ module Rod
       evaluate("(name, value) => this.setAttribute(name, value)", name, value)
     end
 
-    # Type text into element (for input fields)
+    # Input focuses on the element and inputs text to it.
+    # Before the action, it will scroll to the element, wait until it's visible, enabled and writable.
     def input(text : String) : Nil
       focus
-      # Clear existing value
-      evaluate("() => this.value = ''")
+      wait_enabled
+      # TODO: Implement WaitWritable
+      # Clear existing value by selecting all and replacing
+      evaluate("() => {
+        this.select();
+        this.value = '';
+      }")
       # Use page.insert_text to simulate text input
       @page.insert_text(text)
+      # TODO: Trigger input event
     end
 
     # Check if element is visible

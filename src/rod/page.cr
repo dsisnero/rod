@@ -169,6 +169,11 @@ module Rod
       event.call(self)
     end
 
+    # StopLoading stops loading the page.
+    def stop_loading : Nil
+      Cdp::Page::StopLoading.new.call(self)
+    end
+
     def initialize(@browser, @target_id, @session_id = nil, @frame_id = nil, @ctx = nil, @sleeper = -> { Rod::Utils::Sleeper.new }, @element = nil)
     end
 
@@ -220,7 +225,47 @@ module Rod
 
     # Navigate to URL.
     def navigate(url : String) : Nil
-      # TODO: implement in rod-r6m
+      if url.empty?
+        url = "about:blank"
+      end
+
+      # try to stop loading
+      stop_loading
+
+      res = Cdp::Page::Navigate.new(url: url, referrer: nil, transition_type: nil, frame_id: nil, referrer_policy: nil).call(self)
+      if error_text = res.error_text
+        raise NavigationError.new(error_text)
+      end
+
+      unset_js_ctx_id
+    end
+
+    # Reload page.
+    def reload : Nil
+      # TODO: implement proper wait for navigation event (rod-edo)
+      # For now use CDP reload (doesn't work for iframes)
+      Cdp::Page::Reload.new.call(self)
+      unset_js_ctx_id
+    end
+
+    # Navigate back in history.
+    def back : Nil
+      evaluate(eval_opts("() => history.back()").by_user)
+    end
+
+    # Navigate forward in history.
+    def forward : Nil
+      evaluate(eval_opts("() => history.forward()").by_user)
+    end
+
+    # GetNavigationHistory returns navigation history entries.
+    def navigation_history : Cdp::Page::GetNavigationHistoryResult
+      Cdp::Page::GetNavigationHistory.new.call(self)
+    end
+
+    # ResetNavigationHistory resets navigation history.
+    def reset_navigation_history : Nil
+      Cdp::Page::ResetNavigationHistory.new.call(self)
     end
 
     # Evaluate JavaScript.
