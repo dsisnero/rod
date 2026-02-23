@@ -1,8 +1,13 @@
 require "json"
+require "../cdp/runtime"
 
 module Rod
   # Base error class for Rod
   class RodError < Exception
+    # Returns true if this error is of type klass.
+    def is?(klass : Exception.class) : Bool
+      self.class == klass
+    end
   end
 
   # Timeout error for wait operations
@@ -15,22 +20,6 @@ module Rod
   # Element not found error
   class NotFoundError < RodError
     def initialize(message : String = "Element not found")
-      super(message)
-    end
-  end
-
-  # Navigation error
-  class NavigationError < RodError
-    def initialize(message : String = "Navigation failed")
-      super(message)
-    end
-  end
-
-  # Evaluation error for JavaScript execution
-  class EvalError < RodError
-    property details : String?
-
-    def initialize(message : String = "JavaScript evaluation failed", @details : String? = nil)
       super(message)
     end
   end

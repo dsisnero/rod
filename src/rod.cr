@@ -14,6 +14,7 @@ end
 # Core types and browser
 require "./rod/browser"
 require "./rod/types"
+require "./rod/error"
 require "./rod/page"
 require "./rod/element"
 require "./rod/keyboard"
