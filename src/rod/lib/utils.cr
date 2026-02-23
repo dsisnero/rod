@@ -28,4 +28,24 @@ module Rod::Lib::Utils
   def self.e(err : Exception?)
     raise err if err
   end
+
+  # Retry executes fn and sleeps using sleeper until fn returns true or context is cancelled.
+  def self.retry(ctx : Rod::Context, sleeper : Sleeper, &fn : -> Tuple(Bool, Exception?)) : Exception?
+    loop do
+      stop, err = fn.call
+      if stop
+        return err
+      end
+
+      # Check context cancellation
+      if ctx.cancelled?
+        return ctx.err || Rod::ContextCanceledError.new("context cancelled")
+      end
+
+      # Sleep using sleeper
+      sleeper.sleep
+    end
+  rescue ex : Exception
+    ex
+  end
 end

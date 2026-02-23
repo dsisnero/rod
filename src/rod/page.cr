@@ -337,7 +337,7 @@ module Rod
             )
           \{% end %}
           browser.context(@ctx).each_event(@session_id, cb_map)
-        \\\\\\\\}
+        \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\}
       \{% end %}
     end
 
@@ -643,8 +643,8 @@ module Rod
     end
 
     # Convert a DOM NodeID to an Element.
-    def element_from_node(node_id : ::Cdp::Dom::NodeId) : Element
-      req = ::Cdp::Dom::ResolveNode.new(node_id: node_id, backend_node_id: nil, object_group: nil, execution_context_id: nil)
+    def element_from_node(node_id : ::Cdp::DOM::NodeId) : Element
+      req = ::Cdp::DOM::ResolveNode.new(node_id: node_id, backend_node_id: nil, object_group: nil, execution_context_id: nil)
       result = req.call(self)
       Element.new(result.object, self)
     end
@@ -652,9 +652,72 @@ module Rod
     # search performs a text search across the page.
     # Returns a SearchResult object that can be used to retrieve matched elements.
     def search(query : String) : SearchResult
-      req = ::Cdp::Dom::PerformSearch.new(query: query, include_user_agent_shadow_dom: true)
-      result = req.call(self)
-      SearchResult.new(result, self)
+      # Enable DOM domain and get restore function
+      restore = @browser.enable_domain(@session_id, ::Cdp::DOM::Enable.new(nil))
+
+      sr = SearchResult.new(
+        ::Cdp::DOM::PerformSearchResult.new("", 0), # placeholder, will be replaced
+        self,
+        restore
+      )
+
+      err = ::Rod::Lib::Utils.retry(@ctx, @sleeper.call) do
+        # Discard previous search results if any
+        if sr.cdp_result.search_id != ""
+          req = ::Cdp::DOM::DiscardSearchResults.new(search_id: sr.search_id)
+          req.call(self) rescue nil # ignore error
+        end
+
+        # Perform search
+        req = ::Cdp::DOM::PerformSearch.new(query: query, include_user_agent_shadow_dom: true)
+        res = req.call(self)
+        sr.cdp_result = res
+
+        if res.result_count == 0
+          # No results, retry
+          return {false, nil}
+        end
+
+        # Get first element to verify search result is ready
+        result = ::Cdp::DOM::GetSearchResults.new(
+          search_id: res.search_id,
+          from_index: 0,
+          to_index: 1
+        ).call(self)
+
+        id = result.node_ids[0]
+
+        # When the id is zero, it means the proto.DOMDocumentUpdated has fired which will
+        # invalidate all the existing NodeID. We have to call proto.DOMGetDocument
+        # to reset the remote browser's tracker.
+        if id == 0
+          ::Cdp::DOM::GetDocument.new.call(self)
+          return {false, nil}
+        end
+
+        element = element_from_node(id)
+        sr.first = element
+
+        # Found element, stop retrying
+        {true, nil}
+      rescue ex : ::Rod::Lib::Cdp::Error
+        # Check if error is context not found or search session not found
+        if ctx_not_found_error?(ex) || search_session_not_found_error?(ex)
+          # Wait before retry
+          return {false, nil}
+        end
+        # Other CDP errors: stop retrying with error
+        {true, ex}
+      rescue ex : Exception
+        # Other errors: stop retrying
+        {true, ex}
+      end
+
+      if err
+        raise err
+      end
+
+      sr
     end
 
     # race creates a RaceContext to race multiple element queries.
@@ -747,6 +810,15 @@ module Rod
       # Check if it's a Rod::Lib::Cdp::Error with code -32000 and matching message
       if error.is_a?(::Rod::Lib::Cdp::Error)
         return error.code == -32000 && error.message.includes?("Cannot find context with specified id")
+      end
+      false
+    end
+
+    # Check if error is a search session not found error.
+    private def search_session_not_found_error?(error : ::Exception) : Bool
+      # Check if it's a Rod::Lib::Cdp::Error with code -32000 and matching message
+      if error.is_a?(::Rod::Lib::Cdp::Error)
+        return error.code == -32000 && error.message.includes?("No search session with given id found")
       end
       false
     end
