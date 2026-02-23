@@ -1,6 +1,7 @@
 require "goob"
 require "gson"
 require "http"
+require "./context"
 require "./lib/cdp"
 require "./lib/proto"
 require "./lib/defaults"
@@ -17,7 +18,7 @@ module Rod
     property browser_context_id : BrowserContextID?
 
     @e : EFunc?
-    @ctx : Nil
+    property ctx : Context
     @sleeper : Proc(::Utils::Sleeper)
     @logger : ::Log
     @slow_motion : Time::Span
@@ -29,7 +30,7 @@ module Rod
     @event : Goob::Observable(Message)
 
     # New creates a browser instance.
-    def initialize(@ctx : Nil = nil, @sleeper = -> { ::Utils::Sleeper.new }, @logger = ::Defaults.logger, @slow_motion = ::Defaults.slow, @trace = ::Defaults.trace, @monitor = nil)
+    def initialize(@ctx : Context = Context.background, @sleeper = -> { ::Utils::Sleeper.new }, @logger = ::Defaults.logger, @slow_motion = ::Defaults.slow, @trace = ::Defaults.trace, @monitor = nil)
       @e = nil
       @targets = {} of String => TargetInfo
       @targets_lock = Mutex.new
@@ -37,8 +38,8 @@ module Rod
     end
 
     # Context implements Cdp::Contextable.
-    def context : Nil
-      @ctx # ameba:disable Lint/UnusedExpression
+    def context : HTTP::Client::Context?
+      @ctx
     end
 
     # Call implements Cdp::Client.
@@ -65,6 +66,48 @@ module Rod
 
     private def init_events
       # TODO: implement event initialization
+    end
+
+    # Context returns a clone with the specified ctx for chained sub-operations.
+    def context(ctx : Context) : Browser
+      new_obj = self.clone
+      new_obj.ctx = ctx
+      new_obj
+    end
+
+    # GetContext of current instance.
+    # ameba:disable Naming/AccessorMethodName
+    def get_context : Context
+      @ctx
+    end
+
+    # Timeout returns a clone with the specified total timeout of all chained sub-operations.
+    def timeout(d : Time::Span) : Browser
+      ctx, cancel = @ctx.with_timeout(d)
+      val = TimeoutContextVal.new(@ctx, cancel)
+      ctx_with_val = ctx.with_value(TIMEOUT_KEY, val)
+      context(ctx_with_val)
+    end
+
+    # CancelTimeout cancels the current timeout context and returns a clone with the parent context.
+    def cancel_timeout : Browser
+      val = @ctx.value(TIMEOUT_KEY).as?(TimeoutContextVal)
+      raise "no timeout context to cancel" unless val
+      val.cancel.call
+      context(val.parent)
+    end
+
+    # WithCancel returns a clone with a context cancel function.
+    def with_cancel : Tuple(Browser, ->)
+      ctx, cancel = @ctx.with_cancel
+      {context(ctx), cancel}
+    end
+
+    # Sleeper returns a clone with the specified sleeper for chained sub-operations.
+    def sleeper(sleeper : Proc(::Utils::Sleeper)) : Browser
+      new_obj = self.clone
+      new_obj.sleeper = sleeper
+      new_obj
     end
   end
 

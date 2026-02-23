@@ -1,4 +1,5 @@
 require "./browser"
+require "./context"
 require "./types"
 require "./query"
 require "./keyboard"
@@ -137,7 +138,8 @@ module Rod
     property target_id : TargetID
     property session_id : SessionID?
     property frame_id : FrameID?
-    property ctx : Nil
+    property ctx : Context
+    property sleeper : Proc(Rod::Utils::Sleeper)
     property keyboard : Keyboard?
     property mouse : Mouse?
     property touch : Touch?
@@ -174,7 +176,7 @@ module Rod
       Cdp::Page::StopLoading.new.call(self)
     end
 
-    def initialize(@browser, @target_id, @session_id = nil, @frame_id = nil, @ctx = nil, @sleeper = -> { Rod::Utils::Sleeper.new }, @element = nil)
+    def initialize(@browser, @target_id, @session_id = nil, @frame_id = nil, @ctx : Context = Context.background, @sleeper = -> { Rod::Utils::Sleeper.new }, @element = nil)
     end
 
     # Retry a block that may raise NotFoundError until it succeeds or timeout expires.
@@ -214,8 +216,52 @@ module Rod
     end
 
     # Context implements Cdp::Contextable.
-    def context : Nil
-      @ctx # ameba:disable Lint/UnusedExpression
+    def context : HTTP::Client::Context?
+      @ctx
+    end
+
+    # Context returns a clone with the specified ctx for chained sub-operations.
+    def context(ctx : Context) : Page
+      @helpers_lock.synchronize do
+        new_obj = self.clone
+        new_obj.ctx = ctx
+        new_obj
+      end
+    end
+
+    # GetContext of current instance.
+    # ameba:disable Naming/AccessorMethodName
+    def get_context : Context
+      @ctx
+    end
+
+    # Timeout returns a clone with the specified total timeout of all chained sub-operations.
+    def timeout(d : Time::Span) : Page
+      ctx, cancel = @ctx.with_timeout(d)
+      val = TimeoutContextVal.new(@ctx, cancel)
+      ctx_with_val = ctx.with_value(TIMEOUT_KEY, val)
+      context(ctx_with_val)
+    end
+
+    # CancelTimeout cancels the current timeout context and returns a clone with the parent context.
+    def cancel_timeout : Page
+      val = @ctx.value(TIMEOUT_KEY).as?(TimeoutContextVal)
+      raise "no timeout context to cancel" unless val
+      val.cancel.call
+      context(val.parent)
+    end
+
+    # WithCancel returns a clone with a context cancel function.
+    def with_cancel : Tuple(Page, ->)
+      ctx, cancel = @ctx.with_cancel
+      {context(ctx), cancel}
+    end
+
+    # Sleeper returns a clone with the specified sleeper for chained sub-operations.
+    def sleeper(sleeper : Proc(Rod::Utils::Sleeper)) : Page
+      new_obj = self.clone
+      new_obj.sleeper = sleeper
+      new_obj
     end
 
     # Sessionable implementation

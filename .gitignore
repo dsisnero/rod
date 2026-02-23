@@ -1,0 +1,27 @@
+# Temporary files
+temp/
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.dwarf
+*.o
+*.a
+lib-c/
+bin/
+
+# Crystal specific
+/.crystal/
+/.shards/
+
+# Documentation
+/doc/
