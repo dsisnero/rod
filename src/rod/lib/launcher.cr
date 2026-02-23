@@ -31,6 +31,42 @@ module Rod::Lib::Launcher
     {% end %}
   end
 
+  # Flags module for browser command line arguments
+  module Flags
+    # Flag name of a command line argument of the browser, also known as command line flag or switch.
+    # List of available flags: https://peter.sh/experiments/chromium-command-line-switches
+    alias Flag = String
+
+    # TODO: we should automatically generate all the flags here.
+    USER_DATA_DIR         = "user-data-dir"
+    HEADLESS              = "headless"
+    APP                   = "app"
+    REMOTE_DEBUGGING_PORT = "remote-debugging-port"
+    NO_SANDBOX            = "no-sandbox"
+    PROXY_SERVER          = "proxy-server"
+    WINDOW_SIZE           = "window-size"
+    WINDOW_POSITION       = "window-position"
+    WORKING_DIR           = "rod-working-dir"
+    ENV                   = "rod-env"
+    XVFB                  = "rod-xvfb"
+    PROFILE_DIR           = "profile-directory"
+    PREFERENCES           = "rod-preferences"
+    LEAKLESS              = "rod-leakless"
+    BIN                   = "rod-bin"
+    KEEP_USER_DATA_DIR    = "rod-keep-user-data-dir"
+    ARGUMENTS             = "" # Empty string for arguments
+
+    # Check if the flag name is valid.
+    def self.check(flag : String) : Nil
+      raise "Flag name should not contain '='" if flag.includes?('=')
+    end
+
+    # Normalize flag name, remove leading dash.
+    def self.normalize(flag : String) : String
+      flag.lstrip('-')
+    end
+  end
+
   # Revision constants from revision.go
   REVISION_DEFAULT    = 1321438
   REVISION_PLAYWRIGHT =    1124
@@ -327,18 +363,208 @@ module Rod::Lib::Launcher
     property flags : Hash(String, Array(String))
     property logger : ::Log
     property browser : Browser
+    @pid : Int32 = 0
+    @exit : Channel(Nil)? = nil
+    @is_launched : Bool = false
 
-    def initialize(
-      @flags = {} of String => Array(String),
-      @logger = ::Log.for("rod.launcher"),
-      @browser = Browser.new,
-    )
+    # Default user data directory prefix
+    DEFAULT_USER_DATA_DIR_PREFIX = File.join(Dir.tempdir, "rod", "user-data")
+
+    # Create a new launcher with default arguments.
+    # Headless will be enabled by default.
+    # UserDataDir will use OS tmp dir by default, this folder will usually be cleaned up by the OS after reboot.
+    # It will auto download the browser binary according to the current platform.
+    def initialize
+      dir = ::Rod::Lib::Defaults.dir
+      if dir.empty?
+        dir = File.join(DEFAULT_USER_DATA_DIR_PREFIX, Random::Secure.hex(4))
+      end
+
+      @flags = {} of String => Array(String)
+      @logger = ::Log.for("rod.launcher")
+      @browser = Browser.new
+      @pid = 0
+      @exit = nil
+      @is_launched = false
+
+      # Set default flags (similar to Go's New())
+      set(Flags::BIN, ::Rod::Lib::Defaults.bin) unless ::Rod::Lib::Defaults.bin.empty?
+      set(Flags::LEAKLESS) if ::Rod::Lib::Defaults.lock_port > 0
+      set(Flags::USER_DATA_DIR, dir)
+      set(Flags::REMOTE_DEBUGGING_PORT, ::Rod::Lib::Defaults.port)
+      set(Flags::HEADLESS) unless ::Rod::Lib::Defaults.show
+
+      # Default flags
+      set("no-first-run")
+      set("no-startup-window")
+      set("disable-features", "site-per-process", "TranslateUI")
+      set("disable-dev-shm-usage")
+      set("disable-background-networking")
+      set("disable-background-timer-throttling")
+      set("disable-backgrounding-occluded-windows")
+      set("disable-breakpad")
+      set("disable-client-side-phishing-detection")
+      set("disable-component-extensions-with-background-pages")
+      set("disable-default-apps")
+      set("disable-hang-monitor")
+      set("disable-ipc-flooding-protection")
+      set("disable-popup-blocking")
+      set("disable-prompt-on-repost")
+      set("disable-renderer-backgrounding")
+      set("disable-sync")
+      set("disable-site-isolation-trials")
+      set("enable-automation")
+      set("enable-features", "NetworkService", "NetworkServiceInProcess")
+      set("force-color-profile", "srgb")
+      set("metrics-recording-only")
+      set("use-mock-keychain")
+
+      # Conditional defaults
+      set("auto-open-devtools-for-tabs") if ::Rod::Lib::Defaults.devtools
+      set(Flags::PROXY_SERVER, ::Rod::Lib::Defaults.proxy) unless ::Rod::Lib::Defaults.proxy.empty?
     end
 
-    # Launch browser and return WebSocket URL.
+    # Set a command line argument when launching the browser.
+    # Be careful the first argument is a flag name, it shouldn't contain values. The values the will be joined with comma.
+    # A flag can have multiple values. If no values are provided the flag will be a boolean flag.
+    def set(name : String, *values : String) : self
+      Flags.check(name)
+      normalized = Flags.normalize(name)
+      @flags[normalized] = values.to_a
+      self
+    end
+
+    # Get flag's first value.
+    def get(name : String) : String?
+      list = @flags[Flags.normalize(name)]?
+      list.try(&.first?)
+    end
+
+    # Check if flag exists.
+    def has(name : String) : Bool
+      @flags.has_key?(Flags.normalize(name))
+    end
+
+    # Delete a flag.
+    def delete(name : String) : self
+      @flags.delete(Flags.normalize(name))
+      self
+    end
+
+    # Append values to the flag.
+    def append(name : String, *values : String) : self
+      normalized = Flags.normalize(name)
+      existing = @flags[normalized]? || [] of String
+      @flags[normalized] = existing + values.to_a
+      self
+    end
+
+    # Set browser binary path.
+    def bin(path : String) : self
+      set(Flags::BIN, path)
+    end
+
+    # Set browser revision to auto download.
+    def revision(rev : Int32) : self
+      @browser.revision = rev
+      self
+    end
+
+    # Enable or disable headless mode.
+    def headless(enable : Bool = true) : self
+      enable ? set(Flags::HEADLESS) : delete(Flags::HEADLESS)
+    end
+
+    # Enable or disable no-sandbox mode.
+    def no_sandbox(enable : Bool = true) : self
+      enable ? set(Flags::NO_SANDBOX) : delete(Flags::NO_SANDBOX)
+    end
+
+    # Enable or disable leakless mode.
+    def leakless(enable : Bool = true) : self
+      enable ? set(Flags::LEAKLESS) : delete(Flags::LEAKLESS)
+    end
+
+    # Enable or disable devtools auto open.
+    def devtools(auto_open : Bool = true) : self
+      auto_open ? set("auto-open-devtools-for-tabs") : delete("auto-open-devtools-for-tabs")
+    end
+
+    # Set user data directory.
+    def user_data_dir(dir : String) : self
+      dir.empty? ? delete(Flags::USER_DATA_DIR) : set(Flags::USER_DATA_DIR, dir)
+    end
+
+    # Set remote debugging port.
+    def remote_debugging_port(port : Int32) : self
+      set(Flags::REMOTE_DEBUGGING_PORT, port.to_s)
+    end
+
+    # Set proxy server.
+    def proxy(host : String) : self
+      set(Flags::PROXY_SERVER, host)
+    end
+
+    # Format flags as command line arguments.
+    def format_args : Array(String)
+      exec_args = [] of String
+      @flags.each do |k, v|
+        # Skip rod- internal flags and empty argument placeholder
+        next if k.starts_with?("rod-") || k.empty?
+
+        # Fix a bug of chrome, if path is not absolute chrome will hang
+        if k == Flags::USER_DATA_DIR && !v.empty?
+          abs = File.expand_path(v.first)
+          v[0] = abs
+        end
+
+        arg = "--#{k}"
+        arg += "=#{v.join(",")}" unless v.empty?
+        exec_args << arg
+      end
+
+      # Add arguments (empty key)
+      if args = @flags[""]?
+        exec_args.concat(args)
+      end
+
+      exec_args.sort!
+    end
+
+    # Launch a standalone temp browser instance and returns the debug url.
     def launch : String
-      # TODO: Implement actual browser launching
-      "ws://localhost:9222/devtools/browser/..."
+      raise "Launcher can only be used once" if @is_launched
+      @is_launched = true
+
+      # Get browser binary path (auto-downloads if needed)
+      bin_path = @browser.must_get
+
+      # Setup user preferences if needed
+      setup_user_preferences
+
+      # Format command line arguments
+      args = format_args
+
+      # Launch process
+      @logger.info { "Launching browser: #{bin_path} #{args.join(" ")}" }
+
+      # For now, implement simple process launching without leakless
+      # TODO: Implement leakless equivalent
+      process = Process.new(bin_path, args, output: Process::Redirect::Pipe, error: Process::Redirect::Pipe)
+      @pid = process.pid
+
+      # Create exit channel
+      @exit = Channel(Nil).new
+
+      # Monitor process exit in background
+      spawn do
+        process.wait
+        @exit.try(&.close)
+      end
+
+      # Get WebSocket URL (simplified for now)
+      port = get(Flags::REMOTE_DEBUGGING_PORT) || "0"
+      "ws://localhost:#{port}/devtools/browser/"
     end
 
     # Launch and connect to browser.
@@ -347,6 +573,45 @@ module Rod::Lib::Launcher
       browser = Rod::Browser.new
       browser.connect(ws_url)
       browser
+    end
+
+    # Get browser process PID.
+    def pid : Int32
+      @pid
+    end
+
+    # Kill the browser process.
+    def kill : Nil
+      return if @pid == 0
+
+      # Give browser time to start children processes
+      sleep 1.second
+
+      # Try to kill process group
+      Process.kill("TERM", @pid) rescue nil
+      Process.kill("KILL", @pid) rescue nil
+    end
+
+    # Cleanup wait until the Browser exits and remove user data dir.
+    def cleanup : Nil
+      @exit.try(&.receive?)
+      dir = get(Flags::USER_DATA_DIR)
+      if dir && !has(Flags::KEEP_USER_DATA_DIR)
+        FileUtils.rm_rf(dir) if Dir.exists?(dir)
+      end
+    end
+
+    private def setup_user_preferences : Nil
+      user_dir = get(Flags::USER_DATA_DIR)
+      pref = get(Flags::PREFERENCES)
+      return if user_dir.nil? || pref.nil?
+
+      user_dir = File.expand_path(user_dir)
+      profile = get(Flags::PROFILE_DIR) || "Default"
+      path = File.join(user_dir, profile, "Preferences")
+
+      FileUtils.mkdir_p(File.dirname(path))
+      File.write(path, pref)
     end
   end
 end
