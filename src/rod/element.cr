@@ -5,6 +5,7 @@ require "./error"
 require "../cdp/dom/dom"
 require "./lib/quad"
 require "./lib/input/input"
+require "./lib/js"
 
 module Rod
   # Element represents a DOM element.
@@ -355,6 +356,51 @@ module Rod
     def enabled? : Bool
       result = evaluate("() => !this.disabled")
       result.value.as_bool? || false
+    end
+
+    # Disabled checks if the element is disabled.
+    def disabled? : Bool
+      prop = property("disabled")
+      prop.as_bool? || false
+    end
+
+    # SetFiles of the current file input element.
+    # ameba:disable Naming/AccessorMethodName
+    def set_files(paths : Array(String)) : Nil
+      abs_paths = ::Rod::Lib::Utils.absolute_paths(paths)
+      object_id = @object.object_id
+      raise "Element has no object ID" unless object_id
+      ::Cdp::Dom::SetFileInputFiles.new(files: abs_paths, object_id: object_id, node_id: nil, backend_node_id: nil).call(@page)
+    end
+
+    # Select selects/deselects options in a <select> element.
+    def select(selectors : Array(String), selected : Bool = true, t : String = SelectorType::Text) : Nil
+      focus
+      # TODO: trace and slow motion
+      res = @page.evaluate(@page.eval_helper(Rod::JS::SELECT, selectors, selected, t).by_user)
+      unless res.value.try(&.as_bool?) == true
+        raise NotFoundError.new("Element not found")
+      end
+    end
+
+    # Equal checks if two elements are the same.
+    def equal(elm : Element) : Bool
+      result = evaluate("(elm) => this === elm", elm.object)
+      result.value.as_bool? || false
+    end
+
+    # GetXPath returns the xpath of the element.
+    def get_xpath(optimized : Bool = false) : String
+      res = @page.evaluate(@page.eval_helper(Rod::JS::GET_XPATH, optimized).by_value)
+      res.value.as_s? || ""
+    end
+
+    # WaitStableRAF waits for the element to be stable using requestAnimationFrame.
+    def wait_stable_raf : Nil
+      wait_visible
+      # TODO: Implement proper RAF stability check
+      # For now, delegate to wait_stable
+      wait_stable
     end
 
     # Wait for element to be stable (no layout changes for a period)

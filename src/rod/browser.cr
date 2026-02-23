@@ -260,7 +260,7 @@ module Rod
             )
           \{% end %}
           each_event(nil, cb_map)
-        \\\\}
+        \\\\\\\\}
       \{% end %}
     end
 

@@ -108,6 +108,29 @@ module Rod
       dependencies: [] of Function
     )
 
+    # Select selects/deselects options in a <select> element.
+    SELECT = Function.new(
+      name: "select",
+      definition: "function(e,t,n){let r;switch(n){case\"regex\":r=e.map(e=>{const t=new RegExp(e);return e=>t.test(e.innerText)});break;case\"css-selector\":r=e.map(t=>e=>e.matches(t));break;default:r=e.map(t=>e=>e.innerText.includes(t))}const i=Array.from(this.options);let o=!1;return r.forEach(e=>{e=i.find(e);e&&(e.selected=t,o=!0)}),this.dispatchEvent(new Event(\"input\",{bubbles:!0})),this.dispatchEvent(new Event(\"change\",{bubbles:!0})),o}",
+      dependencies: [] of Function
+    )
+
+    # GetXPath returns the XPath of the element.
+    GET_XPATH = Function.new(
+      name: "getXPath",
+      definition: <<-'JS',
+        function(e){class i{constructor(e,t){this.value=e,this.optimized=t||!1}toString(){return this.value}}function o(t){function n(e,t){return e===t||(e.nodeType===Node.ELEMENT_NODE&&t.nodeType===Node.ELEMENT_NODE?e.localName===t.localName:e.nodeType===t.nodeType||(e.nodeType===Node.CDATA_SECTION_NODE?Node.TEXT_NODE:e.nodeType)===(t.nodeType===Node.CDATA_SECTION_NODE?Node.TEXT_NODE:t.nodeType))}var e=t.parentNode,r=e?e.children:null;if(!r)return 0;let i;for(let e=0;e<r.length;++e)if(n(t,r[e])&&r[e]!==t){i=!0;break}if(!i)return 0;let o=1;for(let e=0;e<r.length;++e)if(n(t,r[e])){if(r[e]===t)return o;++o}return-1}if(this.nodeType===Node.DOCUMENT_NODE)return"/";var t=[];let n=this;for(;n;){var r=function(e,t){let n;var r=o(e);if(-1===r)return null;switch(e.nodeType){case Node.ELEMENT_NODE:if(t&&e.id)return new i(`//*[@id='${e.id}']`,!0);n=e.localName;break;case Node.ATTRIBUTE_NODE:n="@"+e.nodeName;break;case Node.TEXT_NODE:case Node.CDATA_SECTION_NODE:n="text()";break;case Node.PROCESSING_INSTRUCTION_NODE:n="processing-instruction()";break;case Node.COMMENT_NODE:n="comment()";break;default:Node.DOCUMENT_NODE;n=""}return 0<r&&(n+=`[${r}]`),new i(n,e.nodeType===Node.DOCUMENT_NODE)}(n,e);if(!r)break;if(t.push(r),r.optimized)break;n=n.parentNode}return t.reverse(),(t.length&&t[0].optimized?"":"/")+t.join("/")}
+      JS
+      dependencies: [] of Function
+    )
+
+    # ContainsElement checks if target is equal or inside the element.
+    CONTAINS_ELEMENT = Function.new(
+      name: "containsElement",
+      definition: "function(e){for(var t=e;null!=t;){if(t===this)return!0;t=t.parentElement}return!1}",
+      dependencies: [] of Function
+    )
+
     # Additional helper functions can be added here as needed.
     # For now, include only the essential ones for query system.
   end

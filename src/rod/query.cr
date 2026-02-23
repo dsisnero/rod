@@ -1,5 +1,15 @@
 # Query system implementation
 module Rod
+  # SelectorType constants.
+  module SelectorType
+    # SelectorTypeRegex type.
+    Regex      = "regex"
+    # SelectorTypeCSSSector type.
+    CSSSelector = "css-selector"
+    # SelectorTypeText type.
+    Text       = "text"
+  end
+
   # SearchResult represents the result of a DOM text search.
   class SearchResult
     # Search ID from CDP

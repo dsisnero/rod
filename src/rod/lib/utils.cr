@@ -15,6 +15,15 @@ module Rod::Lib::Utils
     String.new(length) { chars.sample }
   end
 
+  # AbsolutePaths returns absolute paths of files in current working directory.
+  def self.absolute_paths(paths : Array(String)) : Array(String)
+    abs_paths = [] of String
+    paths.each do |p|
+      abs_paths << File.expand_path(p)
+    end
+    abs_paths
+  end
+
   # Error helper.
   def self.e(err : Exception?)
     raise err if err
