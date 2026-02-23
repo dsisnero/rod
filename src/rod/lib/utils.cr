@@ -18,8 +18,8 @@ module Rod::Lib::Utils
   # AbsolutePaths returns absolute paths of files in current working directory.
   def self.absolute_paths(paths : Array(String)) : Array(String)
     abs_paths = [] of String
-    paths.each do |p|
-      abs_paths << File.expand_path(p)
+    paths.each do |path|
+      abs_paths << File.expand_path(path)
     end
     abs_paths
   end

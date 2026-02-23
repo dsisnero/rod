@@ -85,7 +85,7 @@ module Cdp::DOM
   ScrollOrientationHorizontal = "horizontal"
   ScrollOrientationVertical   = "vertical"
 
-  struct Node
+  class Node
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
     property node_id : Cdp::NodeType
@@ -155,14 +155,16 @@ module Cdp::DOM
     property? affected_by_starting_styles : Bool?
     @[JSON::Field(emit_null: false)]
     property adopted_style_sheets : Array(Cdp::NodeType)?
-    @[JSON::Field(emit_null: false)]
-    property parent : DOM::Node?
-    @[JSON::Field(emit_null: false)]
-    property invalidated : Channel(Nil)
-    @[JSON::Field(emit_null: false)]
-    property state : NodeState
-    @[JSON::Field(emit_null: false)]
-    property mutex : Mutex
+
+    # Removed fields: parent, invalidated, state, mutex - not part of CDP protocol
+    # @[JSON::Field(emit_null: false)]
+    # property parent : DOM::Node?
+    # @[JSON::Field(emit_null: false)]
+    # property invalidated : Channel(Nil)
+    # @[JSON::Field(emit_null: false)]
+    # property state : NodeState
+    # @[JSON::Field(emit_null: false)]
+    # property mutex : Mutex
 
     # AttributeValue returns the named attribute for the node.
     def attribute_value(name : String) : String

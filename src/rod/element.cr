@@ -218,10 +218,10 @@ module Rod
     #   ____________          ____________
     #  /        ___/    =    /___________/    +     _________
     # /________/                                   /________/
-    def shape : ::Cdp::Dom::GetContentQuadsResult
+    def shape : ::Cdp::DOM::GetContentQuadsResult
       object_id = @object.object_id
       raise "Element has no object ID" unless object_id
-      ::Cdp::Dom::GetContentQuads.new(object_id: object_id).call(@page)
+      ::Cdp::DOM::GetContentQuads.new(object_id: object_id).call(@page)
     end
 
     # Interactable checks if the element is interactable with cursor.
@@ -370,7 +370,7 @@ module Rod
       abs_paths = ::Rod::Lib::Utils.absolute_paths(paths)
       object_id = @object.object_id
       raise "Element has no object ID" unless object_id
-      ::Cdp::Dom::SetFileInputFiles.new(files: abs_paths, object_id: object_id, node_id: nil, backend_node_id: nil).call(@page)
+      ::Cdp::DOM::SetFileInputFiles.new(files: abs_paths, object_id: object_id, node_id: nil, backend_node_id: nil).call(@page)
     end
 
     # Select selects/deselects options in a <select> element.
@@ -504,11 +504,11 @@ module Rod
     # Describe the current element. The depth is the maximum depth at which children should be retrieved, defaults to 1,
     # use -1 for the entire subtree or provide an integer larger than 0.
     # The pierce decides whether or not iframes and shadow roots should be traversed when returning the subtree.
-    def describe(depth : Int32 = 1, pierce : Bool = false) : ::Cdp::Dom::Node
+    def describe(depth : Int32 = 1, pierce : Bool = false) : ::Cdp::DOM::Node
       object_id = @object.object_id
       raise "Element has no object ID" unless object_id
 
-      req = ::Cdp::Dom::DescribeNode.new(
+      req = ::Cdp::DOM::DescribeNode.new(
         node_id: nil,
         backend_node_id: nil,
         object_id: object_id,
@@ -529,7 +529,7 @@ module Rod
       end
 
       backend_node_id = shadow_roots[0].backend_node_id
-      req = ::Cdp::Dom::ResolveNode.new(
+      req = ::Cdp::DOM::ResolveNode.new(
         node_id: nil,
         backend_node_id: backend_node_id,
         object_group: nil,
