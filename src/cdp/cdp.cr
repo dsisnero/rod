@@ -20,6 +20,27 @@ module Cdp
     end
   end
 
+  # ErrCtxNotFound error.
+  ErrCtxNotFound = Error.new(-32000, "Cannot find context with specified id")
+
+  # ErrSessionNotFound error.
+  ErrSessionNotFound = Error.new(-32001, "Session with given id not found.")
+
+  # ErrSearchSessionNotFound error.
+  ErrSearchSessionNotFound = Error.new(-32000, "No search session with given id found")
+
+  # ErrCtxDestroyed error.
+  ErrCtxDestroyed = Error.new(-32000, "Execution context was destroyed.")
+
+  # ErrObjNotFound error.
+  ErrObjNotFound = Error.new(-32000, "Could not find object with given id")
+
+  # ErrNodeNotFoundAtPos error.
+  ErrNodeNotFoundAtPos = Error.new(-32000, "No node found at given location")
+
+  # ErrNotAttachedToActivePage error.
+  ErrNotAttachedToActivePage = Error.new(-32000, "Not attached to an active page")
+
   # Client interface to send the request.
   # So that this lib doesn't handle anything has side effect.
   abstract class Client

@@ -101,6 +101,13 @@ module Rod
       dependencies: [] of Function
     )
 
+    # ExposeFunc exposes a Go function to the page's window object.
+    EXPOSE_FUNC = Function.new(
+      name: "exposeFunc",
+      definition: "function(e,t){let o=0;window[e]=e=>new Promise((n,r)=>{const i=t+\"_cb\"+o++;window[i]=(e,t)=>{delete window[i],t?r(t):n(e)},window[t](JSON.stringify({req:e,cb:i}))})}",
+      dependencies: [] of Function
+    )
+
     # Additional helper functions can be added here as needed.
     # For now, include only the essential ones for query system.
   end

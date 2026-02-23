@@ -1,0 +1,14 @@
+# Ameba configuration for ansi library
+Version: "1.7.0-dev"
+
+Lint/Formatting:
+  Excluded:
+    - spec/**/*.cr
+    - temp/**/*.cr
+
+Lint/NotNil:
+  Excluded:
+    - spec/**/*.cr
+
+Metrics/CyclomaticComplexity:
+  Enabled: false

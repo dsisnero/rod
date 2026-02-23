@@ -19,10 +19,10 @@ module Rod
     property retry_interval : Time::Span
 
     # Wait for element to be visible
-    property visible : Bool
+    property? visible : Bool
 
     # Wait for element to be enabled
-    property enabled : Bool
+    property? enabled : Bool
 
     def initialize(
       @timeout : Time::Span = 5.seconds,
@@ -39,9 +39,9 @@ module Rod
 
     # If enabled the eval result will be a plain JSON value.
     # If disabled the eval result will be a reference of a remote js object.
-    property by_value : Bool
+    property? by_value : Bool
 
-    property await_promise : Bool
+    property? await_promise : Bool
 
     # ThisObj represents the "this" object in the JS
     property this_obj : ::Cdp::Runtime::RemoteObject?
@@ -53,7 +53,7 @@ module Rod
     property js_args : Array(JsArg)
 
     # Whether execution should be treated as initiated by user in the UI.
-    property user_gesture : Bool
+    property? user_gesture : Bool
 
     def initialize(
       @by_value : Bool = true,
@@ -93,6 +93,30 @@ module Rod
     def format_to_js_func : String
       js = @js.strip(" \t\n\v\f\r;")
       "function() { return (#{js}).apply(this, arguments) }"
+    end
+
+    # String representation for debugging.
+    def to_s(io : IO) : Nil
+      fn = @js
+      args = @js_args
+      params_str = ""
+      this_str = ""
+
+      if this_obj = @this_obj
+        this_str = this_obj.description.to_s
+      end
+
+      if !args.empty?
+        if args.first.is_a?(JS::Function)
+          f = args.first.as(JS::Function)
+          fn = "rod." + f.name
+          args = args[1..]
+        end
+
+        params_str = args.to_json.strip("[]\r\n")
+      end
+
+      io << fn << "(" << params_str << ") " << this_str
     end
   end
 
@@ -160,13 +184,13 @@ module Rod
 
     # Check if element matches QueryOptions (visible/enabled requirements)
     private def element_matches_options?(element : Element, opts : QueryOptions) : Bool
-      return true unless opts.visible || opts.enabled
+      return true unless opts.visible? || opts.enabled?
 
-      if opts.visible && !element.visible?
+      if opts.visible? && !element.visible?
         return false
       end
 
-      if opts.enabled && !element.enabled?
+      if opts.enabled? && !element.enabled?
         return false
       end
 
@@ -280,8 +304,45 @@ module Rod
 
     # Evaluate js on the page.
     def evaluate(opts : EvalOptions) : ::Cdp::Runtime::RemoteObject
-      # TODO: Implement retry logic for context not found errors
-      evaluate_internal(opts)
+      # Simple exponential backoff sleeper similar to Go's utils.BackoffSleeper
+      backoff = BackoffSleeper.new(30.milliseconds, 3.seconds)
+
+      loop do
+        begin
+          return evaluate_internal(opts)
+        rescue ex : ::Rod::Lib::Cdp::Error
+          # Check if error is context not found
+          if ctx_not_found_error?(ex)
+            if opts.this_obj
+              raise NotFoundError.new("Object not found: #{opts.this_obj}")
+            end
+
+            # Wait before retry
+            backoff.sleep
+            unset_js_ctx_id
+            next
+          end
+          # Other CDP errors: re-raise
+          raise ex
+        rescue ex
+          # Any other exception (non-CDP) re-raise
+          raise ex
+        end
+      end
+    end
+
+    # Simple exponential backoff sleeper for retry logic
+    private class BackoffSleeper
+      def initialize(@initial : Time::Span, @max : Time::Span)
+        @current = @initial
+      end
+
+      def sleep : Nil
+        sleep_duration = @current
+        # Increase for next time (exponential with jitter)
+        @current = (@current * 2).clamp(@initial, @max)
+        ::sleep(sleep_duration)
+      end
     end
 
     # eval_helper creates EvalOptions for a JS helper function.
@@ -299,6 +360,13 @@ module Rod
     def eval_opts(js : String, *args) : EvalOptions
       js_args = args.map { |arg| ::JSON::Any.new(arg).as(EvalOptions::JsArg) }
       EvalOptions.new(js: js, js_args: js_args, by_value: true)
+    end
+
+    # Expose fn to the page's window object with the name. The exposure survives reloads.
+    # Call stop to unbind the fn.
+    def expose(name : String, fn : Proc(::JSON::Any, ::JSON::Any)) : Proc(Nil)
+      # TODO: Implement expose functionality (requires event system)
+      raise NotImplementedError.new("Page#expose not yet implemented")
     end
 
     # element_by_js returns the element from the return value of the js function.
@@ -412,9 +480,9 @@ module Rod
         function_declaration: opts.format_to_js_func,
         object_id: opts.this_obj.try(&.object_id),
         arguments: args,
-        await_promise: opts.await_promise,
-        return_by_value: opts.by_value,
-        user_gesture: opts.user_gesture,
+        await_promise: opts.await_promise?,
+        return_by_value: opts.by_value?,
+        user_gesture: opts.user_gesture?,
         silent: nil,
         generate_preview: nil,
         execution_context_id: nil,
@@ -474,6 +542,23 @@ module Rod
         @helpers_lock.synchronize { @helpers = nil }
         id
       end
+    end
+
+    # Clear cached JavaScript context ID.
+    private def unset_js_ctx_id : Nil
+      @js_ctx_lock.synchronize do
+        @js_ctx_id = nil
+        @helpers_lock.synchronize { @helpers = nil }
+      end
+    end
+
+    # Check if error is a context not found error.
+    private def ctx_not_found_error?(error : ::Exception) : Bool
+      # Check if it's a Rod::Lib::Cdp::Error with code -32000 and matching message
+      if error.is_a?(::Rod::Lib::Cdp::Error)
+        return error.code == -32000 && error.message.includes?("Cannot find context with specified id")
+      end
+      false
     end
 
     # Ensure JavaScript helper function is loaded and return its remote object ID.
