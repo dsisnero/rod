@@ -4,6 +4,8 @@ require "file_utils"
 require "digest"
 require "process"
 require "json"
+require "./leakless"
+require "./url_parser"
 
 module Rod::Lib::Launcher
   # Platform detection
@@ -65,6 +67,16 @@ module Rod::Lib::Launcher
     def self.normalize(flag : String) : String
       flag.lstrip('-')
     end
+  end
+
+  # Resolve URL by requesting the JSON version endpoint
+  def self.resolve_url(url : String) : String
+    Rod::Lib::URLParser.resolve_url(url)
+  end
+
+  # MustResolveURL variant that raises on error
+  def self.must_resolve_url(url : String) : String
+    resolve_url(url)
   end
 
   # Revision constants from revision.go
@@ -285,14 +297,19 @@ module Rod::Lib::Launcher
     # Get is a smart helper to get the browser executable path.
     # If Browser#bin_path is not valid it will auto download the browser.
     def get : String
-      # TODO: Implement lock port to prevent race downloading
-      validate
-      bin_path
-    rescue
-      # Try to cleanup before downloading
-      FileUtils.rm_rf(dir) if Dir.exists?(dir)
-      download
-      bin_path
+      # Use leakless lock port to prevent race downloading
+      cleanup = Rod::Lib::Leakless.lock_port(@lock_port)
+      begin
+        validate
+        bin_path
+      rescue
+        # Try to cleanup before downloading
+        FileUtils.rm_rf(dir) if Dir.exists?(dir)
+        download
+        bin_path
+      ensure
+        cleanup.call
+      end
     end
 
     # MustGet is similar with Get but raises on error.
@@ -545,13 +562,45 @@ module Rod::Lib::Launcher
       # Format command line arguments
       args = format_args
 
-      # Launch process
+      # Launch process with leakless if enabled
       @logger.info { "Launching browser: #{bin_path} #{args.join(" ")}" }
 
-      # For now, implement simple process launching without leakless
-      # TODO: Implement leakless equivalent
-      process = Process.new(bin_path, args, output: Process::Redirect::Pipe, error: Process::Redirect::Pipe)
-      @pid = process.pid
+      # Try to resolve URL first if not using leakless
+      unless has(Flags::LEAKLESS) && Rod::Lib::Leakless.support?
+        port = get(Flags::REMOTE_DEBUGGING_PORT) || "0"
+        begin
+          return self.class.resolve_url(port)
+        rescue
+          # Browser not running on that port, continue to launch
+        end
+      end
+
+      ll : Rod::Lib::Leakless::Launcher? = nil
+      process : Process
+      parser = Rod::Lib::URLParser.new
+
+      if has(Flags::LEAKLESS) && Rod::Lib::Leakless.support?
+        ll = Rod::Lib::Leakless.new
+        process = ll.command(bin_path, args, error: parser)
+
+        # Wait for PID from leakless channel
+        pid_channel = ll.pid
+        select
+        when pid = pid_channel.receive
+          @pid = pid
+        when timeout 5.seconds
+          raise "Timeout waiting for leakless PID"
+        end
+
+        # Check for leakless error
+        if err = ll.err
+          raise "Leakless error: #{err}"
+        end
+      else
+        # Launch new process with stderr piped to parser
+        process = Process.new(bin_path, args, output: Process::Redirect::Pipe, error: parser)
+        @pid = process.pid
+      end
 
       # Create exit channel
       @exit = Channel(Nil).new
@@ -562,9 +611,17 @@ module Rod::Lib::Launcher
         @exit.try(&.close)
       end
 
-      # Get WebSocket URL (simplified for now)
-      port = get(Flags::REMOTE_DEBUGGING_PORT) || "0"
-      "ws://localhost:#{port}/devtools/browser/"
+      # Get WebSocket URL from parser channel
+      select
+      when ws_url = parser.url.receive
+        ws_url
+      when timeout 10.seconds
+        # Check for error in parser
+        if err = parser.error
+          raise err
+        end
+        raise "Timeout waiting for WebSocket URL from browser"
+      end
     end
 
     # Launch and connect to browser.
