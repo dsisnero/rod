@@ -1,5 +1,6 @@
 require "./page"
 require "./types"
+require "./error"
 
 module Rod
   # Element represents a DOM element.
@@ -201,6 +202,75 @@ module Rod
       {true, el}
     rescue NotFoundError
       {false, nil}
+    end
+
+    # Matches checks if the element can be selected by the css selector.
+    def matches(selector : String) : Bool
+      result = evaluate("(s) => this.matches(s)", selector)
+      result.value.as_bool
+    end
+
+    # ContainsElement check if the target is equal or inside the element.
+    def contains_element(target : Element) : Bool
+      js = <<-JS
+        function(target) {
+          for (var elem = target; elem != null; elem = elem.parentElement) {
+            if (elem === this) return true;
+          }
+          return false;
+        }
+      JS
+      result = evaluate(js, target.object)
+      result.value.as_bool
+    end
+
+    # Describe the current element. The depth is the maximum depth at which children should be retrieved, defaults to 1,
+    # use -1 for the entire subtree or provide an integer larger than 0.
+    # The pierce decides whether or not iframes and shadow roots should be traversed when returning the subtree.
+    def describe(depth : Int32 = 1, pierce : Bool = false) : ::Cdp::Dom::Node
+      object_id = @object.object_id
+      raise "Element has no object ID" unless object_id
+
+      req = ::Cdp::Dom::DescribeNode.new(
+        node_id: nil,
+        backend_node_id: nil,
+        object_id: object_id,
+        depth: depth.to_i64,
+        pierce: pierce
+      )
+      result = req.call(self)
+      result.node
+    end
+
+    # ShadowRoot returns the shadow root of this element.
+    def shadow_root : Element
+      node = describe(1, false)
+
+      shadow_roots = node.shadow_roots
+      if shadow_roots.nil? || shadow_roots.empty?
+        raise NoShadowRootError.new(self)
+      end
+
+      backend_node_id = shadow_roots[0].backend_node_id
+      req = ::Cdp::Dom::ResolveNode.new(
+        node_id: nil,
+        backend_node_id: backend_node_id,
+        object_group: nil,
+        execution_context_id: nil
+      )
+      result = req.call(self)
+      Element.new(result.object, @page)
+    end
+
+    # Frame creates a page instance that represents the iframe.
+    def frame : Page?
+      node = describe(1, false)
+      frame_id = node.frame_id
+      return nil unless frame_id
+
+      # Clone page with new frame ID
+      clone = Page.new(@page.browser, @page.target_id, @page.session_id, frame_id, @page.ctx, @sleeper, self)
+      clone
     end
 
     # Find single child element by CSS selector.

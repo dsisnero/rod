@@ -141,6 +141,12 @@ module Rod
     property keyboard : Keyboard?
     property mouse : Mouse?
     property touch : Touch?
+    property element : Element?
+
+    # IsIframe tells if it's iframe.
+    def iframe? : Bool
+      !@element.nil?
+    end
 
     # Sleeper for retry logic
     @sleeper : Proc(Rod::Utils::Sleeper)
@@ -163,7 +169,7 @@ module Rod
       event.call(self)
     end
 
-    def initialize(@browser, @target_id, @session_id = nil, @frame_id = nil, @ctx = nil, @sleeper = -> { Rod::Utils::Sleeper.new })
+    def initialize(@browser, @target_id, @session_id = nil, @frame_id = nil, @ctx = nil, @sleeper = -> { Rod::Utils::Sleeper.new }, @element = nil)
     end
 
     # Retry a block that may raise NotFoundError until it succeeds or timeout expires.
