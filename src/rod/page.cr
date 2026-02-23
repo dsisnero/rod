@@ -181,13 +181,31 @@ module Rod
 
     # Retry a block that may raise NotFoundError until it succeeds or timeout expires.
     private def retry_finding(timeout : Time::Span, interval : Time::Span, &block : -> T) : T forall T
+      # Check context cancellation before starting
+      if @ctx.cancelled?
+        raise @ctx.err if @ctx.err
+        raise ContextCanceledError.new("context cancelled")
+      end
+
+      # Calculate effective timeout considering context deadline
+      effective_timeout = @ctx.timeout_remaining(timeout)
+      if effective_timeout <= Time::Span::ZERO
+        raise NotFoundError.new("Element not found within #{timeout} (context deadline exceeded)")
+      end
+
       start_time = Time.monotonic
       loop do
+        # Check context cancellation each iteration
+        if @ctx.cancelled?
+          raise @ctx.err if @ctx.err
+          raise ContextCanceledError.new("context cancelled")
+        end
+
         begin
           return block.call
         rescue NotFoundError
           elapsed = Time.monotonic - start_time
-          if elapsed >= timeout
+          if elapsed >= effective_timeout
             raise NotFoundError.new("Element not found within #{timeout}")
           end
           sleep(interval)
@@ -405,6 +423,12 @@ module Rod
       backoff = BackoffSleeper.new(30.milliseconds, 3.seconds)
 
       loop do
+        # Check context cancellation each iteration
+        if @ctx.cancelled?
+          raise @ctx.err if @ctx.err
+          raise ContextCanceledError.new("context cancelled")
+        end
+
         begin
           return evaluate_internal(opts)
         rescue ex : ::Rod::Lib::Cdp::Error

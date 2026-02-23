@@ -234,13 +234,31 @@ module Rod
     # WaitInteractable waits for the element to become interactable.
     # Returns a point inside the element that can be used for interaction.
     def wait_interactable(timeout : Time::Span = 5.seconds) : Point
+      # Check context cancellation before starting
+      if @ctx.cancelled?
+        raise @ctx.err if @ctx.err
+        raise ContextCanceledError.new("context cancelled")
+      end
+
+      # Calculate effective timeout considering context deadline
+      effective_timeout = @ctx.timeout_remaining(timeout)
+      if effective_timeout <= Time::Span::ZERO
+        raise TimeoutError.new("Timeout waiting for interactable (context deadline exceeded)")
+      end
+
       start = Time.monotonic
       loop do
+        # Check context cancellation each iteration
+        if @ctx.cancelled?
+          raise @ctx.err if @ctx.err
+          raise ContextCanceledError.new("context cancelled")
+        end
+
         begin
           return interactable
         rescue e : RodError
           if Rod.is?(e, NotInteractableError)
-            if Time.monotonic - start > timeout
+            if Time.monotonic - start > effective_timeout
               raise e
             end
             sleep(100.milliseconds)
@@ -326,22 +344,27 @@ module Rod
     # Wait for element to be stable (no layout changes for a period)
     def wait_stable(duration : Time::Span = 100.milliseconds) : Nil
       # TODO: Implement proper stability check
+      # Check context cancellation before sleeping
+      if @ctx.cancelled?
+        raise @ctx.err if @ctx.err
+        raise ContextCanceledError.new("context cancelled")
+      end
       sleep(duration)
     end
 
     # Wait for element to be visible
     def wait_visible(timeout : Time::Span = 5.seconds) : Nil
-      wait_for { visible? }
+      wait_for(timeout) { visible? }
     end
 
     # Wait for element to be enabled
     def wait_enabled(timeout : Time::Span = 5.seconds) : Nil
-      wait_for { enabled? }
+      wait_for(timeout) { enabled? }
     end
 
     # Wait for element to be invisible
     def wait_invisible(timeout : Time::Span = 5.seconds) : Nil
-      wait_for { !visible? }
+      wait_for(timeout) { !visible? }
     end
 
     # Release the remote object
@@ -543,16 +566,36 @@ module Rod
     end
 
     # Call CDP method
-    def call(context : Nil, session_id : String?, method : String, params : JSON::Any) : Bytes
+    def call(context : HTTP::Client::Context?, session_id : String?, method : String, params : JSON::Any) : Bytes
       @page.call(context, session_id, method, params)
     end
 
     private def wait_for(timeout : Time::Span = 5.seconds, &block : -> Bool) : Nil
+      # Check context cancellation before starting
+      if @ctx.cancelled?
+        raise @ctx.err if @ctx.err
+        raise ContextCanceledError.new("context cancelled")
+      end
+
+      # Calculate effective timeout considering context deadline
+      effective_timeout = @ctx.timeout_remaining(timeout)
+      if effective_timeout <= Time::Span::ZERO
+        raise TimeoutError.new("Timeout waiting for condition (context deadline exceeded)")
+      end
+
       start_time = Time.monotonic
       until block.call
-        if Time.monotonic - start_time > timeout
+        # Check context cancellation each iteration
+        if @ctx.cancelled?
+          raise @ctx.err if @ctx.err
+          raise ContextCanceledError.new("context cancelled")
+        end
+
+        elapsed = Time.monotonic - start_time
+        if elapsed > effective_timeout
           raise TimeoutError.new("Timeout waiting for condition")
         end
+
         sleep(10.milliseconds)
       end
     end

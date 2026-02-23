@@ -23,8 +23,10 @@ module Rod
     # Background context never cancelled.
     class_getter background : Context { Context.new }
 
-    property deadline : Time::Span?
+    # Absolute deadline when context times out, nil if no deadline.
+    property deadline : Time::Monotonic?
     @cancelled = false
+    @err : Exception? = nil
     @mutex = Mutex.new
     @done = Channel(Nil).new
     @values = {} of Object => Object
@@ -43,6 +45,14 @@ module Rod
       @mutex.synchronize do
         return if @cancelled
         @cancelled = true
+        # Create appropriate error based on reason and deadline
+        if reason
+          @err = ContextCanceledError.new(reason)
+        elsif deadline && deadline <= Time.monotonic
+          @err = ContextTimeoutError.new(deadline - Time.monotonic)
+        else
+          @err = ContextCanceledError.new("context cancelled")
+        end
         @done.close
         @cancel_func.try(&.call)
       end
@@ -56,8 +66,24 @@ module Rod
     # Err returns the cancellation reason if cancelled.
     def err : Exception?
       @mutex.synchronize do
-        @cancelled ? ContextCanceledError.new("context cancelled") : nil
+        @err
       end
+    end
+
+    # DeadlineRemaining returns time remaining until deadline, nil if no deadline.
+    # Returns zero or negative time if deadline has passed.
+    def deadline_remaining : Time::Span?
+      deadline = @deadline
+      return nil unless deadline
+      deadline - Time.monotonic
+    end
+
+    # TimeoutRemaining returns the minimum of given timeout and context deadline remaining.
+    # If context has no deadline, returns timeout.
+    def timeout_remaining(timeout : Time::Span) : Time::Span
+      remaining = deadline_remaining
+      return timeout unless remaining
+      remaining < timeout ? remaining : timeout
     end
 
     # Value returns the value for key.
@@ -81,13 +107,22 @@ module Rod
     # Returns the new context and a cancel function.
     def with_timeout(timeout : Time::Span) : Tuple(Context, ->)
       ctx = Context.new(self)
-      ctx.deadline = timeout
+      ctx.deadline = Time.monotonic + timeout
 
       cancel_fn = -> { ctx.cancel }
       ctx.cancel_func = cancel_fn
 
+      # Store parent context and cancel function in value map for CancelTimeout
+      ctx.set_value(TIMEOUT_KEY, TimeoutContextVal.new(self, cancel_fn))
+
       spawn do
-        sleep timeout
+        deadline = ctx.deadline
+        if deadline
+          sleep_time = deadline - Time.monotonic
+          if sleep_time > Time::Span::ZERO
+            sleep sleep_time
+          end
+        end
         ctx.cancel("context timeout after #{timeout}")
       end
 
@@ -100,6 +135,11 @@ module Rod
       cancel_fn = -> { ctx.cancel }
       ctx.cancel_func = cancel_fn
       {ctx, cancel_fn}
+    end
+
+    # TimeoutValue returns the timeout context value if this context was created by WithTimeout.
+    def timeout_value : TimeoutContextVal?
+      value(TIMEOUT_KEY).as?(TimeoutContextVal)
     end
 
     protected setter cancel_func = (@cancel_func : ->?)
