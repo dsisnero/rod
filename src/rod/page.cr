@@ -134,6 +134,11 @@ module Rod
     @helpers : Hash(String, Hash(String, String))? = nil
     @helpers_lock = Mutex.new
 
+    # DOM domain cache
+    @document_root_cache : ::Cdp::DOM::NodeId? = nil
+    @dom_restore : Proc(Nil)? = nil
+    @dom_lock = Mutex.new
+
     property browser : Browser
     property target_id : TargetID
     property session_id : SessionID?
@@ -226,6 +231,40 @@ module Rod
           end
           sleep(interval)
         end
+      end
+    end
+
+    # Enable DOM domain temporarily for CDP operations.
+    private def with_dom_domain(&block : -> T) : T forall T
+      restore = @browser.enable_domain(@session_id, ::Cdp::DOM::Enable.new(nil))
+      begin
+        block.call
+      ensure
+        restore.call
+      end
+    end
+
+    # Get document root node ID with DOM domain enabled.
+    private def document_root : ::Cdp::DOM::NodeId
+      @dom_lock.synchronize do
+        if cached = @document_root_cache
+          return cached
+        end
+
+        restore = @browser.enable_domain(@session_id, ::Cdp::DOM::Enable.new(nil))
+        result = ::Cdp::DOM::GetDocument.new(nil, nil).call(self)
+        @document_root_cache = result.root
+        @dom_restore = restore
+        result.root
+      end
+    end
+
+    # Clear document root cache (e.g., after page navigation)
+    private def clear_document_root_cache : Nil
+      @dom_lock.synchronize do
+        @document_root_cache = nil
+        @dom_restore.try &.call
+        @dom_restore = nil
       end
     end
 
@@ -337,7 +376,7 @@ module Rod
             )
           \{% end %}
           browser.context(@ctx).each_event(@session_id, cb_map)
-        \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\}
+        \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\}
       \{% end %}
     end
 
@@ -891,15 +930,12 @@ module Rod
     end
 
     private def element_by_css(selector : String, opts : QueryOptions) : Element
-      # Use JavaScript helper function 'element' to find element
-      eval_opts = eval_helper(JS::ELEMENT, selector)
-
       if opts.timeout > 0.seconds
         retry_finding(opts.timeout, opts.retry_interval) do
-          element_by_js(eval_opts)
+          element_by_css_cdp(selector, opts)
         end
       else
-        element_by_js(eval_opts)
+        element_by_css_cdp(selector, opts)
       end
     rescue ex : NotFoundError
       raise ex
@@ -907,9 +943,58 @@ module Rod
       raise NotFoundError.new("Element not found: #{selector}", cause: ex)
     end
 
+    # CDP-based implementation of element_by_css
+    private def element_by_css_cdp(selector : String, opts : QueryOptions) : Element
+      # Try twice in case document root cache is stale
+      2.times do |i|
+        root_id = document_root
+        req = ::Cdp::DOM::QuerySelector.new(root_id, selector)
+        result = req.call(self)
+
+        if result.node_id == 0
+          # If first attempt failed, clear cache and try again
+          if i == 0
+            clear_document_root_cache
+            next
+          else
+            raise NotFoundError.new("Element not found: #{selector}")
+          end
+        end
+
+        element = element_from_node(result.node_id)
+
+        # Check visibility/enabled requirements
+        unless element_matches_options?(element, opts)
+          raise NotFoundError.new("Element found but doesn't match options: #{selector}")
+        end
+
+        return element
+      end
+
+      raise NotFoundError.new("Element not found: #{selector}")
+    end
+
     private def elements_by_css(selector : String, opts : QueryOptions) : Elements
-      eval_opts = eval_helper(JS::ELEMENTS, selector)
-      elements_by_js(eval_opts)
+      elements_by_css_cdp(selector, opts)
+    end
+
+    # CDP-based implementation of elements_by_css
+    private def elements_by_css_cdp(selector : String, opts : QueryOptions) : Elements
+      root_id = document_root
+      req = ::Cdp::DOM::QuerySelectorAll.new(root_id, selector)
+      result = req.call(self)
+
+      elements = [] of Element
+      result.node_ids.each do |node_id|
+        next if node_id == 0
+        element = element_from_node(node_id)
+        # Check visibility/enabled requirements
+        if element_matches_options?(element, opts)
+          elements << element
+        end
+      end
+
+      Elements.new(elements)
     end
 
     private def element_by_xpath(xpath : String, opts : QueryOptions) : Element
