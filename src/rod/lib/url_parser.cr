@@ -7,8 +7,57 @@ module Rod::Lib
     @lock : Mutex
     @ctx : Channel(Nil)? = nil # Simplified context
 
+    def context(ctx : Channel(Nil)) : self
+      @ctx = ctx
+      self
+    end
+
     # Regular expression to match WebSocket URL in browser output
     WS_REGEX = /ws:\/\/.+\//
+
+    private def to_http(uri : URI) : URI
+      new_uri = uri.dup
+      case new_uri.scheme
+      when "ws"
+        new_uri.scheme = "http"
+      when "wss"
+        new_uri.scheme = "https"
+      end
+      new_uri
+    end
+
+    private def to_ws(uri : URI) : URI
+      new_uri = uri.dup
+      case new_uri.scheme
+      when "http"
+        new_uri.scheme = "ws"
+      when "https"
+        new_uri.scheme = "wss"
+      end
+      new_uri
+    end
+
+    private def self.to_http(uri : URI) : URI
+      new_uri = uri.dup
+      case new_uri.scheme
+      when "ws"
+        new_uri.scheme = "http"
+      when "wss"
+        new_uri.scheme = "https"
+      end
+      new_uri
+    end
+
+    private def self.to_ws(uri : URI) : URI
+      new_uri = uri.dup
+      case new_uri.scheme
+      when "http"
+        new_uri.scheme = "ws"
+      when "https"
+        new_uri.scheme = "wss"
+      end
+      new_uri
+    end
 
     def initialize
       super()
@@ -36,17 +85,32 @@ module Rod::Lib
         @buffer += String.new(slice)
 
         if match = @buffer.match(WS_REGEX)
-          ws_url = match[0].strip
-
-          # Send URL to channel
+          str = match[0].strip
           begin
-            @url.send(ws_url)
-          rescue Channel::ClosedError
-            # Channel closed, ignore
-          end
+            uri = URI.parse(str)
+            host = uri.host
+            host = "#{host}:#{uri.port}" if uri.port
+            http_url = "http://#{host}"
 
-          @done = true
-          @buffer = ""
+            # Context cancellation
+            send_url = true
+            if ctx = @ctx
+              send_url = false if ctx.closed?
+            end
+
+            if send_url
+              begin
+                @url.send(http_url)
+              rescue Channel::ClosedError
+                # Channel closed, ignore
+              end
+            end
+
+            @done = true
+            @buffer = ""
+          rescue ex
+            # If URL parsing fails, ignore and keep buffer
+          end
         end
       end
     end
@@ -88,7 +152,7 @@ module Rod::Lib
       uri = URI.parse(url)
 
       # Ensure HTTP scheme
-      uri.scheme = "http" if uri.scheme.in?("ws", "wss")
+      uri = to_http(uri)
 
       # Path to JSON version endpoint
       uri.path = "/json/version"

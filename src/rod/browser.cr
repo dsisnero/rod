@@ -110,6 +110,7 @@ module Rod
     end
 
     private def init_events
+      # ameba:disable Lint/NotNil
       client = @client.not_nil!
       src = client.event
       done = @ctx.done
@@ -260,7 +261,7 @@ module Rod
             )
           \{% end %}
           each_event(nil, cb_map)
-        \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\}
+        \\}
       \{% end %}
     end
 
@@ -273,7 +274,7 @@ module Rod
     def wait_event(e : Cdp::Event, session_id : SessionID? = nil) : Proc(Nil)
       event_class = e.class
       # Create a callback that stops on first matching event and copies data
-      cb = ->(event : Cdp::Event, sid : SessionID?) do
+      cb = ->(event : Cdp::Event, _sid : SessionID?) do
         # TODO: Copy data from event to e (requires mutable reference)
         true
       end
@@ -327,7 +328,6 @@ module Rod
     # Returns true if the method matches and data was loaded.
     def load(event : Cdp::Event) : Bool
       return false unless method == event.proto_event
-      json_data = data || JSON::Any.new({} of String => JSON::Any)
       # Since event is a struct, we cannot modify it directly.
       # Instead, create a new instance and copy fields? Not needed for now.
       # This method is kept for compatibility with Go API.
