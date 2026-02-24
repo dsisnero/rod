@@ -5,20 +5,48 @@ module Rod::Lib::Leakless
   class_property? support : Bool = true
   class_property lock_port : Int32 = 2968
 
+  # Track all leakless processes for cleanup
+  class_property tracked_processes = [] of Int32
+  @@cleanup_registered = false
+
+  # Register at_exit handler for cleanup
+  private def self.register_cleanup
+    return if @@cleanup_registered
+    at_exit do
+      tracked_processes.each do |pid|
+        begin
+          {% if flag?(:unix) %}
+            Process.kill("KILL", -pid) rescue nil
+          {% else %}
+            Process.kill("KILL", pid) rescue nil
+          {% end %}
+        rescue
+          # Ignore errors during exit
+        end
+      end
+    end
+    @@cleanup_registered = true
+  end
+
   # Launcher for leakless process management
   class Launcher
     @pid_channel : Channel(Int32)?
     @error : String?
     @process : Process?
+    @pid : Int32?
 
     def initialize
       @pid_channel = Channel(Int32).new(1)
       @error = nil
       @process = nil
+      @pid = nil
     end
 
     # Create a command that will be managed by leakless
     def command(bin : String, args : Array(String) = [] of String, error : IO = Process::Redirect::Pipe) : Process
+      # Register cleanup handler if not already done
+      self.class.register_cleanup
+
       # Create process with pipes for stderr/stdout
       process = Process.new(bin, args, output: Process::Redirect::Pipe, error: error)
       @process = process
@@ -29,6 +57,9 @@ module Rod::Lib::Leakless
           # Wait for process to start and get PID
           sleep 0.1 # small delay to ensure process started
           pid = process.pid
+          @pid = pid
+          # Track PID for cleanup
+          self.class.tracked_processes << pid
           @pid_channel.try &.send(pid)
         rescue ex
           @error = ex.message
@@ -51,6 +82,9 @@ module Rod::Lib::Leakless
 
     # Cleanup resources
     def cleanup : Nil
+      if pid = @pid
+        self.class.tracked_processes.delete(pid)
+      end
       @process.try &.terminate rescue nil
       @pid_channel.try &.close
     end

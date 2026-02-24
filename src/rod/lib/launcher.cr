@@ -4,6 +4,7 @@ require "file_utils"
 require "digest"
 require "process"
 require "json"
+require "lib_c"
 require "./leakless"
 require "./url_parser"
 
@@ -645,8 +646,15 @@ module Rod::Lib::Launcher
       sleep 1.second
 
       # Try to kill process group
-      Process.kill("TERM", @pid) rescue nil
-      Process.kill("KILL", @pid) rescue nil
+      {% if flag?(:unix) %}
+        # On Unix, negative PID kills process group
+        Process.kill("TERM", -@pid) rescue nil
+        Process.kill("KILL", -@pid) rescue nil
+      {% else %}
+        # On Windows, positive PID kills process
+        Process.kill("TERM", @pid) rescue nil
+        Process.kill("KILL", @pid) rescue nil
+      {% end %}
     end
 
     # Cleanup wait until the Browser exits and remove user data dir.
