@@ -9,11 +9,11 @@ module Cdp::Media
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property player_id : Cdp::NodeType
+    property player_id : PlayerId
     @[JSON::Field(emit_null: false)]
-    property properties : Array(Cdp::NodeType)
+    property properties : Array(PlayerProperty)
 
-    def initialize(@player_id : Cdp::NodeType, @properties : Array(Cdp::NodeType))
+    def initialize(@player_id : PlayerId, @properties : Array(PlayerProperty))
     end
 
     # ProtoEvent returns the protocol event name.
@@ -31,11 +31,11 @@ module Cdp::Media
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property player_id : Cdp::NodeType
+    property player_id : PlayerId
     @[JSON::Field(emit_null: false)]
-    property events : Array(Cdp::NodeType)
+    property events : Array(PlayerEvent)
 
-    def initialize(@player_id : Cdp::NodeType, @events : Array(Cdp::NodeType))
+    def initialize(@player_id : PlayerId, @events : Array(PlayerEvent))
     end
 
     # ProtoEvent returns the protocol event name.
@@ -53,11 +53,11 @@ module Cdp::Media
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property player_id : Cdp::NodeType
+    property player_id : PlayerId
     @[JSON::Field(emit_null: false)]
-    property messages : Array(Cdp::NodeType)
+    property messages : Array(PlayerMessage)
 
-    def initialize(@player_id : Cdp::NodeType, @messages : Array(Cdp::NodeType))
+    def initialize(@player_id : PlayerId, @messages : Array(PlayerMessage))
     end
 
     # ProtoEvent returns the protocol event name.
@@ -75,11 +75,11 @@ module Cdp::Media
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property player_id : Cdp::NodeType
+    property player_id : PlayerId
     @[JSON::Field(emit_null: false)]
-    property errors : Array(Cdp::NodeType)
+    property errors : Array(PlayerError)
 
-    def initialize(@player_id : Cdp::NodeType, @errors : Array(Cdp::NodeType))
+    def initialize(@player_id : PlayerId, @errors : Array(PlayerError))
     end
 
     # ProtoEvent returns the protocol event name.
@@ -97,9 +97,9 @@ module Cdp::Media
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property player : Cdp::NodeType
+    property player : Player
 
-    def initialize(@player : Cdp::NodeType)
+    def initialize(@player : Player)
     end
 
     # ProtoEvent returns the protocol event name.

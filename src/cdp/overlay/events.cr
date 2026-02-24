@@ -3,15 +3,17 @@ require "json"
 require "time"
 
 require "../dom/dom"
+require "../page/page"
+require "../runtime/runtime"
 
 module Cdp::Overlay
   struct InspectNodeRequestedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property backend_node_id : Cdp::NodeType
+    property backend_node_id : Cdp::DOM::BackendNodeId
 
-    def initialize(@backend_node_id : Cdp::NodeType)
+    def initialize(@backend_node_id : Cdp::DOM::BackendNodeId)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -29,9 +31,9 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType
+    property node_id : Cdp::DOM::NodeId
 
-    def initialize(@node_id : Cdp::NodeType)
+    def initialize(@node_id : Cdp::DOM::NodeId)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -49,9 +51,9 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property viewport : Cdp::NodeType
+    property viewport : Cdp::Page::Viewport
 
-    def initialize(@viewport : Cdp::NodeType)
+    def initialize(@viewport : Cdp::Page::Viewport)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -69,9 +71,9 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property backend_node_id : Cdp::NodeType
+    property backend_node_id : Cdp::DOM::BackendNodeId
 
-    def initialize(@backend_node_id : Cdp::NodeType)
+    def initialize(@backend_node_id : Cdp::DOM::BackendNodeId)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -89,9 +91,9 @@ module Cdp::Overlay
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property backend_node_id : Cdp::NodeType
+    property backend_node_id : Cdp::DOM::BackendNodeId
 
-    def initialize(@backend_node_id : Cdp::NodeType)
+    def initialize(@backend_node_id : Cdp::DOM::BackendNodeId)
     end
 
     # ProtoEvent returns the protocol event name.

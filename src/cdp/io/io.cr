@@ -2,7 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
+require "../runtime/runtime"
 
 require "./types"
 
@@ -35,9 +35,9 @@ module Cdp::IO
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property handle : Cdp::NodeType
+    property handle : StreamHandle
 
-    def initialize(@handle : Cdp::NodeType)
+    def initialize(@handle : StreamHandle)
     end
 
     # ProtoReq returns the protocol method name.
@@ -55,13 +55,13 @@ module Cdp::IO
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property handle : Cdp::NodeType
+    property handle : StreamHandle
     @[JSON::Field(emit_null: false)]
     property offset : Int64?
     @[JSON::Field(emit_null: false)]
     property size : Int64?
 
-    def initialize(@handle : Cdp::NodeType, @offset : Int64?, @size : Int64?)
+    def initialize(@handle : StreamHandle, @offset : Int64?, @size : Int64?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -81,9 +81,9 @@ module Cdp::IO
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property object_id : Cdp::NodeType
+    property object_id : Cdp::Runtime::RemoteObjectId
 
-    def initialize(@object_id : Cdp::NodeType)
+    def initialize(@object_id : Cdp::Runtime::RemoteObjectId)
     end
 
     # ProtoReq returns the protocol method name.

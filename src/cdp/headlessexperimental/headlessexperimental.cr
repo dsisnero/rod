@@ -2,8 +2,6 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
-
 require "./types"
 
 # This domain provides experimental commands only supported in headless mode.
@@ -31,9 +29,9 @@ module Cdp::HeadlessExperimental
     @[JSON::Field(emit_null: false)]
     property? no_display_updates : Bool?
     @[JSON::Field(emit_null: false)]
-    property screenshot : Cdp::NodeType?
+    property screenshot : ScreenshotParams?
 
-    def initialize(@frame_time_ticks : Float64?, @interval : Float64?, @no_display_updates : Bool?, @screenshot : Cdp::NodeType?)
+    def initialize(@frame_time_ticks : Float64?, @interval : Float64?, @no_display_updates : Bool?, @screenshot : ScreenshotParams?)
     end
 
     # ProtoReq returns the protocol method name.

@@ -2,16 +2,17 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
+require "../runtime/runtime"
+require "../network/network"
 
 module Cdp::Log
   struct EntryAddedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property entry : Cdp::NodeType
+    property entry : LogEntry
 
-    def initialize(@entry : Cdp::NodeType)
+    def initialize(@entry : LogEntry)
     end
 
     # ProtoEvent returns the protocol event name.

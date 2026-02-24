@@ -2,6 +2,9 @@ require "../cdp"
 require "json"
 require "time"
 
+require "../network/network"
+require "../page/page"
+require "../runtime/runtime"
 require "../dom/dom"
 
 module Cdp::Audits
@@ -9,9 +12,9 @@ module Cdp::Audits
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property issue : Cdp::NodeType
+    property issue : InspectorIssue
 
-    def initialize(@issue : Cdp::NodeType)
+    def initialize(@issue : InspectorIssue)
     end
 
     # ProtoEvent returns the protocol event name.

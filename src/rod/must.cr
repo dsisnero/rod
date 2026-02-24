@@ -13,7 +13,7 @@ module Rod
     end
   end
 
-  class Browser
+  class Browser < ::Cdp::Client
     # MustConnect is similar to connect.
     def must_connect : Browser
       must_wrap connect

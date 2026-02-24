@@ -2,17 +2,15 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
-
 module Cdp::Input
   @[Experimental]
   struct DragInterceptedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property data : Cdp::NodeType
+    property data : DragData
 
-    def initialize(@data : Cdp::NodeType)
+    def initialize(@data : DragData)
     end
 
     # ProtoEvent returns the protocol event name.

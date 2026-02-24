@@ -2,7 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
+require "../network/network"
 
 module Cdp::Security
   @[Experimental]
@@ -10,9 +10,9 @@ module Cdp::Security
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property visible_security_state : Cdp::NodeType
+    property visible_security_state : VisibleSecurityState
 
-    def initialize(@visible_security_state : Cdp::NodeType)
+    def initialize(@visible_security_state : VisibleSecurityState)
     end
 
     # ProtoEvent returns the protocol event name.

@@ -2,6 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
+require "../runtime/runtime"
 require "../dom/dom"
 
 require "./types"
@@ -12,9 +13,9 @@ module Cdp::DOMDebugger
   struct GetEventListenersResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property listeners : Array(Cdp::NodeType)
+    property listeners : Array(EventListener)
 
-    def initialize(@listeners : Array(Cdp::NodeType))
+    def initialize(@listeners : Array(EventListener))
     end
   end
 
@@ -23,13 +24,13 @@ module Cdp::DOMDebugger
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property object_id : Cdp::NodeType
+    property object_id : Cdp::Runtime::RemoteObjectId
     @[JSON::Field(emit_null: false)]
     property depth : Int64?
     @[JSON::Field(emit_null: false)]
     property? pierce : Bool?
 
-    def initialize(@object_id : Cdp::NodeType, @depth : Int64?, @pierce : Bool?)
+    def initialize(@object_id : Cdp::Runtime::RemoteObjectId, @depth : Int64?, @pierce : Bool?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -49,11 +50,11 @@ module Cdp::DOMDebugger
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType
+    property node_id : Cdp::DOM::NodeId
     @[JSON::Field(emit_null: false)]
-    property type : Cdp::NodeType
+    property type : DOMBreakpointType
 
-    def initialize(@node_id : Cdp::NodeType, @type : Cdp::NodeType)
+    def initialize(@node_id : Cdp::DOM::NodeId, @type : DOMBreakpointType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -114,9 +115,9 @@ module Cdp::DOMDebugger
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property violation_types : Array(Cdp::NodeType)
+    property violation_types : Array(CSPViolationType)
 
-    def initialize(@violation_types : Array(Cdp::NodeType))
+    def initialize(@violation_types : Array(CSPViolationType))
     end
 
     # ProtoReq returns the protocol method name.
@@ -134,11 +135,11 @@ module Cdp::DOMDebugger
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType
+    property node_id : Cdp::DOM::NodeId
     @[JSON::Field(emit_null: false)]
-    property type : Cdp::NodeType
+    property type : DOMBreakpointType
 
-    def initialize(@node_id : Cdp::NodeType, @type : Cdp::NodeType)
+    def initialize(@node_id : Cdp::DOM::NodeId, @type : DOMBreakpointType)
     end
 
     # ProtoReq returns the protocol method name.

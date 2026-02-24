@@ -2,7 +2,9 @@ require "../cdp"
 require "json"
 require "time"
 
+require "../network/network"
 require "../dom/dom"
+require "../page/page"
 
 require "./types"
 require "./events"

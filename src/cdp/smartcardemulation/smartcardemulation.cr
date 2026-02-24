@@ -2,8 +2,6 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
-
 require "./types"
 require "./events"
 
@@ -117,9 +115,9 @@ module Cdp::SmartCardEmulation
     @[JSON::Field(emit_null: false)]
     property request_id : String
     @[JSON::Field(emit_null: false)]
-    property reader_states : Array(Cdp::NodeType)
+    property reader_states : Array(ReaderStateOut)
 
-    def initialize(@request_id : String, @reader_states : Array(Cdp::NodeType))
+    def initialize(@request_id : String, @reader_states : Array(ReaderStateOut))
     end
 
     # ProtoReq returns the protocol method name.
@@ -183,9 +181,9 @@ module Cdp::SmartCardEmulation
     @[JSON::Field(emit_null: false)]
     property handle : Int64
     @[JSON::Field(emit_null: false)]
-    property active_protocol : Cdp::NodeType?
+    property active_protocol : Protocol?
 
-    def initialize(@request_id : String, @handle : Int64, @active_protocol : Cdp::NodeType?)
+    def initialize(@request_id : String, @handle : Int64, @active_protocol : Protocol?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -229,13 +227,13 @@ module Cdp::SmartCardEmulation
     @[JSON::Field(emit_null: false)]
     property reader_name : String
     @[JSON::Field(emit_null: false)]
-    property state : Cdp::NodeType
+    property state : ConnectionState
     @[JSON::Field(emit_null: false)]
     property atr : String
     @[JSON::Field(emit_null: false)]
-    property protocol : Cdp::NodeType?
+    property protocol : Protocol?
 
-    def initialize(@request_id : String, @reader_name : String, @state : Cdp::NodeType, @atr : String, @protocol : Cdp::NodeType?)
+    def initialize(@request_id : String, @reader_name : String, @state : ConnectionState, @atr : String, @protocol : Protocol?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -255,9 +253,9 @@ module Cdp::SmartCardEmulation
     @[JSON::Field(emit_null: false)]
     property request_id : String
     @[JSON::Field(emit_null: false)]
-    property result_code : Cdp::NodeType
+    property result_code : ResultCode
 
-    def initialize(@request_id : String, @result_code : Cdp::NodeType)
+    def initialize(@request_id : String, @result_code : ResultCode)
     end
 
     # ProtoReq returns the protocol method name.

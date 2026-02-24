@@ -2,8 +2,6 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
-
 module Cdp::SmartCardEmulation
   struct EstablishContextRequestedEvent
     include JSON::Serializable
@@ -77,11 +75,11 @@ module Cdp::SmartCardEmulation
     @[JSON::Field(emit_null: false)]
     property context_id : Int64
     @[JSON::Field(emit_null: false)]
-    property reader_states : Array(Cdp::NodeType)
+    property reader_states : Array(ReaderStateIn)
     @[JSON::Field(emit_null: false)]
     property timeout : Int64?
 
-    def initialize(@request_id : String, @context_id : Int64, @reader_states : Array(Cdp::NodeType), @timeout : Int64?)
+    def initialize(@request_id : String, @context_id : Int64, @reader_states : Array(ReaderStateIn), @timeout : Int64?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -127,11 +125,11 @@ module Cdp::SmartCardEmulation
     @[JSON::Field(emit_null: false)]
     property reader : String
     @[JSON::Field(emit_null: false)]
-    property share_mode : Cdp::NodeType
+    property share_mode : ShareMode
     @[JSON::Field(emit_null: false)]
-    property preferred_protocols : Cdp::NodeType
+    property preferred_protocols : ProtocolSet
 
-    def initialize(@request_id : String, @context_id : Int64, @reader : String, @share_mode : Cdp::NodeType, @preferred_protocols : Cdp::NodeType)
+    def initialize(@request_id : String, @context_id : Int64, @reader : String, @share_mode : ShareMode, @preferred_protocols : ProtocolSet)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -153,9 +151,9 @@ module Cdp::SmartCardEmulation
     @[JSON::Field(emit_null: false)]
     property handle : Int64
     @[JSON::Field(emit_null: false)]
-    property disposition : Cdp::NodeType
+    property disposition : Disposition
 
-    def initialize(@request_id : String, @handle : Int64, @disposition : Cdp::NodeType)
+    def initialize(@request_id : String, @handle : Int64, @disposition : Disposition)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -179,9 +177,9 @@ module Cdp::SmartCardEmulation
     @[JSON::Field(emit_null: false)]
     property data : String
     @[JSON::Field(emit_null: false)]
-    property protocol : Cdp::NodeType?
+    property protocol : Protocol?
 
-    def initialize(@request_id : String, @handle : Int64, @data : String, @protocol : Cdp::NodeType?)
+    def initialize(@request_id : String, @handle : Int64, @data : String, @protocol : Protocol?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -323,9 +321,9 @@ module Cdp::SmartCardEmulation
     @[JSON::Field(emit_null: false)]
     property handle : Int64
     @[JSON::Field(emit_null: false)]
-    property disposition : Cdp::NodeType
+    property disposition : Disposition
 
-    def initialize(@request_id : String, @handle : Int64, @disposition : Cdp::NodeType)
+    def initialize(@request_id : String, @handle : Int64, @disposition : Disposition)
     end
 
     # ProtoEvent returns the protocol event name.

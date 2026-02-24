@@ -12,21 +12,21 @@ module Cdp::LayerTree
   struct ScrollRect
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property rect : Cdp::NodeType
+    property rect : Cdp::DOM::Rect
     @[JSON::Field(emit_null: false)]
-    property type : Cdp::NodeType
+    property type : ScrollRectType
   end
 
   struct StickyPositionConstraint
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property sticky_box_rect : Cdp::NodeType
+    property sticky_box_rect : Cdp::DOM::Rect
     @[JSON::Field(emit_null: false)]
-    property containing_block_rect : Cdp::NodeType
+    property containing_block_rect : Cdp::DOM::Rect
     @[JSON::Field(emit_null: false)]
-    property nearest_layer_shifting_sticky_box : Cdp::NodeType?
+    property nearest_layer_shifting_sticky_box : LayerId?
     @[JSON::Field(emit_null: false)]
-    property nearest_layer_shifting_containing_block : Cdp::NodeType?
+    property nearest_layer_shifting_containing_block : LayerId?
   end
 
   struct PictureTile
@@ -42,11 +42,11 @@ module Cdp::LayerTree
   struct Layer
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property layer_id : Cdp::NodeType
+    property layer_id : LayerId
     @[JSON::Field(emit_null: false)]
-    property parent_layer_id : Cdp::NodeType?
+    property parent_layer_id : LayerId?
     @[JSON::Field(emit_null: false)]
-    property backend_node_id : Cdp::NodeType?
+    property backend_node_id : Cdp::DOM::BackendNodeId?
     @[JSON::Field(emit_null: false)]
     property offset_x : Float64
     @[JSON::Field(emit_null: false)]
@@ -70,9 +70,9 @@ module Cdp::LayerTree
     @[JSON::Field(emit_null: false)]
     property? invisible : Bool?
     @[JSON::Field(emit_null: false)]
-    property scroll_rects : Array(Cdp::NodeType)?
+    property scroll_rects : Array(ScrollRect)?
     @[JSON::Field(emit_null: false)]
-    property sticky_position_constraint : Cdp::NodeType?
+    property sticky_position_constraint : StickyPositionConstraint?
   end
 
   # TODO: Implement type array for LayerTree.PaintProfile

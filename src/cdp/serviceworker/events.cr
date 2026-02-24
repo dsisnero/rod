@@ -2,16 +2,16 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
+require "../target/target"
 
 module Cdp::ServiceWorker
   struct WorkerErrorReportedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property error_message : Cdp::NodeType
+    property error_message : ServiceWorkerErrorMessage
 
-    def initialize(@error_message : Cdp::NodeType)
+    def initialize(@error_message : ServiceWorkerErrorMessage)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -29,9 +29,9 @@ module Cdp::ServiceWorker
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property registrations : Array(Cdp::NodeType)
+    property registrations : Array(ServiceWorkerRegistration)
 
-    def initialize(@registrations : Array(Cdp::NodeType))
+    def initialize(@registrations : Array(ServiceWorkerRegistration))
     end
 
     # ProtoEvent returns the protocol event name.
@@ -49,9 +49,9 @@ module Cdp::ServiceWorker
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property versions : Array(Cdp::NodeType)
+    property versions : Array(ServiceWorkerVersion)
 
-    def initialize(@versions : Array(Cdp::NodeType))
+    def initialize(@versions : Array(ServiceWorkerVersion))
     end
 
     # ProtoEvent returns the protocol event name.

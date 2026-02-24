@@ -2,8 +2,6 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
-
 require "./types"
 require "./events"
 
@@ -51,11 +49,11 @@ module Cdp::DeviceAccess
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property id : Cdp::NodeType
+    property id : RequestId
     @[JSON::Field(emit_null: false)]
-    property device_id : Cdp::NodeType
+    property device_id : DeviceId
 
-    def initialize(@id : Cdp::NodeType, @device_id : Cdp::NodeType)
+    def initialize(@id : RequestId, @device_id : DeviceId)
     end
 
     # ProtoReq returns the protocol method name.
@@ -73,9 +71,9 @@ module Cdp::DeviceAccess
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property id : Cdp::NodeType
+    property id : RequestId
 
-    def initialize(@id : Cdp::NodeType)
+    def initialize(@id : RequestId)
     end
 
     # ProtoReq returns the protocol method name.

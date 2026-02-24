@@ -2,18 +2,16 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
-
 module Cdp::DeviceAccess
   struct DeviceRequestPromptedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property id : Cdp::NodeType
+    property id : RequestId
     @[JSON::Field(emit_null: false)]
-    property devices : Array(Cdp::NodeType)
+    property devices : Array(PromptDevice)
 
-    def initialize(@id : Cdp::NodeType, @devices : Array(Cdp::NodeType))
+    def initialize(@id : RequestId, @devices : Array(PromptDevice))
     end
 
     # ProtoEvent returns the protocol event name.

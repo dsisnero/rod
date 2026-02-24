@@ -2,8 +2,6 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
-
 require "./types"
 require "./events"
 
@@ -14,27 +12,27 @@ module Cdp::WebAuthn
   struct AddVirtualAuthenticatorResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property authenticator_id : Cdp::NodeType
+    property authenticator_id : AuthenticatorId
 
-    def initialize(@authenticator_id : Cdp::NodeType)
+    def initialize(@authenticator_id : AuthenticatorId)
     end
   end
 
   struct GetCredentialResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property credential : Cdp::NodeType
+    property credential : Credential
 
-    def initialize(@credential : Cdp::NodeType)
+    def initialize(@credential : Credential)
     end
   end
 
   struct GetCredentialsResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property credentials : Array(Cdp::NodeType)
+    property credentials : Array(Credential)
 
-    def initialize(@credentials : Array(Cdp::NodeType))
+    def initialize(@credentials : Array(Credential))
     end
   end
 
@@ -81,9 +79,9 @@ module Cdp::WebAuthn
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property options : Cdp::NodeType
+    property options : VirtualAuthenticatorOptions
 
-    def initialize(@options : Cdp::NodeType)
+    def initialize(@options : VirtualAuthenticatorOptions)
     end
 
     # ProtoReq returns the protocol method name.
@@ -103,7 +101,7 @@ module Cdp::WebAuthn
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property authenticator_id : Cdp::NodeType
+    property authenticator_id : AuthenticatorId
     @[JSON::Field(emit_null: false)]
     property? is_bogus_signature : Bool?
     @[JSON::Field(emit_null: false)]
@@ -111,7 +109,7 @@ module Cdp::WebAuthn
     @[JSON::Field(emit_null: false)]
     property? is_bad_up : Bool?
 
-    def initialize(@authenticator_id : Cdp::NodeType, @is_bogus_signature : Bool?, @is_bad_uv : Bool?, @is_bad_up : Bool?)
+    def initialize(@authenticator_id : AuthenticatorId, @is_bogus_signature : Bool?, @is_bad_uv : Bool?, @is_bad_up : Bool?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -129,9 +127,9 @@ module Cdp::WebAuthn
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property authenticator_id : Cdp::NodeType
+    property authenticator_id : AuthenticatorId
 
-    def initialize(@authenticator_id : Cdp::NodeType)
+    def initialize(@authenticator_id : AuthenticatorId)
     end
 
     # ProtoReq returns the protocol method name.
@@ -149,11 +147,11 @@ module Cdp::WebAuthn
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property authenticator_id : Cdp::NodeType
+    property authenticator_id : AuthenticatorId
     @[JSON::Field(emit_null: false)]
-    property credential : Cdp::NodeType
+    property credential : Credential
 
-    def initialize(@authenticator_id : Cdp::NodeType, @credential : Cdp::NodeType)
+    def initialize(@authenticator_id : AuthenticatorId, @credential : Credential)
     end
 
     # ProtoReq returns the protocol method name.
@@ -171,11 +169,11 @@ module Cdp::WebAuthn
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property authenticator_id : Cdp::NodeType
+    property authenticator_id : AuthenticatorId
     @[JSON::Field(emit_null: false)]
     property credential_id : String
 
-    def initialize(@authenticator_id : Cdp::NodeType, @credential_id : String)
+    def initialize(@authenticator_id : AuthenticatorId, @credential_id : String)
     end
 
     # ProtoReq returns the protocol method name.
@@ -195,9 +193,9 @@ module Cdp::WebAuthn
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property authenticator_id : Cdp::NodeType
+    property authenticator_id : AuthenticatorId
 
-    def initialize(@authenticator_id : Cdp::NodeType)
+    def initialize(@authenticator_id : AuthenticatorId)
     end
 
     # ProtoReq returns the protocol method name.
@@ -217,11 +215,11 @@ module Cdp::WebAuthn
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property authenticator_id : Cdp::NodeType
+    property authenticator_id : AuthenticatorId
     @[JSON::Field(emit_null: false)]
     property credential_id : String
 
-    def initialize(@authenticator_id : Cdp::NodeType, @credential_id : String)
+    def initialize(@authenticator_id : AuthenticatorId, @credential_id : String)
     end
 
     # ProtoReq returns the protocol method name.
@@ -239,9 +237,9 @@ module Cdp::WebAuthn
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property authenticator_id : Cdp::NodeType
+    property authenticator_id : AuthenticatorId
 
-    def initialize(@authenticator_id : Cdp::NodeType)
+    def initialize(@authenticator_id : AuthenticatorId)
     end
 
     # ProtoReq returns the protocol method name.
@@ -259,11 +257,11 @@ module Cdp::WebAuthn
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property authenticator_id : Cdp::NodeType
+    property authenticator_id : AuthenticatorId
     @[JSON::Field(emit_null: false)]
     property? is_user_verified : Bool
 
-    def initialize(@authenticator_id : Cdp::NodeType, @is_user_verified : Bool)
+    def initialize(@authenticator_id : AuthenticatorId, @is_user_verified : Bool)
     end
 
     # ProtoReq returns the protocol method name.
@@ -281,11 +279,11 @@ module Cdp::WebAuthn
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property authenticator_id : Cdp::NodeType
+    property authenticator_id : AuthenticatorId
     @[JSON::Field(emit_null: false)]
     property? enabled : Bool
 
-    def initialize(@authenticator_id : Cdp::NodeType, @enabled : Bool)
+    def initialize(@authenticator_id : AuthenticatorId, @enabled : Bool)
     end
 
     # ProtoReq returns the protocol method name.
@@ -303,7 +301,7 @@ module Cdp::WebAuthn
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property authenticator_id : Cdp::NodeType
+    property authenticator_id : AuthenticatorId
     @[JSON::Field(emit_null: false)]
     property credential_id : String
     @[JSON::Field(emit_null: false)]
@@ -311,7 +309,7 @@ module Cdp::WebAuthn
     @[JSON::Field(emit_null: false)]
     property? backup_state : Bool?
 
-    def initialize(@authenticator_id : Cdp::NodeType, @credential_id : String, @backup_eligibility : Bool?, @backup_state : Bool?)
+    def initialize(@authenticator_id : AuthenticatorId, @credential_id : String, @backup_eligibility : Bool?, @backup_state : Bool?)
     end
 
     # ProtoReq returns the protocol method name.

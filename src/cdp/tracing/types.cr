@@ -2,7 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
+require "../io/io"
 
 module Cdp::Tracing
   @[Experimental]
@@ -13,7 +13,7 @@ module Cdp::Tracing
   struct TraceConfig
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property record_mode : Cdp::NodeType?
+    property record_mode : RecordMode?
     @[JSON::Field(emit_null: false)]
     property trace_buffer_size_in_kb : Float64?
     @[JSON::Field(emit_null: false)]
@@ -29,7 +29,7 @@ module Cdp::Tracing
     @[JSON::Field(emit_null: false)]
     property synthetic_delays : Array(String)?
     @[JSON::Field(emit_null: false)]
-    property memory_dump_config : Cdp::NodeType?
+    property memory_dump_config : MemoryDumpConfig?
   end
 
   @[Experimental]

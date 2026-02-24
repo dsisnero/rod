@@ -2,7 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
+require "../runtime/runtime"
 
 module Cdp::IO
   alias StreamHandle = String

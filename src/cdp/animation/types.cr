@@ -3,6 +3,7 @@ require "json"
 require "time"
 
 require "../dom/dom"
+require "../runtime/runtime"
 
 module Cdp::Animation
   struct Animation
@@ -22,27 +23,27 @@ module Cdp::Animation
     @[JSON::Field(emit_null: false)]
     property current_time : Float64
     @[JSON::Field(emit_null: false)]
-    property type : Cdp::NodeType
+    property type : Type
     @[JSON::Field(emit_null: false)]
-    property source : Cdp::NodeType?
+    property source : AnimationEffect?
     @[JSON::Field(emit_null: false)]
     property css_id : String?
     @[JSON::Field(emit_null: false)]
-    property view_or_scroll_timeline : Cdp::NodeType?
+    property view_or_scroll_timeline : ViewOrScrollTimeline?
   end
 
   struct ViewOrScrollTimeline
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property source_node_id : Cdp::NodeType?
+    property source_node_id : Cdp::DOM::BackendNodeId?
     @[JSON::Field(emit_null: false)]
     property start_offset : Float64?
     @[JSON::Field(emit_null: false)]
     property end_offset : Float64?
     @[JSON::Field(emit_null: false)]
-    property subject_node_id : Cdp::NodeType?
+    property subject_node_id : Cdp::DOM::BackendNodeId?
     @[JSON::Field(emit_null: false)]
-    property axis : Cdp::NodeType
+    property axis : Cdp::DOM::ScrollOrientation
   end
 
   struct AnimationEffect
@@ -62,9 +63,9 @@ module Cdp::Animation
     @[JSON::Field(emit_null: false)]
     property fill : String
     @[JSON::Field(emit_null: false)]
-    property backend_node_id : Cdp::NodeType?
+    property backend_node_id : Cdp::DOM::BackendNodeId?
     @[JSON::Field(emit_null: false)]
-    property keyframes_rule : Cdp::NodeType?
+    property keyframes_rule : KeyframesRule?
     @[JSON::Field(emit_null: false)]
     property easing : String
   end
@@ -74,7 +75,7 @@ module Cdp::Animation
     @[JSON::Field(emit_null: false)]
     property name : String?
     @[JSON::Field(emit_null: false)]
-    property keyframes : Array(Cdp::NodeType)
+    property keyframes : Array(KeyframeStyle)
   end
 
   struct KeyframeStyle

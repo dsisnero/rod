@@ -93,6 +93,91 @@ module Pdlgen
               end
             end
           end
+        when "Fetch"
+          domain.types.each do |typ|
+            case typ.name
+            when "RequestPattern"
+              typ.properties.each do |prop|
+                case prop.name
+                when "resource_type"
+                  prop.ref = "Network.ResourceType"
+                  prop.type = Pdl::TypeEnum::Any
+                when "request_stage"
+                  prop.ref = "Fetch.RequestStage"
+                  prop.type = Pdl::TypeEnum::Any
+                end
+              end
+            when "AuthChallenge"
+              typ.properties.each do |prop|
+                if prop.name == "source"
+                  prop.ref = "Fetch.AuthChallengeSource"
+                  prop.type = Pdl::TypeEnum::Any
+                end
+              end
+            when "AuthChallengeResponse"
+              typ.properties.each do |prop|
+                if prop.name == "response"
+                  prop.ref = "Fetch.AuthChallengeResponseResponse"
+                  prop.type = Pdl::TypeEnum::Any
+                end
+              end
+            end
+          end
+
+          # Ensure missing enum types exist
+          auth_challenge_source_type = domain.types.find { |t| t.name == "AuthChallengeSource" }
+          unless auth_challenge_source_type
+            STDOUT.puts "DEBUG: adding AuthChallengeSource type"
+            domain.types << Pdl::Type.new(
+              raw_name: "Fetch.AuthChallengeSource",
+              name: "AuthChallengeSource",
+              type: Pdl::TypeEnum::String,
+              enum: ["Server", "Proxy"],
+              description: "Source of the authentication challenge."
+            )
+          end
+
+          auth_challenge_response_response_type = domain.types.find { |t| t.name == "AuthChallengeResponseResponse" }
+          unless auth_challenge_response_response_type
+            STDOUT.puts "DEBUG: adding AuthChallengeResponseResponse type"
+            domain.types << Pdl::Type.new(
+              raw_name: "Fetch.AuthChallengeResponseResponse",
+              name: "AuthChallengeResponseResponse",
+              type: Pdl::TypeEnum::String,
+              enum: ["Default", "CancelAuth", "ProvideCredentials"],
+              description: "Response to an authorization challenge."
+            )
+          end
+
+          domain.commands.each do |cmd|
+            case cmd.name
+            when "Enable"
+              cmd.parameters.each do |param|
+                if param.name == "patterns"
+                  # patterns should be array of RequestPattern
+                  # The generator should handle array type, but ensure items ref is correct
+                end
+              end
+            when "FailRequest"
+              cmd.parameters.each do |param|
+                case param.name
+                when "request_id"
+                  param.ref = "Fetch.RequestId"
+                  param.type = Pdl::TypeEnum::Any
+                when "error_reason"
+                  param.ref = "Network.ErrorReason"
+                  param.type = Pdl::TypeEnum::Any
+                end
+              end
+            when "FulfillRequest", "ContinueRequest", "ContinueWithAuth", "GetResponseBody", "TakeResponseBodyAsStream"
+              cmd.parameters.each do |param|
+                if param.name == "request_id"
+                  param.ref = "Fetch.RequestId"
+                  param.type = Pdl::TypeEnum::Any
+                end
+              end
+            end
+          end
         when "Input"
           # Find or create Modifier type
           modifier_type = domain.types.find { |type| type.name == "Modifier" }
@@ -395,12 +480,26 @@ module Pdlgen
             optional: param.optional?,
             always_emit: param.always_emit?
           )
+        elsif d.domain == "Fetch" && param.ref == "RequestId"
+          # RequestId is a string alias in Fetch domain
+          r << Pdl::Type.new(
+            raw_type: param.raw_type,
+            raw_name: param.raw_name,
+            is_circular_dep: param.is_circular_dep?,
+            name: param.name,
+            ref: "Fetch.RequestId",
+            description: param.description,
+            optional: param.optional?,
+            always_emit: param.always_emit?
+          )
         elsif !param.ref.empty? && !param.no_expose? && !param.no_resolve?
+          # Convert ref "nodeType" to "DOM.NodeType", otherwise keep original ref
+          ref = param.ref == "nodeType" ? "DOM.NodeType" : param.ref
           r << Pdl::Type.new(
             raw_name: param.raw_name.sub("nodeType", "NodeType"),
             is_circular_dep: param.is_circular_dep?,
             name: param.name,
-            ref: "DOM.NodeType",
+            ref: ref,
             description: param.description,
             optional: param.optional?,
             always_emit: param.always_emit?
@@ -473,6 +572,11 @@ module Pdlgen
       "Runtime.RemoteObject.type"                             => "Type",
       "Tracing.start.transferMode"                            => "TransferMode",
       "Tracing.TraceConfig.recordMode"                        => "RecordMode",
+      "Fetch.RequestPattern.resourceType"                     => "Network.ResourceType",
+      "Fetch.RequestPattern.requestStage"                     => "Fetch.RequestStage",
+      "Fetch.AuthChallenge.source"                            => "Fetch.AuthChallengeSource",
+      "Fetch.AuthChallengeResponse.response"                  => "Fetch.AuthChallengeResponseResponse",
+      "Fetch.FailRequest.errorReason"                         => "Network.ErrorReason",
     }
 
     # fixupEnumParameter takes an enum parameter, adds it to the domain and

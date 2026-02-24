@@ -2,7 +2,8 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
+require "../network/network"
+require "../storage/storage"
 
 require "./types"
 
@@ -12,9 +13,9 @@ module Cdp::FileSystem
   struct GetDirectoryResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property directory : Cdp::NodeType
+    property directory : Directory
 
-    def initialize(@directory : Cdp::NodeType)
+    def initialize(@directory : Directory)
     end
   end
 
@@ -23,9 +24,9 @@ module Cdp::FileSystem
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property bucket_file_system_locator : Cdp::NodeType
+    property bucket_file_system_locator : BucketFileSystemLocator
 
-    def initialize(@bucket_file_system_locator : Cdp::NodeType)
+    def initialize(@bucket_file_system_locator : BucketFileSystemLocator)
     end
 
     # ProtoReq returns the protocol method name.

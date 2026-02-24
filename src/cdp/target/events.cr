@@ -2,7 +2,8 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
+require "../page/page"
+require "../browser/browser"
 
 module Cdp::Target
   @[Experimental]
@@ -10,13 +11,13 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property session_id : Cdp::NodeType
+    property session_id : SessionID
     @[JSON::Field(emit_null: false)]
-    property target_info : Cdp::NodeType
+    property target_info : TargetInfo
     @[JSON::Field(emit_null: false)]
     property? waiting_for_debugger : Bool
 
-    def initialize(@session_id : Cdp::NodeType, @target_info : Cdp::NodeType, @waiting_for_debugger : Bool)
+    def initialize(@session_id : SessionID, @target_info : TargetInfo, @waiting_for_debugger : Bool)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -35,11 +36,11 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property session_id : Cdp::NodeType
+    property session_id : SessionID
     @[JSON::Field(emit_null: false)]
-    property target_id : Cdp::NodeType?
+    property target_id : TargetID?
 
-    def initialize(@session_id : Cdp::NodeType, @target_id : Cdp::NodeType?)
+    def initialize(@session_id : SessionID, @target_id : TargetID?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -57,13 +58,13 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property session_id : Cdp::NodeType
+    property session_id : SessionID
     @[JSON::Field(emit_null: false)]
     property message : String
     @[JSON::Field(emit_null: false)]
-    property target_id : Cdp::NodeType?
+    property target_id : TargetID?
 
-    def initialize(@session_id : Cdp::NodeType, @message : String, @target_id : Cdp::NodeType?)
+    def initialize(@session_id : SessionID, @message : String, @target_id : TargetID?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -81,9 +82,9 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property target_info : Cdp::NodeType
+    property target_info : TargetInfo
 
-    def initialize(@target_info : Cdp::NodeType)
+    def initialize(@target_info : TargetInfo)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -101,9 +102,9 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property target_id : Cdp::NodeType
+    property target_id : TargetID
 
-    def initialize(@target_id : Cdp::NodeType)
+    def initialize(@target_id : TargetID)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -121,13 +122,13 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property target_id : Cdp::NodeType
+    property target_id : TargetID
     @[JSON::Field(emit_null: false)]
     property status : String
     @[JSON::Field(emit_null: false)]
     property error_code : Int64
 
-    def initialize(@target_id : Cdp::NodeType, @status : String, @error_code : Int64)
+    def initialize(@target_id : TargetID, @status : String, @error_code : Int64)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -145,9 +146,9 @@ module Cdp::Target
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property target_info : Cdp::NodeType
+    property target_info : TargetInfo
 
-    def initialize(@target_info : Cdp::NodeType)
+    def initialize(@target_info : TargetInfo)
     end
 
     # ProtoEvent returns the protocol event name.

@@ -9,11 +9,11 @@ module Cdp::LayerTree
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property layer_id : Cdp::NodeType
+    property layer_id : LayerId
     @[JSON::Field(emit_null: false)]
-    property clip : Cdp::NodeType
+    property clip : Cdp::DOM::Rect
 
-    def initialize(@layer_id : Cdp::NodeType, @clip : Cdp::NodeType)
+    def initialize(@layer_id : LayerId, @clip : Cdp::DOM::Rect)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -31,9 +31,9 @@ module Cdp::LayerTree
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property layers : Array(Cdp::NodeType)?
+    property layers : Array(Layer)?
 
-    def initialize(@layers : Array(Cdp::NodeType)?)
+    def initialize(@layers : Array(Layer)?)
     end
 
     # ProtoEvent returns the protocol event name.

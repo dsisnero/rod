@@ -2,8 +2,6 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
-
 module Cdp::Runtime
   @[Experimental]
   struct BindingCalledEvent
@@ -14,9 +12,9 @@ module Cdp::Runtime
     @[JSON::Field(emit_null: false)]
     property payload : String
     @[JSON::Field(emit_null: false)]
-    property execution_context_id : Cdp::NodeType
+    property execution_context_id : ExecutionContextId
 
-    def initialize(@name : String, @payload : String, @execution_context_id : Cdp::NodeType)
+    def initialize(@name : String, @payload : String, @execution_context_id : ExecutionContextId)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -34,19 +32,19 @@ module Cdp::Runtime
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property type : Cdp::NodeType
+    property type : ConsoleAPICalledType
     @[JSON::Field(emit_null: false)]
-    property args : Array(Cdp::NodeType)
+    property args : Array(RemoteObject)
     @[JSON::Field(emit_null: false)]
-    property execution_context_id : Cdp::NodeType
+    property execution_context_id : ExecutionContextId
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : Timestamp
     @[JSON::Field(emit_null: false)]
-    property stack_trace : Cdp::NodeType?
+    property stack_trace : StackTrace?
     @[JSON::Field(emit_null: false)]
     property context : String?
 
-    def initialize(@type : Cdp::NodeType, @args : Array(Cdp::NodeType), @execution_context_id : Cdp::NodeType, @timestamp : Cdp::NodeType, @stack_trace : Cdp::NodeType?, @context : String?)
+    def initialize(@type : ConsoleAPICalledType, @args : Array(RemoteObject), @execution_context_id : ExecutionContextId, @timestamp : Timestamp, @stack_trace : StackTrace?, @context : String?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -86,11 +84,11 @@ module Cdp::Runtime
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : Timestamp
     @[JSON::Field(emit_null: false)]
-    property exception_details : Cdp::NodeType
+    property exception_details : ExceptionDetails
 
-    def initialize(@timestamp : Cdp::NodeType, @exception_details : Cdp::NodeType)
+    def initialize(@timestamp : Timestamp, @exception_details : ExceptionDetails)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -108,9 +106,9 @@ module Cdp::Runtime
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context : Cdp::NodeType
+    property context : ExecutionContextDescription
 
-    def initialize(@context : Cdp::NodeType)
+    def initialize(@context : ExecutionContextDescription)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -128,11 +126,11 @@ module Cdp::Runtime
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property execution_context_id : Cdp::NodeType
+    property execution_context_id : ExecutionContextId
     @[JSON::Field(emit_null: false)]
     property execution_context_unique_id : String
 
-    def initialize(@execution_context_id : Cdp::NodeType, @execution_context_unique_id : String)
+    def initialize(@execution_context_id : ExecutionContextId, @execution_context_unique_id : String)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -168,13 +166,13 @@ module Cdp::Runtime
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property object : Cdp::NodeType
+    property object : RemoteObject
     @[JSON::Field(emit_null: false)]
     property hints : JSON::Any
     @[JSON::Field(emit_null: false)]
-    property execution_context_id : Cdp::NodeType?
+    property execution_context_id : ExecutionContextId?
 
-    def initialize(@object : Cdp::NodeType, @hints : JSON::Any, @execution_context_id : Cdp::NodeType?)
+    def initialize(@object : RemoteObject, @hints : JSON::Any, @execution_context_id : ExecutionContextId?)
     end
 
     # ProtoEvent returns the protocol event name.

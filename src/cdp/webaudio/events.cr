@@ -9,9 +9,9 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context : Cdp::NodeType
+    property context : BaseAudioContext
 
-    def initialize(@context : Cdp::NodeType)
+    def initialize(@context : BaseAudioContext)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -29,9 +29,9 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context_id : Cdp::NodeType
+    property context_id : GraphObjectId
 
-    def initialize(@context_id : Cdp::NodeType)
+    def initialize(@context_id : GraphObjectId)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -49,9 +49,9 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context : Cdp::NodeType
+    property context : BaseAudioContext
 
-    def initialize(@context : Cdp::NodeType)
+    def initialize(@context : BaseAudioContext)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -69,9 +69,9 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property listener : Cdp::NodeType
+    property listener : AudioListener
 
-    def initialize(@listener : Cdp::NodeType)
+    def initialize(@listener : AudioListener)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -89,11 +89,11 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context_id : Cdp::NodeType
+    property context_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
-    property listener_id : Cdp::NodeType
+    property listener_id : GraphObjectId
 
-    def initialize(@context_id : Cdp::NodeType, @listener_id : Cdp::NodeType)
+    def initialize(@context_id : GraphObjectId, @listener_id : GraphObjectId)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -111,9 +111,9 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property node : Cdp::NodeType
+    property node : AudioNode
 
-    def initialize(@node : Cdp::NodeType)
+    def initialize(@node : AudioNode)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -131,11 +131,11 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context_id : Cdp::NodeType
+    property context_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType
+    property node_id : GraphObjectId
 
-    def initialize(@context_id : Cdp::NodeType, @node_id : Cdp::NodeType)
+    def initialize(@context_id : GraphObjectId, @node_id : GraphObjectId)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -153,9 +153,9 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property param : Cdp::NodeType
+    property param : AudioParam
 
-    def initialize(@param : Cdp::NodeType)
+    def initialize(@param : AudioParam)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -173,13 +173,13 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context_id : Cdp::NodeType
+    property context_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType
+    property node_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
-    property param_id : Cdp::NodeType
+    property param_id : GraphObjectId
 
-    def initialize(@context_id : Cdp::NodeType, @node_id : Cdp::NodeType, @param_id : Cdp::NodeType)
+    def initialize(@context_id : GraphObjectId, @node_id : GraphObjectId, @param_id : GraphObjectId)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -197,17 +197,17 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context_id : Cdp::NodeType
+    property context_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
-    property source_id : Cdp::NodeType
+    property source_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
-    property destination_id : Cdp::NodeType
+    property destination_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
     property source_output_index : Float64?
     @[JSON::Field(emit_null: false)]
     property destination_input_index : Float64?
 
-    def initialize(@context_id : Cdp::NodeType, @source_id : Cdp::NodeType, @destination_id : Cdp::NodeType, @source_output_index : Float64?, @destination_input_index : Float64?)
+    def initialize(@context_id : GraphObjectId, @source_id : GraphObjectId, @destination_id : GraphObjectId, @source_output_index : Float64?, @destination_input_index : Float64?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -225,17 +225,17 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context_id : Cdp::NodeType
+    property context_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
-    property source_id : Cdp::NodeType
+    property source_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
-    property destination_id : Cdp::NodeType
+    property destination_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
     property source_output_index : Float64?
     @[JSON::Field(emit_null: false)]
     property destination_input_index : Float64?
 
-    def initialize(@context_id : Cdp::NodeType, @source_id : Cdp::NodeType, @destination_id : Cdp::NodeType, @source_output_index : Float64?, @destination_input_index : Float64?)
+    def initialize(@context_id : GraphObjectId, @source_id : GraphObjectId, @destination_id : GraphObjectId, @source_output_index : Float64?, @destination_input_index : Float64?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -253,15 +253,15 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context_id : Cdp::NodeType
+    property context_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
-    property source_id : Cdp::NodeType
+    property source_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
-    property destination_id : Cdp::NodeType
+    property destination_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
     property source_output_index : Float64?
 
-    def initialize(@context_id : Cdp::NodeType, @source_id : Cdp::NodeType, @destination_id : Cdp::NodeType, @source_output_index : Float64?)
+    def initialize(@context_id : GraphObjectId, @source_id : GraphObjectId, @destination_id : GraphObjectId, @source_output_index : Float64?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -279,15 +279,15 @@ module Cdp::WebAudio
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property context_id : Cdp::NodeType
+    property context_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
-    property source_id : Cdp::NodeType
+    property source_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
-    property destination_id : Cdp::NodeType
+    property destination_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
     property source_output_index : Float64?
 
-    def initialize(@context_id : Cdp::NodeType, @source_id : Cdp::NodeType, @destination_id : Cdp::NodeType, @source_output_index : Float64?)
+    def initialize(@context_id : GraphObjectId, @source_id : GraphObjectId, @destination_id : GraphObjectId, @source_output_index : Float64?)
     end
 
     # ProtoEvent returns the protocol event name.

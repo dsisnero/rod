@@ -2,8 +2,6 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
-
 module Cdp::Inspector
   alias DetachReason = String
   DetachReasonTargetClosed         = "target_closed"

@@ -2,16 +2,18 @@ require "../cdp"
 require "json"
 require "time"
 
+require "../network/network"
 require "../dom/dom"
+require "../page/page"
 
 module Cdp::PerformanceTimeline
   struct TimelineEventAddedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property event : Cdp::NodeType
+    property event : TimelineEvent
 
-    def initialize(@event : Cdp::NodeType)
+    def initialize(@event : TimelineEvent)
     end
 
     # ProtoEvent returns the protocol event name.

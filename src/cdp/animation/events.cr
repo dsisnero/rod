@@ -3,6 +3,7 @@ require "json"
 require "time"
 
 require "../dom/dom"
+require "../runtime/runtime"
 
 module Cdp::Animation
   struct AnimationCanceledEvent
@@ -49,9 +50,9 @@ module Cdp::Animation
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property animation : Cdp::NodeType
+    property animation : Animation
 
-    def initialize(@animation : Cdp::NodeType)
+    def initialize(@animation : Animation)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -69,9 +70,9 @@ module Cdp::Animation
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property animation : Cdp::NodeType
+    property animation : Animation
 
-    def initialize(@animation : Cdp::NodeType)
+    def initialize(@animation : Animation)
     end
 
     # ProtoEvent returns the protocol event name.

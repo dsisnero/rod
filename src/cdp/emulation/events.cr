@@ -3,6 +3,8 @@ require "json"
 require "time"
 
 require "../dom/dom"
+require "../page/page"
+require "../network/network"
 
 module Cdp::Emulation
   @[Experimental]

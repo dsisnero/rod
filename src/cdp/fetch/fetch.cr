@@ -2,7 +2,9 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
+require "../network/network"
+require "../io/io"
+require "../page/page"
 
 require "./types"
 require "./events"
@@ -23,9 +25,9 @@ module Cdp::Fetch
   struct TakeResponseBodyAsStreamResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property stream : Cdp::NodeType
+    property stream : Cdp::IO::StreamHandle
 
-    def initialize(@stream : Cdp::NodeType)
+    def initialize(@stream : Cdp::IO::StreamHandle)
     end
   end
 
@@ -52,11 +54,11 @@ module Cdp::Fetch
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property patterns : Array(Cdp::NodeType)?
+    property patterns : Array(RequestPattern)?
     @[JSON::Field(emit_null: false)]
     property? handle_auth_requests : Bool?
 
-    def initialize(@patterns : Array(Cdp::NodeType)?, @handle_auth_requests : Bool?)
+    def initialize(@patterns : Array(RequestPattern)?, @handle_auth_requests : Bool?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -74,11 +76,11 @@ module Cdp::Fetch
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property error_reason : Cdp::NodeType
+    property error_reason : Cdp::Network::ErrorReason
 
-    def initialize(@request_id : Cdp::NodeType, @error_reason : Cdp::NodeType)
+    def initialize(@request_id : RequestId, @error_reason : Cdp::Network::ErrorReason)
     end
 
     # ProtoReq returns the protocol method name.
@@ -96,11 +98,11 @@ module Cdp::Fetch
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
     property response_code : Int64
     @[JSON::Field(emit_null: false)]
-    property response_headers : Array(Cdp::NodeType)?
+    property response_headers : Array(HeaderEntry)?
     @[JSON::Field(emit_null: false)]
     property binary_response_headers : String?
     @[JSON::Field(emit_null: false)]
@@ -108,7 +110,7 @@ module Cdp::Fetch
     @[JSON::Field(emit_null: false)]
     property response_phrase : String?
 
-    def initialize(@request_id : Cdp::NodeType, @response_code : Int64, @response_headers : Array(Cdp::NodeType)?, @binary_response_headers : String?, @body : String?, @response_phrase : String?)
+    def initialize(@request_id : RequestId, @response_code : Int64, @response_headers : Array(HeaderEntry)?, @binary_response_headers : String?, @body : String?, @response_phrase : String?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -126,7 +128,7 @@ module Cdp::Fetch
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
     property url : String?
     @[JSON::Field(emit_null: false)]
@@ -134,11 +136,11 @@ module Cdp::Fetch
     @[JSON::Field(emit_null: false)]
     property post_data : String?
     @[JSON::Field(emit_null: false)]
-    property headers : Array(Cdp::NodeType)?
+    property headers : Array(HeaderEntry)?
     @[JSON::Field(emit_null: false)]
     property? intercept_response : Bool?
 
-    def initialize(@request_id : Cdp::NodeType, @url : String?, @method : String?, @post_data : String?, @headers : Array(Cdp::NodeType)?, @intercept_response : Bool?)
+    def initialize(@request_id : RequestId, @url : String?, @method : String?, @post_data : String?, @headers : Array(HeaderEntry)?, @intercept_response : Bool?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -156,11 +158,11 @@ module Cdp::Fetch
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property auth_challenge_response : Cdp::NodeType
+    property auth_challenge_response : AuthChallengeResponse
 
-    def initialize(@request_id : Cdp::NodeType, @auth_challenge_response : Cdp::NodeType)
+    def initialize(@request_id : RequestId, @auth_challenge_response : AuthChallengeResponse)
     end
 
     # ProtoReq returns the protocol method name.
@@ -179,17 +181,17 @@ module Cdp::Fetch
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
     property response_code : Int64?
     @[JSON::Field(emit_null: false)]
     property response_phrase : String?
     @[JSON::Field(emit_null: false)]
-    property response_headers : Array(Cdp::NodeType)?
+    property response_headers : Array(HeaderEntry)?
     @[JSON::Field(emit_null: false)]
     property binary_response_headers : String?
 
-    def initialize(@request_id : Cdp::NodeType, @response_code : Int64?, @response_phrase : String?, @response_headers : Array(Cdp::NodeType)?, @binary_response_headers : String?)
+    def initialize(@request_id : RequestId, @response_code : Int64?, @response_phrase : String?, @response_headers : Array(HeaderEntry)?, @binary_response_headers : String?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -207,9 +209,9 @@ module Cdp::Fetch
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
 
-    def initialize(@request_id : Cdp::NodeType)
+    def initialize(@request_id : RequestId)
     end
 
     # ProtoReq returns the protocol method name.
@@ -229,9 +231,9 @@ module Cdp::Fetch
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
 
-    def initialize(@request_id : Cdp::NodeType)
+    def initialize(@request_id : RequestId)
     end
 
     # ProtoReq returns the protocol method name.

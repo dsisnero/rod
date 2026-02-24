@@ -3,15 +3,16 @@ require "json"
 require "time"
 
 require "../dom/dom"
+require "../page/page"
 
 module Cdp::CSS
   struct FontsUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property font : Cdp::NodeType?
+    property font : FontFace?
 
-    def initialize(@font : Cdp::NodeType?)
+    def initialize(@font : FontFace?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -47,9 +48,9 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property header : Cdp::NodeType
+    property header : CSSStyleSheetHeader
 
-    def initialize(@header : Cdp::NodeType)
+    def initialize(@header : CSSStyleSheetHeader)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -67,9 +68,9 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property style_sheet_id : Cdp::NodeType
+    property style_sheet_id : Cdp::DOM::StyleSheetId
 
-    def initialize(@style_sheet_id : Cdp::NodeType)
+    def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -87,9 +88,9 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property style_sheet_id : Cdp::NodeType
+    property style_sheet_id : Cdp::DOM::StyleSheetId
 
-    def initialize(@style_sheet_id : Cdp::NodeType)
+    def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -108,9 +109,9 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType
+    property node_id : Cdp::DOM::NodeId
 
-    def initialize(@node_id : Cdp::NodeType)
+    def initialize(@node_id : Cdp::DOM::NodeId)
     end
 
     # ProtoEvent returns the protocol event name.

@@ -2,20 +2,18 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
-
 module Cdp::DOMStorage
   struct DomStorageItemAddedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property storage_id : Cdp::NodeType
+    property storage_id : StorageId
     @[JSON::Field(emit_null: false)]
     property key : String
     @[JSON::Field(emit_null: false)]
     property new_value : String
 
-    def initialize(@storage_id : Cdp::NodeType, @key : String, @new_value : String)
+    def initialize(@storage_id : StorageId, @key : String, @new_value : String)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -33,11 +31,11 @@ module Cdp::DOMStorage
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property storage_id : Cdp::NodeType
+    property storage_id : StorageId
     @[JSON::Field(emit_null: false)]
     property key : String
 
-    def initialize(@storage_id : Cdp::NodeType, @key : String)
+    def initialize(@storage_id : StorageId, @key : String)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -55,7 +53,7 @@ module Cdp::DOMStorage
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property storage_id : Cdp::NodeType
+    property storage_id : StorageId
     @[JSON::Field(emit_null: false)]
     property key : String
     @[JSON::Field(emit_null: false)]
@@ -63,7 +61,7 @@ module Cdp::DOMStorage
     @[JSON::Field(emit_null: false)]
     property new_value : String
 
-    def initialize(@storage_id : Cdp::NodeType, @key : String, @old_value : String, @new_value : String)
+    def initialize(@storage_id : StorageId, @key : String, @old_value : String, @new_value : String)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -81,9 +79,9 @@ module Cdp::DOMStorage
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property storage_id : Cdp::NodeType
+    property storage_id : StorageId
 
-    def initialize(@storage_id : Cdp::NodeType)
+    def initialize(@storage_id : StorageId)
     end
 
     # ProtoEvent returns the protocol event name.

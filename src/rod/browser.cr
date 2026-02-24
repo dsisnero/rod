@@ -8,6 +8,7 @@ require "./lib/defaults"
 require "./lib/devices"
 require "./lib/launcher"
 require "./lib/utils"
+require "./hijack"
 
 module Rod
   # Browser implements these interfaces.
@@ -261,7 +262,7 @@ module Rod
             )
           \{% end %}
           each_event(nil, cb_map)
-        \\}
+        \\\\}
       \{% end %}
     end
 
@@ -332,6 +333,90 @@ module Rod
       # Instead, create a new instance and copy fields? Not needed for now.
       # This method is kept for compatibility with Go API.
       true
+    end
+  end
+
+  # HijackRequests same as Page.HijackRequests, but can intercept requests of the entire browser.
+  def hijack_requests : HijackRouter
+    HijackRouter.new(self, self).init_events
+  end
+
+  # HandleAuth for the next basic HTTP authentication.
+  # It will prevent the popup that requires user to input user name and password.
+  # Ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication
+  def handle_auth(username : String, password : String) : Proc(Exception?)
+    # First disable fetch domain (stop any existing hijacking)
+    disable_fetch = Cdp::Fetch::Disable.new
+    disable_fetch.call(self)
+
+    # Enable fetch domain with auth handling
+    enable_auth = Cdp::Fetch::Enable.new(handle_auth_requests: true)
+    enable_auth.call(self)
+
+    # Create event objects to wait for
+    paused_event = Cdp::Fetch::RequestPausedEvent.new(
+      request_id: "",
+      request: Cdp::Network::Request.new,
+      frame_id: 0_i64,
+      resource_type: Cdp::Network::ResourceType::Other,
+      response_error_reason: nil,
+      response_status_code: nil,
+      response_status_text: nil,
+      response_headers: nil,
+      network_id: nil,
+      redirected_request_id: nil
+    )
+
+    auth_event = Cdp::Fetch::AuthRequiredEvent.new(
+      request_id: "",
+      request: Cdp::Network::Request.new,
+      frame_id: 0_i64,
+      resource_type: Cdp::Network::ResourceType::Other,
+      auth_challenge: Cdp::Fetch::AuthChallenge.new
+    )
+
+    ctx, cancel = @ctx.with_cancel
+    browser_with_ctx = context(ctx)
+    wait_paused = browser_with_ctx.wait_event(paused_event)
+    wait_auth = browser_with_ctx.wait_event(auth_event)
+
+    -> do
+      begin
+        # Wait for request paused event
+        wait_paused.call
+
+        # Continue the request (to trigger auth challenge)
+        continue_req = Cdp::Fetch::ContinueRequest.new(request_id: paused_event.request_id)
+        continue_req.call(self)
+
+        # Wait for auth required event
+        wait_auth.call
+
+        # Respond with credentials
+        auth_response = Cdp::Fetch::AuthChallengeResponse.new(
+          response: Cdp::Fetch::AuthChallengeResponseResponseProvideCredentials,
+          username: username,
+          password: password
+        )
+
+        continue_auth_req = Cdp::Fetch::ContinueWithAuth.new(
+          request_id: auth_event.request_id,
+          auth_challenge_response: auth_response
+        )
+
+        continue_auth_req.call(self)
+
+        # Clean up
+        cancel.call
+        disable_fetch.call(self) # Disable auth handling
+
+        nil # No error
+      rescue err
+        # Ensure cleanup even on error
+        cancel.call
+        disable_fetch.call(self) rescue nil
+        err
+      end
     end
   end
 

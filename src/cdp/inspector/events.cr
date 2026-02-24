@@ -2,16 +2,14 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
-
 module Cdp::Inspector
   struct DetachedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property reason : Cdp::NodeType
+    property reason : DetachReason
 
-    def initialize(@reason : Cdp::NodeType)
+    def initialize(@reason : DetachReason)
     end
 
     # ProtoEvent returns the protocol event name.

@@ -3,6 +3,8 @@ require "json"
 require "time"
 
 require "../dom/dom"
+require "../page/page"
+require "../runtime/runtime"
 
 require "./types"
 require "./events"
@@ -14,9 +16,9 @@ module Cdp::Accessibility
   struct GetPartialAXTreeResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property nodes : Array(Cdp::NodeType)
+    property nodes : Array(Node)
 
-    def initialize(@nodes : Array(Cdp::NodeType))
+    def initialize(@nodes : Array(Node))
     end
   end
 
@@ -24,9 +26,9 @@ module Cdp::Accessibility
   struct GetFullAXTreeResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property nodes : Array(Cdp::NodeType)
+    property nodes : Array(Node)
 
-    def initialize(@nodes : Array(Cdp::NodeType))
+    def initialize(@nodes : Array(Node))
     end
   end
 
@@ -34,9 +36,9 @@ module Cdp::Accessibility
   struct GetRootAXNodeResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property node : Cdp::NodeType
+    property node : Node
 
-    def initialize(@node : Cdp::NodeType)
+    def initialize(@node : Node)
     end
   end
 
@@ -44,9 +46,9 @@ module Cdp::Accessibility
   struct GetAXNodeAndAncestorsResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property nodes : Array(Cdp::NodeType)
+    property nodes : Array(Node)
 
-    def initialize(@nodes : Array(Cdp::NodeType))
+    def initialize(@nodes : Array(Node))
     end
   end
 
@@ -54,9 +56,9 @@ module Cdp::Accessibility
   struct GetChildAXNodesResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property nodes : Array(Cdp::NodeType)
+    property nodes : Array(Node)
 
-    def initialize(@nodes : Array(Cdp::NodeType))
+    def initialize(@nodes : Array(Node))
     end
   end
 
@@ -64,9 +66,9 @@ module Cdp::Accessibility
   struct QueryAXTreeResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property nodes : Array(Cdp::NodeType)
+    property nodes : Array(Node)
 
-    def initialize(@nodes : Array(Cdp::NodeType))
+    def initialize(@nodes : Array(Node))
     end
   end
 
@@ -112,15 +114,15 @@ module Cdp::Accessibility
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType?
+    property node_id : Cdp::DOM::NodeId?
     @[JSON::Field(emit_null: false)]
-    property backend_node_id : Cdp::NodeType?
+    property backend_node_id : Cdp::DOM::BackendNodeId?
     @[JSON::Field(emit_null: false)]
-    property object_id : Cdp::NodeType?
+    property object_id : Cdp::Runtime::RemoteObjectId?
     @[JSON::Field(emit_null: false)]
     property? fetch_relatives : Bool?
 
-    def initialize(@node_id : Cdp::NodeType?, @backend_node_id : Cdp::NodeType?, @object_id : Cdp::NodeType?, @fetch_relatives : Bool?)
+    def initialize(@node_id : Cdp::DOM::NodeId?, @backend_node_id : Cdp::DOM::BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?, @fetch_relatives : Bool?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -143,9 +145,9 @@ module Cdp::Accessibility
     @[JSON::Field(emit_null: false)]
     property depth : Int64?
     @[JSON::Field(emit_null: false)]
-    property frame_id : Cdp::NodeType?
+    property frame_id : Cdp::Page::FrameId?
 
-    def initialize(@depth : Int64?, @frame_id : Cdp::NodeType?)
+    def initialize(@depth : Int64?, @frame_id : Cdp::Page::FrameId?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -166,9 +168,9 @@ module Cdp::Accessibility
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property frame_id : Cdp::NodeType?
+    property frame_id : Cdp::Page::FrameId?
 
-    def initialize(@frame_id : Cdp::NodeType?)
+    def initialize(@frame_id : Cdp::Page::FrameId?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -189,13 +191,13 @@ module Cdp::Accessibility
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType?
+    property node_id : Cdp::DOM::NodeId?
     @[JSON::Field(emit_null: false)]
-    property backend_node_id : Cdp::NodeType?
+    property backend_node_id : Cdp::DOM::BackendNodeId?
     @[JSON::Field(emit_null: false)]
-    property object_id : Cdp::NodeType?
+    property object_id : Cdp::Runtime::RemoteObjectId?
 
-    def initialize(@node_id : Cdp::NodeType?, @backend_node_id : Cdp::NodeType?, @object_id : Cdp::NodeType?)
+    def initialize(@node_id : Cdp::DOM::NodeId?, @backend_node_id : Cdp::DOM::BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -216,11 +218,11 @@ module Cdp::Accessibility
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property id : Cdp::NodeType
+    property id : NodeId
     @[JSON::Field(emit_null: false)]
-    property frame_id : Cdp::NodeType?
+    property frame_id : Cdp::Page::FrameId?
 
-    def initialize(@id : Cdp::NodeType, @frame_id : Cdp::NodeType?)
+    def initialize(@id : NodeId, @frame_id : Cdp::Page::FrameId?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -241,17 +243,17 @@ module Cdp::Accessibility
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType?
+    property node_id : Cdp::DOM::NodeId?
     @[JSON::Field(emit_null: false)]
-    property backend_node_id : Cdp::NodeType?
+    property backend_node_id : Cdp::DOM::BackendNodeId?
     @[JSON::Field(emit_null: false)]
-    property object_id : Cdp::NodeType?
+    property object_id : Cdp::Runtime::RemoteObjectId?
     @[JSON::Field(emit_null: false)]
     property accessible_name : String?
     @[JSON::Field(emit_null: false)]
     property role : String?
 
-    def initialize(@node_id : Cdp::NodeType?, @backend_node_id : Cdp::NodeType?, @object_id : Cdp::NodeType?, @accessible_name : String?, @role : String?)
+    def initialize(@node_id : Cdp::DOM::NodeId?, @backend_node_id : Cdp::DOM::BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?, @accessible_name : String?, @role : String?)
     end
 
     # ProtoReq returns the protocol method name.

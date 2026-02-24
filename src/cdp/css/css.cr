@@ -3,6 +3,7 @@ require "json"
 require "time"
 
 require "../dom/dom"
+require "../page/page"
 
 require "./types"
 require "./events"
@@ -18,9 +19,9 @@ module Cdp::CSS
   struct AddRuleResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property rule : Cdp::NodeType
+    property rule : CSSRule
 
-    def initialize(@rule : Cdp::NodeType)
+    def initialize(@rule : CSSRule)
     end
   end
 
@@ -36,9 +37,9 @@ module Cdp::CSS
   struct CreateStyleSheetResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property style_sheet_id : Cdp::NodeType
+    property style_sheet_id : Cdp::DOM::StyleSheetId
 
-    def initialize(@style_sheet_id : Cdp::NodeType)
+    def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId)
     end
   end
 
@@ -58,11 +59,11 @@ module Cdp::CSS
   struct GetComputedStyleForNodeResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property computed_style : Array(Cdp::NodeType)
+    property computed_style : Array(CSSComputedStyleProperty)
     @[JSON::Field(emit_null: false)]
-    property extra_fields : Cdp::NodeType
+    property extra_fields : ComputedStyleExtraFields
 
-    def initialize(@computed_style : Array(Cdp::NodeType), @extra_fields : Cdp::NodeType)
+    def initialize(@computed_style : Array(CSSComputedStyleProperty), @extra_fields : ComputedStyleExtraFields)
     end
   end
 
@@ -80,20 +81,20 @@ module Cdp::CSS
   struct GetLonghandPropertiesResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property longhand_properties : Array(Cdp::NodeType)
+    property longhand_properties : Array(CSSProperty)
 
-    def initialize(@longhand_properties : Array(Cdp::NodeType))
+    def initialize(@longhand_properties : Array(CSSProperty))
     end
   end
 
   struct GetInlineStylesForNodeResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property inline_style : Cdp::NodeType?
+    property inline_style : CSSStyle?
     @[JSON::Field(emit_null: false)]
-    property attributes_style : Cdp::NodeType?
+    property attributes_style : CSSStyle?
 
-    def initialize(@inline_style : Cdp::NodeType?, @attributes_style : Cdp::NodeType?)
+    def initialize(@inline_style : CSSStyle?, @attributes_style : CSSStyle?)
     end
   end
 
@@ -101,48 +102,48 @@ module Cdp::CSS
   struct GetAnimatedStylesForNodeResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property animation_styles : Array(Cdp::NodeType)?
+    property animation_styles : Array(CSSAnimationStyle)?
     @[JSON::Field(emit_null: false)]
-    property transitions_style : Cdp::NodeType?
+    property transitions_style : CSSStyle?
     @[JSON::Field(emit_null: false)]
-    property inherited : Array(Cdp::NodeType)?
+    property inherited : Array(InheritedAnimatedStyleEntry)?
 
-    def initialize(@animation_styles : Array(Cdp::NodeType)?, @transitions_style : Cdp::NodeType?, @inherited : Array(Cdp::NodeType)?)
+    def initialize(@animation_styles : Array(CSSAnimationStyle)?, @transitions_style : CSSStyle?, @inherited : Array(InheritedAnimatedStyleEntry)?)
     end
   end
 
   struct GetMatchedStylesForNodeResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property inline_style : Cdp::NodeType?
+    property inline_style : CSSStyle?
     @[JSON::Field(emit_null: false)]
-    property attributes_style : Cdp::NodeType?
+    property attributes_style : CSSStyle?
     @[JSON::Field(emit_null: false)]
-    property matched_css_rules : Array(Cdp::NodeType)?
+    property matched_css_rules : Array(RuleMatch)?
     @[JSON::Field(emit_null: false)]
-    property pseudo_elements : Array(Cdp::NodeType)?
+    property pseudo_elements : Array(PseudoElementMatches)?
     @[JSON::Field(emit_null: false)]
-    property inherited : Array(Cdp::NodeType)?
+    property inherited : Array(InheritedStyleEntry)?
     @[JSON::Field(emit_null: false)]
-    property inherited_pseudo_elements : Array(Cdp::NodeType)?
+    property inherited_pseudo_elements : Array(InheritedPseudoElementMatches)?
     @[JSON::Field(emit_null: false)]
-    property css_keyframes_rules : Array(Cdp::NodeType)?
+    property css_keyframes_rules : Array(CSSKeyframesRule)?
     @[JSON::Field(emit_null: false)]
-    property css_position_try_rules : Array(Cdp::NodeType)?
+    property css_position_try_rules : Array(CSSPositionTryRule)?
     @[JSON::Field(emit_null: false)]
     property active_position_fallback_index : Int64?
     @[JSON::Field(emit_null: false)]
-    property css_property_rules : Array(Cdp::NodeType)?
+    property css_property_rules : Array(CSSPropertyRule)?
     @[JSON::Field(emit_null: false)]
-    property css_property_registrations : Array(Cdp::NodeType)?
+    property css_property_registrations : Array(CSSPropertyRegistration)?
     @[JSON::Field(emit_null: false)]
-    property css_at_rules : Array(Cdp::NodeType)?
+    property css_at_rules : Array(CSSAtRule)?
     @[JSON::Field(emit_null: false)]
-    property parent_layout_node_id : Cdp::NodeType?
+    property parent_layout_node_id : Cdp::DOM::NodeId?
     @[JSON::Field(emit_null: false)]
-    property css_function_rules : Array(Cdp::NodeType)?
+    property css_function_rules : Array(CSSFunctionRule)?
 
-    def initialize(@inline_style : Cdp::NodeType?, @attributes_style : Cdp::NodeType?, @matched_css_rules : Array(Cdp::NodeType)?, @pseudo_elements : Array(Cdp::NodeType)?, @inherited : Array(Cdp::NodeType)?, @inherited_pseudo_elements : Array(Cdp::NodeType)?, @css_keyframes_rules : Array(Cdp::NodeType)?, @css_position_try_rules : Array(Cdp::NodeType)?, @active_position_fallback_index : Int64?, @css_property_rules : Array(Cdp::NodeType)?, @css_property_registrations : Array(Cdp::NodeType)?, @css_at_rules : Array(Cdp::NodeType)?, @parent_layout_node_id : Cdp::NodeType?, @css_function_rules : Array(Cdp::NodeType)?)
+    def initialize(@inline_style : CSSStyle?, @attributes_style : CSSStyle?, @matched_css_rules : Array(RuleMatch)?, @pseudo_elements : Array(PseudoElementMatches)?, @inherited : Array(InheritedStyleEntry)?, @inherited_pseudo_elements : Array(InheritedPseudoElementMatches)?, @css_keyframes_rules : Array(CSSKeyframesRule)?, @css_position_try_rules : Array(CSSPositionTryRule)?, @active_position_fallback_index : Int64?, @css_property_rules : Array(CSSPropertyRule)?, @css_property_registrations : Array(CSSPropertyRegistration)?, @css_at_rules : Array(CSSAtRule)?, @parent_layout_node_id : Cdp::DOM::NodeId?, @css_function_rules : Array(CSSFunctionRule)?)
     end
   end
 
@@ -159,18 +160,18 @@ module Cdp::CSS
   struct GetMediaQueriesResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property medias : Array(Cdp::NodeType)
+    property medias : Array(CSSMedia)
 
-    def initialize(@medias : Array(Cdp::NodeType))
+    def initialize(@medias : Array(CSSMedia))
     end
   end
 
   struct GetPlatformFontsForNodeResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property fonts : Array(Cdp::NodeType)
+    property fonts : Array(PlatformFontUsage)
 
-    def initialize(@fonts : Array(Cdp::NodeType))
+    def initialize(@fonts : Array(PlatformFontUsage))
     end
   end
 
@@ -187,9 +188,9 @@ module Cdp::CSS
   struct GetLayersForNodeResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property root_layer : Cdp::NodeType
+    property root_layer : CSSLayerData
 
-    def initialize(@root_layer : Cdp::NodeType)
+    def initialize(@root_layer : CSSLayerData)
     end
   end
 
@@ -197,9 +198,9 @@ module Cdp::CSS
   struct GetLocationForSelectorResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property ranges : Array(Cdp::NodeType)
+    property ranges : Array(SourceRange)
 
-    def initialize(@ranges : Array(Cdp::NodeType))
+    def initialize(@ranges : Array(SourceRange))
     end
   end
 
@@ -207,36 +208,36 @@ module Cdp::CSS
   struct TakeComputedStyleUpdatesResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property node_ids : Array(Cdp::NodeType)
+    property node_ids : Array(Cdp::DOM::NodeId)
 
-    def initialize(@node_ids : Array(Cdp::NodeType))
+    def initialize(@node_ids : Array(Cdp::DOM::NodeId))
     end
   end
 
   struct SetPropertyRulePropertyNameResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property property_name : Cdp::NodeType
+    property property_name : Value
 
-    def initialize(@property_name : Cdp::NodeType)
+    def initialize(@property_name : Value)
     end
   end
 
   struct SetKeyframeKeyResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property key_text : Cdp::NodeType
+    property key_text : Value
 
-    def initialize(@key_text : Cdp::NodeType)
+    def initialize(@key_text : Value)
     end
   end
 
   struct SetMediaTextResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property media : Cdp::NodeType
+    property media : CSSMedia
 
-    def initialize(@media : Cdp::NodeType)
+    def initialize(@media : CSSMedia)
     end
   end
 
@@ -244,9 +245,9 @@ module Cdp::CSS
   struct SetContainerQueryTextResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property container_query : Cdp::NodeType
+    property container_query : CSSContainerQuery
 
-    def initialize(@container_query : Cdp::NodeType)
+    def initialize(@container_query : CSSContainerQuery)
     end
   end
 
@@ -254,9 +255,9 @@ module Cdp::CSS
   struct SetSupportsTextResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property supports : Cdp::NodeType
+    property supports : CSSSupports
 
-    def initialize(@supports : Cdp::NodeType)
+    def initialize(@supports : CSSSupports)
     end
   end
 
@@ -264,18 +265,18 @@ module Cdp::CSS
   struct SetScopeTextResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property scope : Cdp::NodeType
+    property scope : CSSScope
 
-    def initialize(@scope : Cdp::NodeType)
+    def initialize(@scope : CSSScope)
     end
   end
 
   struct SetRuleSelectorResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property selector_list : Cdp::NodeType
+    property selector_list : SelectorList
 
-    def initialize(@selector_list : Cdp::NodeType)
+    def initialize(@selector_list : SelectorList)
     end
   end
 
@@ -291,29 +292,29 @@ module Cdp::CSS
   struct SetStyleTextsResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property styles : Array(Cdp::NodeType)
+    property styles : Array(CSSStyle)
 
-    def initialize(@styles : Array(Cdp::NodeType))
+    def initialize(@styles : Array(CSSStyle))
     end
   end
 
   struct StopRuleUsageTrackingResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property rule_usage : Array(Cdp::NodeType)
+    property rule_usage : Array(RuleUsage)
 
-    def initialize(@rule_usage : Array(Cdp::NodeType))
+    def initialize(@rule_usage : Array(RuleUsage))
     end
   end
 
   struct TakeCoverageDeltaResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property coverage : Array(Cdp::NodeType)
+    property coverage : Array(RuleUsage)
     @[JSON::Field(emit_null: false)]
     property timestamp : Float64
 
-    def initialize(@coverage : Array(Cdp::NodeType), @timestamp : Float64)
+    def initialize(@coverage : Array(RuleUsage), @timestamp : Float64)
     end
   end
 
@@ -322,15 +323,15 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property style_sheet_id : Cdp::NodeType
+    property style_sheet_id : Cdp::DOM::StyleSheetId
     @[JSON::Field(emit_null: false)]
     property rule_text : String
     @[JSON::Field(emit_null: false)]
-    property location : Cdp::NodeType
+    property location : SourceRange
     @[JSON::Field(emit_null: false)]
-    property node_for_property_syntax_validation : Cdp::NodeType?
+    property node_for_property_syntax_validation : Cdp::DOM::NodeId?
 
-    def initialize(@style_sheet_id : Cdp::NodeType, @rule_text : String, @location : Cdp::NodeType, @node_for_property_syntax_validation : Cdp::NodeType?)
+    def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @rule_text : String, @location : SourceRange, @node_for_property_syntax_validation : Cdp::DOM::NodeId?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -350,9 +351,9 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property style_sheet_id : Cdp::NodeType
+    property style_sheet_id : Cdp::DOM::StyleSheetId
 
-    def initialize(@style_sheet_id : Cdp::NodeType)
+    def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId)
     end
 
     # ProtoReq returns the protocol method name.
@@ -372,11 +373,11 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property frame_id : Cdp::NodeType
+    property frame_id : Cdp::Page::FrameId
     @[JSON::Field(emit_null: false)]
     property? force : Bool?
 
-    def initialize(@frame_id : Cdp::NodeType, @force : Bool?)
+    def initialize(@frame_id : Cdp::Page::FrameId, @force : Bool?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -432,11 +433,11 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType
+    property node_id : Cdp::DOM::NodeId
     @[JSON::Field(emit_null: false)]
     property forced_pseudo_classes : Array(String)
 
-    def initialize(@node_id : Cdp::NodeType, @forced_pseudo_classes : Array(String))
+    def initialize(@node_id : Cdp::DOM::NodeId, @forced_pseudo_classes : Array(String))
     end
 
     # ProtoReq returns the protocol method name.
@@ -454,11 +455,11 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType
+    property node_id : Cdp::DOM::NodeId
     @[JSON::Field(emit_null: false)]
     property? forced : Bool
 
-    def initialize(@node_id : Cdp::NodeType, @forced : Bool)
+    def initialize(@node_id : Cdp::DOM::NodeId, @forced : Bool)
     end
 
     # ProtoReq returns the protocol method name.
@@ -476,9 +477,9 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType
+    property node_id : Cdp::DOM::NodeId
 
-    def initialize(@node_id : Cdp::NodeType)
+    def initialize(@node_id : Cdp::DOM::NodeId)
     end
 
     # ProtoReq returns the protocol method name.
@@ -498,9 +499,9 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType
+    property node_id : Cdp::DOM::NodeId
 
-    def initialize(@node_id : Cdp::NodeType)
+    def initialize(@node_id : Cdp::DOM::NodeId)
     end
 
     # ProtoReq returns the protocol method name.
@@ -523,15 +524,15 @@ module Cdp::CSS
     @[JSON::Field(emit_null: false)]
     property values : Array(String)
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType
+    property node_id : Cdp::DOM::NodeId
     @[JSON::Field(emit_null: false)]
     property property_name : String?
     @[JSON::Field(emit_null: false)]
-    property pseudo_type : Cdp::NodeType?
+    property pseudo_type : Cdp::DOM::PseudoType?
     @[JSON::Field(emit_null: false)]
     property pseudo_identifier : String?
 
-    def initialize(@values : Array(String), @node_id : Cdp::NodeType, @property_name : String?, @pseudo_type : Cdp::NodeType?, @pseudo_identifier : String?)
+    def initialize(@values : Array(String), @node_id : Cdp::DOM::NodeId, @property_name : String?, @pseudo_type : Cdp::DOM::PseudoType?, @pseudo_identifier : String?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -576,9 +577,9 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType
+    property node_id : Cdp::DOM::NodeId
 
-    def initialize(@node_id : Cdp::NodeType)
+    def initialize(@node_id : Cdp::DOM::NodeId)
     end
 
     # ProtoReq returns the protocol method name.
@@ -599,9 +600,9 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType
+    property node_id : Cdp::DOM::NodeId
 
-    def initialize(@node_id : Cdp::NodeType)
+    def initialize(@node_id : Cdp::DOM::NodeId)
     end
 
     # ProtoReq returns the protocol method name.
@@ -621,9 +622,9 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType
+    property node_id : Cdp::DOM::NodeId
 
-    def initialize(@node_id : Cdp::NodeType)
+    def initialize(@node_id : Cdp::DOM::NodeId)
     end
 
     # ProtoReq returns the protocol method name.
@@ -684,9 +685,9 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType
+    property node_id : Cdp::DOM::NodeId
 
-    def initialize(@node_id : Cdp::NodeType)
+    def initialize(@node_id : Cdp::DOM::NodeId)
     end
 
     # ProtoReq returns the protocol method name.
@@ -706,9 +707,9 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property style_sheet_id : Cdp::NodeType
+    property style_sheet_id : Cdp::DOM::StyleSheetId
 
-    def initialize(@style_sheet_id : Cdp::NodeType)
+    def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId)
     end
 
     # ProtoReq returns the protocol method name.
@@ -729,9 +730,9 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType
+    property node_id : Cdp::DOM::NodeId
 
-    def initialize(@node_id : Cdp::NodeType)
+    def initialize(@node_id : Cdp::DOM::NodeId)
     end
 
     # ProtoReq returns the protocol method name.
@@ -752,11 +753,11 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property style_sheet_id : Cdp::NodeType
+    property style_sheet_id : Cdp::DOM::StyleSheetId
     @[JSON::Field(emit_null: false)]
     property selector_text : String
 
-    def initialize(@style_sheet_id : Cdp::NodeType, @selector_text : String)
+    def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @selector_text : String)
     end
 
     # ProtoReq returns the protocol method name.
@@ -777,9 +778,9 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType?
+    property node_id : Cdp::DOM::NodeId?
 
-    def initialize(@node_id : Cdp::NodeType?)
+    def initialize(@node_id : Cdp::DOM::NodeId?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -798,9 +799,9 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property properties_to_track : Array(Cdp::NodeType)
+    property properties_to_track : Array(CSSComputedStyleProperty)
 
-    def initialize(@properties_to_track : Array(Cdp::NodeType))
+    def initialize(@properties_to_track : Array(CSSComputedStyleProperty))
     end
 
     # ProtoReq returns the protocol method name.
@@ -839,13 +840,13 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType
+    property node_id : Cdp::DOM::NodeId
     @[JSON::Field(emit_null: false)]
     property property_name : String
     @[JSON::Field(emit_null: false)]
     property value : String
 
-    def initialize(@node_id : Cdp::NodeType, @property_name : String, @value : String)
+    def initialize(@node_id : Cdp::DOM::NodeId, @property_name : String, @value : String)
     end
 
     # ProtoReq returns the protocol method name.
@@ -863,13 +864,13 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property style_sheet_id : Cdp::NodeType
+    property style_sheet_id : Cdp::DOM::StyleSheetId
     @[JSON::Field(emit_null: false)]
-    property range : Cdp::NodeType
+    property range : SourceRange
     @[JSON::Field(emit_null: false)]
     property property_name : String
 
-    def initialize(@style_sheet_id : Cdp::NodeType, @range : Cdp::NodeType, @property_name : String)
+    def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @range : SourceRange, @property_name : String)
     end
 
     # ProtoReq returns the protocol method name.
@@ -889,13 +890,13 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property style_sheet_id : Cdp::NodeType
+    property style_sheet_id : Cdp::DOM::StyleSheetId
     @[JSON::Field(emit_null: false)]
-    property range : Cdp::NodeType
+    property range : SourceRange
     @[JSON::Field(emit_null: false)]
     property key_text : String
 
-    def initialize(@style_sheet_id : Cdp::NodeType, @range : Cdp::NodeType, @key_text : String)
+    def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @range : SourceRange, @key_text : String)
     end
 
     # ProtoReq returns the protocol method name.
@@ -915,13 +916,13 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property style_sheet_id : Cdp::NodeType
+    property style_sheet_id : Cdp::DOM::StyleSheetId
     @[JSON::Field(emit_null: false)]
-    property range : Cdp::NodeType
+    property range : SourceRange
     @[JSON::Field(emit_null: false)]
     property text : String
 
-    def initialize(@style_sheet_id : Cdp::NodeType, @range : Cdp::NodeType, @text : String)
+    def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @range : SourceRange, @text : String)
     end
 
     # ProtoReq returns the protocol method name.
@@ -942,13 +943,13 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property style_sheet_id : Cdp::NodeType
+    property style_sheet_id : Cdp::DOM::StyleSheetId
     @[JSON::Field(emit_null: false)]
-    property range : Cdp::NodeType
+    property range : SourceRange
     @[JSON::Field(emit_null: false)]
     property text : String
 
-    def initialize(@style_sheet_id : Cdp::NodeType, @range : Cdp::NodeType, @text : String)
+    def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @range : SourceRange, @text : String)
     end
 
     # ProtoReq returns the protocol method name.
@@ -969,13 +970,13 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property style_sheet_id : Cdp::NodeType
+    property style_sheet_id : Cdp::DOM::StyleSheetId
     @[JSON::Field(emit_null: false)]
-    property range : Cdp::NodeType
+    property range : SourceRange
     @[JSON::Field(emit_null: false)]
     property text : String
 
-    def initialize(@style_sheet_id : Cdp::NodeType, @range : Cdp::NodeType, @text : String)
+    def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @range : SourceRange, @text : String)
     end
 
     # ProtoReq returns the protocol method name.
@@ -996,13 +997,13 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property style_sheet_id : Cdp::NodeType
+    property style_sheet_id : Cdp::DOM::StyleSheetId
     @[JSON::Field(emit_null: false)]
-    property range : Cdp::NodeType
+    property range : SourceRange
     @[JSON::Field(emit_null: false)]
     property text : String
 
-    def initialize(@style_sheet_id : Cdp::NodeType, @range : Cdp::NodeType, @text : String)
+    def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @range : SourceRange, @text : String)
     end
 
     # ProtoReq returns the protocol method name.
@@ -1022,13 +1023,13 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property style_sheet_id : Cdp::NodeType
+    property style_sheet_id : Cdp::DOM::StyleSheetId
     @[JSON::Field(emit_null: false)]
-    property range : Cdp::NodeType
+    property range : SourceRange
     @[JSON::Field(emit_null: false)]
     property selector : String
 
-    def initialize(@style_sheet_id : Cdp::NodeType, @range : Cdp::NodeType, @selector : String)
+    def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @range : SourceRange, @selector : String)
     end
 
     # ProtoReq returns the protocol method name.
@@ -1048,11 +1049,11 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property style_sheet_id : Cdp::NodeType
+    property style_sheet_id : Cdp::DOM::StyleSheetId
     @[JSON::Field(emit_null: false)]
     property text : String
 
-    def initialize(@style_sheet_id : Cdp::NodeType, @text : String)
+    def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @text : String)
     end
 
     # ProtoReq returns the protocol method name.
@@ -1072,11 +1073,11 @@ module Cdp::CSS
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property edits : Array(Cdp::NodeType)
+    property edits : Array(StyleDeclarationEdit)
     @[JSON::Field(emit_null: false)]
-    property node_for_property_syntax_validation : Cdp::NodeType?
+    property node_for_property_syntax_validation : Cdp::DOM::NodeId?
 
-    def initialize(@edits : Array(Cdp::NodeType), @node_for_property_syntax_validation : Cdp::NodeType?)
+    def initialize(@edits : Array(StyleDeclarationEdit), @node_for_property_syntax_validation : Cdp::DOM::NodeId?)
     end
 
     # ProtoReq returns the protocol method name.

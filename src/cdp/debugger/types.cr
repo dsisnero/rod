@@ -2,7 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
+require "../runtime/runtime"
 
 module Cdp::Debugger
   alias BreakpointId = String
@@ -12,7 +12,7 @@ module Cdp::Debugger
   struct Location
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property script_id : Cdp::NodeType
+    property script_id : Cdp::Runtime::ScriptId
     @[JSON::Field(emit_null: false)]
     property line_number : Int64
     @[JSON::Field(emit_null: false)]
@@ -32,29 +32,29 @@ module Cdp::Debugger
   struct LocationRange
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property script_id : Cdp::NodeType
+    property script_id : Cdp::Runtime::ScriptId
     @[JSON::Field(emit_null: false)]
-    property start : Cdp::NodeType
+    property start : ScriptPosition
     @[JSON::Field(emit_null: false)]
-    property end : Cdp::NodeType
+    property end : ScriptPosition
   end
 
   struct CallFrame
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property call_frame_id : Cdp::NodeType
+    property call_frame_id : CallFrameId
     @[JSON::Field(emit_null: false)]
     property function_name : String
     @[JSON::Field(emit_null: false)]
-    property function_location : Cdp::NodeType?
+    property function_location : Location?
     @[JSON::Field(emit_null: false)]
-    property location : Cdp::NodeType
+    property location : Location
     @[JSON::Field(emit_null: false)]
-    property scope_chain : Array(Cdp::NodeType)
+    property scope_chain : Array(Scope)
     @[JSON::Field(emit_null: false)]
-    property this : Cdp::NodeType
+    property this : Cdp::Runtime::RemoteObject
     @[JSON::Field(emit_null: false)]
-    property return_value : Cdp::NodeType?
+    property return_value : Cdp::Runtime::RemoteObject?
     @[JSON::Field(emit_null: false)]
     property? can_be_restarted : Bool?
   end
@@ -62,15 +62,15 @@ module Cdp::Debugger
   struct Scope
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property type : Cdp::NodeType
+    property type : ScopeType
     @[JSON::Field(emit_null: false)]
-    property object : Cdp::NodeType
+    property object : Cdp::Runtime::RemoteObject
     @[JSON::Field(emit_null: false)]
     property name : String?
     @[JSON::Field(emit_null: false)]
-    property start_location : Cdp::NodeType?
+    property start_location : Location?
     @[JSON::Field(emit_null: false)]
-    property end_location : Cdp::NodeType?
+    property end_location : Location?
   end
 
   struct SearchMatch
@@ -84,13 +84,13 @@ module Cdp::Debugger
   struct BreakLocation
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property script_id : Cdp::NodeType
+    property script_id : Cdp::Runtime::ScriptId
     @[JSON::Field(emit_null: false)]
     property line_number : Int64
     @[JSON::Field(emit_null: false)]
     property column_number : Int64?
     @[JSON::Field(emit_null: false)]
-    property type : Cdp::NodeType?
+    property type : BreakLocationType?
   end
 
   @[Experimental]
@@ -109,7 +109,7 @@ module Cdp::Debugger
   struct DebugSymbols
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property type : Cdp::NodeType
+    property type : DebugSymbolsType
     @[JSON::Field(emit_null: false)]
     property external_url : String?
   end
@@ -117,9 +117,9 @@ module Cdp::Debugger
   struct ResolvedBreakpoint
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property breakpoint_id : Cdp::NodeType
+    property breakpoint_id : BreakpointId
     @[JSON::Field(emit_null: false)]
-    property location : Cdp::NodeType
+    property location : Location
   end
 
   alias ScopeType = String

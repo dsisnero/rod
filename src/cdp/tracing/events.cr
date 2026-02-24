@@ -2,7 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
+require "../io/io"
 
 module Cdp::Tracing
   @[Experimental]
@@ -57,13 +57,13 @@ module Cdp::Tracing
     @[JSON::Field(emit_null: false)]
     property? data_loss_occurred : Bool
     @[JSON::Field(emit_null: false)]
-    property stream : Cdp::NodeType?
+    property stream : Cdp::IO::StreamHandle?
     @[JSON::Field(emit_null: false)]
-    property trace_format : Cdp::NodeType?
+    property trace_format : StreamFormat?
     @[JSON::Field(emit_null: false)]
-    property stream_compression : Cdp::NodeType?
+    property stream_compression : StreamCompression?
 
-    def initialize(@data_loss_occurred : Bool, @stream : Cdp::NodeType?, @trace_format : Cdp::NodeType?, @stream_compression : Cdp::NodeType?)
+    def initialize(@data_loss_occurred : Bool, @stream : Cdp::IO::StreamHandle?, @trace_format : StreamFormat?, @stream_compression : StreamCompression?)
     end
 
     # ProtoEvent returns the protocol event name.

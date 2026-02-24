@@ -2,7 +2,10 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
+require "../network/network"
+require "../target/target"
+require "../page/page"
+require "../browser/browser"
 
 require "./types"
 require "./events"
@@ -14,18 +17,18 @@ module Cdp::Storage
   struct GetStorageKeyResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property storage_key : Cdp::NodeType
+    property storage_key : SerializedStorageKey
 
-    def initialize(@storage_key : Cdp::NodeType)
+    def initialize(@storage_key : SerializedStorageKey)
     end
   end
 
   struct GetCookiesResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property cookies : Array(Cdp::NodeType)
+    property cookies : Array(Cdp::Network::Cookie)
 
-    def initialize(@cookies : Array(Cdp::NodeType))
+    def initialize(@cookies : Array(Cdp::Network::Cookie))
     end
   end
 
@@ -38,9 +41,9 @@ module Cdp::Storage
     @[JSON::Field(emit_null: false)]
     property? override_active : Bool
     @[JSON::Field(emit_null: false)]
-    property usage_breakdown : Array(Cdp::NodeType)
+    property usage_breakdown : Array(UsageForType)
 
-    def initialize(@usage : Float64, @quota : Float64, @override_active : Bool, @usage_breakdown : Array(Cdp::NodeType))
+    def initialize(@usage : Float64, @quota : Float64, @override_active : Bool, @usage_breakdown : Array(UsageForType))
     end
   end
 
@@ -48,9 +51,9 @@ module Cdp::Storage
   struct GetTrustTokensResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property tokens : Array(Cdp::NodeType)
+    property tokens : Array(TrustTokens)
 
-    def initialize(@tokens : Array(Cdp::NodeType))
+    def initialize(@tokens : Array(TrustTokens))
     end
   end
 
@@ -78,9 +81,9 @@ module Cdp::Storage
   struct GetSharedStorageMetadataResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property metadata : Cdp::NodeType
+    property metadata : SharedStorageMetadata
 
-    def initialize(@metadata : Cdp::NodeType)
+    def initialize(@metadata : SharedStorageMetadata)
     end
   end
 
@@ -88,9 +91,9 @@ module Cdp::Storage
   struct GetSharedStorageEntriesResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property entries : Array(Cdp::NodeType)
+    property entries : Array(SharedStorageEntry)
 
-    def initialize(@entries : Array(Cdp::NodeType))
+    def initialize(@entries : Array(SharedStorageEntry))
     end
   end
 
@@ -118,9 +121,9 @@ module Cdp::Storage
   struct GetRelatedWebsiteSetsResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property sets : Array(Cdp::NodeType)
+    property sets : Array(RelatedWebsiteSet)
 
-    def initialize(@sets : Array(Cdp::NodeType))
+    def initialize(@sets : Array(RelatedWebsiteSet))
     end
   end
 
@@ -140,9 +143,9 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property frame_id : Cdp::NodeType?
+    property frame_id : Cdp::Page::FrameId?
 
-    def initialize(@frame_id : Cdp::NodeType?)
+    def initialize(@frame_id : Cdp::Page::FrameId?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -206,9 +209,9 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property browser_context_id : Cdp::NodeType?
+    property browser_context_id : Cdp::Browser::BrowserContextID?
 
-    def initialize(@browser_context_id : Cdp::NodeType?)
+    def initialize(@browser_context_id : Cdp::Browser::BrowserContextID?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -228,11 +231,11 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property cookies : Array(Cdp::NodeType)
+    property cookies : Array(Cdp::Network::CookieParam)
     @[JSON::Field(emit_null: false)]
-    property browser_context_id : Cdp::NodeType?
+    property browser_context_id : Cdp::Browser::BrowserContextID?
 
-    def initialize(@cookies : Array(Cdp::NodeType), @browser_context_id : Cdp::NodeType?)
+    def initialize(@cookies : Array(Cdp::Network::CookieParam), @browser_context_id : Cdp::Browser::BrowserContextID?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -250,9 +253,9 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property browser_context_id : Cdp::NodeType?
+    property browser_context_id : Cdp::Browser::BrowserContextID?
 
-    def initialize(@browser_context_id : Cdp::NodeType?)
+    def initialize(@browser_context_id : Cdp::Browser::BrowserContextID?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -769,9 +772,9 @@ module Cdp::Storage
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property bucket : Cdp::NodeType
+    property bucket : StorageBucket
 
-    def initialize(@bucket : Cdp::NodeType)
+    def initialize(@bucket : StorageBucket)
     end
 
     # ProtoReq returns the protocol method name.

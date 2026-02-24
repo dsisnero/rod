@@ -2,7 +2,8 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
+require "../runtime/runtime"
+require "../debugger/debugger"
 
 module Cdp::Profiler
   struct ConsoleProfileFinishedEvent
@@ -11,13 +12,13 @@ module Cdp::Profiler
     @[JSON::Field(emit_null: false)]
     property id : String
     @[JSON::Field(emit_null: false)]
-    property location : Cdp::NodeType
+    property location : Cdp::Debugger::Location
     @[JSON::Field(emit_null: false)]
-    property profile : Cdp::NodeType
+    property profile : Profile
     @[JSON::Field(emit_null: false)]
     property title : String?
 
-    def initialize(@id : String, @location : Cdp::NodeType, @profile : Cdp::NodeType, @title : String?)
+    def initialize(@id : String, @location : Cdp::Debugger::Location, @profile : Profile, @title : String?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -37,11 +38,11 @@ module Cdp::Profiler
     @[JSON::Field(emit_null: false)]
     property id : String
     @[JSON::Field(emit_null: false)]
-    property location : Cdp::NodeType
+    property location : Cdp::Debugger::Location
     @[JSON::Field(emit_null: false)]
     property title : String?
 
-    def initialize(@id : String, @location : Cdp::NodeType, @title : String?)
+    def initialize(@id : String, @location : Cdp::Debugger::Location, @title : String?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -64,9 +65,9 @@ module Cdp::Profiler
     @[JSON::Field(emit_null: false)]
     property occasion : String
     @[JSON::Field(emit_null: false)]
-    property result : Array(Cdp::NodeType)
+    property result : Array(ScriptCoverage)
 
-    def initialize(@timestamp : Float64, @occasion : String, @result : Array(Cdp::NodeType))
+    def initialize(@timestamp : Float64, @occasion : String, @result : Array(ScriptCoverage))
     end
 
     # ProtoEvent returns the protocol event name.

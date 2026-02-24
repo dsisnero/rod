@@ -2,7 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
+require "../network/network"
 
 module Cdp::Security
   alias CertificateId = Int64
@@ -40,9 +40,9 @@ module Cdp::Security
     @[JSON::Field(emit_null: false)]
     property issuer : String
     @[JSON::Field(emit_null: false)]
-    property valid_from : Cdp::NodeType
+    property valid_from : Cdp::Network::TimeSinceEpoch
     @[JSON::Field(emit_null: false)]
-    property valid_to : Cdp::NodeType
+    property valid_to : Cdp::Network::TimeSinceEpoch
     @[JSON::Field(emit_null: false)]
     property certificate_network_error : String?
     @[JSON::Field(emit_null: false)]
@@ -70,7 +70,7 @@ module Cdp::Security
   struct SafetyTipInfo
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property safety_tip_status : Cdp::NodeType
+    property safety_tip_status : SafetyTipStatus
     @[JSON::Field(emit_null: false)]
     property safe_url : String?
   end
@@ -79,11 +79,11 @@ module Cdp::Security
   struct VisibleSecurityState
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property security_state : Cdp::NodeType
+    property security_state : SecurityState
     @[JSON::Field(emit_null: false)]
-    property certificate_security_state : Cdp::NodeType?
+    property certificate_security_state : CertificateSecurityState?
     @[JSON::Field(emit_null: false)]
-    property safety_tip_info : Cdp::NodeType?
+    property safety_tip_info : SafetyTipInfo?
     @[JSON::Field(emit_null: false)]
     property security_state_issue_ids : Array(String)
   end
@@ -91,7 +91,7 @@ module Cdp::Security
   struct SecurityStateExplanation
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property security_state : Cdp::NodeType
+    property security_state : SecurityState
     @[JSON::Field(emit_null: false)]
     property title : String
     @[JSON::Field(emit_null: false)]
@@ -99,7 +99,7 @@ module Cdp::Security
     @[JSON::Field(emit_null: false)]
     property description : String
     @[JSON::Field(emit_null: false)]
-    property mixed_content_type : Cdp::NodeType
+    property mixed_content_type : MixedContentType
     @[JSON::Field(emit_null: false)]
     property certificate : Array(String)
     @[JSON::Field(emit_null: false)]

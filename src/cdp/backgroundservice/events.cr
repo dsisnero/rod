@@ -2,7 +2,8 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
+require "../network/network"
+require "../serviceworker/serviceworker"
 
 module Cdp::BackgroundService
   struct RecordingStateChangedEvent
@@ -11,9 +12,9 @@ module Cdp::BackgroundService
     @[JSON::Field(emit_null: false)]
     property? is_recording : Bool
     @[JSON::Field(emit_null: false)]
-    property service : Cdp::NodeType
+    property service : ServiceName
 
-    def initialize(@is_recording : Bool, @service : Cdp::NodeType)
+    def initialize(@is_recording : Bool, @service : ServiceName)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -31,9 +32,9 @@ module Cdp::BackgroundService
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property background_service_event : Cdp::NodeType
+    property background_service_event : BackgroundServiceEvent
 
-    def initialize(@background_service_event : Cdp::NodeType)
+    def initialize(@background_service_event : BackgroundServiceEvent)
     end
 
     # ProtoEvent returns the protocol event name.

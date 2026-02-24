@@ -3,6 +3,8 @@ require "json"
 require "time"
 
 require "../dom/dom"
+require "../page/page"
+require "../network/network"
 
 require "./types"
 require "./events"
@@ -33,9 +35,9 @@ module Cdp::Emulation
   struct GetScreenInfosResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property screen_infos : Array(Cdp::NodeType)
+    property screen_infos : Array(ScreenInfo)
 
-    def initialize(@screen_infos : Array(Cdp::NodeType))
+    def initialize(@screen_infos : Array(ScreenInfo))
     end
   end
 
@@ -43,9 +45,9 @@ module Cdp::Emulation
   struct AddScreenResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property screen_info : Cdp::NodeType
+    property screen_info : ScreenInfo
 
-    def initialize(@screen_info : Cdp::NodeType)
+    def initialize(@screen_info : ScreenInfo)
     end
   end
 
@@ -171,9 +173,9 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property color : Cdp::NodeType?
+    property color : Cdp::DOM::RGBA?
 
-    def initialize(@color : Cdp::NodeType?)
+    def initialize(@color : Cdp::DOM::RGBA?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -192,9 +194,9 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property insets : Cdp::NodeType
+    property insets : SafeAreaInsets
 
-    def initialize(@insets : Cdp::NodeType)
+    def initialize(@insets : SafeAreaInsets)
     end
 
     # ProtoReq returns the protocol method name.
@@ -232,15 +234,15 @@ module Cdp::Emulation
     @[JSON::Field(emit_null: false)]
     property? dont_set_visible_size : Bool?
     @[JSON::Field(emit_null: false)]
-    property screen_orientation : Cdp::NodeType?
+    property screen_orientation : ScreenOrientation?
     @[JSON::Field(emit_null: false)]
-    property viewport : Cdp::NodeType?
+    property viewport : Cdp::Page::Viewport?
     @[JSON::Field(emit_null: false)]
-    property display_feature : Cdp::NodeType?
+    property display_feature : DisplayFeature?
     @[JSON::Field(emit_null: false)]
-    property device_posture : Cdp::NodeType?
+    property device_posture : DevicePosture?
 
-    def initialize(@width : Int64, @height : Int64, @device_scale_factor : Float64, @mobile : Bool, @scale : Float64?, @screen_width : Int64?, @screen_height : Int64?, @position_x : Int64?, @position_y : Int64?, @dont_set_visible_size : Bool?, @screen_orientation : Cdp::NodeType?, @viewport : Cdp::NodeType?, @display_feature : Cdp::NodeType?, @device_posture : Cdp::NodeType?)
+    def initialize(@width : Int64, @height : Int64, @device_scale_factor : Float64, @mobile : Bool, @scale : Float64?, @screen_width : Int64?, @screen_height : Int64?, @position_x : Int64?, @position_y : Int64?, @dont_set_visible_size : Bool?, @screen_orientation : ScreenOrientation?, @viewport : Cdp::Page::Viewport?, @display_feature : DisplayFeature?, @device_posture : DevicePosture?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -259,9 +261,9 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property posture : Cdp::NodeType
+    property posture : DevicePosture
 
-    def initialize(@posture : Cdp::NodeType)
+    def initialize(@posture : DevicePosture)
     end
 
     # ProtoReq returns the protocol method name.
@@ -299,9 +301,9 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property features : Array(Cdp::NodeType)
+    property features : Array(DisplayFeature)
 
-    def initialize(@features : Array(Cdp::NodeType))
+    def initialize(@features : Array(DisplayFeature))
     end
 
     # ProtoReq returns the protocol method name.
@@ -383,9 +385,9 @@ module Cdp::Emulation
     @[JSON::Field(emit_null: false)]
     property? enabled : Bool
     @[JSON::Field(emit_null: false)]
-    property configuration : Cdp::NodeType?
+    property configuration : SetEmitTouchEventsForMouseConfiguration?
 
-    def initialize(@enabled : Bool, @configuration : Cdp::NodeType?)
+    def initialize(@enabled : Bool, @configuration : SetEmitTouchEventsForMouseConfiguration?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -405,9 +407,9 @@ module Cdp::Emulation
     @[JSON::Field(emit_null: false)]
     property media : String?
     @[JSON::Field(emit_null: false)]
-    property features : Array(Cdp::NodeType)?
+    property features : Array(MediaFeature)?
 
-    def initialize(@media : String?, @features : Array(Cdp::NodeType)?)
+    def initialize(@media : String?, @features : Array(MediaFeature)?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -425,9 +427,9 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property type : Cdp::NodeType
+    property type : SetEmulatedVisionDeficiencyType
 
-    def initialize(@type : Cdp::NodeType)
+    def initialize(@type : SetEmulatedVisionDeficiencyType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -498,9 +500,9 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property type : Cdp::NodeType
+    property type : SensorType
 
-    def initialize(@type : Cdp::NodeType)
+    def initialize(@type : SensorType)
     end
 
     # ProtoReq returns the protocol method name.
@@ -523,11 +525,11 @@ module Cdp::Emulation
     @[JSON::Field(emit_null: false)]
     property? enabled : Bool
     @[JSON::Field(emit_null: false)]
-    property type : Cdp::NodeType
+    property type : SensorType
     @[JSON::Field(emit_null: false)]
-    property metadata : Cdp::NodeType?
+    property metadata : SensorMetadata?
 
-    def initialize(@enabled : Bool, @type : Cdp::NodeType, @metadata : Cdp::NodeType?)
+    def initialize(@enabled : Bool, @type : SensorType, @metadata : SensorMetadata?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -546,11 +548,11 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property type : Cdp::NodeType
+    property type : SensorType
     @[JSON::Field(emit_null: false)]
-    property reading : Cdp::NodeType
+    property reading : SensorReading
 
-    def initialize(@type : Cdp::NodeType, @reading : Cdp::NodeType)
+    def initialize(@type : SensorType, @reading : SensorReading)
     end
 
     # ProtoReq returns the protocol method name.
@@ -571,11 +573,11 @@ module Cdp::Emulation
     @[JSON::Field(emit_null: false)]
     property? enabled : Bool
     @[JSON::Field(emit_null: false)]
-    property source : Cdp::NodeType
+    property source : PressureSource
     @[JSON::Field(emit_null: false)]
-    property metadata : Cdp::NodeType?
+    property metadata : PressureMetadata?
 
-    def initialize(@enabled : Bool, @source : Cdp::NodeType, @metadata : Cdp::NodeType?)
+    def initialize(@enabled : Bool, @source : PressureSource, @metadata : PressureMetadata?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -594,11 +596,11 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property source : Cdp::NodeType
+    property source : PressureSource
     @[JSON::Field(emit_null: false)]
-    property state : Cdp::NodeType
+    property state : PressureState
 
-    def initialize(@source : Cdp::NodeType, @state : Cdp::NodeType)
+    def initialize(@source : PressureSource, @state : PressureState)
     end
 
     # ProtoReq returns the protocol method name.
@@ -617,13 +619,13 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property source : Cdp::NodeType
+    property source : PressureSource
     @[JSON::Field(emit_null: false)]
-    property state : Cdp::NodeType
+    property state : PressureState
     @[JSON::Field(emit_null: false)]
     property own_contribution_estimate : Float64?
 
-    def initialize(@source : Cdp::NodeType, @state : Cdp::NodeType, @own_contribution_estimate : Float64?)
+    def initialize(@source : PressureSource, @state : PressureState, @own_contribution_estimate : Float64?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -745,15 +747,15 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property policy : Cdp::NodeType
+    property policy : VirtualTimePolicy
     @[JSON::Field(emit_null: false)]
     property budget : Float64?
     @[JSON::Field(emit_null: false)]
     property max_virtual_time_task_starvation_count : Int64?
     @[JSON::Field(emit_null: false)]
-    property initial_virtual_time : Cdp::NodeType?
+    property initial_virtual_time : Cdp::Network::TimeSinceEpoch?
 
-    def initialize(@policy : Cdp::NodeType, @budget : Float64?, @max_virtual_time_task_starvation_count : Int64?, @initial_virtual_time : Cdp::NodeType?)
+    def initialize(@policy : VirtualTimePolicy, @budget : Float64?, @max_virtual_time_task_starvation_count : Int64?, @initial_virtual_time : Cdp::Network::TimeSinceEpoch?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -815,9 +817,9 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property image_types : Array(Cdp::NodeType)
+    property image_types : Array(DisabledImageType)
 
-    def initialize(@image_types : Array(Cdp::NodeType))
+    def initialize(@image_types : Array(DisabledImageType))
     end
 
     # ProtoReq returns the protocol method name.
@@ -883,9 +885,9 @@ module Cdp::Emulation
     @[JSON::Field(emit_null: false)]
     property platform : String?
     @[JSON::Field(emit_null: false)]
-    property user_agent_metadata : Cdp::NodeType?
+    property user_agent_metadata : UserAgentMetadata?
 
-    def initialize(@user_agent : String, @accept_language : String?, @platform : String?, @user_agent_metadata : Cdp::NodeType?)
+    def initialize(@user_agent : String, @accept_language : String?, @platform : String?, @user_agent_metadata : UserAgentMetadata?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -975,7 +977,7 @@ module Cdp::Emulation
     @[JSON::Field(emit_null: false)]
     property height : Int64
     @[JSON::Field(emit_null: false)]
-    property work_area_insets : Cdp::NodeType?
+    property work_area_insets : WorkAreaInsets?
     @[JSON::Field(emit_null: false)]
     property device_pixel_ratio : Float64?
     @[JSON::Field(emit_null: false)]
@@ -987,7 +989,7 @@ module Cdp::Emulation
     @[JSON::Field(emit_null: false)]
     property? is_internal : Bool?
 
-    def initialize(@left : Int64, @top : Int64, @width : Int64, @height : Int64, @work_area_insets : Cdp::NodeType?, @device_pixel_ratio : Float64?, @rotation : Int64?, @color_depth : Int64?, @label : String?, @is_internal : Bool?)
+    def initialize(@left : Int64, @top : Int64, @width : Int64, @height : Int64, @work_area_insets : WorkAreaInsets?, @device_pixel_ratio : Float64?, @rotation : Int64?, @color_depth : Int64?, @label : String?, @is_internal : Bool?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -1008,9 +1010,9 @@ module Cdp::Emulation
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property screen_id : Cdp::NodeType
+    property screen_id : ScreenId
 
-    def initialize(@screen_id : Cdp::NodeType)
+    def initialize(@screen_id : ScreenId)
     end
 
     # ProtoReq returns the protocol method name.

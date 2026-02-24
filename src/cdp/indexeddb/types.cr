@@ -2,7 +2,8 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
+require "../runtime/runtime"
+require "../storage/storage"
 
 module Cdp::IndexedDB
   struct DatabaseWithObjectStores
@@ -12,7 +13,7 @@ module Cdp::IndexedDB
     @[JSON::Field(emit_null: false)]
     property version : Float64
     @[JSON::Field(emit_null: false)]
-    property object_stores : Array(Cdp::NodeType)
+    property object_stores : Array(ObjectStore)
   end
 
   struct ObjectStore
@@ -20,11 +21,11 @@ module Cdp::IndexedDB
     @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
-    property key_path : Cdp::NodeType
+    property key_path : KeyPath
     @[JSON::Field(emit_null: false)]
     property? auto_increment : Bool
     @[JSON::Field(emit_null: false)]
-    property indexes : Array(Cdp::NodeType)
+    property indexes : Array(ObjectStoreIndex)
   end
 
   struct ObjectStoreIndex
@@ -32,7 +33,7 @@ module Cdp::IndexedDB
     @[JSON::Field(emit_null: false)]
     property name : String
     @[JSON::Field(emit_null: false)]
-    property key_path : Cdp::NodeType
+    property key_path : KeyPath
     @[JSON::Field(emit_null: false)]
     property? unique : Bool
     @[JSON::Field(emit_null: false)]
@@ -42,7 +43,7 @@ module Cdp::IndexedDB
   struct Key
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property type : Cdp::NodeType
+    property type : KeyType
     @[JSON::Field(emit_null: false)]
     property number : Float64?
     @[JSON::Field(emit_null: false)]
@@ -50,15 +51,15 @@ module Cdp::IndexedDB
     @[JSON::Field(emit_null: false)]
     property date : Float64?
     @[JSON::Field(emit_null: false)]
-    property array : Array(Cdp::NodeType)?
+    property array : Array(Key)?
   end
 
   struct KeyRange
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property lower : Cdp::NodeType?
+    property lower : Key?
     @[JSON::Field(emit_null: false)]
-    property upper : Cdp::NodeType?
+    property upper : Key?
     @[JSON::Field(emit_null: false)]
     property? lower_open : Bool
     @[JSON::Field(emit_null: false)]
@@ -68,17 +69,17 @@ module Cdp::IndexedDB
   struct DataEntry
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property key : Cdp::NodeType
+    property key : Cdp::Runtime::RemoteObject
     @[JSON::Field(emit_null: false)]
-    property primary_key : Cdp::NodeType
+    property primary_key : Cdp::Runtime::RemoteObject
     @[JSON::Field(emit_null: false)]
-    property value : Cdp::NodeType
+    property value : Cdp::Runtime::RemoteObject
   end
 
   struct KeyPath
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property type : Cdp::NodeType
+    property type : KeyPathType
     @[JSON::Field(emit_null: false)]
     property string : String?
     @[JSON::Field(emit_null: false)]

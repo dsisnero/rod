@@ -2,7 +2,8 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
+require "../target/target"
+require "../page/page"
 
 module Cdp::Browser
   @[Experimental]
@@ -30,7 +31,7 @@ module Cdp::Browser
     @[JSON::Field(emit_null: false)]
     property height : Int64?
     @[JSON::Field(emit_null: false)]
-    property window_state : Cdp::NodeType?
+    property window_state : WindowState?
   end
 
   @[Experimental]
@@ -125,7 +126,7 @@ module Cdp::Browser
     @[JSON::Field(emit_null: false)]
     property count : Int64
     @[JSON::Field(emit_null: false)]
-    property buckets : Array(Cdp::NodeType)
+    property buckets : Array(Bucket)
   end
 
   @[Experimental]

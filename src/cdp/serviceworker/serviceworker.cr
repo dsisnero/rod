@@ -2,7 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
+require "../target/target"
 
 require "./types"
 require "./events"
@@ -17,11 +17,11 @@ module Cdp::ServiceWorker
     @[JSON::Field(emit_null: false)]
     property origin : String
     @[JSON::Field(emit_null: false)]
-    property registration_id : Cdp::NodeType
+    property registration_id : RegistrationID
     @[JSON::Field(emit_null: false)]
     property data : String
 
-    def initialize(@origin : String, @registration_id : Cdp::NodeType, @data : String)
+    def initialize(@origin : String, @registration_id : RegistrationID, @data : String)
     end
 
     # ProtoReq returns the protocol method name.
@@ -59,13 +59,13 @@ module Cdp::ServiceWorker
     @[JSON::Field(emit_null: false)]
     property origin : String
     @[JSON::Field(emit_null: false)]
-    property registration_id : Cdp::NodeType
+    property registration_id : RegistrationID
     @[JSON::Field(emit_null: false)]
     property tag : String
     @[JSON::Field(emit_null: false)]
     property? last_chance : Bool
 
-    def initialize(@origin : String, @registration_id : Cdp::NodeType, @tag : String, @last_chance : Bool)
+    def initialize(@origin : String, @registration_id : RegistrationID, @tag : String, @last_chance : Bool)
     end
 
     # ProtoReq returns the protocol method name.
@@ -85,11 +85,11 @@ module Cdp::ServiceWorker
     @[JSON::Field(emit_null: false)]
     property origin : String
     @[JSON::Field(emit_null: false)]
-    property registration_id : Cdp::NodeType
+    property registration_id : RegistrationID
     @[JSON::Field(emit_null: false)]
     property tag : String
 
-    def initialize(@origin : String, @registration_id : Cdp::NodeType, @tag : String)
+    def initialize(@origin : String, @registration_id : RegistrationID, @tag : String)
     end
 
     # ProtoReq returns the protocol method name.

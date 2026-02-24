@@ -2,8 +2,6 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
-
 module Cdp::WebAuthn
   alias AuthenticatorId = String
 
@@ -25,11 +23,11 @@ module Cdp::WebAuthn
   struct VirtualAuthenticatorOptions
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property protocol : Cdp::NodeType
+    property protocol : AuthenticatorProtocol
     @[JSON::Field(emit_null: false)]
-    property ctap2_version : Cdp::NodeType?
+    property ctap2_version : Ctap2Version?
     @[JSON::Field(emit_null: false)]
-    property transport : Cdp::NodeType
+    property transport : AuthenticatorTransport
     @[JSON::Field(emit_null: false)]
     property? has_resident_key : Bool?
     @[JSON::Field(emit_null: false)]

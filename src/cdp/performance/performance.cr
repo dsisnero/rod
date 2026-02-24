@@ -2,8 +2,6 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
-
 require "./types"
 require "./events"
 
@@ -12,9 +10,9 @@ module Cdp::Performance
   struct GetMetricsResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property metrics : Array(Cdp::NodeType)
+    property metrics : Array(Metric)
 
-    def initialize(@metrics : Array(Cdp::NodeType))
+    def initialize(@metrics : Array(Metric))
     end
   end
 
@@ -41,9 +39,9 @@ module Cdp::Performance
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property time_domain : Cdp::NodeType?
+    property time_domain : EnableTimeDomain?
 
-    def initialize(@time_domain : Cdp::NodeType?)
+    def initialize(@time_domain : EnableTimeDomain?)
     end
 
     # ProtoReq returns the protocol method name.

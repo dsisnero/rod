@@ -7,6 +7,7 @@ require "./mouse"
 require "./touch"
 require "./lib/js"
 require "./lib/utils"
+require "./hijack"
 require "../cdp/cdp"
 require "../cdp/runtime/runtime"
 require "../cdp/page/page"
@@ -368,7 +369,7 @@ module Rod
             )
           \{% end %}
           browser.context(@ctx).each_event(@session_id, cb_map)
-        \\\\\\\\}
+        \\\\\\\\\\\\\\\\}
       \{% end %}
     end
 
@@ -694,6 +695,18 @@ module Rod
         remove_binding_req = ::Cdp::Runtime::RemoveBinding.new(name: bind)
         remove_binding_req.call(exposed_page)
       end
+    end
+
+    # HijackRequests creates a new router instance for requests hijacking.
+    # When use Fetch domain outside the router should be stopped. Enabling hijacking disables page caching,
+    # but such as 304 Not Modified will still work as expected.
+    # The entire process of hijacking one request:
+    #
+    # browser --req-> rod ---> server ---> rod --res-> browser
+    #
+    # The --req-> and --res-> are the parts that can be modified.
+    def hijack_requests : HijackRouter
+      HijackRouter.new(@browser, self).init_events
     end
 
     # element_by_js returns the element from the return value of the js function.

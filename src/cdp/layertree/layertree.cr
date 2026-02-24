@@ -24,27 +24,27 @@ module Cdp::LayerTree
   struct LoadSnapshotResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property snapshot_id : Cdp::NodeType
+    property snapshot_id : SnapshotId
 
-    def initialize(@snapshot_id : Cdp::NodeType)
+    def initialize(@snapshot_id : SnapshotId)
     end
   end
 
   struct MakeSnapshotResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property snapshot_id : Cdp::NodeType
+    property snapshot_id : SnapshotId
 
-    def initialize(@snapshot_id : Cdp::NodeType)
+    def initialize(@snapshot_id : SnapshotId)
     end
   end
 
   struct ProfileSnapshotResult
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property timings : Array(Cdp::NodeType)
+    property timings : Array(PaintProfile)
 
-    def initialize(@timings : Array(Cdp::NodeType))
+    def initialize(@timings : Array(PaintProfile))
     end
   end
 
@@ -71,9 +71,9 @@ module Cdp::LayerTree
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property layer_id : Cdp::NodeType
+    property layer_id : LayerId
 
-    def initialize(@layer_id : Cdp::NodeType)
+    def initialize(@layer_id : LayerId)
     end
 
     # ProtoReq returns the protocol method name.
@@ -129,9 +129,9 @@ module Cdp::LayerTree
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property tiles : Array(Cdp::NodeType)
+    property tiles : Array(PictureTile)
 
-    def initialize(@tiles : Array(Cdp::NodeType))
+    def initialize(@tiles : Array(PictureTile))
     end
 
     # ProtoReq returns the protocol method name.
@@ -151,9 +151,9 @@ module Cdp::LayerTree
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property layer_id : Cdp::NodeType
+    property layer_id : LayerId
 
-    def initialize(@layer_id : Cdp::NodeType)
+    def initialize(@layer_id : LayerId)
     end
 
     # ProtoReq returns the protocol method name.
@@ -173,15 +173,15 @@ module Cdp::LayerTree
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property snapshot_id : Cdp::NodeType
+    property snapshot_id : SnapshotId
     @[JSON::Field(emit_null: false)]
     property min_repeat_count : Int64?
     @[JSON::Field(emit_null: false)]
     property min_duration : Float64?
     @[JSON::Field(emit_null: false)]
-    property clip_rect : Cdp::NodeType?
+    property clip_rect : Cdp::DOM::Rect?
 
-    def initialize(@snapshot_id : Cdp::NodeType, @min_repeat_count : Int64?, @min_duration : Float64?, @clip_rect : Cdp::NodeType?)
+    def initialize(@snapshot_id : SnapshotId, @min_repeat_count : Int64?, @min_duration : Float64?, @clip_rect : Cdp::DOM::Rect?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -201,9 +201,9 @@ module Cdp::LayerTree
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property snapshot_id : Cdp::NodeType
+    property snapshot_id : SnapshotId
 
-    def initialize(@snapshot_id : Cdp::NodeType)
+    def initialize(@snapshot_id : SnapshotId)
     end
 
     # ProtoReq returns the protocol method name.
@@ -221,7 +221,7 @@ module Cdp::LayerTree
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property snapshot_id : Cdp::NodeType
+    property snapshot_id : SnapshotId
     @[JSON::Field(emit_null: false)]
     property from_step : Int64?
     @[JSON::Field(emit_null: false)]
@@ -229,7 +229,7 @@ module Cdp::LayerTree
     @[JSON::Field(emit_null: false)]
     property scale : Float64?
 
-    def initialize(@snapshot_id : Cdp::NodeType, @from_step : Int64?, @to_step : Int64?, @scale : Float64?)
+    def initialize(@snapshot_id : SnapshotId, @from_step : Int64?, @to_step : Int64?, @scale : Float64?)
     end
 
     # ProtoReq returns the protocol method name.
@@ -249,9 +249,9 @@ module Cdp::LayerTree
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(emit_null: false)]
-    property snapshot_id : Cdp::NodeType
+    property snapshot_id : SnapshotId
 
-    def initialize(@snapshot_id : Cdp::NodeType)
+    def initialize(@snapshot_id : SnapshotId)
     end
 
     # ProtoReq returns the protocol method name.

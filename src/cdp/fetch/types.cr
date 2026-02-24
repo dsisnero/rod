@@ -2,7 +2,9 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
+require "../network/network"
+require "../io/io"
+require "../page/page"
 
 module Cdp::Fetch
   alias RequestId = String
@@ -16,9 +18,9 @@ module Cdp::Fetch
     @[JSON::Field(emit_null: false)]
     property url_pattern : String?
     @[JSON::Field(emit_null: false)]
-    property resource_type : Cdp::NodeType?
+    property resource_type : Cdp::Network::ResourceType?
     @[JSON::Field(emit_null: false)]
-    property request_stage : Cdp::NodeType?
+    property request_stage : RequestStage?
   end
 
   struct HeaderEntry
@@ -32,7 +34,7 @@ module Cdp::Fetch
   struct AuthChallenge
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property source : Cdp::NodeType?
+    property source : AuthChallengeSource?
     @[JSON::Field(emit_null: false)]
     property origin : String
     @[JSON::Field(emit_null: false)]
@@ -44,7 +46,7 @@ module Cdp::Fetch
   struct AuthChallengeResponse
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property response : Cdp::NodeType
+    property response : AuthChallengeResponseResponse
     @[JSON::Field(emit_null: false)]
     property username : String?
     @[JSON::Field(emit_null: false)]

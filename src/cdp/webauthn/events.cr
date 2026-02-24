@@ -2,18 +2,16 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
-
 module Cdp::WebAuthn
   struct CredentialAddedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property authenticator_id : Cdp::NodeType
+    property authenticator_id : AuthenticatorId
     @[JSON::Field(emit_null: false)]
-    property credential : Cdp::NodeType
+    property credential : Credential
 
-    def initialize(@authenticator_id : Cdp::NodeType, @credential : Cdp::NodeType)
+    def initialize(@authenticator_id : AuthenticatorId, @credential : Credential)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -31,11 +29,11 @@ module Cdp::WebAuthn
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property authenticator_id : Cdp::NodeType
+    property authenticator_id : AuthenticatorId
     @[JSON::Field(emit_null: false)]
     property credential_id : String
 
-    def initialize(@authenticator_id : Cdp::NodeType, @credential_id : String)
+    def initialize(@authenticator_id : AuthenticatorId, @credential_id : String)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -53,11 +51,11 @@ module Cdp::WebAuthn
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property authenticator_id : Cdp::NodeType
+    property authenticator_id : AuthenticatorId
     @[JSON::Field(emit_null: false)]
-    property credential : Cdp::NodeType
+    property credential : Credential
 
-    def initialize(@authenticator_id : Cdp::NodeType, @credential : Cdp::NodeType)
+    def initialize(@authenticator_id : AuthenticatorId, @credential : Credential)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -75,11 +73,11 @@ module Cdp::WebAuthn
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property authenticator_id : Cdp::NodeType
+    property authenticator_id : AuthenticatorId
     @[JSON::Field(emit_null: false)]
-    property credential : Cdp::NodeType
+    property credential : Credential
 
-    def initialize(@authenticator_id : Cdp::NodeType, @credential : Cdp::NodeType)
+    def initialize(@authenticator_id : AuthenticatorId, @credential : Credential)
     end
 
     # ProtoEvent returns the protocol event name.

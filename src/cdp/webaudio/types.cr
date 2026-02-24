@@ -49,13 +49,13 @@ module Cdp::WebAudio
   struct BaseAudioContext
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property context_id : Cdp::NodeType
+    property context_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
-    property context_type : Cdp::NodeType
+    property context_type : ContextType
     @[JSON::Field(emit_null: false)]
-    property context_state : Cdp::NodeType
+    property context_state : ContextState
     @[JSON::Field(emit_null: false)]
-    property realtime_data : Cdp::NodeType?
+    property realtime_data : ContextRealtimeData?
     @[JSON::Field(emit_null: false)]
     property callback_buffer_size : Float64
     @[JSON::Field(emit_null: false)]
@@ -67,17 +67,17 @@ module Cdp::WebAudio
   struct AudioListener
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property listener_id : Cdp::NodeType
+    property listener_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
-    property context_id : Cdp::NodeType
+    property context_id : GraphObjectId
   end
 
   struct AudioNode
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType
+    property node_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
-    property context_id : Cdp::NodeType
+    property context_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
     property node_type : Cdp::NodeType
     @[JSON::Field(emit_null: false)]
@@ -87,23 +87,23 @@ module Cdp::WebAudio
     @[JSON::Field(emit_null: false)]
     property channel_count : Float64
     @[JSON::Field(emit_null: false)]
-    property channel_count_mode : Cdp::NodeType
+    property channel_count_mode : ChannelCountMode
     @[JSON::Field(emit_null: false)]
-    property channel_interpretation : Cdp::NodeType
+    property channel_interpretation : ChannelInterpretation
   end
 
   struct AudioParam
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property param_id : Cdp::NodeType
+    property param_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
-    property node_id : Cdp::NodeType
+    property node_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
-    property context_id : Cdp::NodeType
+    property context_id : GraphObjectId
     @[JSON::Field(emit_null: false)]
-    property param_type : Cdp::NodeType
+    property param_type : ParamType
     @[JSON::Field(emit_null: false)]
-    property rate : Cdp::NodeType
+    property rate : AutomationRate
     @[JSON::Field(emit_null: false)]
     property default_value : Float64
     @[JSON::Field(emit_null: false)]

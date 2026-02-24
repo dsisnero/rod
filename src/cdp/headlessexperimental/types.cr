@@ -2,13 +2,11 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
-
 module Cdp::HeadlessExperimental
   struct ScreenshotParams
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property format : Cdp::NodeType?
+    property format : ScreenshotParamsFormat?
     @[JSON::Field(emit_null: false)]
     property quality : Int64?
     @[JSON::Field(emit_null: false)]

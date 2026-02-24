@@ -2,16 +2,20 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
+require "../security/security"
+require "../runtime/runtime"
+require "../io/io"
+require "../debugger/debugger"
+require "../page/page"
 
 module Cdp::Network
   struct DataReceivedEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
     @[JSON::Field(emit_null: false)]
     property data_length : Int64
     @[JSON::Field(emit_null: false)]
@@ -19,7 +23,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property data : String?
 
-    def initialize(@request_id : Cdp::NodeType, @timestamp : Cdp::NodeType, @data_length : Int64, @encoded_data_length : Int64, @data : String?)
+    def initialize(@request_id : RequestId, @timestamp : MonotonicTime, @data_length : Int64, @encoded_data_length : Int64, @data : String?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -37,9 +41,9 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
     @[JSON::Field(emit_null: false)]
     property event_name : String
     @[JSON::Field(emit_null: false)]
@@ -47,7 +51,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property data : String
 
-    def initialize(@request_id : Cdp::NodeType, @timestamp : Cdp::NodeType, @event_name : String, @event_id : String, @data : String)
+    def initialize(@request_id : RequestId, @timestamp : MonotonicTime, @event_name : String, @event_id : String, @data : String)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -65,21 +69,21 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
     @[JSON::Field(emit_null: false)]
-    property type : Cdp::NodeType
+    property type : ResourceType
     @[JSON::Field(emit_null: false)]
     property error_text : String
     @[JSON::Field(emit_null: false)]
     property? canceled : Bool?
     @[JSON::Field(emit_null: false)]
-    property blocked_reason : Cdp::NodeType?
+    property blocked_reason : BlockedReason?
     @[JSON::Field(emit_null: false)]
-    property cors_error_status : Cdp::NodeType?
+    property cors_error_status : CorsErrorStatus?
 
-    def initialize(@request_id : Cdp::NodeType, @timestamp : Cdp::NodeType, @type : Cdp::NodeType, @error_text : String, @canceled : Bool?, @blocked_reason : Cdp::NodeType?, @cors_error_status : Cdp::NodeType?)
+    def initialize(@request_id : RequestId, @timestamp : MonotonicTime, @type : ResourceType, @error_text : String, @canceled : Bool?, @blocked_reason : BlockedReason?, @cors_error_status : CorsErrorStatus?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -97,13 +101,13 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
     @[JSON::Field(emit_null: false)]
     property encoded_data_length : Float64
 
-    def initialize(@request_id : Cdp::NodeType, @timestamp : Cdp::NodeType, @encoded_data_length : Float64)
+    def initialize(@request_id : RequestId, @timestamp : MonotonicTime, @encoded_data_length : Float64)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -121,9 +125,9 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
 
-    def initialize(@request_id : Cdp::NodeType)
+    def initialize(@request_id : RequestId)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -141,33 +145,33 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property loader_id : Cdp::NodeType
+    property loader_id : LoaderId
     @[JSON::Field(emit_null: false)]
     property document_url : String
     @[JSON::Field(emit_null: false)]
-    property request : Cdp::NodeType
+    property request : Request
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
     @[JSON::Field(emit_null: false)]
-    property wall_time : Cdp::NodeType
+    property wall_time : TimeSinceEpoch
     @[JSON::Field(emit_null: false)]
-    property initiator : Cdp::NodeType
+    property initiator : Initiator
     @[JSON::Field(emit_null: false)]
     property? redirect_has_extra_info : Bool
     @[JSON::Field(emit_null: false)]
-    property redirect_response : Cdp::NodeType?
+    property redirect_response : Response?
     @[JSON::Field(emit_null: false)]
-    property type : Cdp::NodeType?
+    property type : ResourceType?
     @[JSON::Field(emit_null: false)]
-    property frame_id : Cdp::NodeType?
+    property frame_id : Cdp::Page::FrameId?
     @[JSON::Field(emit_null: false)]
     property? has_user_gesture : Bool?
     @[JSON::Field(emit_null: false)]
-    property render_blocking_behavior : Cdp::NodeType?
+    property render_blocking_behavior : RenderBlockingBehavior?
 
-    def initialize(@request_id : Cdp::NodeType, @loader_id : Cdp::NodeType, @document_url : String, @request : Cdp::NodeType, @timestamp : Cdp::NodeType, @wall_time : Cdp::NodeType, @initiator : Cdp::NodeType, @redirect_has_extra_info : Bool, @redirect_response : Cdp::NodeType?, @type : Cdp::NodeType?, @frame_id : Cdp::NodeType?, @has_user_gesture : Bool?, @render_blocking_behavior : Cdp::NodeType?)
+    def initialize(@request_id : RequestId, @loader_id : LoaderId, @document_url : String, @request : Request, @timestamp : MonotonicTime, @wall_time : TimeSinceEpoch, @initiator : Initiator, @redirect_has_extra_info : Bool, @redirect_response : Response?, @type : ResourceType?, @frame_id : Cdp::Page::FrameId?, @has_user_gesture : Bool?, @render_blocking_behavior : RenderBlockingBehavior?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -186,13 +190,13 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property new_priority : Cdp::NodeType
+    property new_priority : ResourcePriority
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
 
-    def initialize(@request_id : Cdp::NodeType, @new_priority : Cdp::NodeType, @timestamp : Cdp::NodeType)
+    def initialize(@request_id : RequestId, @new_priority : ResourcePriority, @timestamp : MonotonicTime)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -211,11 +215,11 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property info : Cdp::NodeType
+    property info : SignedExchangeInfo
 
-    def initialize(@request_id : Cdp::NodeType, @info : Cdp::NodeType)
+    def initialize(@request_id : RequestId, @info : SignedExchangeInfo)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -233,21 +237,21 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property loader_id : Cdp::NodeType
+    property loader_id : LoaderId
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
     @[JSON::Field(emit_null: false)]
-    property type : Cdp::NodeType
+    property type : ResourceType
     @[JSON::Field(emit_null: false)]
-    property response : Cdp::NodeType
+    property response : Response
     @[JSON::Field(emit_null: false)]
     property? has_extra_info : Bool
     @[JSON::Field(emit_null: false)]
-    property frame_id : Cdp::NodeType?
+    property frame_id : Cdp::Page::FrameId?
 
-    def initialize(@request_id : Cdp::NodeType, @loader_id : Cdp::NodeType, @timestamp : Cdp::NodeType, @type : Cdp::NodeType, @response : Cdp::NodeType, @has_extra_info : Bool, @frame_id : Cdp::NodeType?)
+    def initialize(@request_id : RequestId, @loader_id : LoaderId, @timestamp : MonotonicTime, @type : ResourceType, @response : Response, @has_extra_info : Bool, @frame_id : Cdp::Page::FrameId?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -265,11 +269,11 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
 
-    def initialize(@request_id : Cdp::NodeType, @timestamp : Cdp::NodeType)
+    def initialize(@request_id : RequestId, @timestamp : MonotonicTime)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -287,13 +291,13 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
     property url : String
     @[JSON::Field(emit_null: false)]
-    property initiator : Cdp::NodeType?
+    property initiator : Initiator?
 
-    def initialize(@request_id : Cdp::NodeType, @url : String, @initiator : Cdp::NodeType?)
+    def initialize(@request_id : RequestId, @url : String, @initiator : Initiator?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -311,13 +315,13 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
     @[JSON::Field(emit_null: false)]
     property error_message : String
 
-    def initialize(@request_id : Cdp::NodeType, @timestamp : Cdp::NodeType, @error_message : String)
+    def initialize(@request_id : RequestId, @timestamp : MonotonicTime, @error_message : String)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -335,13 +339,13 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
     @[JSON::Field(emit_null: false)]
-    property response : Cdp::NodeType
+    property response : WebSocketFrame
 
-    def initialize(@request_id : Cdp::NodeType, @timestamp : Cdp::NodeType, @response : Cdp::NodeType)
+    def initialize(@request_id : RequestId, @timestamp : MonotonicTime, @response : WebSocketFrame)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -359,13 +363,13 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
     @[JSON::Field(emit_null: false)]
-    property response : Cdp::NodeType
+    property response : WebSocketFrame
 
-    def initialize(@request_id : Cdp::NodeType, @timestamp : Cdp::NodeType, @response : Cdp::NodeType)
+    def initialize(@request_id : RequestId, @timestamp : MonotonicTime, @response : WebSocketFrame)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -383,13 +387,13 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
     @[JSON::Field(emit_null: false)]
-    property response : Cdp::NodeType
+    property response : WebSocketResponse
 
-    def initialize(@request_id : Cdp::NodeType, @timestamp : Cdp::NodeType, @response : Cdp::NodeType)
+    def initialize(@request_id : RequestId, @timestamp : MonotonicTime, @response : WebSocketResponse)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -407,15 +411,15 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
     @[JSON::Field(emit_null: false)]
-    property wall_time : Cdp::NodeType
+    property wall_time : TimeSinceEpoch
     @[JSON::Field(emit_null: false)]
-    property request : Cdp::NodeType
+    property request : WebSocketRequest
 
-    def initialize(@request_id : Cdp::NodeType, @timestamp : Cdp::NodeType, @wall_time : Cdp::NodeType, @request : Cdp::NodeType)
+    def initialize(@request_id : RequestId, @timestamp : MonotonicTime, @wall_time : TimeSinceEpoch, @request : WebSocketRequest)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -433,15 +437,15 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property transport_id : Cdp::NodeType
+    property transport_id : RequestId
     @[JSON::Field(emit_null: false)]
     property url : String
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
     @[JSON::Field(emit_null: false)]
-    property initiator : Cdp::NodeType?
+    property initiator : Initiator?
 
-    def initialize(@transport_id : Cdp::NodeType, @url : String, @timestamp : Cdp::NodeType, @initiator : Cdp::NodeType?)
+    def initialize(@transport_id : RequestId, @url : String, @timestamp : MonotonicTime, @initiator : Initiator?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -459,11 +463,11 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property transport_id : Cdp::NodeType
+    property transport_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
 
-    def initialize(@transport_id : Cdp::NodeType, @timestamp : Cdp::NodeType)
+    def initialize(@transport_id : RequestId, @timestamp : MonotonicTime)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -481,11 +485,11 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property transport_id : Cdp::NodeType
+    property transport_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
 
-    def initialize(@transport_id : Cdp::NodeType, @timestamp : Cdp::NodeType)
+    def initialize(@transport_id : RequestId, @timestamp : MonotonicTime)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -504,19 +508,19 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property identifier : Cdp::NodeType
+    property identifier : RequestId
     @[JSON::Field(emit_null: false)]
     property remote_addr : String
     @[JSON::Field(emit_null: false)]
     property remote_port : Int64
     @[JSON::Field(emit_null: false)]
-    property options : Cdp::NodeType
+    property options : DirectTCPSocketOptions
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
     @[JSON::Field(emit_null: false)]
-    property initiator : Cdp::NodeType?
+    property initiator : Initiator?
 
-    def initialize(@identifier : Cdp::NodeType, @remote_addr : String, @remote_port : Int64, @options : Cdp::NodeType, @timestamp : Cdp::NodeType, @initiator : Cdp::NodeType?)
+    def initialize(@identifier : RequestId, @remote_addr : String, @remote_port : Int64, @options : DirectTCPSocketOptions, @timestamp : MonotonicTime, @initiator : Initiator?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -535,19 +539,19 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property identifier : Cdp::NodeType
+    property identifier : RequestId
     @[JSON::Field(emit_null: false)]
     property remote_addr : String
     @[JSON::Field(emit_null: false)]
     property remote_port : Int64
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
     @[JSON::Field(emit_null: false)]
     property local_addr : String?
     @[JSON::Field(emit_null: false)]
     property local_port : Int64?
 
-    def initialize(@identifier : Cdp::NodeType, @remote_addr : String, @remote_port : Int64, @timestamp : Cdp::NodeType, @local_addr : String?, @local_port : Int64?)
+    def initialize(@identifier : RequestId, @remote_addr : String, @remote_port : Int64, @timestamp : MonotonicTime, @local_addr : String?, @local_port : Int64?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -566,13 +570,13 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property identifier : Cdp::NodeType
+    property identifier : RequestId
     @[JSON::Field(emit_null: false)]
     property error_message : String
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
 
-    def initialize(@identifier : Cdp::NodeType, @error_message : String, @timestamp : Cdp::NodeType)
+    def initialize(@identifier : RequestId, @error_message : String, @timestamp : MonotonicTime)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -591,11 +595,11 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property identifier : Cdp::NodeType
+    property identifier : RequestId
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
 
-    def initialize(@identifier : Cdp::NodeType, @timestamp : Cdp::NodeType)
+    def initialize(@identifier : RequestId, @timestamp : MonotonicTime)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -614,13 +618,13 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property identifier : Cdp::NodeType
+    property identifier : RequestId
     @[JSON::Field(emit_null: false)]
     property data : String
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
 
-    def initialize(@identifier : Cdp::NodeType, @data : String, @timestamp : Cdp::NodeType)
+    def initialize(@identifier : RequestId, @data : String, @timestamp : MonotonicTime)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -639,13 +643,13 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property identifier : Cdp::NodeType
+    property identifier : RequestId
     @[JSON::Field(emit_null: false)]
     property data : String
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
 
-    def initialize(@identifier : Cdp::NodeType, @data : String, @timestamp : Cdp::NodeType)
+    def initialize(@identifier : RequestId, @data : String, @timestamp : MonotonicTime)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -664,11 +668,11 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property identifier : Cdp::NodeType
+    property identifier : RequestId
     @[JSON::Field(emit_null: false)]
     property ip_address : String
 
-    def initialize(@identifier : Cdp::NodeType, @ip_address : String)
+    def initialize(@identifier : RequestId, @ip_address : String)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -687,11 +691,11 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property identifier : Cdp::NodeType
+    property identifier : RequestId
     @[JSON::Field(emit_null: false)]
     property ip_address : String
 
-    def initialize(@identifier : Cdp::NodeType, @ip_address : String)
+    def initialize(@identifier : RequestId, @ip_address : String)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -710,15 +714,15 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property identifier : Cdp::NodeType
+    property identifier : RequestId
     @[JSON::Field(emit_null: false)]
-    property options : Cdp::NodeType
+    property options : DirectUDPSocketOptions
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
     @[JSON::Field(emit_null: false)]
-    property initiator : Cdp::NodeType?
+    property initiator : Initiator?
 
-    def initialize(@identifier : Cdp::NodeType, @options : Cdp::NodeType, @timestamp : Cdp::NodeType, @initiator : Cdp::NodeType?)
+    def initialize(@identifier : RequestId, @options : DirectUDPSocketOptions, @timestamp : MonotonicTime, @initiator : Initiator?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -737,19 +741,19 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property identifier : Cdp::NodeType
+    property identifier : RequestId
     @[JSON::Field(emit_null: false)]
     property local_addr : String
     @[JSON::Field(emit_null: false)]
     property local_port : Int64
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
     @[JSON::Field(emit_null: false)]
     property remote_addr : String?
     @[JSON::Field(emit_null: false)]
     property remote_port : Int64?
 
-    def initialize(@identifier : Cdp::NodeType, @local_addr : String, @local_port : Int64, @timestamp : Cdp::NodeType, @remote_addr : String?, @remote_port : Int64?)
+    def initialize(@identifier : RequestId, @local_addr : String, @local_port : Int64, @timestamp : MonotonicTime, @remote_addr : String?, @remote_port : Int64?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -768,13 +772,13 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property identifier : Cdp::NodeType
+    property identifier : RequestId
     @[JSON::Field(emit_null: false)]
     property error_message : String
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
 
-    def initialize(@identifier : Cdp::NodeType, @error_message : String, @timestamp : Cdp::NodeType)
+    def initialize(@identifier : RequestId, @error_message : String, @timestamp : MonotonicTime)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -793,11 +797,11 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property identifier : Cdp::NodeType
+    property identifier : RequestId
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
 
-    def initialize(@identifier : Cdp::NodeType, @timestamp : Cdp::NodeType)
+    def initialize(@identifier : RequestId, @timestamp : MonotonicTime)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -816,13 +820,13 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property identifier : Cdp::NodeType
+    property identifier : RequestId
     @[JSON::Field(emit_null: false)]
-    property message : Cdp::NodeType
+    property message : DirectUDPMessage
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
 
-    def initialize(@identifier : Cdp::NodeType, @message : Cdp::NodeType, @timestamp : Cdp::NodeType)
+    def initialize(@identifier : RequestId, @message : DirectUDPMessage, @timestamp : MonotonicTime)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -841,13 +845,13 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property identifier : Cdp::NodeType
+    property identifier : RequestId
     @[JSON::Field(emit_null: false)]
-    property message : Cdp::NodeType
+    property message : DirectUDPMessage
     @[JSON::Field(emit_null: false)]
-    property timestamp : Cdp::NodeType
+    property timestamp : MonotonicTime
 
-    def initialize(@identifier : Cdp::NodeType, @message : Cdp::NodeType, @timestamp : Cdp::NodeType)
+    def initialize(@identifier : RequestId, @message : DirectUDPMessage, @timestamp : MonotonicTime)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -866,23 +870,23 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property associated_cookies : Array(Cdp::NodeType)
+    property associated_cookies : Array(AssociatedCookie)
     @[JSON::Field(emit_null: false)]
-    property headers : Cdp::NodeType
+    property headers : Headers
     @[JSON::Field(emit_null: false)]
-    property connect_timing : Cdp::NodeType
+    property connect_timing : ConnectTiming
     @[JSON::Field(emit_null: false)]
-    property device_bound_session_usages : Array(Cdp::NodeType)?
+    property device_bound_session_usages : Array(DeviceBoundSessionWithUsage)?
     @[JSON::Field(emit_null: false)]
-    property client_security_state : Cdp::NodeType?
+    property client_security_state : ClientSecurityState?
     @[JSON::Field(emit_null: false)]
     property? site_has_cookie_in_other_partition : Bool?
     @[JSON::Field(emit_null: false)]
     property applied_network_conditions_id : String?
 
-    def initialize(@request_id : Cdp::NodeType, @associated_cookies : Array(Cdp::NodeType), @headers : Cdp::NodeType, @connect_timing : Cdp::NodeType, @device_bound_session_usages : Array(Cdp::NodeType)?, @client_security_state : Cdp::NodeType?, @site_has_cookie_in_other_partition : Bool?, @applied_network_conditions_id : String?)
+    def initialize(@request_id : RequestId, @associated_cookies : Array(AssociatedCookie), @headers : Headers, @connect_timing : ConnectTiming, @device_bound_session_usages : Array(DeviceBoundSessionWithUsage)?, @client_security_state : ClientSecurityState?, @site_has_cookie_in_other_partition : Bool?, @applied_network_conditions_id : String?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -901,25 +905,25 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property blocked_cookies : Array(Cdp::NodeType)
+    property blocked_cookies : Array(BlockedSetCookieWithReason)
     @[JSON::Field(emit_null: false)]
-    property headers : Cdp::NodeType
+    property headers : Headers
     @[JSON::Field(emit_null: false)]
-    property resource_ip_address_space : Cdp::NodeType
+    property resource_ip_address_space : IPAddressSpace
     @[JSON::Field(emit_null: false)]
     property status_code : Int64
     @[JSON::Field(emit_null: false)]
     property headers_text : String?
     @[JSON::Field(emit_null: false)]
-    property cookie_partition_key : Cdp::NodeType?
+    property cookie_partition_key : CookiePartitionKey?
     @[JSON::Field(emit_null: false)]
     property? cookie_partition_key_opaque : Bool?
     @[JSON::Field(emit_null: false)]
-    property exempted_cookies : Array(Cdp::NodeType)?
+    property exempted_cookies : Array(ExemptedSetCookieWithReason)?
 
-    def initialize(@request_id : Cdp::NodeType, @blocked_cookies : Array(Cdp::NodeType), @headers : Cdp::NodeType, @resource_ip_address_space : Cdp::NodeType, @status_code : Int64, @headers_text : String?, @cookie_partition_key : Cdp::NodeType?, @cookie_partition_key_opaque : Bool?, @exempted_cookies : Array(Cdp::NodeType)?)
+    def initialize(@request_id : RequestId, @blocked_cookies : Array(BlockedSetCookieWithReason), @headers : Headers, @resource_ip_address_space : IPAddressSpace, @status_code : Int64, @headers_text : String?, @cookie_partition_key : CookiePartitionKey?, @cookie_partition_key_opaque : Bool?, @exempted_cookies : Array(ExemptedSetCookieWithReason)?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -938,11 +942,11 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
-    property headers : Cdp::NodeType
+    property headers : Headers
 
-    def initialize(@request_id : Cdp::NodeType, @headers : Cdp::NodeType)
+    def initialize(@request_id : RequestId, @headers : Headers)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -961,11 +965,11 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property status : Cdp::NodeType
+    property status : TrustTokenOperationDoneStatus
     @[JSON::Field(emit_null: false)]
-    property type : Cdp::NodeType
+    property type : TrustTokenOperationType
     @[JSON::Field(emit_null: false)]
-    property request_id : Cdp::NodeType
+    property request_id : RequestId
     @[JSON::Field(emit_null: false)]
     property top_level_origin : String?
     @[JSON::Field(emit_null: false)]
@@ -973,7 +977,7 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property issued_token_count : Int64?
 
-    def initialize(@status : Cdp::NodeType, @type : Cdp::NodeType, @request_id : Cdp::NodeType, @top_level_origin : String?, @issuer_origin : String?, @issued_token_count : Int64?)
+    def initialize(@status : TrustTokenOperationDoneStatus, @type : TrustTokenOperationType, @request_id : RequestId, @top_level_origin : String?, @issuer_origin : String?, @issued_token_count : Int64?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -1011,9 +1015,9 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property report : Cdp::NodeType
+    property report : ReportingApiReport
 
-    def initialize(@report : Cdp::NodeType)
+    def initialize(@report : ReportingApiReport)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -1032,9 +1036,9 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property report : Cdp::NodeType
+    property report : ReportingApiReport
 
-    def initialize(@report : Cdp::NodeType)
+    def initialize(@report : ReportingApiReport)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -1055,9 +1059,9 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property origin : String
     @[JSON::Field(emit_null: false)]
-    property endpoints : Array(Cdp::NodeType)
+    property endpoints : Array(ReportingApiEndpoint)
 
-    def initialize(@origin : String, @endpoints : Array(Cdp::NodeType))
+    def initialize(@origin : String, @endpoints : Array(ReportingApiEndpoint))
     end
 
     # ProtoEvent returns the protocol event name.
@@ -1076,9 +1080,9 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property sessions : Array(Cdp::NodeType)
+    property sessions : Array(DeviceBoundSession)
 
-    def initialize(@sessions : Array(Cdp::NodeType))
+    def initialize(@sessions : Array(DeviceBoundSession))
     end
 
     # ProtoEvent returns the protocol event name.
@@ -1097,7 +1101,7 @@ module Cdp::Network
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property event_id : Cdp::NodeType
+    property event_id : DeviceBoundSessionEventId
     @[JSON::Field(emit_null: false)]
     property site : String
     @[JSON::Field(emit_null: false)]
@@ -1105,15 +1109,15 @@ module Cdp::Network
     @[JSON::Field(emit_null: false)]
     property session_id : String?
     @[JSON::Field(emit_null: false)]
-    property creation_event_details : Cdp::NodeType?
+    property creation_event_details : CreationEventDetails?
     @[JSON::Field(emit_null: false)]
-    property refresh_event_details : Cdp::NodeType?
+    property refresh_event_details : RefreshEventDetails?
     @[JSON::Field(emit_null: false)]
-    property termination_event_details : Cdp::NodeType?
+    property termination_event_details : TerminationEventDetails?
     @[JSON::Field(emit_null: false)]
-    property challenge_event_details : Cdp::NodeType?
+    property challenge_event_details : ChallengeEventDetails?
 
-    def initialize(@event_id : Cdp::NodeType, @site : String, @succeeded : Bool, @session_id : String?, @creation_event_details : Cdp::NodeType?, @refresh_event_details : Cdp::NodeType?, @termination_event_details : Cdp::NodeType?, @challenge_event_details : Cdp::NodeType?)
+    def initialize(@event_id : DeviceBoundSessionEventId, @site : String, @succeeded : Bool, @session_id : String?, @creation_event_details : CreationEventDetails?, @refresh_event_details : RefreshEventDetails?, @termination_event_details : TerminationEventDetails?, @challenge_event_details : ChallengeEventDetails?)
     end
 
     # ProtoEvent returns the protocol event name.

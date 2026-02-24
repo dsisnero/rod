@@ -2,6 +2,7 @@ require "../cdp"
 require "json"
 require "time"
 
+require "../page/page"
 require "../dom/dom"
 
 module Cdp::Autofill
@@ -9,11 +10,11 @@ module Cdp::Autofill
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property filled_fields : Array(Cdp::NodeType)
+    property filled_fields : Array(FilledField)
     @[JSON::Field(emit_null: false)]
-    property address_ui : Cdp::NodeType
+    property address_ui : AddressUI
 
-    def initialize(@filled_fields : Array(Cdp::NodeType), @address_ui : Cdp::NodeType)
+    def initialize(@filled_fields : Array(FilledField), @address_ui : AddressUI)
     end
 
     # ProtoEvent returns the protocol event name.

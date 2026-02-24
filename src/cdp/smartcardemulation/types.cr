@@ -2,8 +2,6 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
-
 module Cdp::SmartCardEmulation
   alias ResultCode = String
   ResultCodeSuccess            = "success"
@@ -104,7 +102,7 @@ module Cdp::SmartCardEmulation
     @[JSON::Field(emit_null: false)]
     property reader : String
     @[JSON::Field(emit_null: false)]
-    property current_state : Cdp::NodeType
+    property current_state : ReaderStateFlags
     @[JSON::Field(emit_null: false)]
     property current_insertion_count : Int64
   end
@@ -114,7 +112,7 @@ module Cdp::SmartCardEmulation
     @[JSON::Field(emit_null: false)]
     property reader : String
     @[JSON::Field(emit_null: false)]
-    property event_state : Cdp::NodeType
+    property event_state : ReaderStateFlags
     @[JSON::Field(emit_null: false)]
     property event_count : Int64
     @[JSON::Field(emit_null: false)]

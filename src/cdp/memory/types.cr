@@ -2,8 +2,6 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
-
 module Cdp::Memory
   alias PressureLevel = String
   PressureLevelModerate = "moderate"
@@ -22,9 +20,9 @@ module Cdp::Memory
   struct SamplingProfile
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
-    property samples : Array(Cdp::NodeType)
+    property samples : Array(SamplingProfileNode)
     @[JSON::Field(emit_null: false)]
-    property modules : Array(Cdp::NodeType)
+    property modules : Array(Module)
   end
 
   struct Module

@@ -2,18 +2,16 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../dom/dom"
-
 module Cdp::Performance
   struct MetricsEvent
     include JSON::Serializable
     include Cdp::Event
     @[JSON::Field(emit_null: false)]
-    property metrics : Array(Cdp::NodeType)
+    property metrics : Array(Metric)
     @[JSON::Field(emit_null: false)]
     property title : String
 
-    def initialize(@metrics : Array(Cdp::NodeType), @title : String)
+    def initialize(@metrics : Array(Metric), @title : String)
     end
 
     # ProtoEvent returns the protocol event name.
