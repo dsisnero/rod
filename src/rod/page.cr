@@ -6,8 +6,10 @@ require "./keyboard"
 require "./mouse"
 require "./touch"
 require "./lib/js"
+require "./lib/utils"
 require "../cdp/cdp"
 require "../cdp/runtime/runtime"
+require "../cdp/page/page"
 
 module Rod
   # QueryOptions provides configuration for element queries.
@@ -366,7 +368,7 @@ module Rod
             )
           \{% end %}
           browser.context(@ctx).each_event(@session_id, cb_map)
-        \\}
+        \\\\\\\\}
       \{% end %}
     end
 
@@ -581,11 +583,117 @@ module Rod
       EvalOptions.new(js: js, js_args: js_args, by_value: true)
     end
 
+    # Evaluates given script in every frame upon creation (before loading frame's scripts).
+    # Returns a proc that when called removes the script.
+    def eval_on_new_document(js : String) : Proc(Nil)
+      req = ::Cdp::Page::AddScriptToEvaluateOnNewDocument.new(
+        source: js,
+        world_name: nil,
+        include_command_line_api: nil,
+        run_immediately: nil
+      )
+
+      res = req.call(self)
+      identifier = res.identifier
+
+      -> do
+        remove_req = ::Cdp::Page::RemoveScriptToEvaluateOnNewDocument.new(identifier: identifier)
+        remove_req.call(self)
+      end
+    end
+
     # Expose fn to the page's window object with the name. The exposure survives reloads.
     # Call stop to unbind the fn.
-    def expose(name : String, fn : Proc(::JSON::Any, ::JSON::Any)) : Proc(Nil)
-      # TODO: Implement expose functionality (requires event system)
-      raise NotImplementedError.new("Page#expose not yet implemented")
+    # The fn should return a tuple of [result, error] where error is nil on success.
+    def expose(name : String, fn : Proc(::JSON::Any, Tuple(::JSON::Any?, ::JSON::Any?))) : Proc(Nil)
+      # Generate random binding name
+      bind = "_" + ::Rod::Lib::Utils.rand_string(8)
+
+      # Add runtime binding
+      add_binding_req = ::Cdp::Runtime::AddBinding.new(
+        name: bind,
+        execution_context_id: nil,
+        execution_context_name: nil
+      )
+      add_binding_req.call(self)
+
+      # Evaluate expose function helper with name and binding
+      expose_func_def = JS::EXPOSE_FUNC.definition
+      begin
+        evaluate(EvalOptions.new(
+          js: expose_func_def,
+          js_args: [name, bind].map { |arg| ::JSON::Any.new(arg) },
+          by_value: true,
+          await_promise: true
+        ))
+      rescue ex
+        # If evaluation fails, clean up binding and re-raise
+        remove_binding_req = ::Cdp::Runtime::RemoveBinding.new(name: bind)
+        remove_binding_req.call(self) rescue nil
+        raise ex
+      end
+
+      # Create code to re-expose on new document
+      code = "(#{expose_func_def})(\"#{name}\", \"#{bind}\")"
+      remove_script = eval_on_new_document(code)
+
+      # Create cancellable page context
+      ctx, cancel_ctx = @ctx.with_cancel
+      exposed_page = self.context(ctx)
+
+      # Set up event listener for binding calls
+      stop_listener = browser.context(@ctx).each_event(@session_id, {
+        "Runtime.bindingCalled" => Browser::CallbackInfo.new(
+          ::Cdp::Runtime::BindingCalledEvent,
+          ->(event : Cdp::Event, session_id : SessionID?) do
+            binding_event = event.as(::Cdp::Runtime::BindingCalledEvent)
+            if binding_event.name == bind
+              # Parse payload JSON
+              payload_json = JSON.parse(binding_event.payload)
+              req = payload_json["req"]
+              cb_name = payload_json["cb"].as_s? || ""
+
+              # Call user function
+              result, err = fn.call(req)
+
+              # Call back to JavaScript with result or error
+              js_code = "(res, err) => #{cb_name}(res, err)"
+              result_json = result || JSON::Any.new(nil)
+              err_json = err || JSON::Any.new(nil)
+              eval_opts = EvalOptions.new(
+                js: js_code,
+                js_args: [result_json, err_json].map { |arg| ::JSON::Any.new(arg) },
+                by_value: true,
+                await_promise: true
+              )
+
+              # Evaluate callback (ignore errors)
+              begin
+                evaluate(eval_opts)
+              rescue ex
+                # Log or ignore callback errors
+              end
+            end
+            false # Continue listening
+          end
+        ),
+      })
+
+      # Return stop function
+      -> do
+        # Cancel context
+        cancel_ctx.call
+
+        # Stop event listener
+        stop_listener.try(&.call)
+
+        # Remove script
+        remove_script.call
+
+        # Remove binding
+        remove_binding_req = ::Cdp::Runtime::RemoveBinding.new(name: bind)
+        remove_binding_req.call(exposed_page)
+      end
     end
 
     # element_by_js returns the element from the return value of the js function.
