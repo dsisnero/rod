@@ -18,10 +18,16 @@ Thumbs.db
 *.a
 lib-c/
 bin/
+rod
 
 # Crystal specific
 /.crystal/
 /.shards/
+/lib
 
 # Documentation
 /doc/
+
+# Vendor directories (temporary reference)
+vendor/goob/
+vendor/gson/

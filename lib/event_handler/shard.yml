@@ -1,9 +1,0 @@
-name: event_handler
-version: 1.0.3
-
-authors:
-  - Davor Ocelic <docelic@crystallabs.io>
-
-crystal: 1.0.0
-
-license: AGPLv3

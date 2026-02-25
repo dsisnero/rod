@@ -1,3 +1,0 @@
-[submodule "similar_rust"]
-	path = similar_rust
-	url = https://github.com/mitsuhiko/similar.git
