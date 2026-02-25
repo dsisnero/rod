@@ -200,6 +200,6 @@ module Rod
 
   # Returns true if err is of type klass or wraps an error of type klass.
   def self.is?(err : Exception, klass : Exception.class) : Bool
-    err.is?(klass) || (err.cause.is_a?(Exception) && Rod.is?(err.cause.as(Exception), klass))
+    klass === err || (err.cause.is_a?(Exception) && Rod.is?(err.cause.as(Exception), klass))
   end
 end

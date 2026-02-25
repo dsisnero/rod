@@ -4,6 +4,8 @@ require "../cdp/runtime"
 module Rod
   # Base error class for Rod
   class RodError < Exception
+    property cause : Exception?
+
     # Returns true if this error is of type klass.
     def is?(klass : Exception.class) : Bool
       self.class == klass
