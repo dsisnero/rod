@@ -7,3 +7,15 @@ shards:
   ameba:
     git: https://github.com/crystal-ameba/ameba.git
     version: 1.6.4
+  similar:
+    git: https://github.com/dsisnero/similar.cr.git
+    version: 0.1.0+git.commit.52cfbb2cf1295fabc0a4bf2405819181bcae6046
+  event_handler:
+    git: https://github.com/crystallabs/event_handler.git
+    version: 1.0.3
+  stumpy_core:
+    git: https://github.com/stumpycr/stumpy_core.git
+    version: 1.9.1
+  pluto:
+    git: https://github.com/phenopolis/pluto.git
+    version: 1.0.1

@@ -87,8 +87,8 @@ module Rod
 
     def initialize(@exception_details : Cdp::Runtime::ExceptionDetails)
       exp = @exception_details.exception
-      desc = exp.description || ""
-      value = exp.value || ""
+      desc = exp.try(&.description) || ""
+      value = exp.try(&.value) || ""
       super("eval js error: #{desc} #{value}")
     end
 

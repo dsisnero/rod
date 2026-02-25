@@ -23,6 +23,8 @@ dependencies:
     path: lib/goob
   gson:
     path: lib/gson
+  pluto:
+    github: phenopolis/pluto
 
 development_dependencies:
   ameba:

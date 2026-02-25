@@ -4,8 +4,8 @@ require "../src/rod"
 describe Rod::TryError do
   it "initializes with value and stack" do
     err = Rod::TryError.new("test value", "stack trace")
-    err.message.should contain("error value: test value")
-    err.message.should contain("stack trace")
+    err.message.as(String).should contain("error value: test value")
+    err.message.as(String).should contain("stack trace")
     err.value.should eq("test value")
     err.stack.should eq("stack trace")
   end
@@ -26,15 +26,15 @@ end
 
 describe Rod::ExpectElementError do
   it "initializes with remote object" do
-    remote_obj = Cdp::Runtime::RemoteObject.new(type: Cdp::Runtime::Type::String)
+    remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
     err = Rod::ExpectElementError.new(remote_obj)
-    err.message.should contain("expect js to return an element")
-    err.message.should contain(remote_obj.to_json)
+    err.message.as(String).should contain("expect js to return an element")
+    err.message.as(String).should contain(remote_obj.to_json)
     err.remote_object.should eq(remote_obj)
   end
 
   it "is? returns true for ExpectElementError" do
-    remote_obj = Cdp::Runtime::RemoteObject.new(type: Cdp::Runtime::Type::String)
+    remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
     err = Rod::ExpectElementError.new(remote_obj)
     err.is?(Rod::ExpectElementError).should be_true
     err.is?(Rod::ExpectElementsError).should be_false
@@ -43,15 +43,15 @@ end
 
 describe Rod::ExpectElementsError do
   it "initializes with remote object" do
-    remote_obj = Cdp::Runtime::RemoteObject.new(type: Cdp::Runtime::Type::String)
+    remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
     err = Rod::ExpectElementsError.new(remote_obj)
-    err.message.should contain("expect js to return an array of elements")
-    err.message.should contain(remote_obj.to_json)
+    err.message.as(String).should contain("expect js to return an array of elements")
+    err.message.as(String).should contain(remote_obj.to_json)
     err.remote_object.should eq(remote_obj)
   end
 
   it "is? returns true for ExpectElementsError" do
-    remote_obj = Cdp::Runtime::RemoteObject.new(type: Cdp::Runtime::Type::String)
+    remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
     err = Rod::ExpectElementsError.new(remote_obj)
     err.is?(Rod::ExpectElementsError).should be_true
     err.is?(Rod::ExpectElementError).should be_false
@@ -61,7 +61,7 @@ end
 describe Rod::ElementNotFoundError do
   it "initializes with default message" do
     err = Rod::ElementNotFoundError.new
-    err.message.should eq("cannot find element")
+    err.message.as(String).should eq("cannot find element")
   end
 
   it "is? returns true for ElementNotFoundError" do
@@ -73,15 +73,15 @@ end
 
 describe Rod::ObjectNotFoundError do
   it "initializes with remote object" do
-    remote_obj = Cdp::Runtime::RemoteObject.new(type: Cdp::Runtime::Type::String)
+    remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
     err = Rod::ObjectNotFoundError.new(remote_obj)
-    err.message.should contain("cannot find object")
-    err.message.should contain(remote_obj.to_json)
+    err.message.as(String).should contain("cannot find object")
+    err.message.as(String).should contain(remote_obj.to_json)
     err.remote_object.should eq(remote_obj)
   end
 
   it "is? returns true for ObjectNotFoundError" do
-    remote_obj = Cdp::Runtime::RemoteObject.new(type: Cdp::Runtime::Type::String)
+    remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
     err = Rod::ObjectNotFoundError.new(remote_obj)
     err.is?(Rod::ObjectNotFoundError).should be_true
     err.is?(Rod::ElementNotFoundError).should be_false
@@ -90,32 +90,26 @@ end
 
 describe Rod::EvalError do
   it "initializes with exception details" do
-    exception = Cdp::Runtime::RemoteObject.new(
-      type: Cdp::Runtime::Type::String,
-      description: "Error",
-      value: JSON::Any.new("test error")
-    )
-    details = Cdp::Runtime::ExceptionDetails.new(
-      exception_id: 1,
-      text: "Error",
-      line_number: 10,
-      column_number: 5,
-      exception: exception
-    )
+    details = Cdp::Runtime::ExceptionDetails.from_json(%({
+      "exceptionId": 1,
+      "text": "Error",
+      "lineNumber": 10,
+      "columnNumber": 5,
+      "exception": {"type": "string", "description": "Error", "value": "test error"}
+    }))
     err = Rod::EvalError.new(details)
-    err.message.should contain("eval js error:")
+    err.message.as(String).should contain("eval js error:")
     err.exception_details.should eq(details)
   end
 
   it "is? returns true for EvalError" do
-    exception = Cdp::Runtime::RemoteObject.new(type: Cdp::Runtime::Type::String)
-    details = Cdp::Runtime::ExceptionDetails.new(
-      exception_id: 1,
-      text: "Error",
-      line_number: 10,
-      column_number: 5,
-      exception: exception
-    )
+    details = Cdp::Runtime::ExceptionDetails.from_json(%({
+      "exceptionId": 1,
+      "text": "Error",
+      "lineNumber": 10,
+      "columnNumber": 5,
+      "exception": {"type": "string"}
+    }))
     err = Rod::EvalError.new(details)
     err.is?(Rod::EvalError).should be_true
     err.is?(Rod::NavigationError).should be_false
@@ -125,7 +119,7 @@ end
 describe Rod::NavigationError do
   it "initializes with reason" do
     err = Rod::NavigationError.new("timeout")
-    err.message.should eq("navigation failed: timeout")
+    err.message.as(String).should eq("navigation failed: timeout")
     err.reason.should eq("timeout")
   end
 
@@ -139,14 +133,14 @@ end
 describe Rod::PageCloseCanceledError do
   it "initializes with default message" do
     err = Rod::PageCloseCanceledError.new
-    err.message.should eq("page close canceled")
+    err.message.as(String).should eq("page close canceled")
   end
 end
 
 describe Rod::NotInteractableError do
   it "initializes with default message" do
     err = Rod::NotInteractableError.new
-    err.message.should eq("element is not cursor interactable")
+    err.message.as(String).should eq("element is not cursor interactable")
   end
 end
 
@@ -154,16 +148,16 @@ describe Rod::InvisibleShapeError do
   pending
   it "initializes with element" do
     page = Rod::Page.new(nil)
-    remote_obj = Cdp::Runtime::RemoteObject.new(type: Cdp::Runtime::Type::String)
+    remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
     element = Rod::Element.new(remote_obj, page)
     err = Rod::InvisibleShapeError.new(element)
-    err.message.should contain("element has no visible shape or outside the viewport")
+    err.message.as(String).should contain("element has no visible shape or outside the viewport")
     err.element.should eq(element)
   end
 
   it "unwrap returns NotInteractableError" do
     page = Rod::Page.new(nil)
-    remote_obj = Cdp::Runtime::RemoteObject.new(type: Cdp::Runtime::Type::String)
+    remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
     element = Rod::Element.new(remote_obj, page)
     err = Rod::InvisibleShapeError.new(element)
     unwrapped = err.unwrap
@@ -172,7 +166,7 @@ describe Rod::InvisibleShapeError do
 
   it "is? returns true for InvisibleShapeError" do
     page = Rod::Page.new(nil)
-    remote_obj = Cdp::Runtime::RemoteObject.new(type: Cdp::Runtime::Type::String)
+    remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
     element = Rod::Element.new(remote_obj, page)
     err = Rod::InvisibleShapeError.new(element)
     err.is?(Rod::InvisibleShapeError).should be_true
@@ -184,16 +178,16 @@ describe Rod::CoveredError do
   pending
   it "initializes with element" do
     page = Rod::Page.new(nil)
-    remote_obj = Cdp::Runtime::RemoteObject.new(type: Cdp::Runtime::Type::String)
+    remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
     element = Rod::Element.new(remote_obj, page)
     err = Rod::CoveredError.new(element)
-    err.message.should contain("element covered by")
+    err.message.as(String).should contain("element covered by")
     err.element.should eq(element)
   end
 
   it "unwrap returns NotInteractableError" do
     page = Rod::Page.new(nil)
-    remote_obj = Cdp::Runtime::RemoteObject.new(type: Cdp::Runtime::Type::String)
+    remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
     element = Rod::Element.new(remote_obj, page)
     err = Rod::CoveredError.new(element)
     unwrapped = err.unwrap
@@ -205,16 +199,16 @@ describe Rod::NoPointerEventsError do
   pending
   it "initializes with element" do
     page = Rod::Page.new(nil)
-    remote_obj = Cdp::Runtime::RemoteObject.new(type: Cdp::Runtime::Type::String)
+    remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
     element = Rod::Element.new(remote_obj, page)
     err = Rod::NoPointerEventsError.new(element)
-    err.message.should contain("element's pointer-events is none")
+    err.message.as(String).should contain("element's pointer-events is none")
     err.element.should eq(element)
   end
 
   it "unwrap returns NotInteractableError" do
     page = Rod::Page.new(nil)
-    remote_obj = Cdp::Runtime::RemoteObject.new(type: Cdp::Runtime::Type::String)
+    remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
     element = Rod::Element.new(remote_obj, page)
     err = Rod::NoPointerEventsError.new(element)
     unwrapped = err.unwrap
@@ -225,7 +219,7 @@ end
 describe Rod::PageNotFoundError do
   it "initializes with default message" do
     err = Rod::PageNotFoundError.new
-    err.message.should eq("cannot find page")
+    err.message.as(String).should eq("cannot find page")
   end
 end
 
@@ -233,10 +227,10 @@ describe Rod::NoShadowRootError do
   pending
   it "initializes with element" do
     page = Rod::Page.new(nil)
-    remote_obj = Cdp::Runtime::RemoteObject.new(type: Cdp::Runtime::Type::String)
+    remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
     element = Rod::Element.new(remote_obj, page)
     err = Rod::NoShadowRootError.new(element)
-    err.message.should contain("element has no shadow root")
+    err.message.as(String).should contain("element has no shadow root")
     err.element.should eq(element)
   end
 end

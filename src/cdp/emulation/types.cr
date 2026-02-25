@@ -238,6 +238,7 @@ module Cdp::Emulation
   @[Experimental]
   alias DisabledImageType = String
   DisabledImageTypeAvif = "avif"
+  DisabledImageTypeJxl  = "jxl"
   DisabledImageTypeWebp = "webp"
 
   alias OrientationType = String

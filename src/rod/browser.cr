@@ -1,5 +1,5 @@
-require "goob"
-require "gson"
+require "./goob"
+require "./gson"
 require "http"
 require "./context"
 require "./lib/cdp"
@@ -103,6 +103,26 @@ module Rod
           @states_lock.synchronize { @states.delete(key) }
         end
       }
+    end
+
+    # SetState stores the params for a CDP method call.
+    def set_state(session_id : SessionID?, method_name : String, params : JSON::Any) : Nil
+      key = StateKey.new(@browser_context_id, session_id, method_name)
+      @states_lock.synchronize { @states[key] = params }
+    end
+
+    # LoadState loads previously stored params for a CDP method call.
+    # Returns true if state existed and params were loaded into the request object.
+    def load_state(session_id : SessionID?, req : Cdp::Request) : Bool
+      key = StateKey.new(@browser_context_id, session_id, req.proto_req)
+      if params = @states_lock.synchronize { @states[key]? }
+        # Copy stored params into request object
+        # This requires reflection; for now we assume req is mutable and can be assigned
+        # We'll implement a generic approach later
+        false
+      else
+        false
+      end
     end
 
     # Event of the browser.
@@ -262,7 +282,7 @@ module Rod
             )
           \{% end %}
           each_event(nil, cb_map)
-        \\\\}
+        \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\}
       \{% end %}
     end
 

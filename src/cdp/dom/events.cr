@@ -293,6 +293,29 @@ module Cdp::DOM
   end
 
   @[Experimental]
+  struct AdRelatedStateUpdatedEvent
+    include JSON::Serializable
+    include Cdp::Event
+    @[JSON::Field(emit_null: false)]
+    property node_id : NodeId
+    @[JSON::Field(emit_null: false)]
+    property? is_ad_related : Bool
+
+    def initialize(@node_id : NodeId, @is_ad_related : Bool)
+    end
+
+    # ProtoEvent returns the protocol event name.
+    def proto_event : String
+      "DOM.adRelatedStateUpdated"
+    end
+
+    # Class method returning protocol event name.
+    def self.proto_event : String
+      "DOM.adRelatedStateUpdated"
+    end
+  end
+
+  @[Experimental]
   struct AffectedByStartingStylesFlagUpdatedEvent
     include JSON::Serializable
     include Cdp::Event

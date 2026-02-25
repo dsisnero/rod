@@ -11,6 +11,7 @@ require "./hijack"
 require "../cdp/cdp"
 require "../cdp/runtime/runtime"
 require "../cdp/page/page"
+require "../cdp/emulation/emulation"
 
 module Rod
   # QueryOptions provides configuration for element queries.
@@ -124,6 +125,31 @@ module Rod
     end
   end
 
+  # ScrollScreenshotOptions is the options for the ScrollScreenshot.
+  struct ScrollScreenshotOptions
+    # Format (optional) Image compression format (defaults to png).
+    property format : Cdp::Page::CaptureScreenshotFormat?
+    # Quality (optional) Compression quality from range [0..100] (jpeg only).
+    property quality : Int32?
+    # FixedTop (optional) The number of pixels to skip from the top.
+    # It is suitable for optimizing the screenshot effect when there is a fixed
+    # positioning element at the top of the page.
+    property fixed_top : Float64
+    # FixedBottom (optional) The number of pixels to skip from the bottom.
+    property fixed_bottom : Float64
+    # WaitPerScroll until no animation (default is 300ms)
+    property wait_per_scroll : Time::Span
+
+    def initialize(
+      @format : Cdp::Page::CaptureScreenshotFormat? = nil,
+      @quality : Int32? = nil,
+      @fixed_top : Float64 = 0.0,
+      @fixed_bottom : Float64 = 0.0,
+      @wait_per_scroll : Time::Span = 300.milliseconds,
+    )
+    end
+  end
+
   class Page < ::Cdp::Client
     include ::Cdp::Contextable
     include ::Cdp::Sessionable
@@ -153,6 +179,7 @@ module Rod
     property touch : Touch?
     property element : Element?
     @e : EFunc?
+    @viewport_state : Cdp::Emulation::SetDeviceMetricsOverride? = nil
 
     # IsIframe tells if it's iframe.
     def iframe? : Bool
@@ -369,7 +396,7 @@ module Rod
             )
           \{% end %}
           browser.context(@ctx).each_event(@session_id, cb_map)
-        \\\\\\\\\\\\\\\\}
+        \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\}
       \{% end %}
     end
 
@@ -411,6 +438,182 @@ module Rod
       # For now use CDP reload (doesn't work for iframes)
       Cdp::Page::Reload.new.call(self)
       unset_js_ctx_id
+    end
+
+    # SetViewport overrides the values of device screen dimensions.
+    # ameba:disable Naming/AccessorMethodName
+    def set_viewport(params : Cdp::Emulation::SetDeviceMetricsOverride?) : Nil
+      if params.nil?
+        Cdp::Emulation::ClearDeviceMetricsOverride.new.call(self)
+        @viewport_state = nil
+      else
+        params.call(self)
+        @viewport_state = params
+      end
+    end
+
+    # LoadState into the method.
+    def load_state(method : Cdp::Request) : Bool
+      browser.load_state(session_id, method)
+    end
+
+    # Screenshot captures the screenshot of current page.
+    def screenshot(full_page : Bool = false, req : Cdp::Page::CaptureScreenshot? = nil) : Bytes
+      if req.nil?
+        req = Cdp::Page::CaptureScreenshot.new
+      end
+
+      if full_page
+        metrics = Cdp::Page::GetLayoutMetrics.new.call(self)
+        unless css_content_size = metrics.css_content_size
+          raise "failed to get css content size"
+        end
+
+        old_viewport = @viewport_state
+        # Create base viewport with default values if old_viewport doesn't exist
+        base = old_viewport || Cdp::Emulation::SetDeviceMetricsOverride.new(
+          width: 0_i64,
+          height: 0_i64,
+          device_scale_factor: 0.0,
+          mobile: false,
+          scale: nil,
+          screen_width: nil,
+          screen_height: nil,
+          position_x: nil,
+          position_y: nil,
+          dont_set_visible_size: nil,
+          screen_orientation: nil,
+          viewport: nil,
+          display_feature: nil,
+          device_posture: nil
+        )
+        # Create new viewport with full page dimensions
+        view = Cdp::Emulation::SetDeviceMetricsOverride.new(
+          width: css_content_size.width.to_i64,
+          height: css_content_size.height.to_i64,
+          device_scale_factor: base.device_scale_factor,
+          mobile: base.mobile,
+          scale: base.scale,
+          screen_width: base.screen_width,
+          screen_height: base.screen_height,
+          position_x: base.position_x,
+          position_y: base.position_y,
+          dont_set_visible_size: base.dont_set_visible_size,
+          screen_orientation: base.screen_orientation,
+          viewport: base.viewport,
+          display_feature: base.display_feature,
+          device_posture: base.device_posture
+        )
+
+        set_viewport(view)
+
+        begin
+          shot = req.call(self)
+          return shot.data.to_slice
+        ensure
+          set_viewport(old_viewport)
+        end
+      end
+
+      shot = req.call(self)
+      shot.data.to_slice
+    end
+
+    # WaitDOMStable waits until the change of the DOM tree is less or equal than diff percent for d duration.
+    # Be careful, d is not the max wait timeout, it's the least stable time.
+    # If you want to set a timeout you can use the [Page.Timeout] function.
+    # TODO: implement proper DOM stability detection using CaptureDOMSnapshot and LCS algorithm
+    def wait_dom_stable(d : Time::Span, diff : Float64) : Nil
+      # Simple implementation: just sleep for the duration
+      # This is not behaviorally equivalent to Go implementation
+      sleep(d)
+    end
+
+    # ScrollScreenshot Scroll screenshot does not adjust the size of the viewport,
+    # but achieves it by scrolling and capturing screenshots in a loop, and then stitching them together.
+    # Note that this method also has a flaw: when there are elements with fixed
+    # positioning on the page (usually header navigation components),
+    # these elements will appear repeatedly, you can set the FixedTop parameter to optimize it.
+    #
+    # Only support png and jpeg format yet, webP is not supported because no suitable processing
+    # library was found in Crystal.
+    def scroll_screenshot(opt : ScrollScreenshotOptions? = nil) : Bytes
+      opt = opt || ScrollScreenshotOptions.new
+      if opt.wait_per_scroll.total_milliseconds <= 0
+        opt.wait_per_scroll = 300.milliseconds
+      end
+
+      metrics = Cdp::Page::GetLayoutMetrics.new.call(self)
+      unless css_content_size = metrics.css_content_size
+        raise "failed to get css content size"
+      end
+      unless css_visual_viewport = metrics.css_visual_viewport
+        raise "failed to get css visual viewport"
+      end
+
+      viewpoint_height = css_visual_viewport.client_height
+      content_height = css_content_size.height
+
+      scroll_top = 0.0
+      img_boxes = [] of ::Rod::Lib::Utils::ImgWithBox
+
+      loop do
+        clip = Cdp::Page::Viewport.new(
+          x: 0.0,
+          y: scroll_top,
+          width: css_visual_viewport.client_width,
+          scale: 1.0
+        )
+
+        scroll_y = viewpoint_height - (opt.fixed_top + opt.fixed_bottom)
+        if scroll_top + viewpoint_height > content_height
+          clip.height = content_height - scroll_top
+        else
+          clip.height = scroll_y
+          if scroll_top != 0
+            clip.y += opt.fixed_top
+          end
+        end
+
+        req = Cdp::Page::CaptureScreenshot.new(
+          format: opt.format,
+          quality: opt.quality.try &.to_i64,
+          clip: clip,
+          from_surface: false,
+          capture_beyond_viewport: false,
+          optimize_for_speed: false
+        )
+        shot = req.call(self)
+        img_boxes << ::Rod::Lib::Utils::ImgWithBox.new(shot.data.to_slice)
+
+        scroll_top += scroll_y
+        break if scroll_top >= content_height
+
+        mouse.scroll(0.0, scroll_y, 1)
+        wait_dom_stable(opt.wait_per_scroll, 0.seconds)
+      end
+
+      format = opt.format || Cdp::Page::CaptureScreenshotFormatPng
+      img_opt = if quality = opt.quality
+                  ::Rod::Lib::Utils::ImgOption.new(quality)
+                else
+                  nil
+                end
+
+      ::Rod::Lib::Utils.splice_png_vertical(img_boxes, format, img_opt)
+    end
+
+    # PDF prints page as PDF.
+    def pdf(req : Cdp::Page::PrintToPDF? = nil) : Rod::Lib::Utils::StreamReader
+      if req.nil?
+        req = Cdp::Page::PrintToPDF.new
+      end
+      req.transfer_mode = Cdp::Page::PrintToPDFTransferModeReturnAsStream
+      res = req.call(self)
+      unless stream = res.stream
+        raise "No stream returned from PrintToPDF"
+      end
+      Rod::Lib::Utils::StreamReader.new(self, stream)
     end
 
     # Navigate back in history.

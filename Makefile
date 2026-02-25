@@ -1,10 +1,11 @@
 .PHONY: install update format lint test clean generate generate-crystal generate-go-ref build-pdlgen-crystal build-pdlgen-go
 
+
 install:
-	shards install
+	BEADS_DIR=$$(pwd)/.beads shards install
 
 update:
-	shards update
+	BEADS_DIR=$$(pwd)/.beads shards update
 
 format:
 	crystal tool format --check

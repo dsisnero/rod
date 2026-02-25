@@ -1129,12 +1129,27 @@ module Cdp::Network
   DeviceBoundSessionFetchResultSessionDeletedDuringRefresh                       = "SessionDeletedDuringRefresh"
 
   @[Experimental]
+  struct DeviceBoundSessionFailedRequest
+    include JSON::Serializable
+    @[JSON::Field(emit_null: false)]
+    property request_url : String
+    @[JSON::Field(emit_null: false)]
+    property net_error : String?
+    @[JSON::Field(emit_null: false)]
+    property response_error : Int64?
+    @[JSON::Field(emit_null: false)]
+    property response_error_body : String?
+  end
+
+  @[Experimental]
   struct CreationEventDetails
     include JSON::Serializable
     @[JSON::Field(emit_null: false)]
     property fetch_result : DeviceBoundSessionFetchResult
     @[JSON::Field(emit_null: false)]
     property new_session : DeviceBoundSession?
+    @[JSON::Field(emit_null: false)]
+    property failed_request : DeviceBoundSessionFailedRequest?
   end
 
   @[Experimental]
@@ -1148,6 +1163,8 @@ module Cdp::Network
     property new_session : DeviceBoundSession?
     @[JSON::Field(emit_null: false)]
     property? was_fully_proactive_refresh : Bool
+    @[JSON::Field(emit_null: false)]
+    property failed_request : DeviceBoundSessionFailedRequest?
   end
 
   @[Experimental]

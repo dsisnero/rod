@@ -159,6 +159,8 @@ module Cdp::DOM
     @[JSON::Field(emit_null: false)]
     property adopted_style_sheets : Array(StyleSheetId)?
     @[JSON::Field(emit_null: false)]
+    property? is_ad_related : Bool?
+    @[JSON::Field(emit_null: false)]
     property parent : DOM::Node?
     @[JSON::Field(emit_null: false)]
     property invalidated : Channel(Nil)

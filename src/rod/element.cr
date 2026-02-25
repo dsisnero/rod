@@ -224,6 +224,37 @@ module Rod
       ::Cdp::DOM::GetContentQuads.new(object_id: object_id).call(@page)
     end
 
+    # ScrollIntoView scrolls the element into viewport.
+    def scroll_into_view : Nil
+      evaluate("() => this.scrollIntoView({behavior: 'instant', block: 'center', inline: 'center'})")
+    end
+
+    # Screenshot of the area of the element.
+    def screenshot(format : String = "png", quality : Int32 = 0) : Bytes
+      scroll_into_view
+
+      opts = Cdp::Page::CaptureScreenshot.new
+      opts.format = format
+      opts.quality = quality == 0 ? nil : quality
+
+      bin = @page.screenshot(false, opts)
+
+      shape_result = shape
+      # Convert quads to JSON::Any for Quad.box
+      json_quads = shape_result.quads.map { |q| ::JSON::Any.new(q) }
+      if box_tuple = Rod::Lib::Quad.box(json_quads)
+        x, y, width, height = box_tuple
+        Rod::Lib::Utils.crop_image(bin, quality,
+          x.to_i,
+          y.to_i,
+          width.to_i,
+          height.to_i
+        )
+      else
+        raise "Failed to compute bounding box for element"
+      end
+    end
+
     # Interactable checks if the element is interactable with cursor.
     # The cursor can be mouse, finger, stylus, etc.
     # If not interactable raises an error (NotInteractableError or subtypes).
