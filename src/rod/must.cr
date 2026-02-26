@@ -881,4 +881,14 @@ module Rod
       must_wrap get_xpath(optimized)
     end
   end
+
+  class Pool(T)
+    # MustGet gets an element from the pool and raises if creation fails.
+    def must_get(&create : -> T) : T
+      elem, err = get { {create.call, nil} }
+      Rod::Utils.e(err)
+      raise "pool create returned nil element without error" unless elem
+      elem
+    end
+  end
 end

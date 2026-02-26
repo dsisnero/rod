@@ -207,4 +207,47 @@ module Rod
       io << "(#{x}, #{y})"
     end
   end
+
+  # Pool is used to thread-safely limit the number of elements at the same time.
+  class Pool(T)
+    @ch : Channel(T?)
+    @limit : Int32
+
+    def initialize(limit : Int32)
+      @limit = limit
+      @ch = Channel(T?).new(limit)
+      limit.times { @ch.send(nil) }
+    end
+
+    # Get an element from the pool. Use put to make it reusable later.
+    def get(&create : -> Tuple(T?, Exception?)) : Tuple(T?, Exception?)
+      elem = @ch.receive
+      return {elem, nil} if elem
+      create.call
+    end
+
+    # Put an element back to the pool.
+    def put(elem : T?) : Nil
+      @ch.send(elem)
+    end
+
+    # Cleanup elements currently stored in the pool.
+    def cleanup(&iteratee : T ->) : Nil
+      @limit.times do
+        select
+        when elem = @ch.receive?
+          iteratee.call(elem) if elem
+        else
+        end
+      end
+    end
+  end
+
+  def self.new_page_pool(limit : Int32) : Pool(Page)
+    Pool(Page).new(limit)
+  end
+
+  def self.new_browser_pool(limit : Int32) : Pool(Browser)
+    Pool(Browser).new(limit)
+  end
 end
