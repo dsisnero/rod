@@ -29,8 +29,7 @@ module Rod
     def move_to(p : Point) : Nil
       @mutex.synchronize do
         button, buttons = Input.encode_mouse_button(@buttons)
-
-        # TODO: trySlowMotion
+        @page.browser.try_slow_motion
 
         event = Cdp::Input::DispatchMouseEvent.new(
           type: "mouseMoved",
@@ -55,7 +54,12 @@ module Rod
         # to make sure set only when call is successful
         @pos = p
 
-        # TODO: mouse tracer
+        if @page.browser.trace?
+          unless update_mouse_tracer
+            init_mouse_tracer
+            update_mouse_tracer
+          end
+        end
       end
     end
 
@@ -94,8 +98,7 @@ module Rod
     # Scroll the relative offset with specified steps.
     def scroll(offset_x : Float64, offset_y : Float64, steps : Int32) : Nil
       @mutex.synchronize do
-        # TODO: tryTrace
-        # TODO: trySlowMotion
+        @page.browser.try_slow_motion
 
         if steps < 1
           steps = 1
@@ -190,7 +193,7 @@ module Rod
 
     # Click the button. It's the combination of Mouse.Down and Mouse.Up.
     def click(button : String, click_count : Int32 = 1) : Nil
-      # TODO: trySlowMotion
+      @page.browser.try_slow_motion
       down(button, click_count)
       up(button, click_count)
     end
