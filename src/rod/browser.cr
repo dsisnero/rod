@@ -74,7 +74,9 @@ module Rod
     def call(context : HTTP::Client::Context?, session_id : String?, method : String, params : JSON::Any) : Bytes
       client = @client
       raise "Browser not connected" unless client
-      client.call(context, session_id, method, params)
+      res = client.call(context, session_id, method, params)
+      set_state(session_id.try { |sid| SessionID.new(sid) }, method, params)
+      res
     end
 
     # Connect to browser via websocket URL.
@@ -94,13 +96,28 @@ module Rod
       unless enabled
         # Call enable request
         call(nil, session_id.try(&.value), req.proto_req, JSON.parse(req.to_json))
-        @states_lock.synchronize { @states[key] = JSON::Any.new(true) }
       end
       -> {
         unless enabled
           domain, _ = Cdp.parse_method_name(req.proto_req)
           call(nil, session_id.try(&.value), domain + ".disable", JSON::Any.new(nil))
-          @states_lock.synchronize { @states.delete(key) }
+        end
+      }
+    end
+
+    # DisableDomain and returns a restore function to restore previous state.
+    def disable_domain(session_id : SessionID?, req : Cdp::Request) : Proc(Nil)
+      key = StateKey.new(@browser_context_id, session_id, req.proto_req)
+      enabled = @states_lock.synchronize { @states.has_key?(key) }
+      domain, _ = Cdp.parse_method_name(req.proto_req)
+
+      if enabled
+        call(nil, session_id.try(&.value), domain + ".disable", JSON::Any.new(nil))
+      end
+
+      -> {
+        if enabled
+          call(nil, session_id.try(&.value), req.proto_req, JSON.parse(req.to_json))
         end
       }
     end
@@ -109,20 +126,35 @@ module Rod
     def set_state(session_id : SessionID?, method_name : String, params : JSON::Any) : Nil
       key = StateKey.new(@browser_context_id, session_id, method_name)
       @states_lock.synchronize { @states[key] = params }
+
+      delete_key = case method_name
+                   when "Emulation.clearDeviceMetricsOverride"
+                     "Emulation.setDeviceMetricsOverride"
+                   when "Emulation.clearGeolocationOverride"
+                     "Emulation.setGeolocationOverride"
+                   else
+                     domain, name = Cdp.parse_method_name(method_name)
+                     name == "disable" ? "#{domain}.enable" : nil
+                   end
+
+      delete_state(session_id, delete_key) if delete_key
     end
 
     # LoadState loads previously stored params for a CDP method call.
     # Returns true if state existed and params were loaded into the request object.
     def load_state(session_id : SessionID?, req : Cdp::Request) : Bool
       key = StateKey.new(@browser_context_id, session_id, req.proto_req)
-      if params = @states_lock.synchronize { @states[key]? }
-        # Copy stored params into request object
-        # This requires reflection; for now we assume req is mutable and can be assigned
-        # We'll implement a generic approach later
-        false
-      else
-        false
-      end
+      @states_lock.synchronize { @states.has_key?(key) }
+    end
+
+    # RemoveState deletes a state entry.
+    def remove_state(key : StateKey) : Nil
+      @states_lock.synchronize { @states.delete(key) }
+    end
+
+    private def delete_state(session_id : SessionID?, method_name : String) : Nil
+      key = StateKey.new(@browser_context_id, session_id, method_name)
+      @states_lock.synchronize { @states.delete(key) }
     end
 
     # Event of the browser.
@@ -431,11 +463,11 @@ module Rod
         disable_fetch.call(self) # Disable auth handling
 
         nil # No error
-      rescue err
+      rescue ex
         # Ensure cleanup even on error
         cancel.call
         disable_fetch.call(self) rescue nil
-        err
+        ex
       end
     end
   end

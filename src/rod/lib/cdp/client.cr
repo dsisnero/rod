@@ -99,7 +99,7 @@ module Rod::Lib::Cdp
       when result = done.receive
         @pending_lock.synchronize { @pending.delete(id) }
         if result.error
-          raise result.error
+          raise result.error.to_s
         else
           result.msg.to_s.to_slice
         end
