@@ -15,7 +15,7 @@ module Cdp::Accessibility
   @[Experimental]
   struct GetPartialAXTreeResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodes", emit_null: false)]
     property nodes : Array(Node)
 
     def initialize(@nodes : Array(Node))
@@ -25,7 +25,7 @@ module Cdp::Accessibility
   @[Experimental]
   struct GetFullAXTreeResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodes", emit_null: false)]
     property nodes : Array(Node)
 
     def initialize(@nodes : Array(Node))
@@ -35,7 +35,7 @@ module Cdp::Accessibility
   @[Experimental]
   struct GetRootAXNodeResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "node", emit_null: false)]
     property node : Node
 
     def initialize(@node : Node)
@@ -45,7 +45,7 @@ module Cdp::Accessibility
   @[Experimental]
   struct GetAXNodeAndAncestorsResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodes", emit_null: false)]
     property nodes : Array(Node)
 
     def initialize(@nodes : Array(Node))
@@ -55,7 +55,7 @@ module Cdp::Accessibility
   @[Experimental]
   struct GetChildAXNodesResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodes", emit_null: false)]
     property nodes : Array(Node)
 
     def initialize(@nodes : Array(Node))
@@ -65,7 +65,7 @@ module Cdp::Accessibility
   @[Experimental]
   struct QueryAXTreeResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodes", emit_null: false)]
     property nodes : Array(Node)
 
     def initialize(@nodes : Array(Node))
@@ -113,13 +113,13 @@ module Cdp::Accessibility
   struct GetPartialAXTree
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : Cdp::DOM::NodeId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "backendNodeId", emit_null: false)]
     property backend_node_id : Cdp::DOM::BackendNodeId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "objectId", emit_null: false)]
     property object_id : Cdp::Runtime::RemoteObjectId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "fetchRelatives", emit_null: false)]
     property? fetch_relatives : Bool?
 
     def initialize(@node_id : Cdp::DOM::NodeId?, @backend_node_id : Cdp::DOM::BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?, @fetch_relatives : Bool?)
@@ -142,9 +142,9 @@ module Cdp::Accessibility
   struct GetFullAXTree
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "depth", emit_null: false)]
     property depth : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
 
     def initialize(@depth : Int64?, @frame_id : Cdp::Page::FrameId?)
@@ -167,7 +167,7 @@ module Cdp::Accessibility
   struct GetRootAXNode
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
 
     def initialize(@frame_id : Cdp::Page::FrameId?)
@@ -190,11 +190,11 @@ module Cdp::Accessibility
   struct GetAXNodeAndAncestors
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : Cdp::DOM::NodeId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "backendNodeId", emit_null: false)]
     property backend_node_id : Cdp::DOM::BackendNodeId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "objectId", emit_null: false)]
     property object_id : Cdp::Runtime::RemoteObjectId?
 
     def initialize(@node_id : Cdp::DOM::NodeId?, @backend_node_id : Cdp::DOM::BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?)
@@ -217,9 +217,9 @@ module Cdp::Accessibility
   struct GetChildAXNodes
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "id", emit_null: false)]
     property id : NodeId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
 
     def initialize(@id : NodeId, @frame_id : Cdp::Page::FrameId?)
@@ -242,15 +242,15 @@ module Cdp::Accessibility
   struct QueryAXTree
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : Cdp::DOM::NodeId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "backendNodeId", emit_null: false)]
     property backend_node_id : Cdp::DOM::BackendNodeId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "objectId", emit_null: false)]
     property object_id : Cdp::Runtime::RemoteObjectId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "accessibleName", emit_null: false)]
     property accessible_name : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "role", emit_null: false)]
     property role : String?
 
     def initialize(@node_id : Cdp::DOM::NodeId?, @backend_node_id : Cdp::DOM::BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?, @accessible_name : String?, @role : String?)

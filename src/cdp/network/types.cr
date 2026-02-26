@@ -88,47 +88,47 @@ module Cdp::Network
 
   struct ResourceTiming
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestTime", emit_null: false)]
     property request_time : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "proxyStart", emit_null: false)]
     property proxy_start : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "proxyEnd", emit_null: false)]
     property proxy_end : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "dnsStart", emit_null: false)]
     property dns_start : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "dnsEnd", emit_null: false)]
     property dns_end : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "connectStart", emit_null: false)]
     property connect_start : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "connectEnd", emit_null: false)]
     property connect_end : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sslStart", emit_null: false)]
     property ssl_start : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sslEnd", emit_null: false)]
     property ssl_end : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "workerStart", emit_null: false)]
     property worker_start : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "workerReady", emit_null: false)]
     property worker_ready : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "workerFetchStart", emit_null: false)]
     property worker_fetch_start : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "workerRespondWithSettled", emit_null: false)]
     property worker_respond_with_settled : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "workerRouterEvaluationStart", emit_null: false)]
     property worker_router_evaluation_start : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "workerCacheLookupStart", emit_null: false)]
     property worker_cache_lookup_start : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sendStart", emit_null: false)]
     property send_start : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sendEnd", emit_null: false)]
     property send_end : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "pushStart", emit_null: false)]
     property push_start : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "pushEnd", emit_null: false)]
     property push_end : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "receiveHeadersStart", emit_null: false)]
     property receive_headers_start : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "receiveHeadersEnd", emit_null: false)]
     property receive_headers_end : Float64
   end
 
@@ -149,91 +149,91 @@ module Cdp::Network
 
   struct PostDataEntry
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "bytes", emit_null: false)]
     property bytes : String?
   end
 
   struct Request
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "urlFragment", emit_null: false)]
     property url_fragment : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "method", emit_null: false)]
     property method : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "headers", emit_null: false)]
     property headers : Headers
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "hasPostData", emit_null: false)]
     property? has_post_data : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "postDataEntries", emit_null: false)]
     property post_data_entries : Array(PostDataEntry)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "mixedContentType", emit_null: false)]
     property mixed_content_type : Cdp::Security::MixedContentType?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "initialPriority", emit_null: false)]
     property initial_priority : ResourcePriority
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "referrerPolicy", emit_null: false)]
     property referrer_policy : ReferrerPolicy
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isLinkPreload", emit_null: false)]
     property? is_link_preload : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "trustTokenParams", emit_null: false)]
     property trust_token_params : TrustTokenParams?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isSameSite", emit_null: false)]
     property? is_same_site : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isAdRelated", emit_null: false)]
     property? is_ad_related : Bool?
   end
 
   struct SignedCertificateTimestamp
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "status", emit_null: false)]
     property status : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "origin", emit_null: false)]
     property origin : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "logDescription", emit_null: false)]
     property log_description : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "logId", emit_null: false)]
     property log_id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "hashAlgorithm", emit_null: false)]
     property hash_algorithm : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "signatureAlgorithm", emit_null: false)]
     property signature_algorithm : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "signatureData", emit_null: false)]
     property signature_data : String
   end
 
   struct SecurityDetails
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "protocol", emit_null: false)]
     property protocol : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "keyExchange", emit_null: false)]
     property key_exchange : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "keyExchangeGroup", emit_null: false)]
     property key_exchange_group : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cipher", emit_null: false)]
     property cipher : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "mac", emit_null: false)]
     property mac : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "certificateId", emit_null: false)]
     property certificate_id : Cdp::Security::CertificateId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "subjectName", emit_null: false)]
     property subject_name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sanList", emit_null: false)]
     property san_list : Array(String)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "issuer", emit_null: false)]
     property issuer : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "validFrom", emit_null: false)]
     property valid_from : TimeSinceEpoch
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "validTo", emit_null: false)]
     property valid_to : TimeSinceEpoch
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "signedCertificateTimestampList", emit_null: false)]
     property signed_certificate_timestamp_list : Array(SignedCertificateTimestamp)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "certificateTransparencyCompliance", emit_null: false)]
     property certificate_transparency_compliance : CertificateTransparencyCompliance
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "serverSignatureAlgorithm", emit_null: false)]
     property server_signature_algorithm : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "encryptedClientHello", emit_null: false)]
     property? encrypted_client_hello : Bool
   end
 
@@ -292,9 +292,9 @@ module Cdp::Network
 
   struct CorsErrorStatus
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "corsError", emit_null: false)]
     property cors_error : CorsError
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "failedParameter", emit_null: false)]
     property failed_parameter : String
   end
 
@@ -307,11 +307,11 @@ module Cdp::Network
   @[Experimental]
   struct TrustTokenParams
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "operation", emit_null: false)]
     property operation : TrustTokenOperationType
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "refreshPolicy", emit_null: false)]
     property refresh_policy : TrustTokenParamsRefreshPolicy
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "issuers", emit_null: false)]
     property issuers : Array(String)?
   end
 
@@ -342,168 +342,168 @@ module Cdp::Network
   @[Experimental]
   struct ServiceWorkerRouterInfo
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ruleIdMatched", emit_null: false)]
     property rule_id_matched : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "matchedSourceType", emit_null: false)]
     property matched_source_type : ServiceWorkerRouterSource?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "actualSourceType", emit_null: false)]
     property actual_source_type : ServiceWorkerRouterSource?
   end
 
   struct Response
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "status", emit_null: false)]
     property status : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "statusText", emit_null: false)]
     property status_text : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "headers", emit_null: false)]
     property headers : Headers
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "mimeType", emit_null: false)]
     property mime_type : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "charset", emit_null: false)]
     property charset : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestHeaders", emit_null: false)]
     property request_headers : Headers?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "connectionReused", emit_null: false)]
     property? connection_reused : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "connectionId", emit_null: false)]
     property connection_id : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "remoteIpAddress", emit_null: false)]
     property remote_ip_address : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "remotePort", emit_null: false)]
     property remote_port : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "fromDiskCache", emit_null: false)]
     property? from_disk_cache : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "fromServiceWorker", emit_null: false)]
     property? from_service_worker : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "fromPrefetchCache", emit_null: false)]
     property? from_prefetch_cache : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "fromEarlyHints", emit_null: false)]
     property? from_early_hints : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "serviceWorkerRouterInfo", emit_null: false)]
     property service_worker_router_info : ServiceWorkerRouterInfo?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "encodedDataLength", emit_null: false)]
     property encoded_data_length : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timing", emit_null: false)]
     property timing : ResourceTiming?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "serviceWorkerResponseSource", emit_null: false)]
     property service_worker_response_source : ServiceWorkerResponseSource?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "responseTime", emit_null: false)]
     property response_time : TimeSinceEpoch?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cacheStorageCacheName", emit_null: false)]
     property cache_storage_cache_name : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "protocol", emit_null: false)]
     property protocol : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "alternateProtocolUsage", emit_null: false)]
     property alternate_protocol_usage : AlternateProtocolUsage?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "securityState", emit_null: false)]
     property security_state : Cdp::Security::SecurityState
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "securityDetails", emit_null: false)]
     property security_details : SecurityDetails?
   end
 
   struct WebSocketRequest
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "headers", emit_null: false)]
     property headers : Headers
   end
 
   struct WebSocketResponse
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "status", emit_null: false)]
     property status : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "statusText", emit_null: false)]
     property status_text : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "headers", emit_null: false)]
     property headers : Headers
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "headersText", emit_null: false)]
     property headers_text : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestHeaders", emit_null: false)]
     property request_headers : Headers?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestHeadersText", emit_null: false)]
     property request_headers_text : String?
   end
 
   struct WebSocketFrame
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "opcode", emit_null: false)]
     property opcode : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "mask", emit_null: false)]
     property? mask : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "payloadData", emit_null: false)]
     property payload_data : String
   end
 
   struct CachedResource
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "type", emit_null: false)]
     property type : ResourceType
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "response", emit_null: false)]
     property response : Response?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "bodySize", emit_null: false)]
     property body_size : Float64
   end
 
   struct Initiator
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "type", emit_null: false)]
     property type : InitiatorType
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "stack", emit_null: false)]
     property stack : Cdp::Runtime::StackTrace?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "lineNumber", emit_null: false)]
     property line_number : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "columnNumber", emit_null: false)]
     property column_number : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId?
   end
 
   @[Experimental]
   struct CookiePartitionKey
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "topLevelSite", emit_null: false)]
     property top_level_site : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "hasCrossSiteAncestor", emit_null: false)]
     property? has_cross_site_ancestor : Bool
   end
 
   struct Cookie
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "domain", emit_null: false)]
     property domain : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "path", emit_null: false)]
     property path : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "expires", emit_null: false)]
     property expires : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "size", emit_null: false)]
     property size : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "httpOnly", emit_null: false)]
     property? http_only : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "secure", emit_null: false)]
     property? secure : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "session", emit_null: false)]
     property? session : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sameSite", emit_null: false)]
     property same_site : CookieSameSite?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "priority", emit_null: false)]
     property priority : CookiePriority
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sourceScheme", emit_null: false)]
     property source_scheme : CookieSourceScheme
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sourcePort", emit_null: false)]
     property source_port : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "partitionKey", emit_null: false)]
     property partition_key : CookiePartitionKey?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "partitionKeyOpaque", emit_null: false)]
     property? partition_key_opaque : Bool?
   end
 
@@ -568,87 +568,87 @@ module Cdp::Network
   @[Experimental]
   struct BlockedSetCookieWithReason
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "blockedReasons", emit_null: false)]
     property blocked_reasons : Array(SetCookieBlockedReason)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cookieLine", emit_null: false)]
     property cookie_line : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cookie", emit_null: false)]
     property cookie : Cookie?
   end
 
   @[Experimental]
   struct ExemptedSetCookieWithReason
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "exemptionReason", emit_null: false)]
     property exemption_reason : CookieExemptionReason
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cookieLine", emit_null: false)]
     property cookie_line : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cookie", emit_null: false)]
     property cookie : Cookie
   end
 
   @[Experimental]
   struct AssociatedCookie
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cookie", emit_null: false)]
     property cookie : Cookie
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "blockedReasons", emit_null: false)]
     property blocked_reasons : Array(CookieBlockedReason)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "exemptionReason", emit_null: false)]
     property exemption_reason : CookieExemptionReason?
   end
 
   struct CookieParam
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "domain", emit_null: false)]
     property domain : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "path", emit_null: false)]
     property path : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "secure", emit_null: false)]
     property? secure : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "httpOnly", emit_null: false)]
     property? http_only : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sameSite", emit_null: false)]
     property same_site : CookieSameSite?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "expires", emit_null: false)]
     property expires : TimeSinceEpoch?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "priority", emit_null: false)]
     property priority : CookiePriority?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sourceScheme", emit_null: false)]
     property source_scheme : CookieSourceScheme?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sourcePort", emit_null: false)]
     property source_port : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "partitionKey", emit_null: false)]
     property partition_key : CookiePartitionKey?
   end
 
   @[Experimental]
   struct AuthChallenge
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "source", emit_null: false)]
     property source : AuthChallengeSource?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "origin", emit_null: false)]
     property origin : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scheme", emit_null: false)]
     property scheme : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "realm", emit_null: false)]
     property realm : String
   end
 
   @[Experimental]
   struct AuthChallengeResponse
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "response", emit_null: false)]
     property response : AuthChallengeResponseResponse
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "username", emit_null: false)]
     property username : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "password", emit_null: false)]
     property password : String?
   end
 
@@ -660,49 +660,49 @@ module Cdp::Network
   @[Experimental]
   struct RequestPattern
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "urlPattern", emit_null: false)]
     property url_pattern : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "resourceType", emit_null: false)]
     property resource_type : ResourceType?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "interceptionStage", emit_null: false)]
     property interception_stage : InterceptionStage?
   end
 
   @[Experimental]
   struct SignedExchangeSignature
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "label", emit_null: false)]
     property label : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "signature", emit_null: false)]
     property signature : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "integrity", emit_null: false)]
     property integrity : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "certUrl", emit_null: false)]
     property cert_url : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "certSha256", emit_null: false)]
     property cert_sha256 : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "validityUrl", emit_null: false)]
     property validity_url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "date", emit_null: false)]
     property date : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "expires", emit_null: false)]
     property expires : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "certificates", emit_null: false)]
     property certificates : Array(String)?
   end
 
   @[Experimental]
   struct SignedExchangeHeader
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestUrl", emit_null: false)]
     property request_url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "responseCode", emit_null: false)]
     property response_code : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "responseHeaders", emit_null: false)]
     property response_headers : Headers
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "signatures", emit_null: false)]
     property signatures : Array(SignedExchangeSignature)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "headerIntegrity", emit_null: false)]
     property header_integrity : String
   end
 
@@ -718,26 +718,26 @@ module Cdp::Network
   @[Experimental]
   struct SignedExchangeError
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "message", emit_null: false)]
     property message : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "signatureIndex", emit_null: false)]
     property signature_index : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "errorField", emit_null: false)]
     property error_field : SignedExchangeErrorField?
   end
 
   @[Experimental]
   struct SignedExchangeInfo
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "outerResponse", emit_null: false)]
     property outer_response : Response
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "hasExtraInfo", emit_null: false)]
     property? has_extra_info : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "header", emit_null: false)]
     property header : SignedExchangeHeader?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "securityDetails", emit_null: false)]
     property security_details : SecurityDetails?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "errors", emit_null: false)]
     property errors : Array(SignedExchangeError)?
   end
 
@@ -751,30 +751,30 @@ module Cdp::Network
   @[Experimental]
   struct NetworkConditions
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "urlPattern", emit_null: false)]
     property url_pattern : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "latency", emit_null: false)]
     property latency : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "downloadThroughput", emit_null: false)]
     property download_throughput : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "uploadThroughput", emit_null: false)]
     property upload_throughput : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "connectionType", emit_null: false)]
     property connection_type : ConnectionType?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "packetLoss", emit_null: false)]
     property packet_loss : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "packetQueueLength", emit_null: false)]
     property packet_queue_length : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "packetReordering", emit_null: false)]
     property? packet_reordering : Bool?
   end
 
   @[Experimental]
   struct BlockPattern
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "urlPattern", emit_null: false)]
     property url_pattern : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "block", emit_null: false)]
     property? block : Bool
   end
 
@@ -786,51 +786,51 @@ module Cdp::Network
   @[Experimental]
   struct DirectTCPSocketOptions
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "noDelay", emit_null: false)]
     property? no_delay : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "keepAliveDelay", emit_null: false)]
     property keep_alive_delay : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sendBufferSize", emit_null: false)]
     property send_buffer_size : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "receiveBufferSize", emit_null: false)]
     property receive_buffer_size : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "dnsQueryType", emit_null: false)]
     property dns_query_type : DirectSocketDnsQueryType?
   end
 
   @[Experimental]
   struct DirectUDPSocketOptions
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "remoteAddr", emit_null: false)]
     property remote_addr : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "remotePort", emit_null: false)]
     property remote_port : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "localAddr", emit_null: false)]
     property local_addr : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "localPort", emit_null: false)]
     property local_port : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "dnsQueryType", emit_null: false)]
     property dns_query_type : DirectSocketDnsQueryType?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sendBufferSize", emit_null: false)]
     property send_buffer_size : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "receiveBufferSize", emit_null: false)]
     property receive_buffer_size : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "multicastLoopback", emit_null: false)]
     property? multicast_loopback : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "multicastTimeToLive", emit_null: false)]
     property multicast_time_to_live : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "multicastAllowAddressSharing", emit_null: false)]
     property? multicast_allow_address_sharing : Bool?
   end
 
   @[Experimental]
   struct DirectUDPMessage
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "data", emit_null: false)]
     property data : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "remoteAddr", emit_null: false)]
     property remote_addr : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "remotePort", emit_null: false)]
     property remote_port : Int64?
   end
 
@@ -852,18 +852,18 @@ module Cdp::Network
   @[Experimental]
   struct ConnectTiming
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestTime", emit_null: false)]
     property request_time : Float64
   end
 
   @[Experimental]
   struct ClientSecurityState
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "initiatorIsSecureContext", emit_null: false)]
     property? initiator_is_secure_context : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "initiatorIpAddressSpace", emit_null: false)]
     property initiator_ip_address_space : IPAddressSpace
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "localNetworkAccessRequestPolicy", emit_null: false)]
     property local_network_access_request_policy : LocalNetworkAccessRequestPolicy
   end
 
@@ -880,13 +880,13 @@ module Cdp::Network
   @[Experimental]
   struct CrossOriginOpenerPolicyStatus
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : CrossOriginOpenerPolicyValue
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "reportOnlyValue", emit_null: false)]
     property report_only_value : CrossOriginOpenerPolicyValue
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "reportingEndpoint", emit_null: false)]
     property reporting_endpoint : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "reportOnlyReportingEndpoint", emit_null: false)]
     property report_only_reporting_endpoint : String?
   end
 
@@ -899,13 +899,13 @@ module Cdp::Network
   @[Experimental]
   struct CrossOriginEmbedderPolicyStatus
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : CrossOriginEmbedderPolicyValue
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "reportOnlyValue", emit_null: false)]
     property report_only_value : CrossOriginEmbedderPolicyValue
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "reportingEndpoint", emit_null: false)]
     property reporting_endpoint : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "reportOnlyReportingEndpoint", emit_null: false)]
     property report_only_reporting_endpoint : String?
   end
 
@@ -917,22 +917,22 @@ module Cdp::Network
   @[Experimental]
   struct ContentSecurityPolicyStatus
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "effectiveDirectives", emit_null: false)]
     property effective_directives : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isEnforced", emit_null: false)]
     property? is_enforced : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "source", emit_null: false)]
     property source : ContentSecurityPolicySource
   end
 
   @[Experimental]
   struct SecurityIsolationStatus
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "coop", emit_null: false)]
     property coop : CrossOriginOpenerPolicyStatus?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "coep", emit_null: false)]
     property coep : CrossOriginEmbedderPolicyStatus?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "csp", emit_null: false)]
     property csp : Array(ContentSecurityPolicyStatus)?
   end
 
@@ -949,108 +949,108 @@ module Cdp::Network
   @[Experimental]
   struct ReportingApiReport
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "id", emit_null: false)]
     property id : ReportId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "initiatorUrl", emit_null: false)]
     property initiator_url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "destination", emit_null: false)]
     property destination : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "type", emit_null: false)]
     property type : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : TimeSinceEpoch
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "depth", emit_null: false)]
     property depth : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "completedAttempts", emit_null: false)]
     property completed_attempts : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "body", emit_null: false)]
     property body : JSON::Any
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "status", emit_null: false)]
     property status : ReportStatus
   end
 
   @[Experimental]
   struct ReportingApiEndpoint
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "groupName", emit_null: false)]
     property group_name : String
   end
 
   @[Experimental]
   struct DeviceBoundSessionKey
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "site", emit_null: false)]
     property site : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "id", emit_null: false)]
     property id : String
   end
 
   @[Experimental]
   struct DeviceBoundSessionWithUsage
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sessionKey", emit_null: false)]
     property session_key : DeviceBoundSessionKey
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "usage", emit_null: false)]
     property usage : DeviceBoundSessionWithUsageUsage
   end
 
   @[Experimental]
   struct DeviceBoundSessionCookieCraving
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "domain", emit_null: false)]
     property domain : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "path", emit_null: false)]
     property path : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "secure", emit_null: false)]
     property? secure : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "httpOnly", emit_null: false)]
     property? http_only : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sameSite", emit_null: false)]
     property same_site : CookieSameSite?
   end
 
   @[Experimental]
   struct DeviceBoundSessionUrlRule
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ruleType", emit_null: false)]
     property rule_type : DeviceBoundSessionUrlRuleRuleType
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "hostPattern", emit_null: false)]
     property host_pattern : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "pathPrefix", emit_null: false)]
     property path_prefix : String
   end
 
   @[Experimental]
   struct DeviceBoundSessionInclusionRules
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "origin", emit_null: false)]
     property origin : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "includeSite", emit_null: false)]
     property? include_site : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "urlRules", emit_null: false)]
     property url_rules : Array(DeviceBoundSessionUrlRule)
   end
 
   @[Experimental]
   struct DeviceBoundSession
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "key", emit_null: false)]
     property key : DeviceBoundSessionKey
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "refreshUrl", emit_null: false)]
     property refresh_url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "inclusionRules", emit_null: false)]
     property inclusion_rules : DeviceBoundSessionInclusionRules
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cookieCravings", emit_null: false)]
     property cookie_cravings : Array(DeviceBoundSessionCookieCraving)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "expiryDate", emit_null: false)]
     property expiry_date : TimeSinceEpoch
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cachedChallenge", emit_null: false)]
     property cached_challenge : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "allowedRefreshInitiators", emit_null: false)]
     property allowed_refresh_initiators : Array(String)
   end
 
@@ -1131,81 +1131,81 @@ module Cdp::Network
   @[Experimental]
   struct DeviceBoundSessionFailedRequest
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestUrl", emit_null: false)]
     property request_url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "netError", emit_null: false)]
     property net_error : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "responseError", emit_null: false)]
     property response_error : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "responseErrorBody", emit_null: false)]
     property response_error_body : String?
   end
 
   @[Experimental]
   struct CreationEventDetails
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "fetchResult", emit_null: false)]
     property fetch_result : DeviceBoundSessionFetchResult
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "newSession", emit_null: false)]
     property new_session : DeviceBoundSession?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "failedRequest", emit_null: false)]
     property failed_request : DeviceBoundSessionFailedRequest?
   end
 
   @[Experimental]
   struct RefreshEventDetails
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "refreshResult", emit_null: false)]
     property refresh_result : RefreshEventDetailsRefreshResult
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "fetchResult", emit_null: false)]
     property fetch_result : DeviceBoundSessionFetchResult?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "newSession", emit_null: false)]
     property new_session : DeviceBoundSession?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "wasFullyProactiveRefresh", emit_null: false)]
     property? was_fully_proactive_refresh : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "failedRequest", emit_null: false)]
     property failed_request : DeviceBoundSessionFailedRequest?
   end
 
   @[Experimental]
   struct TerminationEventDetails
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "deletionReason", emit_null: false)]
     property deletion_reason : TerminationEventDetailsDeletionReason
   end
 
   @[Experimental]
   struct ChallengeEventDetails
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "challengeResult", emit_null: false)]
     property challenge_result : ChallengeEventDetailsChallengeResult
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "challenge", emit_null: false)]
     property challenge : String
   end
 
   @[Experimental]
   struct LoadNetworkResourcePageResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "success", emit_null: false)]
     property? success : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "netError", emit_null: false)]
     property net_error : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "netErrorName", emit_null: false)]
     property net_error_name : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "httpStatusCode", emit_null: false)]
     property http_status_code : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "stream", emit_null: false)]
     property stream : Cdp::IO::StreamHandle?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "headers", emit_null: false)]
     property headers : Headers?
   end
 
   @[Experimental]
   struct LoadNetworkResourceOptions
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "disableCache", emit_null: false)]
     property? disable_cache : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "includeCredentials", emit_null: false)]
     property? include_credentials : Bool
   end
 

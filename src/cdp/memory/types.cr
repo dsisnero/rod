@@ -9,39 +9,39 @@ module Cdp::Memory
 
   struct SamplingProfileNode
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "size", emit_null: false)]
     property size : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "total", emit_null: false)]
     property total : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "stack", emit_null: false)]
     property stack : Array(String)
   end
 
   struct SamplingProfile
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "samples", emit_null: false)]
     property samples : Array(SamplingProfileNode)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "modules", emit_null: false)]
     property modules : Array(Module)
   end
 
   struct Module
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "uuid", emit_null: false)]
     property uuid : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "baseAddress", emit_null: false)]
     property base_address : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "size", emit_null: false)]
     property size : Float64
   end
 
   struct DOMCounter
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "count", emit_null: false)]
     property count : Int64
   end
 end

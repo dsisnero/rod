@@ -15,7 +15,7 @@ require "./events"
 module Cdp::Page
   struct AddScriptToEvaluateOnNewDocumentResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "identifier", emit_null: false)]
     property identifier : ScriptIdentifier
 
     def initialize(@identifier : ScriptIdentifier)
@@ -24,7 +24,7 @@ module Cdp::Page
 
   struct CaptureScreenshotResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "data", emit_null: false)]
     property data : String
 
     def initialize(@data : String)
@@ -34,7 +34,7 @@ module Cdp::Page
   @[Experimental]
   struct CaptureSnapshotResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "data", emit_null: false)]
     property data : String
 
     def initialize(@data : String)
@@ -43,7 +43,7 @@ module Cdp::Page
 
   struct CreateIsolatedWorldResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "executionContextId", emit_null: false)]
     property execution_context_id : Cdp::Runtime::ExecutionContextId
 
     def initialize(@execution_context_id : Cdp::Runtime::ExecutionContextId)
@@ -52,15 +52,15 @@ module Cdp::Page
 
   struct GetAppManifestResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "errors", emit_null: false)]
     property errors : Array(AppManifestError)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "data", emit_null: false)]
     property data : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "parsed", emit_null: false)]
     property parsed : AppManifestParsedProperties?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "manifest", emit_null: false)]
     property manifest : WebAppManifest
 
     def initialize(@url : String, @errors : Array(AppManifestError), @data : String?, @parsed : AppManifestParsedProperties?, @manifest : WebAppManifest)
@@ -70,7 +70,7 @@ module Cdp::Page
   @[Experimental]
   struct GetInstallabilityErrorsResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "installabilityErrors", emit_null: false)]
     property installability_errors : Array(InstallabilityError)
 
     def initialize(@installability_errors : Array(InstallabilityError))
@@ -80,9 +80,9 @@ module Cdp::Page
   @[Experimental]
   struct GetAppIdResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "appId", emit_null: false)]
     property app_id : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "recommendedId", emit_null: false)]
     property recommended_id : String?
 
     def initialize(@app_id : String?, @recommended_id : String?)
@@ -92,7 +92,7 @@ module Cdp::Page
   @[Experimental]
   struct GetAdScriptAncestryResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "adScriptAncestry", emit_null: false)]
     property ad_script_ancestry : AdScriptAncestry?
 
     def initialize(@ad_script_ancestry : AdScriptAncestry?)
@@ -101,7 +101,7 @@ module Cdp::Page
 
   struct GetFrameTreeResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameTree", emit_null: false)]
     property frame_tree : FrameTree
 
     def initialize(@frame_tree : FrameTree)
@@ -110,17 +110,17 @@ module Cdp::Page
 
   struct GetLayoutMetricsResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "layoutViewport", emit_null: false)]
     property layout_viewport : LayoutViewport
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "visualViewport", emit_null: false)]
     property visual_viewport : VisualViewport
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "contentSize", emit_null: false)]
     property content_size : Cdp::DOM::Rect
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cssLayoutViewport", emit_null: false)]
     property css_layout_viewport : LayoutViewport
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cssVisualViewport", emit_null: false)]
     property css_visual_viewport : VisualViewport
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cssContentSize", emit_null: false)]
     property css_content_size : Cdp::DOM::Rect
 
     def initialize(@layout_viewport : LayoutViewport, @visual_viewport : VisualViewport, @content_size : Cdp::DOM::Rect, @css_layout_viewport : LayoutViewport, @css_visual_viewport : VisualViewport, @css_content_size : Cdp::DOM::Rect)
@@ -129,9 +129,9 @@ module Cdp::Page
 
   struct GetNavigationHistoryResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "currentIndex", emit_null: false)]
     property current_index : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "entries", emit_null: false)]
     property entries : Array(NavigationEntry)
 
     def initialize(@current_index : Int64, @entries : Array(NavigationEntry))
@@ -141,9 +141,9 @@ module Cdp::Page
   @[Experimental]
   struct GetResourceContentResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "content", emit_null: false)]
     property content : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "base64Encoded", emit_null: false)]
     property? base64_encoded : Bool
 
     def initialize(@content : String, @base64_encoded : Bool)
@@ -153,7 +153,7 @@ module Cdp::Page
   @[Experimental]
   struct GetResourceTreeResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameTree", emit_null: false)]
     property frame_tree : FrameResourceTree
 
     def initialize(@frame_tree : FrameResourceTree)
@@ -162,13 +162,13 @@ module Cdp::Page
 
   struct NavigateResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : FrameId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "loaderId", emit_null: false)]
     property loader_id : Cdp::Network::LoaderId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "errorText", emit_null: false)]
     property error_text : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isDownload", emit_null: false)]
     property? is_download : Bool?
 
     def initialize(@frame_id : FrameId, @loader_id : Cdp::Network::LoaderId?, @error_text : String?, @is_download : Bool?)
@@ -177,9 +177,9 @@ module Cdp::Page
 
   struct PrintToPDFResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "data", emit_null: false)]
     property data : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "stream", emit_null: false)]
     property stream : Cdp::IO::StreamHandle?
 
     def initialize(@data : String, @stream : Cdp::IO::StreamHandle?)
@@ -189,7 +189,7 @@ module Cdp::Page
   @[Experimental]
   struct SearchInResourceResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "result", emit_null: false)]
     property result : Array(Cdp::Debugger::SearchMatch)
 
     def initialize(@result : Array(Cdp::Debugger::SearchMatch))
@@ -199,7 +199,7 @@ module Cdp::Page
   @[Experimental]
   struct GetPermissionsPolicyStateResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "states", emit_null: false)]
     property states : Array(PermissionsPolicyFeatureState)
 
     def initialize(@states : Array(PermissionsPolicyFeatureState))
@@ -209,7 +209,7 @@ module Cdp::Page
   @[Experimental]
   struct GetOriginTrialsResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "originTrials", emit_null: false)]
     property origin_trials : Array(OriginTrial)
 
     def initialize(@origin_trials : Array(OriginTrial))
@@ -219,7 +219,7 @@ module Cdp::Page
   @[Experimental]
   struct GetAnnotatedPageContentResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "content", emit_null: false)]
     property content : String
 
     def initialize(@content : String)
@@ -230,13 +230,13 @@ module Cdp::Page
   struct AddScriptToEvaluateOnNewDocument
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "source", emit_null: false)]
     property source : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "worldName", emit_null: false)]
     property world_name : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "includeCommandLineApi", emit_null: false)]
     property? include_command_line_api : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "runImmediately", emit_null: false)]
     property? run_immediately : Bool?
 
     def initialize(@source : String, @world_name : String?, @include_command_line_api : Bool?, @run_immediately : Bool?)
@@ -276,17 +276,17 @@ module Cdp::Page
   struct CaptureScreenshot
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "format", emit_null: false)]
     property format : CaptureScreenshotFormat?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "quality", emit_null: false)]
     property quality : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "clip", emit_null: false)]
     property clip : Viewport?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "fromSurface", emit_null: false)]
     property? from_surface : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "captureBeyondViewport", emit_null: false)]
     property? capture_beyond_viewport : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "optimizeForSpeed", emit_null: false)]
     property? optimize_for_speed : Bool?
 
     def initialize(@format : CaptureScreenshotFormat?, @quality : Int64?, @clip : Viewport?, @from_surface : Bool?, @capture_beyond_viewport : Bool?, @optimize_for_speed : Bool?)
@@ -309,7 +309,7 @@ module Cdp::Page
   struct CaptureSnapshot
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "format", emit_null: false)]
     property format : CaptureSnapshotFormat?
 
     def initialize(@format : CaptureSnapshotFormat?)
@@ -331,11 +331,11 @@ module Cdp::Page
   struct CreateIsolatedWorld
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : FrameId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "worldName", emit_null: false)]
     property world_name : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "grantUniveralAccess", emit_null: false)]
     property? grant_univeral_access : Bool?
 
     def initialize(@frame_id : FrameId, @world_name : String?, @grant_univeral_access : Bool?)
@@ -375,7 +375,7 @@ module Cdp::Page
   struct Enable
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "enableFileChooserOpenedEvent", emit_null: false)]
     property? enable_file_chooser_opened_event : Bool?
 
     def initialize(@enable_file_chooser_opened_event : Bool?)
@@ -395,7 +395,7 @@ module Cdp::Page
   struct GetAppManifest
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "manifestId", emit_null: false)]
     property manifest_id : String?
 
     def initialize(@manifest_id : String?)
@@ -460,7 +460,7 @@ module Cdp::Page
   struct GetAdScriptAncestry
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : FrameId
 
     def initialize(@frame_id : FrameId)
@@ -561,9 +561,9 @@ module Cdp::Page
   struct GetResourceContent
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : FrameId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String
 
     def initialize(@frame_id : FrameId, @url : String)
@@ -606,9 +606,9 @@ module Cdp::Page
   struct HandleJavaScriptDialog
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "accept", emit_null: false)]
     property? accept : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "promptText", emit_null: false)]
     property prompt_text : String?
 
     def initialize(@accept : Bool, @prompt_text : String?)
@@ -628,15 +628,15 @@ module Cdp::Page
   struct Navigate
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "referrer", emit_null: false)]
     property referrer : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "transitionType", emit_null: false)]
     property transition_type : TransitionType?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : FrameId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "referrerPolicy", emit_null: false)]
     property referrer_policy : ReferrerPolicy?
 
     def initialize(@url : String, @referrer : String?, @transition_type : TransitionType?, @frame_id : FrameId?, @referrer_policy : ReferrerPolicy?)
@@ -658,7 +658,7 @@ module Cdp::Page
   struct NavigateToHistoryEntry
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "entryId", emit_null: false)]
     property entry_id : Int64
 
     def initialize(@entry_id : Int64)
@@ -678,39 +678,39 @@ module Cdp::Page
   struct PrintToPDF
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "landscape", emit_null: false)]
     property? landscape : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "displayHeaderFooter", emit_null: false)]
     property? display_header_footer : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "printBackground", emit_null: false)]
     property? print_background : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scale", emit_null: false)]
     property scale : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "paperWidth", emit_null: false)]
     property paper_width : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "paperHeight", emit_null: false)]
     property paper_height : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "marginTop", emit_null: false)]
     property margin_top : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "marginBottom", emit_null: false)]
     property margin_bottom : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "marginLeft", emit_null: false)]
     property margin_left : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "marginRight", emit_null: false)]
     property margin_right : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "pageRanges", emit_null: false)]
     property page_ranges : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "headerTemplate", emit_null: false)]
     property header_template : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "footerTemplate", emit_null: false)]
     property footer_template : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "preferCssPageSize", emit_null: false)]
     property? prefer_css_page_size : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "transferMode", emit_null: false)]
     property transfer_mode : PrintToPDFTransferMode?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "generateTaggedPdf", emit_null: false)]
     property? generate_tagged_pdf : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "generateDocumentOutline", emit_null: false)]
     property? generate_document_outline : Bool?
 
     def initialize(@landscape : Bool?, @display_header_footer : Bool?, @print_background : Bool?, @scale : Float64?, @paper_width : Float64?, @paper_height : Float64?, @margin_top : Float64?, @margin_bottom : Float64?, @margin_left : Float64?, @margin_right : Float64?, @page_ranges : String?, @header_template : String?, @footer_template : String?, @prefer_css_page_size : Bool?, @transfer_mode : PrintToPDFTransferMode?, @generate_tagged_pdf : Bool?, @generate_document_outline : Bool?)
@@ -732,11 +732,11 @@ module Cdp::Page
   struct Reload
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ignoreCache", emit_null: false)]
     property? ignore_cache : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scriptToEvaluateOnLoad", emit_null: false)]
     property script_to_evaluate_on_load : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "loaderId", emit_null: false)]
     property loader_id : Cdp::Network::LoaderId?
 
     def initialize(@ignore_cache : Bool?, @script_to_evaluate_on_load : String?, @loader_id : Cdp::Network::LoaderId?)
@@ -756,7 +756,7 @@ module Cdp::Page
   struct RemoveScriptToEvaluateOnNewDocument
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "identifier", emit_null: false)]
     property identifier : ScriptIdentifier
 
     def initialize(@identifier : ScriptIdentifier)
@@ -777,7 +777,7 @@ module Cdp::Page
   struct ScreencastFrameAck
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sessionId", emit_null: false)]
     property session_id : Int64
 
     def initialize(@session_id : Int64)
@@ -798,15 +798,15 @@ module Cdp::Page
   struct SearchInResource
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : FrameId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "query", emit_null: false)]
     property query : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "caseSensitive", emit_null: false)]
     property? case_sensitive : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isRegex", emit_null: false)]
     property? is_regex : Bool?
 
     def initialize(@frame_id : FrameId, @url : String, @query : String, @case_sensitive : Bool?, @is_regex : Bool?)
@@ -829,7 +829,7 @@ module Cdp::Page
   struct SetAdBlockingEnabled
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "enabled", emit_null: false)]
     property? enabled : Bool
 
     def initialize(@enabled : Bool)
@@ -849,7 +849,7 @@ module Cdp::Page
   struct SetBypassCSP
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "enabled", emit_null: false)]
     property? enabled : Bool
 
     def initialize(@enabled : Bool)
@@ -870,7 +870,7 @@ module Cdp::Page
   struct GetPermissionsPolicyState
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : FrameId
 
     def initialize(@frame_id : FrameId)
@@ -893,7 +893,7 @@ module Cdp::Page
   struct GetOriginTrials
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : FrameId
 
     def initialize(@frame_id : FrameId)
@@ -916,9 +916,9 @@ module Cdp::Page
   struct SetFontFamilies
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "fontFamilies", emit_null: false)]
     property font_families : FontFamilies
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "forScripts", emit_null: false)]
     property for_scripts : Array(ScriptFontFamilies)?
 
     def initialize(@font_families : FontFamilies, @for_scripts : Array(ScriptFontFamilies)?)
@@ -939,7 +939,7 @@ module Cdp::Page
   struct SetFontSizes
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "fontSizes", emit_null: false)]
     property font_sizes : FontSizes
 
     def initialize(@font_sizes : FontSizes)
@@ -959,9 +959,9 @@ module Cdp::Page
   struct SetDocumentContent
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : FrameId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "html", emit_null: false)]
     property html : String
 
     def initialize(@frame_id : FrameId, @html : String)
@@ -983,9 +983,9 @@ module Cdp::Page
   struct SetDownloadBehavior
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "behavior", emit_null: false)]
     property behavior : SetDownloadBehaviorBehavior
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "downloadPath", emit_null: false)]
     property download_path : String?
 
     def initialize(@behavior : SetDownloadBehaviorBehavior, @download_path : String?)
@@ -1005,7 +1005,7 @@ module Cdp::Page
   struct SetLifecycleEventsEnabled
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "enabled", emit_null: false)]
     property? enabled : Bool
 
     def initialize(@enabled : Bool)
@@ -1026,15 +1026,15 @@ module Cdp::Page
   struct StartScreencast
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "format", emit_null: false)]
     property format : ScreencastFormat?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "quality", emit_null: false)]
     property quality : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "maxWidth", emit_null: false)]
     property max_width : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "maxHeight", emit_null: false)]
     property max_height : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "everyNthFrame", emit_null: false)]
     property every_nth_frame : Int64?
 
     def initialize(@format : ScreencastFormat?, @quality : Int64?, @max_width : Int64?, @max_height : Int64?, @every_nth_frame : Int64?)
@@ -1110,7 +1110,7 @@ module Cdp::Page
   struct SetWebLifecycleState
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "state", emit_null: false)]
     property state : SetWebLifecycleStateState
 
     def initialize(@state : SetWebLifecycleStateState)
@@ -1150,7 +1150,7 @@ module Cdp::Page
   struct ProduceCompilationCache
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scripts", emit_null: false)]
     property scripts : Array(CompilationCacheParams)
 
     def initialize(@scripts : Array(CompilationCacheParams))
@@ -1171,9 +1171,9 @@ module Cdp::Page
   struct AddCompilationCache
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "data", emit_null: false)]
     property data : String
 
     def initialize(@url : String, @data : String)
@@ -1213,7 +1213,7 @@ module Cdp::Page
   struct SetSPCTransactionMode
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "mode", emit_null: false)]
     property mode : SetSPCTransactionModeMode
 
     def initialize(@mode : SetSPCTransactionModeMode)
@@ -1234,7 +1234,7 @@ module Cdp::Page
   struct SetRPHRegistrationMode
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "mode", emit_null: false)]
     property mode : SetRPHRegistrationModeMode
 
     def initialize(@mode : SetRPHRegistrationModeMode)
@@ -1255,9 +1255,9 @@ module Cdp::Page
   struct GenerateTestReport
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "message", emit_null: false)]
     property message : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "group", emit_null: false)]
     property group : String?
 
     def initialize(@message : String, @group : String?)
@@ -1296,9 +1296,9 @@ module Cdp::Page
   struct SetInterceptFileChooserDialog
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "enabled", emit_null: false)]
     property? enabled : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cancel", emit_null: false)]
     property? cancel : Bool?
 
     def initialize(@enabled : Bool, @cancel : Bool?)
@@ -1319,7 +1319,7 @@ module Cdp::Page
   struct SetPrerenderingAllowed
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isAllowed", emit_null: false)]
     property? is_allowed : Bool
 
     def initialize(@is_allowed : Bool)
@@ -1340,7 +1340,7 @@ module Cdp::Page
   struct GetAnnotatedPageContent
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "includeActionableInformation", emit_null: false)]
     property? include_actionable_information : Bool?
 
     def initialize(@include_actionable_information : Bool?)

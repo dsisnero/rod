@@ -13,9 +13,9 @@ require "./events"
 module Cdp::Fetch
   struct GetResponseBodyResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "body", emit_null: false)]
     property body : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "base64Encoded", emit_null: false)]
     property? base64_encoded : Bool
 
     def initialize(@body : String, @base64_encoded : Bool)
@@ -24,7 +24,7 @@ module Cdp::Fetch
 
   struct TakeResponseBodyAsStreamResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "stream", emit_null: false)]
     property stream : Cdp::IO::StreamHandle
 
     def initialize(@stream : Cdp::IO::StreamHandle)
@@ -53,9 +53,9 @@ module Cdp::Fetch
   struct Enable
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "patterns", emit_null: false)]
     property patterns : Array(RequestPattern)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "handleAuthRequests", emit_null: false)]
     property? handle_auth_requests : Bool?
 
     def initialize(@patterns : Array(RequestPattern)?, @handle_auth_requests : Bool?)
@@ -75,9 +75,9 @@ module Cdp::Fetch
   struct FailRequest
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "errorReason", emit_null: false)]
     property error_reason : Cdp::Network::ErrorReason
 
     def initialize(@request_id : RequestId, @error_reason : Cdp::Network::ErrorReason)
@@ -97,17 +97,17 @@ module Cdp::Fetch
   struct FulfillRequest
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "responseCode", emit_null: false)]
     property response_code : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "responseHeaders", emit_null: false)]
     property response_headers : Array(HeaderEntry)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "binaryResponseHeaders", emit_null: false)]
     property binary_response_headers : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "body", emit_null: false)]
     property body : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "responsePhrase", emit_null: false)]
     property response_phrase : String?
 
     def initialize(@request_id : RequestId, @response_code : Int64, @response_headers : Array(HeaderEntry)?, @binary_response_headers : String?, @body : String?, @response_phrase : String?)
@@ -127,17 +127,17 @@ module Cdp::Fetch
   struct ContinueRequest
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "method", emit_null: false)]
     property method : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "postData", emit_null: false)]
     property post_data : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "headers", emit_null: false)]
     property headers : Array(HeaderEntry)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "interceptResponse", emit_null: false)]
     property? intercept_response : Bool?
 
     def initialize(@request_id : RequestId, @url : String?, @method : String?, @post_data : String?, @headers : Array(HeaderEntry)?, @intercept_response : Bool?)
@@ -157,9 +157,9 @@ module Cdp::Fetch
   struct ContinueWithAuth
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "authChallengeResponse", emit_null: false)]
     property auth_challenge_response : AuthChallengeResponse
 
     def initialize(@request_id : RequestId, @auth_challenge_response : AuthChallengeResponse)
@@ -180,15 +180,15 @@ module Cdp::Fetch
   struct ContinueResponse
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "responseCode", emit_null: false)]
     property response_code : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "responsePhrase", emit_null: false)]
     property response_phrase : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "responseHeaders", emit_null: false)]
     property response_headers : Array(HeaderEntry)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "binaryResponseHeaders", emit_null: false)]
     property binary_response_headers : String?
 
     def initialize(@request_id : RequestId, @response_code : Int64?, @response_phrase : String?, @response_headers : Array(HeaderEntry)?, @binary_response_headers : String?)
@@ -208,7 +208,7 @@ module Cdp::Fetch
   struct GetResponseBody
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
 
     def initialize(@request_id : RequestId)
@@ -230,7 +230,7 @@ module Cdp::Fetch
   struct TakeResponseBodyAsStream
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
 
     def initialize(@request_id : RequestId)

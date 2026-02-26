@@ -12,7 +12,7 @@ require "./events"
 module Cdp::Debugger
   struct EnableResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "debuggerId", emit_null: false)]
     property debugger_id : Cdp::Runtime::UniqueDebuggerId
 
     def initialize(@debugger_id : Cdp::Runtime::UniqueDebuggerId)
@@ -21,9 +21,9 @@ module Cdp::Debugger
 
   struct EvaluateOnCallFrameResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "result", emit_null: false)]
     property result : Cdp::Runtime::RemoteObject
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "exceptionDetails", emit_null: false)]
     property exception_details : Cdp::Runtime::ExceptionDetails?
 
     def initialize(@result : Cdp::Runtime::RemoteObject, @exception_details : Cdp::Runtime::ExceptionDetails?)
@@ -32,7 +32,7 @@ module Cdp::Debugger
 
   struct GetPossibleBreakpointsResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "locations", emit_null: false)]
     property locations : Array(BreakLocation)
 
     def initialize(@locations : Array(BreakLocation))
@@ -41,9 +41,9 @@ module Cdp::Debugger
 
   struct GetScriptSourceResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scriptSource", emit_null: false)]
     property script_source : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "bytecode", emit_null: false)]
     property bytecode : String?
 
     def initialize(@script_source : String, @bytecode : String?)
@@ -53,13 +53,13 @@ module Cdp::Debugger
   @[Experimental]
   struct DisassembleWasmModuleResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "streamId", emit_null: false)]
     property stream_id : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "totalNumberOfLines", emit_null: false)]
     property total_number_of_lines : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "functionBodyOffsets", emit_null: false)]
     property function_body_offsets : Array(Int64)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "chunk", emit_null: false)]
     property chunk : WasmDisassemblyChunk
 
     def initialize(@stream_id : String?, @total_number_of_lines : Int64, @function_body_offsets : Array(Int64), @chunk : WasmDisassemblyChunk)
@@ -69,7 +69,7 @@ module Cdp::Debugger
   @[Experimental]
   struct NextWasmDisassemblyChunkResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "chunk", emit_null: false)]
     property chunk : WasmDisassemblyChunk
 
     def initialize(@chunk : WasmDisassemblyChunk)
@@ -79,7 +79,7 @@ module Cdp::Debugger
   @[Experimental]
   struct GetStackTraceResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "stackTrace", emit_null: false)]
     property stack_trace : Cdp::Runtime::StackTrace
 
     def initialize(@stack_trace : Cdp::Runtime::StackTrace)
@@ -88,11 +88,11 @@ module Cdp::Debugger
 
   struct RestartFrameResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "callFrames", emit_null: false)]
     property call_frames : Array(CallFrame)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "asyncStackTrace", emit_null: false)]
     property async_stack_trace : Cdp::Runtime::StackTrace?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "asyncStackTraceId", emit_null: false)]
     property async_stack_trace_id : Cdp::Runtime::StackTraceId?
 
     def initialize(@call_frames : Array(CallFrame), @async_stack_trace : Cdp::Runtime::StackTrace?, @async_stack_trace_id : Cdp::Runtime::StackTraceId?)
@@ -101,7 +101,7 @@ module Cdp::Debugger
 
   struct SearchInContentResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "result", emit_null: false)]
     property result : Array(SearchMatch)
 
     def initialize(@result : Array(SearchMatch))
@@ -110,9 +110,9 @@ module Cdp::Debugger
 
   struct SetBreakpointResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "breakpointId", emit_null: false)]
     property breakpoint_id : BreakpointId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "actualLocation", emit_null: false)]
     property actual_location : Location
 
     def initialize(@breakpoint_id : BreakpointId, @actual_location : Location)
@@ -121,7 +121,7 @@ module Cdp::Debugger
 
   struct SetInstrumentationBreakpointResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "breakpointId", emit_null: false)]
     property breakpoint_id : BreakpointId
 
     def initialize(@breakpoint_id : BreakpointId)
@@ -130,9 +130,9 @@ module Cdp::Debugger
 
   struct SetBreakpointByUrlResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "breakpointId", emit_null: false)]
     property breakpoint_id : BreakpointId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "locations", emit_null: false)]
     property locations : Array(Location)
 
     def initialize(@breakpoint_id : BreakpointId, @locations : Array(Location))
@@ -142,7 +142,7 @@ module Cdp::Debugger
   @[Experimental]
   struct SetBreakpointOnFunctionCallResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "breakpointId", emit_null: false)]
     property breakpoint_id : BreakpointId
 
     def initialize(@breakpoint_id : BreakpointId)
@@ -151,15 +151,15 @@ module Cdp::Debugger
 
   struct SetScriptSourceResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "callFrames", emit_null: false)]
     property call_frames : Array(CallFrame)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "asyncStackTrace", emit_null: false)]
     property async_stack_trace : Cdp::Runtime::StackTrace?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "asyncStackTraceId", emit_null: false)]
     property async_stack_trace_id : Cdp::Runtime::StackTraceId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "status", emit_null: false)]
     property status : SetScriptSourceStatus
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "exceptionDetails", emit_null: false)]
     property exception_details : Cdp::Runtime::ExceptionDetails?
 
     def initialize(@call_frames : Array(CallFrame)?, @async_stack_trace : Cdp::Runtime::StackTrace?, @async_stack_trace_id : Cdp::Runtime::StackTraceId?, @status : SetScriptSourceStatus, @exception_details : Cdp::Runtime::ExceptionDetails?)
@@ -170,9 +170,9 @@ module Cdp::Debugger
   struct ContinueToLocation
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "location", emit_null: false)]
     property location : Location
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "targetCallFrames", emit_null: false)]
     property target_call_frames : ContinueToLocationTargetCallFrames?
 
     def initialize(@location : Location, @target_call_frames : ContinueToLocationTargetCallFrames?)
@@ -210,7 +210,7 @@ module Cdp::Debugger
   struct Enable
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "maxScriptsCacheSize", emit_null: false)]
     property max_scripts_cache_size : Float64?
 
     def initialize(@max_scripts_cache_size : Float64?)
@@ -232,23 +232,23 @@ module Cdp::Debugger
   struct EvaluateOnCallFrame
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "callFrameId", emit_null: false)]
     property call_frame_id : CallFrameId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "expression", emit_null: false)]
     property expression : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "objectGroup", emit_null: false)]
     property object_group : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "includeCommandLineApi", emit_null: false)]
     property? include_command_line_api : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "silent", emit_null: false)]
     property? silent : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "returnByValue", emit_null: false)]
     property? return_by_value : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "generatePreview", emit_null: false)]
     property? generate_preview : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "throwOnSideEffect", emit_null: false)]
     property? throw_on_side_effect : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timeout", emit_null: false)]
     property timeout : Cdp::Runtime::TimeDelta?
 
     def initialize(@call_frame_id : CallFrameId, @expression : String, @object_group : String?, @include_command_line_api : Bool?, @silent : Bool?, @return_by_value : Bool?, @generate_preview : Bool?, @throw_on_side_effect : Bool?, @timeout : Cdp::Runtime::TimeDelta?)
@@ -270,11 +270,11 @@ module Cdp::Debugger
   struct GetPossibleBreakpoints
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "start", emit_null: false)]
     property start : Location
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "end", emit_null: false)]
     property end : Location?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "restrictToFunction", emit_null: false)]
     property? restrict_to_function : Bool?
 
     def initialize(@start : Location, @end : Location?, @restrict_to_function : Bool?)
@@ -296,7 +296,7 @@ module Cdp::Debugger
   struct GetScriptSource
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scriptId", emit_null: false)]
     property script_id : Cdp::Runtime::ScriptId
 
     def initialize(@script_id : Cdp::Runtime::ScriptId)
@@ -319,7 +319,7 @@ module Cdp::Debugger
   struct DisassembleWasmModule
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scriptId", emit_null: false)]
     property script_id : Cdp::Runtime::ScriptId
 
     def initialize(@script_id : Cdp::Runtime::ScriptId)
@@ -342,7 +342,7 @@ module Cdp::Debugger
   struct NextWasmDisassemblyChunk
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "streamId", emit_null: false)]
     property stream_id : String
 
     def initialize(@stream_id : String)
@@ -365,7 +365,7 @@ module Cdp::Debugger
   struct GetStackTrace
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "stackTraceId", emit_null: false)]
     property stack_trace_id : Cdp::Runtime::StackTraceId
 
     def initialize(@stack_trace_id : Cdp::Runtime::StackTraceId)
@@ -405,7 +405,7 @@ module Cdp::Debugger
   struct RemoveBreakpoint
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "breakpointId", emit_null: false)]
     property breakpoint_id : BreakpointId
 
     def initialize(@breakpoint_id : BreakpointId)
@@ -425,9 +425,9 @@ module Cdp::Debugger
   struct RestartFrame
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "callFrameId", emit_null: false)]
     property call_frame_id : CallFrameId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "mode", emit_null: false)]
     property mode : RestartFrameMode?
 
     def initialize(@call_frame_id : CallFrameId, @mode : RestartFrameMode?)
@@ -449,7 +449,7 @@ module Cdp::Debugger
   struct Resume
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "terminateOnResume", emit_null: false)]
     property? terminate_on_resume : Bool?
 
     def initialize(@terminate_on_resume : Bool?)
@@ -469,13 +469,13 @@ module Cdp::Debugger
   struct SearchInContent
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scriptId", emit_null: false)]
     property script_id : Cdp::Runtime::ScriptId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "query", emit_null: false)]
     property query : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "caseSensitive", emit_null: false)]
     property? case_sensitive : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isRegex", emit_null: false)]
     property? is_regex : Bool?
 
     def initialize(@script_id : Cdp::Runtime::ScriptId, @query : String, @case_sensitive : Bool?, @is_regex : Bool?)
@@ -497,7 +497,7 @@ module Cdp::Debugger
   struct SetAsyncCallStackDepth
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "maxDepth", emit_null: false)]
     property max_depth : Int64
 
     def initialize(@max_depth : Int64)
@@ -518,7 +518,7 @@ module Cdp::Debugger
   struct SetBlackboxExecutionContexts
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "uniqueIds", emit_null: false)]
     property unique_ids : Array(String)
 
     def initialize(@unique_ids : Array(String))
@@ -539,9 +539,9 @@ module Cdp::Debugger
   struct SetBlackboxPatterns
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "patterns", emit_null: false)]
     property patterns : Array(String)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "skipAnonymous", emit_null: false)]
     property? skip_anonymous : Bool?
 
     def initialize(@patterns : Array(String), @skip_anonymous : Bool?)
@@ -562,9 +562,9 @@ module Cdp::Debugger
   struct SetBlackboxedRanges
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scriptId", emit_null: false)]
     property script_id : Cdp::Runtime::ScriptId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "positions", emit_null: false)]
     property positions : Array(ScriptPosition)
 
     def initialize(@script_id : Cdp::Runtime::ScriptId, @positions : Array(ScriptPosition))
@@ -584,9 +584,9 @@ module Cdp::Debugger
   struct SetBreakpoint
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "location", emit_null: false)]
     property location : Location
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "condition", emit_null: false)]
     property condition : String?
 
     def initialize(@location : Location, @condition : String?)
@@ -608,7 +608,7 @@ module Cdp::Debugger
   struct SetInstrumentationBreakpoint
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "instrumentation", emit_null: false)]
     property instrumentation : SetInstrumentationBreakpointInstrumentation
 
     def initialize(@instrumentation : SetInstrumentationBreakpointInstrumentation)
@@ -630,17 +630,17 @@ module Cdp::Debugger
   struct SetBreakpointByUrl
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "lineNumber", emit_null: false)]
     property line_number : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "urlRegex", emit_null: false)]
     property url_regex : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scriptHash", emit_null: false)]
     property script_hash : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "columnNumber", emit_null: false)]
     property column_number : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "condition", emit_null: false)]
     property condition : String?
 
     def initialize(@line_number : Int64, @url : String?, @url_regex : String?, @script_hash : String?, @column_number : Int64?, @condition : String?)
@@ -663,9 +663,9 @@ module Cdp::Debugger
   struct SetBreakpointOnFunctionCall
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "objectId", emit_null: false)]
     property object_id : Cdp::Runtime::RemoteObjectId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "condition", emit_null: false)]
     property condition : String?
 
     def initialize(@object_id : Cdp::Runtime::RemoteObjectId, @condition : String?)
@@ -687,7 +687,7 @@ module Cdp::Debugger
   struct SetBreakpointsActive
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "active", emit_null: false)]
     property? active : Bool
 
     def initialize(@active : Bool)
@@ -707,7 +707,7 @@ module Cdp::Debugger
   struct SetPauseOnExceptions
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "state", emit_null: false)]
     property state : ExceptionsState
 
     def initialize(@state : ExceptionsState)
@@ -728,7 +728,7 @@ module Cdp::Debugger
   struct SetReturnValue
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "newValue", emit_null: false)]
     property new_value : Cdp::Runtime::CallArgument
 
     def initialize(@new_value : Cdp::Runtime::CallArgument)
@@ -748,13 +748,13 @@ module Cdp::Debugger
   struct SetScriptSource
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scriptId", emit_null: false)]
     property script_id : Cdp::Runtime::ScriptId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scriptSource", emit_null: false)]
     property script_source : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "dryRun", emit_null: false)]
     property? dry_run : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "allowTopFrameEditing", emit_null: false)]
     property? allow_top_frame_editing : Bool?
 
     def initialize(@script_id : Cdp::Runtime::ScriptId, @script_source : String, @dry_run : Bool?, @allow_top_frame_editing : Bool?)
@@ -776,7 +776,7 @@ module Cdp::Debugger
   struct SetSkipAllPauses
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "skip", emit_null: false)]
     property? skip : Bool
 
     def initialize(@skip : Bool)
@@ -796,13 +796,13 @@ module Cdp::Debugger
   struct SetVariableValue
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scopeNumber", emit_null: false)]
     property scope_number : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "variableName", emit_null: false)]
     property variable_name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "newValue", emit_null: false)]
     property new_value : Cdp::Runtime::CallArgument
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "callFrameId", emit_null: false)]
     property call_frame_id : CallFrameId
 
     def initialize(@scope_number : Int64, @variable_name : String, @new_value : Cdp::Runtime::CallArgument, @call_frame_id : CallFrameId)
@@ -822,9 +822,9 @@ module Cdp::Debugger
   struct StepInto
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "breakOnAsyncCall", emit_null: false)]
     property? break_on_async_call : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "skipList", emit_null: false)]
     property skip_list : Array(LocationRange)?
 
     def initialize(@break_on_async_call : Bool?, @skip_list : Array(LocationRange)?)
@@ -862,7 +862,7 @@ module Cdp::Debugger
   struct StepOver
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "skipList", emit_null: false)]
     property skip_list : Array(LocationRange)?
 
     def initialize(@skip_list : Array(LocationRange)?)

@@ -5,11 +5,11 @@ require "time"
 module Cdp::Cast
   struct Sink
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "id", emit_null: false)]
     property id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "session", emit_null: false)]
     property session : String?
   end
 end

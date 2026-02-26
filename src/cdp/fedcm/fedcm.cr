@@ -12,7 +12,7 @@ module Cdp::FedCm
   struct Enable
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "disableRejectionDelay", emit_null: false)]
     property? disable_rejection_delay : Bool?
 
     def initialize(@disable_rejection_delay : Bool?)
@@ -50,9 +50,9 @@ module Cdp::FedCm
   struct SelectAccount
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "dialogId", emit_null: false)]
     property dialog_id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "accountIndex", emit_null: false)]
     property account_index : Int64
 
     def initialize(@dialog_id : String, @account_index : Int64)
@@ -72,9 +72,9 @@ module Cdp::FedCm
   struct ClickDialogButton
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "dialogId", emit_null: false)]
     property dialog_id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "dialogButton", emit_null: false)]
     property dialog_button : DialogButton
 
     def initialize(@dialog_id : String, @dialog_button : DialogButton)
@@ -94,11 +94,11 @@ module Cdp::FedCm
   struct OpenUrl
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "dialogId", emit_null: false)]
     property dialog_id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "accountIndex", emit_null: false)]
     property account_index : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "accountUrlType", emit_null: false)]
     property account_url_type : AccountUrlType
 
     def initialize(@dialog_id : String, @account_index : Int64, @account_url_type : AccountUrlType)
@@ -118,9 +118,9 @@ module Cdp::FedCm
   struct DismissDialog
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "dialogId", emit_null: false)]
     property dialog_id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "triggerCooldown", emit_null: false)]
     property? trigger_cooldown : Bool?
 
     def initialize(@dialog_id : String, @trigger_cooldown : Bool?)

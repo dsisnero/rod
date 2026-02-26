@@ -17,7 +17,7 @@ module Cdp::Network
   @[Experimental]
   struct EmulateNetworkConditionsByRuleResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ruleIds", emit_null: false)]
     property rule_ids : Array(String)
 
     def initialize(@rule_ids : Array(String))
@@ -27,7 +27,7 @@ module Cdp::Network
   @[Experimental]
   struct GetCertificateResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "tableNames", emit_null: false)]
     property table_names : Array(String)
 
     def initialize(@table_names : Array(String))
@@ -36,7 +36,7 @@ module Cdp::Network
 
   struct GetCookiesResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cookies", emit_null: false)]
     property cookies : Array(Cookie)
 
     def initialize(@cookies : Array(Cookie))
@@ -45,9 +45,9 @@ module Cdp::Network
 
   struct GetResponseBodyResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "body", emit_null: false)]
     property body : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "base64Encoded", emit_null: false)]
     property? base64_encoded : Bool
 
     def initialize(@body : String, @base64_encoded : Bool)
@@ -56,9 +56,9 @@ module Cdp::Network
 
   struct GetRequestPostDataResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "postData", emit_null: false)]
     property post_data : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "base64Encoded", emit_null: false)]
     property? base64_encoded : Bool
 
     def initialize(@post_data : String, @base64_encoded : Bool)
@@ -68,9 +68,9 @@ module Cdp::Network
   @[Experimental]
   struct GetResponseBodyForInterceptionResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "body", emit_null: false)]
     property body : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "base64Encoded", emit_null: false)]
     property? base64_encoded : Bool
 
     def initialize(@body : String, @base64_encoded : Bool)
@@ -80,7 +80,7 @@ module Cdp::Network
   @[Experimental]
   struct TakeResponseBodyForInterceptionAsStreamResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "stream", emit_null: false)]
     property stream : Cdp::IO::StreamHandle
 
     def initialize(@stream : Cdp::IO::StreamHandle)
@@ -90,7 +90,7 @@ module Cdp::Network
   @[Experimental]
   struct SearchInResponseBodyResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "result", emit_null: false)]
     property result : Array(Cdp::Debugger::SearchMatch)
 
     def initialize(@result : Array(Cdp::Debugger::SearchMatch))
@@ -107,7 +107,7 @@ module Cdp::Network
   @[Experimental]
   struct StreamResourceContentResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "bufferedData", emit_null: false)]
     property buffered_data : String
 
     def initialize(@buffered_data : String)
@@ -117,7 +117,7 @@ module Cdp::Network
   @[Experimental]
   struct GetSecurityIsolationStatusResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "status", emit_null: false)]
     property status : SecurityIsolationStatus
 
     def initialize(@status : SecurityIsolationStatus)
@@ -127,7 +127,7 @@ module Cdp::Network
   @[Experimental]
   struct FetchSchemefulSiteResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "schemefulSite", emit_null: false)]
     property schemeful_site : String
 
     def initialize(@schemeful_site : String)
@@ -137,7 +137,7 @@ module Cdp::Network
   @[Experimental]
   struct LoadNetworkResourceResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "resource", emit_null: false)]
     property resource : LoadNetworkResourcePageResult
 
     def initialize(@resource : LoadNetworkResourcePageResult)
@@ -149,7 +149,7 @@ module Cdp::Network
   struct SetAcceptedEncodings
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "encodings", emit_null: false)]
     property encodings : Array(ContentEncoding)
 
     def initialize(@encodings : Array(ContentEncoding))
@@ -224,15 +224,15 @@ module Cdp::Network
   struct DeleteCookies
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "domain", emit_null: false)]
     property domain : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "path", emit_null: false)]
     property path : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "partitionKey", emit_null: false)]
     property partition_key : CookiePartitionKey?
 
     def initialize(@name : String, @url : String?, @domain : String?, @path : String?, @partition_key : CookiePartitionKey?)
@@ -271,9 +271,9 @@ module Cdp::Network
   struct EmulateNetworkConditionsByRule
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "offline", emit_null: false)]
     property? offline : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "matchedNetworkConditions", emit_null: false)]
     property matched_network_conditions : Array(NetworkConditions)
 
     def initialize(@offline : Bool, @matched_network_conditions : Array(NetworkConditions))
@@ -296,15 +296,15 @@ module Cdp::Network
   struct OverrideNetworkState
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "offline", emit_null: false)]
     property? offline : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "latency", emit_null: false)]
     property latency : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "downloadThroughput", emit_null: false)]
     property download_throughput : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "uploadThroughput", emit_null: false)]
     property upload_throughput : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "connectionType", emit_null: false)]
     property connection_type : ConnectionType?
 
     def initialize(@offline : Bool, @latency : Float64, @download_throughput : Float64, @upload_throughput : Float64, @connection_type : ConnectionType?)
@@ -324,15 +324,15 @@ module Cdp::Network
   struct Enable
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "maxTotalBufferSize", emit_null: false)]
     property max_total_buffer_size : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "maxResourceBufferSize", emit_null: false)]
     property max_resource_buffer_size : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "maxPostDataSize", emit_null: false)]
     property max_post_data_size : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "reportDirectSocketTraffic", emit_null: false)]
     property? report_direct_socket_traffic : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "enableDurableMessages", emit_null: false)]
     property? enable_durable_messages : Bool?
 
     def initialize(@max_total_buffer_size : Int64?, @max_resource_buffer_size : Int64?, @max_post_data_size : Int64?, @report_direct_socket_traffic : Bool?, @enable_durable_messages : Bool?)
@@ -353,9 +353,9 @@ module Cdp::Network
   struct ConfigureDurableMessages
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "maxTotalBufferSize", emit_null: false)]
     property max_total_buffer_size : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "maxResourceBufferSize", emit_null: false)]
     property max_resource_buffer_size : Int64?
 
     def initialize(@max_total_buffer_size : Int64?, @max_resource_buffer_size : Int64?)
@@ -376,7 +376,7 @@ module Cdp::Network
   struct GetCertificate
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "origin", emit_null: false)]
     property origin : String
 
     def initialize(@origin : String)
@@ -398,7 +398,7 @@ module Cdp::Network
   struct GetCookies
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "urls", emit_null: false)]
     property urls : Array(String)?
 
     def initialize(@urls : Array(String)?)
@@ -420,7 +420,7 @@ module Cdp::Network
   struct GetResponseBody
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
 
     def initialize(@request_id : RequestId)
@@ -442,7 +442,7 @@ module Cdp::Network
   struct GetRequestPostData
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
 
     def initialize(@request_id : RequestId)
@@ -465,7 +465,7 @@ module Cdp::Network
   struct GetResponseBodyForInterception
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "interceptionId", emit_null: false)]
     property interception_id : InterceptionId
 
     def initialize(@interception_id : InterceptionId)
@@ -488,7 +488,7 @@ module Cdp::Network
   struct TakeResponseBodyForInterceptionAsStream
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "interceptionId", emit_null: false)]
     property interception_id : InterceptionId
 
     def initialize(@interception_id : InterceptionId)
@@ -511,7 +511,7 @@ module Cdp::Network
   struct ReplayXHR
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
 
     def initialize(@request_id : RequestId)
@@ -532,13 +532,13 @@ module Cdp::Network
   struct SearchInResponseBody
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "query", emit_null: false)]
     property query : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "caseSensitive", emit_null: false)]
     property? case_sensitive : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isRegex", emit_null: false)]
     property? is_regex : Bool?
 
     def initialize(@request_id : RequestId, @query : String, @case_sensitive : Bool?, @is_regex : Bool?)
@@ -561,9 +561,9 @@ module Cdp::Network
   struct SetBlockedURLs
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "urlPatterns", emit_null: false)]
     property url_patterns : Array(BlockPattern)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "urls", emit_null: false)]
     property urls : Array(String)?
 
     def initialize(@url_patterns : Array(BlockPattern)?, @urls : Array(String)?)
@@ -583,7 +583,7 @@ module Cdp::Network
   struct SetBypassServiceWorker
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "bypass", emit_null: false)]
     property? bypass : Bool
 
     def initialize(@bypass : Bool)
@@ -603,7 +603,7 @@ module Cdp::Network
   struct SetCacheDisabled
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cacheDisabled", emit_null: false)]
     property? cache_disabled : Bool
 
     def initialize(@cache_disabled : Bool)
@@ -623,31 +623,31 @@ module Cdp::Network
   struct SetCookie
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "domain", emit_null: false)]
     property domain : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "path", emit_null: false)]
     property path : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "secure", emit_null: false)]
     property? secure : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "httpOnly", emit_null: false)]
     property? http_only : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sameSite", emit_null: false)]
     property same_site : CookieSameSite?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "expires", emit_null: false)]
     property expires : TimeSinceEpoch?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "priority", emit_null: false)]
     property priority : CookiePriority?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sourceScheme", emit_null: false)]
     property source_scheme : CookieSourceScheme?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sourcePort", emit_null: false)]
     property source_port : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "partitionKey", emit_null: false)]
     property partition_key : CookiePartitionKey?
 
     def initialize(@name : String, @value : String, @url : String?, @domain : String?, @path : String?, @secure : Bool?, @http_only : Bool?, @same_site : CookieSameSite?, @expires : TimeSinceEpoch?, @priority : CookiePriority?, @source_scheme : CookieSourceScheme?, @source_port : Int64?, @partition_key : CookiePartitionKey?)
@@ -669,7 +669,7 @@ module Cdp::Network
   struct SetCookies
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cookies", emit_null: false)]
     property cookies : Array(CookieParam)
 
     def initialize(@cookies : Array(CookieParam))
@@ -689,7 +689,7 @@ module Cdp::Network
   struct SetExtraHTTPHeaders
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "headers", emit_null: false)]
     property headers : Headers
 
     def initialize(@headers : Headers)
@@ -710,7 +710,7 @@ module Cdp::Network
   struct SetAttachDebugStack
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "enabled", emit_null: false)]
     property? enabled : Bool
 
     def initialize(@enabled : Bool)
@@ -731,7 +731,7 @@ module Cdp::Network
   struct StreamResourceContent
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
 
     def initialize(@request_id : RequestId)
@@ -754,7 +754,7 @@ module Cdp::Network
   struct GetSecurityIsolationStatus
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
 
     def initialize(@frame_id : Cdp::Page::FrameId?)
@@ -777,7 +777,7 @@ module Cdp::Network
   struct EnableReportingApi
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "enable", emit_null: false)]
     property? enable : Bool
 
     def initialize(@enable : Bool)
@@ -798,7 +798,7 @@ module Cdp::Network
   struct EnableDeviceBoundSessions
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "enable", emit_null: false)]
     property? enable : Bool
 
     def initialize(@enable : Bool)
@@ -819,7 +819,7 @@ module Cdp::Network
   struct FetchSchemefulSite
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "origin", emit_null: false)]
     property origin : String
 
     def initialize(@origin : String)
@@ -842,11 +842,11 @@ module Cdp::Network
   struct LoadNetworkResource
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "options", emit_null: false)]
     property options : LoadNetworkResourceOptions
 
     def initialize(@frame_id : Cdp::Page::FrameId?, @url : String, @options : LoadNetworkResourceOptions)
@@ -869,11 +869,11 @@ module Cdp::Network
   struct SetCookieControls
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "enableThirdPartyCookieRestriction", emit_null: false)]
     property? enable_third_party_cookie_restriction : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "disableThirdPartyCookieMetadata", emit_null: false)]
     property? disable_third_party_cookie_metadata : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "disableThirdPartyCookieHeuristics", emit_null: false)]
     property? disable_third_party_cookie_heuristics : Bool
 
     def initialize(@enable_third_party_cookie_restriction : Bool, @disable_third_party_cookie_metadata : Bool, @disable_third_party_cookie_heuristics : Bool)

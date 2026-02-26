@@ -9,9 +9,9 @@ module Cdp::BackgroundService
   struct RecordingStateChangedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isRecording", emit_null: false)]
     property? is_recording : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "service", emit_null: false)]
     property service : ServiceName
 
     def initialize(@is_recording : Bool, @service : ServiceName)
@@ -31,7 +31,7 @@ module Cdp::BackgroundService
   struct BackgroundServiceEventReceivedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "backgroundServiceEvent", emit_null: false)]
     property background_service_event : BackgroundServiceEvent
 
     def initialize(@background_service_event : BackgroundServiceEvent)

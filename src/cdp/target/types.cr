@@ -12,36 +12,36 @@ module Cdp::Target
 
   struct TargetInfo
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "targetId", emit_null: false)]
     property target_id : TargetID
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "type", emit_null: false)]
     property type : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "title", emit_null: false)]
     property title : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "attached", emit_null: false)]
     property? attached : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "openerId", emit_null: false)]
     property opener_id : TargetID?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "canAccessOpener", emit_null: false)]
     property? can_access_opener : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "openerFrameId", emit_null: false)]
     property opener_frame_id : Cdp::Page::FrameId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "parentFrameId", emit_null: false)]
     property parent_frame_id : Cdp::Page::FrameId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "browserContextId", emit_null: false)]
     property browser_context_id : Cdp::Browser::BrowserContextID?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "subtype", emit_null: false)]
     property subtype : String?
   end
 
   @[Experimental]
   struct FilterEntry
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "exclude", emit_null: false)]
     property? exclude : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "type", emit_null: false)]
     property type : String?
   end
 
@@ -52,9 +52,9 @@ module Cdp::Target
   @[Experimental]
   struct RemoteLocation
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "host", emit_null: false)]
     property host : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "port", emit_null: false)]
     property port : Int64
   end
 

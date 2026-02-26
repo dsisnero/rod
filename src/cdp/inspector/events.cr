@@ -6,7 +6,7 @@ module Cdp::Inspector
   struct DetachedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "reason", emit_null: false)]
     property reason : DetachReason
 
     def initialize(@reason : DetachReason)

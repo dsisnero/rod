@@ -9,13 +9,13 @@ require "./types"
 module Cdp::SystemInfo
   struct GetInfoResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "gpu", emit_null: false)]
     property gpu : GPUInfo
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "modelName", emit_null: false)]
     property model_name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "modelVersion", emit_null: false)]
     property model_version : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "commandLine", emit_null: false)]
     property command_line : String
 
     def initialize(@gpu : GPUInfo, @model_name : String, @model_version : String, @command_line : String)
@@ -24,7 +24,7 @@ module Cdp::SystemInfo
 
   struct GetFeatureStateResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "featureEnabled", emit_null: false)]
     property? feature_enabled : Bool
 
     def initialize(@feature_enabled : Bool)
@@ -33,7 +33,7 @@ module Cdp::SystemInfo
 
   struct GetProcessInfoResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "processInfo", emit_null: false)]
     property process_info : Array(ProcessInfo)
 
     def initialize(@process_info : Array(ProcessInfo))
@@ -64,7 +64,7 @@ module Cdp::SystemInfo
   struct GetFeatureState
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "featureState", emit_null: false)]
     property feature_state : String
 
     def initialize(@feature_state : String)

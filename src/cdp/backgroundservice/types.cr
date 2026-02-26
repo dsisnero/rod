@@ -16,29 +16,29 @@ module Cdp::BackgroundService
 
   struct EventMetadata
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "key", emit_null: false)]
     property key : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : String
   end
 
   struct BackgroundServiceEvent
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : Cdp::Network::TimeSinceEpoch
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "origin", emit_null: false)]
     property origin : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "serviceWorkerRegistrationId", emit_null: false)]
     property service_worker_registration_id : Cdp::ServiceWorker::RegistrationID
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "service", emit_null: false)]
     property service : ServiceName
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "eventName", emit_null: false)]
     property event_name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "instanceId", emit_null: false)]
     property instance_id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "eventMetadata", emit_null: false)]
     property event_metadata : Array(EventMetadata)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageKey", emit_null: false)]
     property storage_key : String
   end
 end

@@ -68,7 +68,7 @@ module Cdp::Log
   struct StartViolationsReport
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "config", emit_null: false)]
     property config : Array(ViolationSetting)
 
     def initialize(@config : Array(ViolationSetting))

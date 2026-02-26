@@ -50,53 +50,53 @@ module Cdp::Accessibility
 
   struct ValueSource
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "type", emit_null: false)]
     property type : ValueSourceType
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : Value?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "attribute", emit_null: false)]
     property attribute : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "attributeValue", emit_null: false)]
     property attribute_value : Value?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "superseded", emit_null: false)]
     property? superseded : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nativeSource", emit_null: false)]
     property native_source : ValueNativeSourceType?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nativeSourceValue", emit_null: false)]
     property native_source_value : Value?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "invalid", emit_null: false)]
     property? invalid : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "invalidReason", emit_null: false)]
     property invalid_reason : String?
   end
 
   struct RelatedNode
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "backendDomNodeId", emit_null: false)]
     property backend_dom_node_id : Cdp::DOM::BackendNodeId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "idref", emit_null: false)]
     property idref : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "text", emit_null: false)]
     property text : String?
   end
 
   struct Property
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : PropertyName
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : Value
   end
 
   struct Value
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "type", emit_null: false)]
     property type : ValueType
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : JSON::Any?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "relatedNodes", emit_null: false)]
     property related_nodes : Array(RelatedNode)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sources", emit_null: false)]
     property sources : Array(ValueSource)?
   end
 
@@ -162,31 +162,31 @@ module Cdp::Accessibility
 
   struct Node
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : NodeId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ignored", emit_null: false)]
     property? ignored : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ignoredReasons", emit_null: false)]
     property ignored_reasons : Array(Property)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "role", emit_null: false)]
     property role : Value?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "chromeRole", emit_null: false)]
     property chrome_role : Value?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : Value?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "description", emit_null: false)]
     property description : Value?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : Value?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "properties", emit_null: false)]
     property properties : Array(Property)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "parentId", emit_null: false)]
     property parent_id : NodeId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "childIds", emit_null: false)]
     property child_ids : Array(NodeId)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "backendDomNodeId", emit_null: false)]
     property backend_dom_node_id : Cdp::DOM::BackendNodeId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
   end
 end

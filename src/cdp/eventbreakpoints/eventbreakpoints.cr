@@ -11,7 +11,7 @@ module Cdp::EventBreakpoints
   struct SetInstrumentationBreakpoint
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "eventName", emit_null: false)]
     property event_name : String
 
     def initialize(@event_name : String)
@@ -31,7 +31,7 @@ module Cdp::EventBreakpoints
   struct RemoveInstrumentationBreakpoint
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "eventName", emit_null: false)]
     property event_name : String
 
     def initialize(@event_name : String)

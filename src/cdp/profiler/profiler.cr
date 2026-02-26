@@ -12,7 +12,7 @@ require "./events"
 module Cdp::Profiler
   struct GetBestEffortCoverageResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "result", emit_null: false)]
     property result : Array(ScriptCoverage)
 
     def initialize(@result : Array(ScriptCoverage))
@@ -21,7 +21,7 @@ module Cdp::Profiler
 
   struct StartPreciseCoverageResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : Float64
 
     def initialize(@timestamp : Float64)
@@ -30,7 +30,7 @@ module Cdp::Profiler
 
   struct StopResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "profile", emit_null: false)]
     property profile : Profile
 
     def initialize(@profile : Profile)
@@ -39,9 +39,9 @@ module Cdp::Profiler
 
   struct TakePreciseCoverageResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "result", emit_null: false)]
     property result : Array(ScriptCoverage)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : Float64
 
     def initialize(@result : Array(ScriptCoverage), @timestamp : Float64)
@@ -108,7 +108,7 @@ module Cdp::Profiler
   struct SetSamplingInterval
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "interval", emit_null: false)]
     property interval : Int64
 
     def initialize(@interval : Int64)
@@ -146,11 +146,11 @@ module Cdp::Profiler
   struct StartPreciseCoverage
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "callCount", emit_null: false)]
     property? call_count : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "detailed", emit_null: false)]
     property? detailed : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "allowTriggeredUpdates", emit_null: false)]
     property? allow_triggered_updates : Bool?
 
     def initialize(@call_count : Bool?, @detailed : Bool?, @allow_triggered_updates : Bool?)

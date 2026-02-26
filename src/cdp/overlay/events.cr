@@ -10,7 +10,7 @@ module Cdp::Overlay
   struct InspectNodeRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "backendNodeId", emit_null: false)]
     property backend_node_id : Cdp::DOM::BackendNodeId
 
     def initialize(@backend_node_id : Cdp::DOM::BackendNodeId)
@@ -30,7 +30,7 @@ module Cdp::Overlay
   struct NodeHighlightRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : Cdp::DOM::NodeId
 
     def initialize(@node_id : Cdp::DOM::NodeId)
@@ -50,7 +50,7 @@ module Cdp::Overlay
   struct ScreenshotRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "viewport", emit_null: false)]
     property viewport : Cdp::Page::Viewport
 
     def initialize(@viewport : Cdp::Page::Viewport)
@@ -70,7 +70,7 @@ module Cdp::Overlay
   struct InspectPanelShowRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "backendNodeId", emit_null: false)]
     property backend_node_id : Cdp::DOM::BackendNodeId
 
     def initialize(@backend_node_id : Cdp::DOM::BackendNodeId)
@@ -90,7 +90,7 @@ module Cdp::Overlay
   struct InspectedElementWindowRestoredEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "backendNodeId", emit_null: false)]
     property backend_node_id : Cdp::DOM::BackendNodeId
 
     def initialize(@backend_node_id : Cdp::DOM::BackendNodeId)

@@ -11,7 +11,7 @@ module Cdp::Audits
   struct IssueAddedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "issue", emit_null: false)]
     property issue : InspectorIssue
 
     def initialize(@issue : InspectorIssue)

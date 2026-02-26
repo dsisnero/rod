@@ -12,9 +12,9 @@ require "./types"
 module Cdp::IndexedDB
   struct RequestDataResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "objectStoreDataEntries", emit_null: false)]
     property object_store_data_entries : Array(DataEntry)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "hasMore", emit_null: false)]
     property? has_more : Bool
 
     def initialize(@object_store_data_entries : Array(DataEntry), @has_more : Bool)
@@ -23,9 +23,9 @@ module Cdp::IndexedDB
 
   struct GetMetadataResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "entriesCount", emit_null: false)]
     property entries_count : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "keyGeneratorValue", emit_null: false)]
     property key_generator_value : Float64
 
     def initialize(@entries_count : Float64, @key_generator_value : Float64)
@@ -34,7 +34,7 @@ module Cdp::IndexedDB
 
   struct RequestDatabaseResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "databaseWithObjectStores", emit_null: false)]
     property database_with_object_stores : DatabaseWithObjectStores
 
     def initialize(@database_with_object_stores : DatabaseWithObjectStores)
@@ -43,7 +43,7 @@ module Cdp::IndexedDB
 
   struct RequestDatabaseNamesResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "databaseNames", emit_null: false)]
     property database_names : Array(String)
 
     def initialize(@database_names : Array(String))
@@ -54,15 +54,15 @@ module Cdp::IndexedDB
   struct ClearObjectStore
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "securityOrigin", emit_null: false)]
     property security_origin : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageKey", emit_null: false)]
     property storage_key : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageBucket", emit_null: false)]
     property storage_bucket : Cdp::Storage::StorageBucket?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "databaseName", emit_null: false)]
     property database_name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "objectStoreName", emit_null: false)]
     property object_store_name : String
 
     def initialize(@security_origin : String?, @storage_key : String?, @storage_bucket : Cdp::Storage::StorageBucket?, @database_name : String, @object_store_name : String)
@@ -82,13 +82,13 @@ module Cdp::IndexedDB
   struct DeleteDatabase
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "securityOrigin", emit_null: false)]
     property security_origin : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageKey", emit_null: false)]
     property storage_key : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageBucket", emit_null: false)]
     property storage_bucket : Cdp::Storage::StorageBucket?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "databaseName", emit_null: false)]
     property database_name : String
 
     def initialize(@security_origin : String?, @storage_key : String?, @storage_bucket : Cdp::Storage::StorageBucket?, @database_name : String)
@@ -108,17 +108,17 @@ module Cdp::IndexedDB
   struct DeleteObjectStoreEntries
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "securityOrigin", emit_null: false)]
     property security_origin : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageKey", emit_null: false)]
     property storage_key : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageBucket", emit_null: false)]
     property storage_bucket : Cdp::Storage::StorageBucket?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "databaseName", emit_null: false)]
     property database_name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "objectStoreName", emit_null: false)]
     property object_store_name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "keyRange", emit_null: false)]
     property key_range : KeyRange
 
     def initialize(@security_origin : String?, @storage_key : String?, @storage_bucket : Cdp::Storage::StorageBucket?, @database_name : String, @object_store_name : String, @key_range : KeyRange)
@@ -174,23 +174,23 @@ module Cdp::IndexedDB
   struct RequestData
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "securityOrigin", emit_null: false)]
     property security_origin : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageKey", emit_null: false)]
     property storage_key : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageBucket", emit_null: false)]
     property storage_bucket : Cdp::Storage::StorageBucket?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "databaseName", emit_null: false)]
     property database_name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "objectStoreName", emit_null: false)]
     property object_store_name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "indexName", emit_null: false)]
     property index_name : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "skipCount", emit_null: false)]
     property skip_count : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "pageSize", emit_null: false)]
     property page_size : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "keyRange", emit_null: false)]
     property key_range : KeyRange?
 
     def initialize(@security_origin : String?, @storage_key : String?, @storage_bucket : Cdp::Storage::StorageBucket?, @database_name : String, @object_store_name : String, @index_name : String?, @skip_count : Int64, @page_size : Int64, @key_range : KeyRange?)
@@ -212,15 +212,15 @@ module Cdp::IndexedDB
   struct GetMetadata
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "securityOrigin", emit_null: false)]
     property security_origin : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageKey", emit_null: false)]
     property storage_key : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageBucket", emit_null: false)]
     property storage_bucket : Cdp::Storage::StorageBucket?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "databaseName", emit_null: false)]
     property database_name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "objectStoreName", emit_null: false)]
     property object_store_name : String
 
     def initialize(@security_origin : String?, @storage_key : String?, @storage_bucket : Cdp::Storage::StorageBucket?, @database_name : String, @object_store_name : String)
@@ -242,13 +242,13 @@ module Cdp::IndexedDB
   struct RequestDatabase
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "securityOrigin", emit_null: false)]
     property security_origin : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageKey", emit_null: false)]
     property storage_key : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageBucket", emit_null: false)]
     property storage_bucket : Cdp::Storage::StorageBucket?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "databaseName", emit_null: false)]
     property database_name : String
 
     def initialize(@security_origin : String?, @storage_key : String?, @storage_bucket : Cdp::Storage::StorageBucket?, @database_name : String)
@@ -270,11 +270,11 @@ module Cdp::IndexedDB
   struct RequestDatabaseNames
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "securityOrigin", emit_null: false)]
     property security_origin : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageKey", emit_null: false)]
     property storage_key : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageBucket", emit_null: false)]
     property storage_bucket : Cdp::Storage::StorageBucket?
 
     def initialize(@security_origin : String?, @storage_key : String?, @storage_bucket : Cdp::Storage::StorageBucket?)

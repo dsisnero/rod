@@ -8,9 +8,9 @@ module Cdp::LayerTree
   struct LayerPaintedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "layerId", emit_null: false)]
     property layer_id : LayerId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "clip", emit_null: false)]
     property clip : Cdp::DOM::Rect
 
     def initialize(@layer_id : LayerId, @clip : Cdp::DOM::Rect)
@@ -30,7 +30,7 @@ module Cdp::LayerTree
   struct LayerTreeDidChangeEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "layers", emit_null: false)]
     property layers : Array(Layer)?
 
     def initialize(@layers : Array(Layer)?)

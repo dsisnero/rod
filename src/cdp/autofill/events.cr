@@ -9,9 +9,9 @@ module Cdp::Autofill
   struct AddressFormFilledEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "filledFields", emit_null: false)]
     property filled_fields : Array(FilledField)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "addressUi", emit_null: false)]
     property address_ui : AddressUI
 
     def initialize(@filled_fields : Array(FilledField), @address_ui : AddressUI)

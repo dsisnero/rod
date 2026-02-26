@@ -12,7 +12,7 @@ module Cdp::Tracing
   @[Experimental]
   struct GetCategoriesResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "categories", emit_null: false)]
     property categories : Array(String)
 
     def initialize(@categories : Array(String))
@@ -22,7 +22,7 @@ module Cdp::Tracing
   @[Experimental]
   struct GetTrackEventDescriptorResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "descriptor", emit_null: false)]
     property descriptor : String
 
     def initialize(@descriptor : String)
@@ -32,9 +32,9 @@ module Cdp::Tracing
   @[Experimental]
   struct RequestMemoryDumpResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "dumpGuid", emit_null: false)]
     property dump_guid : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "success", emit_null: false)]
     property? success : Bool
 
     def initialize(@dump_guid : String, @success : Bool)
@@ -106,7 +106,7 @@ module Cdp::Tracing
   struct RecordClockSyncMarker
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "syncId", emit_null: false)]
     property sync_id : String
 
     def initialize(@sync_id : String)
@@ -127,9 +127,9 @@ module Cdp::Tracing
   struct RequestMemoryDump
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "deterministic", emit_null: false)]
     property? deterministic : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "levelOfDetail", emit_null: false)]
     property level_of_detail : MemoryDumpLevelOfDetail?
 
     def initialize(@deterministic : Bool?, @level_of_detail : MemoryDumpLevelOfDetail?)
@@ -151,19 +151,19 @@ module Cdp::Tracing
   struct Start
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "bufferUsageReportingInterval", emit_null: false)]
     property buffer_usage_reporting_interval : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "transferMode", emit_null: false)]
     property transfer_mode : TransferMode?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "streamFormat", emit_null: false)]
     property stream_format : StreamFormat?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "streamCompression", emit_null: false)]
     property stream_compression : StreamCompression?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "traceConfig", emit_null: false)]
     property trace_config : TraceConfig?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "perfettoConfig", emit_null: false)]
     property perfetto_config : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "tracingBackend", emit_null: false)]
     property tracing_backend : TracingBackend?
 
     def initialize(@buffer_usage_reporting_interval : Float64?, @transfer_mode : TransferMode?, @stream_format : StreamFormat?, @stream_compression : StreamCompression?, @trace_config : TraceConfig?, @perfetto_config : String?, @tracing_backend : TracingBackend?)

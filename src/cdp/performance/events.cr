@@ -6,9 +6,9 @@ module Cdp::Performance
   struct MetricsEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "metrics", emit_null: false)]
     property metrics : Array(Metric)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "title", emit_null: false)]
     property title : String
 
     def initialize(@metrics : Array(Metric), @title : String)

@@ -6,9 +6,9 @@ module Cdp::WebAuthn
   struct CredentialAddedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "authenticatorId", emit_null: false)]
     property authenticator_id : AuthenticatorId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "credential", emit_null: false)]
     property credential : Credential
 
     def initialize(@authenticator_id : AuthenticatorId, @credential : Credential)
@@ -28,9 +28,9 @@ module Cdp::WebAuthn
   struct CredentialDeletedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "authenticatorId", emit_null: false)]
     property authenticator_id : AuthenticatorId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "credentialId", emit_null: false)]
     property credential_id : String
 
     def initialize(@authenticator_id : AuthenticatorId, @credential_id : String)
@@ -50,9 +50,9 @@ module Cdp::WebAuthn
   struct CredentialUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "authenticatorId", emit_null: false)]
     property authenticator_id : AuthenticatorId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "credential", emit_null: false)]
     property credential : Credential
 
     def initialize(@authenticator_id : AuthenticatorId, @credential : Credential)
@@ -72,9 +72,9 @@ module Cdp::WebAuthn
   struct CredentialAssertedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "authenticatorId", emit_null: false)]
     property authenticator_id : AuthenticatorId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "credential", emit_null: false)]
     property credential : Credential
 
     def initialize(@authenticator_id : AuthenticatorId, @credential : Credential)

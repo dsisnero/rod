@@ -6,11 +6,11 @@ module Cdp::DOMStorage
   struct DomStorageItemAddedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageId", emit_null: false)]
     property storage_id : StorageId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "key", emit_null: false)]
     property key : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "newValue", emit_null: false)]
     property new_value : String
 
     def initialize(@storage_id : StorageId, @key : String, @new_value : String)
@@ -30,9 +30,9 @@ module Cdp::DOMStorage
   struct DomStorageItemRemovedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageId", emit_null: false)]
     property storage_id : StorageId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "key", emit_null: false)]
     property key : String
 
     def initialize(@storage_id : StorageId, @key : String)
@@ -52,13 +52,13 @@ module Cdp::DOMStorage
   struct DomStorageItemUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageId", emit_null: false)]
     property storage_id : StorageId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "key", emit_null: false)]
     property key : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "oldValue", emit_null: false)]
     property old_value : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "newValue", emit_null: false)]
     property new_value : String
 
     def initialize(@storage_id : StorageId, @key : String, @old_value : String, @new_value : String)
@@ -78,7 +78,7 @@ module Cdp::DOMStorage
   struct DomStorageItemsClearedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageId", emit_null: false)]
     property storage_id : StorageId
 
     def initialize(@storage_id : StorageId)

@@ -11,7 +11,7 @@ module Cdp::Accessibility
   struct LoadCompleteEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "root", emit_null: false)]
     property root : Node
 
     def initialize(@root : Node)
@@ -32,7 +32,7 @@ module Cdp::Accessibility
   struct NodesUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodes", emit_null: false)]
     property nodes : Array(Node)
 
     def initialize(@nodes : Array(Node))

@@ -15,13 +15,13 @@ module Cdp::Autofill
   struct Trigger
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "fieldId", emit_null: false)]
     property field_id : Cdp::DOM::BackendNodeId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "card", emit_null: false)]
     property card : CreditCard?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "address", emit_null: false)]
     property address : Address?
 
     def initialize(@field_id : Cdp::DOM::BackendNodeId, @frame_id : Cdp::Page::FrameId?, @card : CreditCard?, @address : Address?)
@@ -41,7 +41,7 @@ module Cdp::Autofill
   struct SetAddresses
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "addresses", emit_null: false)]
     property addresses : Array(Address)
 
     def initialize(@addresses : Array(Address))

@@ -13,7 +13,7 @@ require "./events"
 module Cdp::WebAudio
   struct GetRealtimeDataResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "realtimeData", emit_null: false)]
     property realtime_data : ContextRealtimeData
 
     def initialize(@realtime_data : ContextRealtimeData)
@@ -60,7 +60,7 @@ module Cdp::WebAudio
   struct GetRealtimeData
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "contextId", emit_null: false)]
     property context_id : GraphObjectId
 
     def initialize(@context_id : GraphObjectId)

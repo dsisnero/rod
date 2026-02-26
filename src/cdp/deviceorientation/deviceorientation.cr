@@ -27,11 +27,11 @@ module Cdp::DeviceOrientation
   struct SetDeviceOrientationOverride
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "alpha", emit_null: false)]
     property alpha : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "beta", emit_null: false)]
     property beta : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "gamma", emit_null: false)]
     property gamma : Float64
 
     def initialize(@alpha : Float64, @beta : Float64, @gamma : Float64)

@@ -11,7 +11,7 @@ module Cdp::Tethering
   struct Bind
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "port", emit_null: false)]
     property port : Int64
 
     def initialize(@port : Int64)
@@ -31,7 +31,7 @@ module Cdp::Tethering
   struct Unbind
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "port", emit_null: false)]
     property port : Int64
 
     def initialize(@port : Int64)

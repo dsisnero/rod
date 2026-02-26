@@ -10,53 +10,53 @@ module Cdp::Emulation
   @[Experimental]
   struct SafeAreaInsets
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "top", emit_null: false)]
     property top : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "topMax", emit_null: false)]
     property top_max : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "left", emit_null: false)]
     property left : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "leftMax", emit_null: false)]
     property left_max : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "bottom", emit_null: false)]
     property bottom : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "bottomMax", emit_null: false)]
     property bottom_max : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "right", emit_null: false)]
     property right : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "rightMax", emit_null: false)]
     property right_max : Int64?
   end
 
   struct ScreenOrientation
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "type", emit_null: false)]
     property type : OrientationType
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "angle", emit_null: false)]
     property angle : Int64
   end
 
   struct DisplayFeature
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "orientation", emit_null: false)]
     property orientation : DisplayFeatureOrientation
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "offset", emit_null: false)]
     property offset : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "maskLength", emit_null: false)]
     property mask_length : Int64
   end
 
   struct DevicePosture
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "type", emit_null: false)]
     property type : DevicePostureType
   end
 
   struct MediaFeature
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : String
   end
 
@@ -69,34 +69,34 @@ module Cdp::Emulation
   @[Experimental]
   struct UserAgentBrandVersion
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "brand", emit_null: false)]
     property brand : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "version", emit_null: false)]
     property version : String
   end
 
   @[Experimental]
   struct UserAgentMetadata
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "brands", emit_null: false)]
     property brands : Array(UserAgentBrandVersion)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "fullVersionList", emit_null: false)]
     property full_version_list : Array(UserAgentBrandVersion)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "platform", emit_null: false)]
     property platform : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "platformVersion", emit_null: false)]
     property platform_version : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "architecture", emit_null: false)]
     property architecture : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "model", emit_null: false)]
     property model : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "mobile", emit_null: false)]
     property? mobile : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "bitness", emit_null: false)]
     property bitness : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "wow64", emit_null: false)]
     property? wow64 : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "formFactors", emit_null: false)]
     property form_factors : Array(String)?
   end
 
@@ -114,53 +114,53 @@ module Cdp::Emulation
   @[Experimental]
   struct SensorMetadata
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "available", emit_null: false)]
     property? available : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "minimumFrequency", emit_null: false)]
     property minimum_frequency : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "maximumFrequency", emit_null: false)]
     property maximum_frequency : Float64?
   end
 
   @[Experimental]
   struct SensorReadingSingle
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : Float64
   end
 
   @[Experimental]
   struct SensorReadingXYZ
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "x", emit_null: false)]
     property x : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "y", emit_null: false)]
     property y : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "z", emit_null: false)]
     property z : Float64
   end
 
   @[Experimental]
   struct SensorReadingQuaternion
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "x", emit_null: false)]
     property x : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "y", emit_null: false)]
     property y : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "z", emit_null: false)]
     property z : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "w", emit_null: false)]
     property w : Float64
   end
 
   @[Experimental]
   struct SensorReading
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "single", emit_null: false)]
     property single : SensorReadingSingle?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "xyz", emit_null: false)]
     property xyz : SensorReadingXYZ?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "quaternion", emit_null: false)]
     property quaternion : SensorReadingQuaternion?
   end
 
@@ -178,20 +178,20 @@ module Cdp::Emulation
   @[Experimental]
   struct PressureMetadata
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "available", emit_null: false)]
     property? available : Bool?
   end
 
   @[Experimental]
   struct WorkAreaInsets
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "top", emit_null: false)]
     property top : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "left", emit_null: false)]
     property left : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "bottom", emit_null: false)]
     property bottom : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "right", emit_null: false)]
     property right : Int64?
   end
 
@@ -201,37 +201,37 @@ module Cdp::Emulation
   @[Experimental]
   struct ScreenInfo
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "left", emit_null: false)]
     property left : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "top", emit_null: false)]
     property top : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "width", emit_null: false)]
     property width : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "height", emit_null: false)]
     property height : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "availLeft", emit_null: false)]
     property avail_left : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "availTop", emit_null: false)]
     property avail_top : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "availWidth", emit_null: false)]
     property avail_width : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "availHeight", emit_null: false)]
     property avail_height : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "devicePixelRatio", emit_null: false)]
     property device_pixel_ratio : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "orientation", emit_null: false)]
     property orientation : ScreenOrientation
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "colorDepth", emit_null: false)]
     property color_depth : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isExtended", emit_null: false)]
     property? is_extended : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isInternal", emit_null: false)]
     property? is_internal : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isPrimary", emit_null: false)]
     property? is_primary : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "label", emit_null: false)]
     property label : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "id", emit_null: false)]
     property id : ScreenId
   end
 

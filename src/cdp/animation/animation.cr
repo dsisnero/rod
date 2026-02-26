@@ -13,7 +13,7 @@ require "./events"
 module Cdp::Animation
   struct GetCurrentTimeResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "currentTime", emit_null: false)]
     property current_time : Float64
 
     def initialize(@current_time : Float64)
@@ -22,7 +22,7 @@ module Cdp::Animation
 
   struct GetPlaybackRateResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "playbackRate", emit_null: false)]
     property playback_rate : Float64
 
     def initialize(@playback_rate : Float64)
@@ -31,7 +31,7 @@ module Cdp::Animation
 
   struct ResolveAnimationResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "remoteObject", emit_null: false)]
     property remote_object : Cdp::Runtime::RemoteObject
 
     def initialize(@remote_object : Cdp::Runtime::RemoteObject)
@@ -78,7 +78,7 @@ module Cdp::Animation
   struct GetCurrentTime
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "id", emit_null: false)]
     property id : String
 
     def initialize(@id : String)
@@ -120,7 +120,7 @@ module Cdp::Animation
   struct ReleaseAnimations
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "animations", emit_null: false)]
     property animations : Array(String)
 
     def initialize(@animations : Array(String))
@@ -140,7 +140,7 @@ module Cdp::Animation
   struct ResolveAnimation
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "animationId", emit_null: false)]
     property animation_id : String
 
     def initialize(@animation_id : String)
@@ -162,9 +162,9 @@ module Cdp::Animation
   struct SeekAnimations
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "animations", emit_null: false)]
     property animations : Array(String)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "currentTime", emit_null: false)]
     property current_time : Float64
 
     def initialize(@animations : Array(String), @current_time : Float64)
@@ -184,9 +184,9 @@ module Cdp::Animation
   struct SetPaused
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "animations", emit_null: false)]
     property animations : Array(String)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "paused", emit_null: false)]
     property? paused : Bool
 
     def initialize(@animations : Array(String), @paused : Bool)
@@ -206,7 +206,7 @@ module Cdp::Animation
   struct SetPlaybackRate
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "playbackRate", emit_null: false)]
     property playback_rate : Float64
 
     def initialize(@playback_rate : Float64)
@@ -226,11 +226,11 @@ module Cdp::Animation
   struct SetTiming
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "animationId", emit_null: false)]
     property animation_id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "duration", emit_null: false)]
     property duration : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "delay", emit_null: false)]
     property delay : Float64
 
     def initialize(@animation_id : String, @duration : Float64, @delay : Float64)

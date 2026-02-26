@@ -29,53 +29,53 @@ module Cdp::BluetoothEmulation
 
   struct ManufacturerData
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "key", emit_null: false)]
     property key : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "data", emit_null: false)]
     property data : String
   end
 
   struct ScanRecord
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "uuids", emit_null: false)]
     property uuids : Array(String)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "appearance", emit_null: false)]
     property appearance : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "txPower", emit_null: false)]
     property tx_power : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "manufacturerData", emit_null: false)]
     property manufacturer_data : Array(ManufacturerData)?
   end
 
   struct ScanEntry
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "deviceAddress", emit_null: false)]
     property device_address : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "rssi", emit_null: false)]
     property rssi : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scanRecord", emit_null: false)]
     property scan_record : ScanRecord
   end
 
   struct CharacteristicProperties
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "broadcast", emit_null: false)]
     property? broadcast : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "read", emit_null: false)]
     property? read : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "writeWithoutResponse", emit_null: false)]
     property? write_without_response : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "write", emit_null: false)]
     property? write : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "notify", emit_null: false)]
     property? notify : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "indicate", emit_null: false)]
     property? indicate : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "authenticatedSignedWrites", emit_null: false)]
     property? authenticated_signed_writes : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "extendedProperties", emit_null: false)]
     property? extended_properties : Bool?
   end
 end

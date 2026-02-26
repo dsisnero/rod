@@ -14,11 +14,11 @@ module Cdp::ServiceWorker
   struct DeliverPushMessage
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "origin", emit_null: false)]
     property origin : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "registrationId", emit_null: false)]
     property registration_id : RegistrationID
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "data", emit_null: false)]
     property data : String
 
     def initialize(@origin : String, @registration_id : RegistrationID, @data : String)
@@ -56,13 +56,13 @@ module Cdp::ServiceWorker
   struct DispatchSyncEvent
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "origin", emit_null: false)]
     property origin : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "registrationId", emit_null: false)]
     property registration_id : RegistrationID
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "tag", emit_null: false)]
     property tag : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "lastChance", emit_null: false)]
     property? last_chance : Bool
 
     def initialize(@origin : String, @registration_id : RegistrationID, @tag : String, @last_chance : Bool)
@@ -82,11 +82,11 @@ module Cdp::ServiceWorker
   struct DispatchPeriodicSyncEvent
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "origin", emit_null: false)]
     property origin : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "registrationId", emit_null: false)]
     property registration_id : RegistrationID
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "tag", emit_null: false)]
     property tag : String
 
     def initialize(@origin : String, @registration_id : RegistrationID, @tag : String)
@@ -124,7 +124,7 @@ module Cdp::ServiceWorker
   struct SetForceUpdateOnPageLoad
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "forceUpdateOnPageLoad", emit_null: false)]
     property? force_update_on_page_load : Bool
 
     def initialize(@force_update_on_page_load : Bool)
@@ -144,7 +144,7 @@ module Cdp::ServiceWorker
   struct SkipWaiting
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scopeUrl", emit_null: false)]
     property scope_url : String
 
     def initialize(@scope_url : String)
@@ -164,7 +164,7 @@ module Cdp::ServiceWorker
   struct StartWorker
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scopeUrl", emit_null: false)]
     property scope_url : String
 
     def initialize(@scope_url : String)
@@ -202,7 +202,7 @@ module Cdp::ServiceWorker
   struct StopWorker
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "versionId", emit_null: false)]
     property version_id : String
 
     def initialize(@version_id : String)
@@ -222,7 +222,7 @@ module Cdp::ServiceWorker
   struct Unregister
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scopeUrl", emit_null: false)]
     property scope_url : String
 
     def initialize(@scope_url : String)
@@ -242,7 +242,7 @@ module Cdp::ServiceWorker
   struct UpdateRegistration
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scopeUrl", emit_null: false)]
     property scope_url : String
 
     def initialize(@scope_url : String)

@@ -49,7 +49,7 @@ module Cdp::Security
   struct SetIgnoreCertificateErrors
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ignore", emit_null: false)]
     property? ignore : Bool
 
     def initialize(@ignore : Bool)

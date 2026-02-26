@@ -11,7 +11,7 @@ require "./events"
 module Cdp::WebAuthn
   struct AddVirtualAuthenticatorResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "authenticatorId", emit_null: false)]
     property authenticator_id : AuthenticatorId
 
     def initialize(@authenticator_id : AuthenticatorId)
@@ -20,7 +20,7 @@ module Cdp::WebAuthn
 
   struct GetCredentialResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "credential", emit_null: false)]
     property credential : Credential
 
     def initialize(@credential : Credential)
@@ -29,7 +29,7 @@ module Cdp::WebAuthn
 
   struct GetCredentialsResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "credentials", emit_null: false)]
     property credentials : Array(Credential)
 
     def initialize(@credentials : Array(Credential))
@@ -40,7 +40,7 @@ module Cdp::WebAuthn
   struct Enable
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "enableUi", emit_null: false)]
     property? enable_ui : Bool?
 
     def initialize(@enable_ui : Bool?)
@@ -78,7 +78,7 @@ module Cdp::WebAuthn
   struct AddVirtualAuthenticator
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "options", emit_null: false)]
     property options : VirtualAuthenticatorOptions
 
     def initialize(@options : VirtualAuthenticatorOptions)
@@ -100,13 +100,13 @@ module Cdp::WebAuthn
   struct SetResponseOverrideBits
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "authenticatorId", emit_null: false)]
     property authenticator_id : AuthenticatorId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isBogusSignature", emit_null: false)]
     property? is_bogus_signature : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isBadUv", emit_null: false)]
     property? is_bad_uv : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isBadUp", emit_null: false)]
     property? is_bad_up : Bool?
 
     def initialize(@authenticator_id : AuthenticatorId, @is_bogus_signature : Bool?, @is_bad_uv : Bool?, @is_bad_up : Bool?)
@@ -126,7 +126,7 @@ module Cdp::WebAuthn
   struct RemoveVirtualAuthenticator
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "authenticatorId", emit_null: false)]
     property authenticator_id : AuthenticatorId
 
     def initialize(@authenticator_id : AuthenticatorId)
@@ -146,9 +146,9 @@ module Cdp::WebAuthn
   struct AddCredential
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "authenticatorId", emit_null: false)]
     property authenticator_id : AuthenticatorId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "credential", emit_null: false)]
     property credential : Credential
 
     def initialize(@authenticator_id : AuthenticatorId, @credential : Credential)
@@ -168,9 +168,9 @@ module Cdp::WebAuthn
   struct GetCredential
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "authenticatorId", emit_null: false)]
     property authenticator_id : AuthenticatorId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "credentialId", emit_null: false)]
     property credential_id : String
 
     def initialize(@authenticator_id : AuthenticatorId, @credential_id : String)
@@ -192,7 +192,7 @@ module Cdp::WebAuthn
   struct GetCredentials
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "authenticatorId", emit_null: false)]
     property authenticator_id : AuthenticatorId
 
     def initialize(@authenticator_id : AuthenticatorId)
@@ -214,9 +214,9 @@ module Cdp::WebAuthn
   struct RemoveCredential
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "authenticatorId", emit_null: false)]
     property authenticator_id : AuthenticatorId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "credentialId", emit_null: false)]
     property credential_id : String
 
     def initialize(@authenticator_id : AuthenticatorId, @credential_id : String)
@@ -236,7 +236,7 @@ module Cdp::WebAuthn
   struct ClearCredentials
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "authenticatorId", emit_null: false)]
     property authenticator_id : AuthenticatorId
 
     def initialize(@authenticator_id : AuthenticatorId)
@@ -256,9 +256,9 @@ module Cdp::WebAuthn
   struct SetUserVerified
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "authenticatorId", emit_null: false)]
     property authenticator_id : AuthenticatorId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isUserVerified", emit_null: false)]
     property? is_user_verified : Bool
 
     def initialize(@authenticator_id : AuthenticatorId, @is_user_verified : Bool)
@@ -278,9 +278,9 @@ module Cdp::WebAuthn
   struct SetAutomaticPresenceSimulation
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "authenticatorId", emit_null: false)]
     property authenticator_id : AuthenticatorId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "enabled", emit_null: false)]
     property? enabled : Bool
 
     def initialize(@authenticator_id : AuthenticatorId, @enabled : Bool)
@@ -300,13 +300,13 @@ module Cdp::WebAuthn
   struct SetCredentialProperties
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "authenticatorId", emit_null: false)]
     property authenticator_id : AuthenticatorId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "credentialId", emit_null: false)]
     property credential_id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "backupEligibility", emit_null: false)]
     property? backup_eligibility : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "backupState", emit_null: false)]
     property? backup_state : Bool?
 
     def initialize(@authenticator_id : AuthenticatorId, @credential_id : String, @backup_eligibility : Bool?, @backup_state : Bool?)

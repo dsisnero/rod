@@ -12,15 +12,15 @@ module Cdp::Network
   struct DataReceivedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "dataLength", emit_null: false)]
     property data_length : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "encodedDataLength", emit_null: false)]
     property encoded_data_length : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "data", emit_null: false)]
     property data : String?
 
     def initialize(@request_id : RequestId, @timestamp : MonotonicTime, @data_length : Int64, @encoded_data_length : Int64, @data : String?)
@@ -40,15 +40,15 @@ module Cdp::Network
   struct EventSourceMessageReceivedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "eventName", emit_null: false)]
     property event_name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "eventId", emit_null: false)]
     property event_id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "data", emit_null: false)]
     property data : String
 
     def initialize(@request_id : RequestId, @timestamp : MonotonicTime, @event_name : String, @event_id : String, @data : String)
@@ -68,19 +68,19 @@ module Cdp::Network
   struct LoadingFailedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "type", emit_null: false)]
     property type : ResourceType
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "errorText", emit_null: false)]
     property error_text : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "canceled", emit_null: false)]
     property? canceled : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "blockedReason", emit_null: false)]
     property blocked_reason : BlockedReason?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "corsErrorStatus", emit_null: false)]
     property cors_error_status : CorsErrorStatus?
 
     def initialize(@request_id : RequestId, @timestamp : MonotonicTime, @type : ResourceType, @error_text : String, @canceled : Bool?, @blocked_reason : BlockedReason?, @cors_error_status : CorsErrorStatus?)
@@ -100,11 +100,11 @@ module Cdp::Network
   struct LoadingFinishedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "encodedDataLength", emit_null: false)]
     property encoded_data_length : Float64
 
     def initialize(@request_id : RequestId, @timestamp : MonotonicTime, @encoded_data_length : Float64)
@@ -124,7 +124,7 @@ module Cdp::Network
   struct RequestServedFromCacheEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
 
     def initialize(@request_id : RequestId)
@@ -144,31 +144,31 @@ module Cdp::Network
   struct RequestWillBeSentEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "loaderId", emit_null: false)]
     property loader_id : LoaderId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "documentUrl", emit_null: false)]
     property document_url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "request", emit_null: false)]
     property request : Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "wallTime", emit_null: false)]
     property wall_time : TimeSinceEpoch
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "initiator", emit_null: false)]
     property initiator : Initiator
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "redirectHasExtraInfo", emit_null: false)]
     property? redirect_has_extra_info : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "redirectResponse", emit_null: false)]
     property redirect_response : Response?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "type", emit_null: false)]
     property type : ResourceType?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "hasUserGesture", emit_null: false)]
     property? has_user_gesture : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "renderBlockingBehavior", emit_null: false)]
     property render_blocking_behavior : RenderBlockingBehavior?
 
     def initialize(@request_id : RequestId, @loader_id : LoaderId, @document_url : String, @request : Request, @timestamp : MonotonicTime, @wall_time : TimeSinceEpoch, @initiator : Initiator, @redirect_has_extra_info : Bool, @redirect_response : Response?, @type : ResourceType?, @frame_id : Cdp::Page::FrameId?, @has_user_gesture : Bool?, @render_blocking_behavior : RenderBlockingBehavior?)
@@ -189,11 +189,11 @@ module Cdp::Network
   struct ResourceChangedPriorityEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "newPriority", emit_null: false)]
     property new_priority : ResourcePriority
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
 
     def initialize(@request_id : RequestId, @new_priority : ResourcePriority, @timestamp : MonotonicTime)
@@ -214,9 +214,9 @@ module Cdp::Network
   struct SignedExchangeReceivedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "info", emit_null: false)]
     property info : SignedExchangeInfo
 
     def initialize(@request_id : RequestId, @info : SignedExchangeInfo)
@@ -236,19 +236,19 @@ module Cdp::Network
   struct ResponseReceivedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "loaderId", emit_null: false)]
     property loader_id : LoaderId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "type", emit_null: false)]
     property type : ResourceType
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "response", emit_null: false)]
     property response : Response
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "hasExtraInfo", emit_null: false)]
     property? has_extra_info : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
 
     def initialize(@request_id : RequestId, @loader_id : LoaderId, @timestamp : MonotonicTime, @type : ResourceType, @response : Response, @has_extra_info : Bool, @frame_id : Cdp::Page::FrameId?)
@@ -268,9 +268,9 @@ module Cdp::Network
   struct WebSocketClosedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
 
     def initialize(@request_id : RequestId, @timestamp : MonotonicTime)
@@ -290,11 +290,11 @@ module Cdp::Network
   struct WebSocketCreatedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "initiator", emit_null: false)]
     property initiator : Initiator?
 
     def initialize(@request_id : RequestId, @url : String, @initiator : Initiator?)
@@ -314,11 +314,11 @@ module Cdp::Network
   struct WebSocketFrameErrorEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "errorMessage", emit_null: false)]
     property error_message : String
 
     def initialize(@request_id : RequestId, @timestamp : MonotonicTime, @error_message : String)
@@ -338,11 +338,11 @@ module Cdp::Network
   struct WebSocketFrameReceivedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "response", emit_null: false)]
     property response : WebSocketFrame
 
     def initialize(@request_id : RequestId, @timestamp : MonotonicTime, @response : WebSocketFrame)
@@ -362,11 +362,11 @@ module Cdp::Network
   struct WebSocketFrameSentEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "response", emit_null: false)]
     property response : WebSocketFrame
 
     def initialize(@request_id : RequestId, @timestamp : MonotonicTime, @response : WebSocketFrame)
@@ -386,11 +386,11 @@ module Cdp::Network
   struct WebSocketHandshakeResponseReceivedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "response", emit_null: false)]
     property response : WebSocketResponse
 
     def initialize(@request_id : RequestId, @timestamp : MonotonicTime, @response : WebSocketResponse)
@@ -410,13 +410,13 @@ module Cdp::Network
   struct WebSocketWillSendHandshakeRequestEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "wallTime", emit_null: false)]
     property wall_time : TimeSinceEpoch
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "request", emit_null: false)]
     property request : WebSocketRequest
 
     def initialize(@request_id : RequestId, @timestamp : MonotonicTime, @wall_time : TimeSinceEpoch, @request : WebSocketRequest)
@@ -436,13 +436,13 @@ module Cdp::Network
   struct WebTransportCreatedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "transportId", emit_null: false)]
     property transport_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "initiator", emit_null: false)]
     property initiator : Initiator?
 
     def initialize(@transport_id : RequestId, @url : String, @timestamp : MonotonicTime, @initiator : Initiator?)
@@ -462,9 +462,9 @@ module Cdp::Network
   struct WebTransportConnectionEstablishedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "transportId", emit_null: false)]
     property transport_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
 
     def initialize(@transport_id : RequestId, @timestamp : MonotonicTime)
@@ -484,9 +484,9 @@ module Cdp::Network
   struct WebTransportClosedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "transportId", emit_null: false)]
     property transport_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
 
     def initialize(@transport_id : RequestId, @timestamp : MonotonicTime)
@@ -507,17 +507,17 @@ module Cdp::Network
   struct DirectTCPSocketCreatedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "identifier", emit_null: false)]
     property identifier : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "remoteAddr", emit_null: false)]
     property remote_addr : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "remotePort", emit_null: false)]
     property remote_port : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "options", emit_null: false)]
     property options : DirectTCPSocketOptions
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "initiator", emit_null: false)]
     property initiator : Initiator?
 
     def initialize(@identifier : RequestId, @remote_addr : String, @remote_port : Int64, @options : DirectTCPSocketOptions, @timestamp : MonotonicTime, @initiator : Initiator?)
@@ -538,17 +538,17 @@ module Cdp::Network
   struct DirectTCPSocketOpenedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "identifier", emit_null: false)]
     property identifier : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "remoteAddr", emit_null: false)]
     property remote_addr : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "remotePort", emit_null: false)]
     property remote_port : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "localAddr", emit_null: false)]
     property local_addr : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "localPort", emit_null: false)]
     property local_port : Int64?
 
     def initialize(@identifier : RequestId, @remote_addr : String, @remote_port : Int64, @timestamp : MonotonicTime, @local_addr : String?, @local_port : Int64?)
@@ -569,11 +569,11 @@ module Cdp::Network
   struct DirectTCPSocketAbortedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "identifier", emit_null: false)]
     property identifier : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "errorMessage", emit_null: false)]
     property error_message : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
 
     def initialize(@identifier : RequestId, @error_message : String, @timestamp : MonotonicTime)
@@ -594,9 +594,9 @@ module Cdp::Network
   struct DirectTCPSocketClosedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "identifier", emit_null: false)]
     property identifier : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
 
     def initialize(@identifier : RequestId, @timestamp : MonotonicTime)
@@ -617,11 +617,11 @@ module Cdp::Network
   struct DirectTCPSocketChunkSentEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "identifier", emit_null: false)]
     property identifier : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "data", emit_null: false)]
     property data : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
 
     def initialize(@identifier : RequestId, @data : String, @timestamp : MonotonicTime)
@@ -642,11 +642,11 @@ module Cdp::Network
   struct DirectTCPSocketChunkReceivedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "identifier", emit_null: false)]
     property identifier : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "data", emit_null: false)]
     property data : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
 
     def initialize(@identifier : RequestId, @data : String, @timestamp : MonotonicTime)
@@ -667,9 +667,9 @@ module Cdp::Network
   struct DirectUDPSocketJoinedMulticastGroupEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "identifier", emit_null: false)]
     property identifier : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ipAddress", emit_null: false)]
     property ip_address : String
 
     def initialize(@identifier : RequestId, @ip_address : String)
@@ -690,9 +690,9 @@ module Cdp::Network
   struct DirectUDPSocketLeftMulticastGroupEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "identifier", emit_null: false)]
     property identifier : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ipAddress", emit_null: false)]
     property ip_address : String
 
     def initialize(@identifier : RequestId, @ip_address : String)
@@ -713,13 +713,13 @@ module Cdp::Network
   struct DirectUDPSocketCreatedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "identifier", emit_null: false)]
     property identifier : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "options", emit_null: false)]
     property options : DirectUDPSocketOptions
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "initiator", emit_null: false)]
     property initiator : Initiator?
 
     def initialize(@identifier : RequestId, @options : DirectUDPSocketOptions, @timestamp : MonotonicTime, @initiator : Initiator?)
@@ -740,17 +740,17 @@ module Cdp::Network
   struct DirectUDPSocketOpenedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "identifier", emit_null: false)]
     property identifier : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "localAddr", emit_null: false)]
     property local_addr : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "localPort", emit_null: false)]
     property local_port : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "remoteAddr", emit_null: false)]
     property remote_addr : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "remotePort", emit_null: false)]
     property remote_port : Int64?
 
     def initialize(@identifier : RequestId, @local_addr : String, @local_port : Int64, @timestamp : MonotonicTime, @remote_addr : String?, @remote_port : Int64?)
@@ -771,11 +771,11 @@ module Cdp::Network
   struct DirectUDPSocketAbortedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "identifier", emit_null: false)]
     property identifier : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "errorMessage", emit_null: false)]
     property error_message : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
 
     def initialize(@identifier : RequestId, @error_message : String, @timestamp : MonotonicTime)
@@ -796,9 +796,9 @@ module Cdp::Network
   struct DirectUDPSocketClosedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "identifier", emit_null: false)]
     property identifier : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
 
     def initialize(@identifier : RequestId, @timestamp : MonotonicTime)
@@ -819,11 +819,11 @@ module Cdp::Network
   struct DirectUDPSocketChunkSentEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "identifier", emit_null: false)]
     property identifier : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "message", emit_null: false)]
     property message : DirectUDPMessage
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
 
     def initialize(@identifier : RequestId, @message : DirectUDPMessage, @timestamp : MonotonicTime)
@@ -844,11 +844,11 @@ module Cdp::Network
   struct DirectUDPSocketChunkReceivedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "identifier", emit_null: false)]
     property identifier : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "message", emit_null: false)]
     property message : DirectUDPMessage
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
 
     def initialize(@identifier : RequestId, @message : DirectUDPMessage, @timestamp : MonotonicTime)
@@ -869,21 +869,21 @@ module Cdp::Network
   struct RequestWillBeSentExtraInfoEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "associatedCookies", emit_null: false)]
     property associated_cookies : Array(AssociatedCookie)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "headers", emit_null: false)]
     property headers : Headers
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "connectTiming", emit_null: false)]
     property connect_timing : ConnectTiming
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "deviceBoundSessionUsages", emit_null: false)]
     property device_bound_session_usages : Array(DeviceBoundSessionWithUsage)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "clientSecurityState", emit_null: false)]
     property client_security_state : ClientSecurityState?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "siteHasCookieInOtherPartition", emit_null: false)]
     property? site_has_cookie_in_other_partition : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "appliedNetworkConditionsId", emit_null: false)]
     property applied_network_conditions_id : String?
 
     def initialize(@request_id : RequestId, @associated_cookies : Array(AssociatedCookie), @headers : Headers, @connect_timing : ConnectTiming, @device_bound_session_usages : Array(DeviceBoundSessionWithUsage)?, @client_security_state : ClientSecurityState?, @site_has_cookie_in_other_partition : Bool?, @applied_network_conditions_id : String?)
@@ -904,23 +904,23 @@ module Cdp::Network
   struct ResponseReceivedExtraInfoEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "blockedCookies", emit_null: false)]
     property blocked_cookies : Array(BlockedSetCookieWithReason)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "headers", emit_null: false)]
     property headers : Headers
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "resourceIpAddressSpace", emit_null: false)]
     property resource_ip_address_space : IPAddressSpace
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "statusCode", emit_null: false)]
     property status_code : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "headersText", emit_null: false)]
     property headers_text : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cookiePartitionKey", emit_null: false)]
     property cookie_partition_key : CookiePartitionKey?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cookiePartitionKeyOpaque", emit_null: false)]
     property? cookie_partition_key_opaque : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "exemptedCookies", emit_null: false)]
     property exempted_cookies : Array(ExemptedSetCookieWithReason)?
 
     def initialize(@request_id : RequestId, @blocked_cookies : Array(BlockedSetCookieWithReason), @headers : Headers, @resource_ip_address_space : IPAddressSpace, @status_code : Int64, @headers_text : String?, @cookie_partition_key : CookiePartitionKey?, @cookie_partition_key_opaque : Bool?, @exempted_cookies : Array(ExemptedSetCookieWithReason)?)
@@ -941,9 +941,9 @@ module Cdp::Network
   struct ResponseReceivedEarlyHintsEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "headers", emit_null: false)]
     property headers : Headers
 
     def initialize(@request_id : RequestId, @headers : Headers)
@@ -964,17 +964,17 @@ module Cdp::Network
   struct TrustTokenOperationDoneEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "status", emit_null: false)]
     property status : TrustTokenOperationDoneStatus
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "type", emit_null: false)]
     property type : TrustTokenOperationType
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "topLevelOrigin", emit_null: false)]
     property top_level_origin : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "issuerOrigin", emit_null: false)]
     property issuer_origin : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "issuedTokenCount", emit_null: false)]
     property issued_token_count : Int64?
 
     def initialize(@status : TrustTokenOperationDoneStatus, @type : TrustTokenOperationType, @request_id : RequestId, @top_level_origin : String?, @issuer_origin : String?, @issued_token_count : Int64?)
@@ -1014,7 +1014,7 @@ module Cdp::Network
   struct ReportingApiReportAddedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "report", emit_null: false)]
     property report : ReportingApiReport
 
     def initialize(@report : ReportingApiReport)
@@ -1035,7 +1035,7 @@ module Cdp::Network
   struct ReportingApiReportUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "report", emit_null: false)]
     property report : ReportingApiReport
 
     def initialize(@report : ReportingApiReport)
@@ -1056,9 +1056,9 @@ module Cdp::Network
   struct ReportingApiEndpointsChangedForOriginEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "origin", emit_null: false)]
     property origin : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "endpoints", emit_null: false)]
     property endpoints : Array(ReportingApiEndpoint)
 
     def initialize(@origin : String, @endpoints : Array(ReportingApiEndpoint))
@@ -1079,7 +1079,7 @@ module Cdp::Network
   struct DeviceBoundSessionsAddedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sessions", emit_null: false)]
     property sessions : Array(DeviceBoundSession)
 
     def initialize(@sessions : Array(DeviceBoundSession))
@@ -1100,21 +1100,21 @@ module Cdp::Network
   struct DeviceBoundSessionEventOccurredEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "eventId", emit_null: false)]
     property event_id : DeviceBoundSessionEventId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "site", emit_null: false)]
     property site : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "succeeded", emit_null: false)]
     property? succeeded : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sessionId", emit_null: false)]
     property session_id : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "creationEventDetails", emit_null: false)]
     property creation_event_details : CreationEventDetails?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "refreshEventDetails", emit_null: false)]
     property refresh_event_details : RefreshEventDetails?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "terminationEventDetails", emit_null: false)]
     property termination_event_details : TerminationEventDetails?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "challengeEventDetails", emit_null: false)]
     property challenge_event_details : ChallengeEventDetails?
 
     def initialize(@event_id : DeviceBoundSessionEventId, @site : String, @succeeded : Bool, @session_id : String?, @creation_event_details : CreationEventDetails?, @refresh_event_details : RefreshEventDetails?, @termination_event_details : TerminationEventDetails?, @challenge_event_details : ChallengeEventDetails?)

@@ -15,41 +15,41 @@ module Cdp::Fetch
 
   struct RequestPattern
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "urlPattern", emit_null: false)]
     property url_pattern : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "resourceType", emit_null: false)]
     property resource_type : Cdp::Network::ResourceType?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestStage", emit_null: false)]
     property request_stage : RequestStage?
   end
 
   struct HeaderEntry
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : String
   end
 
   struct AuthChallenge
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "source", emit_null: false)]
     property source : AuthChallengeSource?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "origin", emit_null: false)]
     property origin : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scheme", emit_null: false)]
     property scheme : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "realm", emit_null: false)]
     property realm : String
   end
 
   struct AuthChallengeResponse
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "response", emit_null: false)]
     property response : AuthChallengeResponseResponse
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "username", emit_null: false)]
     property username : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "password", emit_null: false)]
     property password : String?
   end
 

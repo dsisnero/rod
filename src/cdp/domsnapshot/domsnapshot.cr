@@ -13,9 +13,9 @@ require "./types"
 module Cdp::DOMSnapshot
   struct CaptureSnapshotResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "documents", emit_null: false)]
     property documents : Array(DocumentSnapshot)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "strings", emit_null: false)]
     property strings : Array(String)
 
     def initialize(@documents : Array(DocumentSnapshot), @strings : Array(String))
@@ -62,15 +62,15 @@ module Cdp::DOMSnapshot
   struct CaptureSnapshot
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "computedStyles", emit_null: false)]
     property computed_styles : Array(String)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "includePaintOrder", emit_null: false)]
     property? include_paint_order : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "includeDomRects", emit_null: false)]
     property? include_dom_rects : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "includeBlendedBackgroundColors", emit_null: false)]
     property? include_blended_background_colors : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "includeTextColorOpacities", emit_null: false)]
     property? include_text_color_opacities : Bool?
 
     def initialize(@computed_styles : Array(String), @include_paint_order : Bool?, @include_dom_rects : Bool?, @include_blended_background_colors : Bool?, @include_text_color_opacities : Bool?)

@@ -11,21 +11,21 @@ module Cdp::Preload
 
   struct RuleSet
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "id", emit_null: false)]
     property id : RuleSetId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "loaderId", emit_null: false)]
     property loader_id : Cdp::Network::LoaderId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sourceText", emit_null: false)]
     property source_text : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "backendNodeId", emit_null: false)]
     property backend_node_id : Cdp::DOM::BackendNodeId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : Cdp::Network::RequestId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "errorType", emit_null: false)]
     property error_type : RuleSetErrorType?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "tag", emit_null: false)]
     property tag : String?
   end
 
@@ -45,23 +45,23 @@ module Cdp::Preload
 
   struct PreloadingAttemptKey
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "loaderId", emit_null: false)]
     property loader_id : Cdp::Network::LoaderId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "action", emit_null: false)]
     property action : SpeculationAction
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "targetHint", emit_null: false)]
     property target_hint : SpeculationTargetHint?
   end
 
   struct PreloadingAttemptSource
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "key", emit_null: false)]
     property key : PreloadingAttemptKey
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ruleSetIds", emit_null: false)]
     property rule_set_ids : Array(RuleSetId)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeIds", emit_null: false)]
     property node_ids : Array(Cdp::DOM::BackendNodeId)
   end
 
@@ -189,11 +189,11 @@ module Cdp::Preload
 
   struct PrerenderMismatchedHeaders
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "headerName", emit_null: false)]
     property header_name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "initialValue", emit_null: false)]
     property initial_value : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "activationValue", emit_null: false)]
     property activation_value : String?
   end
 end

@@ -15,11 +15,11 @@ require "./events"
 module Cdp::Audits
   struct GetEncodedResponseResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "body", emit_null: false)]
     property body : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "originalSize", emit_null: false)]
     property original_size : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "encodedSize", emit_null: false)]
     property encoded_size : Int64
 
     def initialize(@body : String?, @original_size : Int64, @encoded_size : Int64)
@@ -28,7 +28,7 @@ module Cdp::Audits
 
   struct CheckFormsIssuesResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "formIssues", emit_null: false)]
     property form_issues : Array(GenericIssueDetails)
 
     def initialize(@form_issues : Array(GenericIssueDetails))
@@ -39,13 +39,13 @@ module Cdp::Audits
   struct GetEncodedResponse
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : Cdp::Network::RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "encoding", emit_null: false)]
     property encoding : GetEncodedResponseEncoding
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "quality", emit_null: false)]
     property quality : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sizeOnly", emit_null: false)]
     property? size_only : Bool?
 
     def initialize(@request_id : Cdp::Network::RequestId, @encoding : GetEncodedResponseEncoding, @quality : Float64?, @size_only : Bool?)
@@ -103,7 +103,7 @@ module Cdp::Audits
   struct CheckContrast
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "reportAaa", emit_null: false)]
     property? report_aaa : Bool?
 
     def initialize(@report_aaa : Bool?)

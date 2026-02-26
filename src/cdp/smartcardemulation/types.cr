@@ -58,37 +58,37 @@ module Cdp::SmartCardEmulation
 
   struct ReaderStateFlags
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "unaware", emit_null: false)]
     property? unaware : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ignore", emit_null: false)]
     property? ignore : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "changed", emit_null: false)]
     property? changed : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "unknown", emit_null: false)]
     property? unknown : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "unavailable", emit_null: false)]
     property? unavailable : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "empty", emit_null: false)]
     property? empty : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "present", emit_null: false)]
     property? present : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "exclusive", emit_null: false)]
     property? exclusive : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "inuse", emit_null: false)]
     property? inuse : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "mute", emit_null: false)]
     property? mute : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "unpowered", emit_null: false)]
     property? unpowered : Bool?
   end
 
   struct ProtocolSet
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "t0", emit_null: false)]
     property? t0 : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "t1", emit_null: false)]
     property? t1 : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "raw", emit_null: false)]
     property? raw : Bool?
   end
 
@@ -99,23 +99,23 @@ module Cdp::SmartCardEmulation
 
   struct ReaderStateIn
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "reader", emit_null: false)]
     property reader : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "currentState", emit_null: false)]
     property current_state : ReaderStateFlags
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "currentInsertionCount", emit_null: false)]
     property current_insertion_count : Int64
   end
 
   struct ReaderStateOut
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "reader", emit_null: false)]
     property reader : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "eventState", emit_null: false)]
     property event_state : ReaderStateFlags
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "eventCount", emit_null: false)]
     property event_count : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "atr", emit_null: false)]
     property atr : String
   end
 end

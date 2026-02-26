@@ -9,13 +9,13 @@ module Cdp::Profiler
   struct ConsoleProfileFinishedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "id", emit_null: false)]
     property id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "location", emit_null: false)]
     property location : Cdp::Debugger::Location
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "profile", emit_null: false)]
     property profile : Profile
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "title", emit_null: false)]
     property title : String?
 
     def initialize(@id : String, @location : Cdp::Debugger::Location, @profile : Profile, @title : String?)
@@ -35,11 +35,11 @@ module Cdp::Profiler
   struct ConsoleProfileStartedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "id", emit_null: false)]
     property id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "location", emit_null: false)]
     property location : Cdp::Debugger::Location
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "title", emit_null: false)]
     property title : String?
 
     def initialize(@id : String, @location : Cdp::Debugger::Location, @title : String?)
@@ -60,11 +60,11 @@ module Cdp::Profiler
   struct PreciseCoverageDeltaUpdateEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "occasion", emit_null: false)]
     property occasion : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "result", emit_null: false)]
     property result : Array(ScriptCoverage)
 
     def initialize(@timestamp : Float64, @occasion : String, @result : Array(ScriptCoverage))

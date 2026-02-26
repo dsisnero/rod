@@ -11,55 +11,55 @@ module Cdp::Media
 
   struct PlayerMessage
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "level", emit_null: false)]
     property level : PlayerMessageLevel
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "message", emit_null: false)]
     property message : String
   end
 
   struct PlayerProperty
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : String
   end
 
   struct PlayerEvent
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : Timestamp
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : String
   end
 
   struct PlayerErrorSourceLocation
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "file", emit_null: false)]
     property file : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "line", emit_null: false)]
     property line : Int64
   end
 
   struct PlayerError
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "errorType", emit_null: false)]
     property error_type : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "code", emit_null: false)]
     property code : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "stack", emit_null: false)]
     property stack : Array(PlayerErrorSourceLocation)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cause", emit_null: false)]
     property cause : Array(PlayerError)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "data", emit_null: false)]
     property data : JSON::Any
   end
 
   struct Player
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "playerId", emit_null: false)]
     property player_id : PlayerId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "domNodeId", emit_null: false)]
     property dom_node_id : Cdp::DOM::BackendNodeId?
   end
 

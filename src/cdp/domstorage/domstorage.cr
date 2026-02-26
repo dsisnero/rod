@@ -10,7 +10,7 @@ require "./events"
 module Cdp::DOMStorage
   struct GetDOMStorageItemsResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "entries", emit_null: false)]
     property entries : Array(Item)
 
     def initialize(@entries : Array(Item))
@@ -21,7 +21,7 @@ module Cdp::DOMStorage
   struct Clear
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageId", emit_null: false)]
     property storage_id : StorageId
 
     def initialize(@storage_id : StorageId)
@@ -77,7 +77,7 @@ module Cdp::DOMStorage
   struct GetDOMStorageItems
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageId", emit_null: false)]
     property storage_id : StorageId
 
     def initialize(@storage_id : StorageId)
@@ -99,9 +99,9 @@ module Cdp::DOMStorage
   struct RemoveDOMStorageItem
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageId", emit_null: false)]
     property storage_id : StorageId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "key", emit_null: false)]
     property key : String
 
     def initialize(@storage_id : StorageId, @key : String)
@@ -121,11 +121,11 @@ module Cdp::DOMStorage
   struct SetDOMStorageItem
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageId", emit_null: false)]
     property storage_id : StorageId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "key", emit_null: false)]
     property key : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : String
 
     def initialize(@storage_id : StorageId, @key : String, @value : String)

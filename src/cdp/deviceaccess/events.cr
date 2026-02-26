@@ -6,9 +6,9 @@ module Cdp::DeviceAccess
   struct DeviceRequestPromptedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "id", emit_null: false)]
     property id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "devices", emit_null: false)]
     property devices : Array(PromptDevice)
 
     def initialize(@id : RequestId, @devices : Array(PromptDevice))

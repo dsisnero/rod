@@ -9,7 +9,7 @@ module Cdp::Log
   struct EntryAddedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "entry", emit_null: false)]
     property entry : LogEntry
 
     def initialize(@entry : LogEntry)

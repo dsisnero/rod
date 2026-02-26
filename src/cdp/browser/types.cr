@@ -22,15 +22,15 @@ module Cdp::Browser
   @[Experimental]
   struct Bounds
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "left", emit_null: false)]
     property left : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "top", emit_null: false)]
     property top : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "width", emit_null: false)]
     property width : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "height", emit_null: false)]
     property height : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "windowState", emit_null: false)]
     property window_state : WindowState?
   end
 
@@ -85,17 +85,17 @@ module Cdp::Browser
   @[Experimental]
   struct PermissionDescriptor
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sysex", emit_null: false)]
     property? sysex : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "userVisibleOnly", emit_null: false)]
     property? user_visible_only : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "allowWithoutSanitization", emit_null: false)]
     property? allow_without_sanitization : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "allowWithoutGesture", emit_null: false)]
     property? allow_without_gesture : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "panTiltZoom", emit_null: false)]
     property? pan_tilt_zoom : Bool?
   end
 
@@ -108,24 +108,24 @@ module Cdp::Browser
   @[Experimental]
   struct Bucket
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "low", emit_null: false)]
     property low : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "high", emit_null: false)]
     property high : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "count", emit_null: false)]
     property count : Int64
   end
 
   @[Experimental]
   struct Histogram
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sum", emit_null: false)]
     property sum : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "count", emit_null: false)]
     property count : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "buckets", emit_null: false)]
     property buckets : Array(Bucket)
   end
 

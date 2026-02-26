@@ -9,7 +9,7 @@ module Cdp::Animation
   struct AnimationCanceledEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "id", emit_null: false)]
     property id : String
 
     def initialize(@id : String)
@@ -29,7 +29,7 @@ module Cdp::Animation
   struct AnimationCreatedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "id", emit_null: false)]
     property id : String
 
     def initialize(@id : String)
@@ -49,7 +49,7 @@ module Cdp::Animation
   struct AnimationStartedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "animation", emit_null: false)]
     property animation : Animation
 
     def initialize(@animation : Animation)
@@ -69,7 +69,7 @@ module Cdp::Animation
   struct AnimationUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "animation", emit_null: false)]
     property animation : Animation
 
     def initialize(@animation : Animation)

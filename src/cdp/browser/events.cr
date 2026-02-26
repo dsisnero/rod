@@ -10,13 +10,13 @@ module Cdp::Browser
   struct DownloadWillBeginEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : Cdp::Page::FrameId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "guid", emit_null: false)]
     property guid : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "suggestedFilename", emit_null: false)]
     property suggested_filename : String
 
     def initialize(@frame_id : Cdp::Page::FrameId, @guid : String, @url : String, @suggested_filename : String)
@@ -37,15 +37,15 @@ module Cdp::Browser
   struct DownloadProgressEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "guid", emit_null: false)]
     property guid : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "totalBytes", emit_null: false)]
     property total_bytes : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "receivedBytes", emit_null: false)]
     property received_bytes : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "state", emit_null: false)]
     property state : DownloadProgressState
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "filePath", emit_null: false)]
     property file_path : String?
 
     def initialize(@guid : String, @total_bytes : Float64, @received_bytes : Float64, @state : DownloadProgressState, @file_path : String?)

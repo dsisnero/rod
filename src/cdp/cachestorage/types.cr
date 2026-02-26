@@ -17,49 +17,49 @@ module Cdp::CacheStorage
 
   struct DataEntry
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestUrl", emit_null: false)]
     property request_url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestMethod", emit_null: false)]
     property request_method : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestHeaders", emit_null: false)]
     property request_headers : Array(Header)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "responseTime", emit_null: false)]
     property response_time : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "responseStatus", emit_null: false)]
     property response_status : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "responseStatusText", emit_null: false)]
     property response_status_text : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "responseType", emit_null: false)]
     property response_type : CachedResponseType
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "responseHeaders", emit_null: false)]
     property response_headers : Array(Header)
   end
 
   struct Cache
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cacheId", emit_null: false)]
     property cache_id : CacheId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "securityOrigin", emit_null: false)]
     property security_origin : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageKey", emit_null: false)]
     property storage_key : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageBucket", emit_null: false)]
     property storage_bucket : Cdp::Storage::StorageBucket?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cacheName", emit_null: false)]
     property cache_name : String
   end
 
   struct Header
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : String
   end
 
   struct CachedResponse
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "body", emit_null: false)]
     property body : String
   end
 end

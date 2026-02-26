@@ -18,7 +18,7 @@ require "./events"
 module Cdp::CSS
   struct AddRuleResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "rule", emit_null: false)]
     property rule : CSSRule
 
     def initialize(@rule : CSSRule)
@@ -27,7 +27,7 @@ module Cdp::CSS
 
   struct CollectClassNamesResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "classNames", emit_null: false)]
     property class_names : Array(String)
 
     def initialize(@class_names : Array(String))
@@ -36,7 +36,7 @@ module Cdp::CSS
 
   struct CreateStyleSheetResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "styleSheetId", emit_null: false)]
     property style_sheet_id : Cdp::DOM::StyleSheetId
 
     def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId)
@@ -45,11 +45,11 @@ module Cdp::CSS
 
   struct GetBackgroundColorsResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "backgroundColors", emit_null: false)]
     property background_colors : Array(String)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "computedFontSize", emit_null: false)]
     property computed_font_size : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "computedFontWeight", emit_null: false)]
     property computed_font_weight : String?
 
     def initialize(@background_colors : Array(String)?, @computed_font_size : String?, @computed_font_weight : String?)
@@ -58,9 +58,9 @@ module Cdp::CSS
 
   struct GetComputedStyleForNodeResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "computedStyle", emit_null: false)]
     property computed_style : Array(CSSComputedStyleProperty)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "extraFields", emit_null: false)]
     property extra_fields : ComputedStyleExtraFields
 
     def initialize(@computed_style : Array(CSSComputedStyleProperty), @extra_fields : ComputedStyleExtraFields)
@@ -70,7 +70,7 @@ module Cdp::CSS
   @[Experimental]
   struct ResolveValuesResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "results", emit_null: false)]
     property results : Array(String)
 
     def initialize(@results : Array(String))
@@ -80,7 +80,7 @@ module Cdp::CSS
   @[Experimental]
   struct GetLonghandPropertiesResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "longhandProperties", emit_null: false)]
     property longhand_properties : Array(CSSProperty)
 
     def initialize(@longhand_properties : Array(CSSProperty))
@@ -89,9 +89,9 @@ module Cdp::CSS
 
   struct GetInlineStylesForNodeResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "inlineStyle", emit_null: false)]
     property inline_style : CSSStyle?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "attributesStyle", emit_null: false)]
     property attributes_style : CSSStyle?
 
     def initialize(@inline_style : CSSStyle?, @attributes_style : CSSStyle?)
@@ -101,11 +101,11 @@ module Cdp::CSS
   @[Experimental]
   struct GetAnimatedStylesForNodeResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "animationStyles", emit_null: false)]
     property animation_styles : Array(CSSAnimationStyle)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "transitionsStyle", emit_null: false)]
     property transitions_style : CSSStyle?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "inherited", emit_null: false)]
     property inherited : Array(InheritedAnimatedStyleEntry)?
 
     def initialize(@animation_styles : Array(CSSAnimationStyle)?, @transitions_style : CSSStyle?, @inherited : Array(InheritedAnimatedStyleEntry)?)
@@ -114,33 +114,33 @@ module Cdp::CSS
 
   struct GetMatchedStylesForNodeResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "inlineStyle", emit_null: false)]
     property inline_style : CSSStyle?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "attributesStyle", emit_null: false)]
     property attributes_style : CSSStyle?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "matchedCssRules", emit_null: false)]
     property matched_css_rules : Array(RuleMatch)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "pseudoElements", emit_null: false)]
     property pseudo_elements : Array(PseudoElementMatches)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "inherited", emit_null: false)]
     property inherited : Array(InheritedStyleEntry)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "inheritedPseudoElements", emit_null: false)]
     property inherited_pseudo_elements : Array(InheritedPseudoElementMatches)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cssKeyframesRules", emit_null: false)]
     property css_keyframes_rules : Array(CSSKeyframesRule)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cssPositionTryRules", emit_null: false)]
     property css_position_try_rules : Array(CSSPositionTryRule)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "activePositionFallbackIndex", emit_null: false)]
     property active_position_fallback_index : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cssPropertyRules", emit_null: false)]
     property css_property_rules : Array(CSSPropertyRule)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cssPropertyRegistrations", emit_null: false)]
     property css_property_registrations : Array(CSSPropertyRegistration)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cssAtRules", emit_null: false)]
     property css_at_rules : Array(CSSAtRule)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "parentLayoutNodeId", emit_null: false)]
     property parent_layout_node_id : Cdp::DOM::NodeId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cssFunctionRules", emit_null: false)]
     property css_function_rules : Array(CSSFunctionRule)?
 
     def initialize(@inline_style : CSSStyle?, @attributes_style : CSSStyle?, @matched_css_rules : Array(RuleMatch)?, @pseudo_elements : Array(PseudoElementMatches)?, @inherited : Array(InheritedStyleEntry)?, @inherited_pseudo_elements : Array(InheritedPseudoElementMatches)?, @css_keyframes_rules : Array(CSSKeyframesRule)?, @css_position_try_rules : Array(CSSPositionTryRule)?, @active_position_fallback_index : Int64?, @css_property_rules : Array(CSSPropertyRule)?, @css_property_registrations : Array(CSSPropertyRegistration)?, @css_at_rules : Array(CSSAtRule)?, @parent_layout_node_id : Cdp::DOM::NodeId?, @css_function_rules : Array(CSSFunctionRule)?)
@@ -150,7 +150,7 @@ module Cdp::CSS
   @[Experimental]
   struct GetEnvironmentVariablesResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "environmentVariables", emit_null: false)]
     property environment_variables : JSON::Any
 
     def initialize(@environment_variables : JSON::Any)
@@ -159,7 +159,7 @@ module Cdp::CSS
 
   struct GetMediaQueriesResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "medias", emit_null: false)]
     property medias : Array(CSSMedia)
 
     def initialize(@medias : Array(CSSMedia))
@@ -168,7 +168,7 @@ module Cdp::CSS
 
   struct GetPlatformFontsForNodeResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "fonts", emit_null: false)]
     property fonts : Array(PlatformFontUsage)
 
     def initialize(@fonts : Array(PlatformFontUsage))
@@ -177,7 +177,7 @@ module Cdp::CSS
 
   struct GetStyleSheetTextResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "text", emit_null: false)]
     property text : String
 
     def initialize(@text : String)
@@ -187,7 +187,7 @@ module Cdp::CSS
   @[Experimental]
   struct GetLayersForNodeResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "rootLayer", emit_null: false)]
     property root_layer : CSSLayerData
 
     def initialize(@root_layer : CSSLayerData)
@@ -197,7 +197,7 @@ module Cdp::CSS
   @[Experimental]
   struct GetLocationForSelectorResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ranges", emit_null: false)]
     property ranges : Array(SourceRange)
 
     def initialize(@ranges : Array(SourceRange))
@@ -207,7 +207,7 @@ module Cdp::CSS
   @[Experimental]
   struct TakeComputedStyleUpdatesResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeIds", emit_null: false)]
     property node_ids : Array(Cdp::DOM::NodeId)
 
     def initialize(@node_ids : Array(Cdp::DOM::NodeId))
@@ -216,7 +216,7 @@ module Cdp::CSS
 
   struct SetPropertyRulePropertyNameResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "propertyName", emit_null: false)]
     property property_name : Value
 
     def initialize(@property_name : Value)
@@ -225,7 +225,7 @@ module Cdp::CSS
 
   struct SetKeyframeKeyResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "keyText", emit_null: false)]
     property key_text : Value
 
     def initialize(@key_text : Value)
@@ -234,7 +234,7 @@ module Cdp::CSS
 
   struct SetMediaTextResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "media", emit_null: false)]
     property media : CSSMedia
 
     def initialize(@media : CSSMedia)
@@ -244,7 +244,7 @@ module Cdp::CSS
   @[Experimental]
   struct SetContainerQueryTextResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "containerQuery", emit_null: false)]
     property container_query : CSSContainerQuery
 
     def initialize(@container_query : CSSContainerQuery)
@@ -254,7 +254,7 @@ module Cdp::CSS
   @[Experimental]
   struct SetSupportsTextResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "supports", emit_null: false)]
     property supports : CSSSupports
 
     def initialize(@supports : CSSSupports)
@@ -264,7 +264,7 @@ module Cdp::CSS
   @[Experimental]
   struct SetScopeTextResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scope", emit_null: false)]
     property scope : CSSScope
 
     def initialize(@scope : CSSScope)
@@ -273,7 +273,7 @@ module Cdp::CSS
 
   struct SetRuleSelectorResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "selectorList", emit_null: false)]
     property selector_list : SelectorList
 
     def initialize(@selector_list : SelectorList)
@@ -282,7 +282,7 @@ module Cdp::CSS
 
   struct SetStyleSheetTextResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sourceMapUrl", emit_null: false)]
     property source_map_url : String?
 
     def initialize(@source_map_url : String?)
@@ -291,7 +291,7 @@ module Cdp::CSS
 
   struct SetStyleTextsResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "styles", emit_null: false)]
     property styles : Array(CSSStyle)
 
     def initialize(@styles : Array(CSSStyle))
@@ -300,7 +300,7 @@ module Cdp::CSS
 
   struct StopRuleUsageTrackingResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ruleUsage", emit_null: false)]
     property rule_usage : Array(RuleUsage)
 
     def initialize(@rule_usage : Array(RuleUsage))
@@ -309,9 +309,9 @@ module Cdp::CSS
 
   struct TakeCoverageDeltaResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "coverage", emit_null: false)]
     property coverage : Array(RuleUsage)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : Float64
 
     def initialize(@coverage : Array(RuleUsage), @timestamp : Float64)
@@ -322,13 +322,13 @@ module Cdp::CSS
   struct AddRule
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "styleSheetId", emit_null: false)]
     property style_sheet_id : Cdp::DOM::StyleSheetId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ruleText", emit_null: false)]
     property rule_text : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "location", emit_null: false)]
     property location : SourceRange
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeForPropertySyntaxValidation", emit_null: false)]
     property node_for_property_syntax_validation : Cdp::DOM::NodeId?
 
     def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @rule_text : String, @location : SourceRange, @node_for_property_syntax_validation : Cdp::DOM::NodeId?)
@@ -350,7 +350,7 @@ module Cdp::CSS
   struct CollectClassNames
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "styleSheetId", emit_null: false)]
     property style_sheet_id : Cdp::DOM::StyleSheetId
 
     def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId)
@@ -372,9 +372,9 @@ module Cdp::CSS
   struct CreateStyleSheet
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : Cdp::Page::FrameId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "force", emit_null: false)]
     property? force : Bool?
 
     def initialize(@frame_id : Cdp::Page::FrameId, @force : Bool?)
@@ -432,9 +432,9 @@ module Cdp::CSS
   struct ForcePseudoState
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : Cdp::DOM::NodeId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "forcedPseudoClasses", emit_null: false)]
     property forced_pseudo_classes : Array(String)
 
     def initialize(@node_id : Cdp::DOM::NodeId, @forced_pseudo_classes : Array(String))
@@ -454,9 +454,9 @@ module Cdp::CSS
   struct ForceStartingStyle
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : Cdp::DOM::NodeId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "forced", emit_null: false)]
     property? forced : Bool
 
     def initialize(@node_id : Cdp::DOM::NodeId, @forced : Bool)
@@ -476,7 +476,7 @@ module Cdp::CSS
   struct GetBackgroundColors
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : Cdp::DOM::NodeId
 
     def initialize(@node_id : Cdp::DOM::NodeId)
@@ -498,7 +498,7 @@ module Cdp::CSS
   struct GetComputedStyleForNode
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : Cdp::DOM::NodeId
 
     def initialize(@node_id : Cdp::DOM::NodeId)
@@ -521,15 +521,15 @@ module Cdp::CSS
   struct ResolveValues
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "values", emit_null: false)]
     property values : Array(String)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : Cdp::DOM::NodeId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "propertyName", emit_null: false)]
     property property_name : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "pseudoType", emit_null: false)]
     property pseudo_type : Cdp::DOM::PseudoType?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "pseudoIdentifier", emit_null: false)]
     property pseudo_identifier : String?
 
     def initialize(@values : Array(String), @node_id : Cdp::DOM::NodeId, @property_name : String?, @pseudo_type : Cdp::DOM::PseudoType?, @pseudo_identifier : String?)
@@ -552,9 +552,9 @@ module Cdp::CSS
   struct GetLonghandProperties
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "shorthandName", emit_null: false)]
     property shorthand_name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : String
 
     def initialize(@shorthand_name : String, @value : String)
@@ -576,7 +576,7 @@ module Cdp::CSS
   struct GetInlineStylesForNode
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : Cdp::DOM::NodeId
 
     def initialize(@node_id : Cdp::DOM::NodeId)
@@ -599,7 +599,7 @@ module Cdp::CSS
   struct GetAnimatedStylesForNode
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : Cdp::DOM::NodeId
 
     def initialize(@node_id : Cdp::DOM::NodeId)
@@ -621,7 +621,7 @@ module Cdp::CSS
   struct GetMatchedStylesForNode
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : Cdp::DOM::NodeId
 
     def initialize(@node_id : Cdp::DOM::NodeId)
@@ -684,7 +684,7 @@ module Cdp::CSS
   struct GetPlatformFontsForNode
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : Cdp::DOM::NodeId
 
     def initialize(@node_id : Cdp::DOM::NodeId)
@@ -706,7 +706,7 @@ module Cdp::CSS
   struct GetStyleSheetText
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "styleSheetId", emit_null: false)]
     property style_sheet_id : Cdp::DOM::StyleSheetId
 
     def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId)
@@ -729,7 +729,7 @@ module Cdp::CSS
   struct GetLayersForNode
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : Cdp::DOM::NodeId
 
     def initialize(@node_id : Cdp::DOM::NodeId)
@@ -752,9 +752,9 @@ module Cdp::CSS
   struct GetLocationForSelector
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "styleSheetId", emit_null: false)]
     property style_sheet_id : Cdp::DOM::StyleSheetId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "selectorText", emit_null: false)]
     property selector_text : String
 
     def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @selector_text : String)
@@ -777,7 +777,7 @@ module Cdp::CSS
   struct TrackComputedStyleUpdatesForNode
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : Cdp::DOM::NodeId?
 
     def initialize(@node_id : Cdp::DOM::NodeId?)
@@ -798,7 +798,7 @@ module Cdp::CSS
   struct TrackComputedStyleUpdates
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "propertiesToTrack", emit_null: false)]
     property properties_to_track : Array(CSSComputedStyleProperty)
 
     def initialize(@properties_to_track : Array(CSSComputedStyleProperty))
@@ -839,11 +839,11 @@ module Cdp::CSS
   struct SetEffectivePropertyValueForNode
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : Cdp::DOM::NodeId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "propertyName", emit_null: false)]
     property property_name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : String
 
     def initialize(@node_id : Cdp::DOM::NodeId, @property_name : String, @value : String)
@@ -863,11 +863,11 @@ module Cdp::CSS
   struct SetPropertyRulePropertyName
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "styleSheetId", emit_null: false)]
     property style_sheet_id : Cdp::DOM::StyleSheetId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "range", emit_null: false)]
     property range : SourceRange
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "propertyName", emit_null: false)]
     property property_name : String
 
     def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @range : SourceRange, @property_name : String)
@@ -889,11 +889,11 @@ module Cdp::CSS
   struct SetKeyframeKey
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "styleSheetId", emit_null: false)]
     property style_sheet_id : Cdp::DOM::StyleSheetId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "range", emit_null: false)]
     property range : SourceRange
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "keyText", emit_null: false)]
     property key_text : String
 
     def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @range : SourceRange, @key_text : String)
@@ -915,11 +915,11 @@ module Cdp::CSS
   struct SetMediaText
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "styleSheetId", emit_null: false)]
     property style_sheet_id : Cdp::DOM::StyleSheetId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "range", emit_null: false)]
     property range : SourceRange
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "text", emit_null: false)]
     property text : String
 
     def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @range : SourceRange, @text : String)
@@ -942,11 +942,11 @@ module Cdp::CSS
   struct SetContainerQueryText
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "styleSheetId", emit_null: false)]
     property style_sheet_id : Cdp::DOM::StyleSheetId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "range", emit_null: false)]
     property range : SourceRange
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "text", emit_null: false)]
     property text : String
 
     def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @range : SourceRange, @text : String)
@@ -969,11 +969,11 @@ module Cdp::CSS
   struct SetSupportsText
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "styleSheetId", emit_null: false)]
     property style_sheet_id : Cdp::DOM::StyleSheetId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "range", emit_null: false)]
     property range : SourceRange
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "text", emit_null: false)]
     property text : String
 
     def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @range : SourceRange, @text : String)
@@ -996,11 +996,11 @@ module Cdp::CSS
   struct SetScopeText
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "styleSheetId", emit_null: false)]
     property style_sheet_id : Cdp::DOM::StyleSheetId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "range", emit_null: false)]
     property range : SourceRange
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "text", emit_null: false)]
     property text : String
 
     def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @range : SourceRange, @text : String)
@@ -1022,11 +1022,11 @@ module Cdp::CSS
   struct SetRuleSelector
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "styleSheetId", emit_null: false)]
     property style_sheet_id : Cdp::DOM::StyleSheetId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "range", emit_null: false)]
     property range : SourceRange
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "selector", emit_null: false)]
     property selector : String
 
     def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @range : SourceRange, @selector : String)
@@ -1048,9 +1048,9 @@ module Cdp::CSS
   struct SetStyleSheetText
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "styleSheetId", emit_null: false)]
     property style_sheet_id : Cdp::DOM::StyleSheetId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "text", emit_null: false)]
     property text : String
 
     def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @text : String)
@@ -1072,9 +1072,9 @@ module Cdp::CSS
   struct SetStyleTexts
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "edits", emit_null: false)]
     property edits : Array(StyleDeclarationEdit)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeForPropertySyntaxValidation", emit_null: false)]
     property node_for_property_syntax_validation : Cdp::DOM::NodeId?
 
     def initialize(@edits : Array(StyleDeclarationEdit), @node_for_property_syntax_validation : Cdp::DOM::NodeId?)
@@ -1155,7 +1155,7 @@ module Cdp::CSS
   struct SetLocalFontsEnabled
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "enabled", emit_null: false)]
     property? enabled : Bool
 
     def initialize(@enabled : Bool)

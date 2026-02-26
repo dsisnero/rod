@@ -48,9 +48,9 @@ module Cdp::SmartCardEmulation
   struct ReportEstablishContextResult
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "contextId", emit_null: false)]
     property context_id : Int64
 
     def initialize(@request_id : String, @context_id : Int64)
@@ -70,7 +70,7 @@ module Cdp::SmartCardEmulation
   struct ReportReleaseContextResult
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : String
 
     def initialize(@request_id : String)
@@ -90,9 +90,9 @@ module Cdp::SmartCardEmulation
   struct ReportListReadersResult
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "readers", emit_null: false)]
     property readers : Array(String)
 
     def initialize(@request_id : String, @readers : Array(String))
@@ -112,9 +112,9 @@ module Cdp::SmartCardEmulation
   struct ReportGetStatusChangeResult
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "readerStates", emit_null: false)]
     property reader_states : Array(ReaderStateOut)
 
     def initialize(@request_id : String, @reader_states : Array(ReaderStateOut))
@@ -134,9 +134,9 @@ module Cdp::SmartCardEmulation
   struct ReportBeginTransactionResult
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "handle", emit_null: false)]
     property handle : Int64
 
     def initialize(@request_id : String, @handle : Int64)
@@ -156,7 +156,7 @@ module Cdp::SmartCardEmulation
   struct ReportPlainResult
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : String
 
     def initialize(@request_id : String)
@@ -176,11 +176,11 @@ module Cdp::SmartCardEmulation
   struct ReportConnectResult
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "handle", emit_null: false)]
     property handle : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "activeProtocol", emit_null: false)]
     property active_protocol : Protocol?
 
     def initialize(@request_id : String, @handle : Int64, @active_protocol : Protocol?)
@@ -200,9 +200,9 @@ module Cdp::SmartCardEmulation
   struct ReportDataResult
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "data", emit_null: false)]
     property data : String
 
     def initialize(@request_id : String, @data : String)
@@ -222,15 +222,15 @@ module Cdp::SmartCardEmulation
   struct ReportStatusResult
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "readerName", emit_null: false)]
     property reader_name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "state", emit_null: false)]
     property state : ConnectionState
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "atr", emit_null: false)]
     property atr : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "protocol", emit_null: false)]
     property protocol : Protocol?
 
     def initialize(@request_id : String, @reader_name : String, @state : ConnectionState, @atr : String, @protocol : Protocol?)
@@ -250,9 +250,9 @@ module Cdp::SmartCardEmulation
   struct ReportError
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "resultCode", emit_null: false)]
     property result_code : ResultCode
 
     def initialize(@request_id : String, @result_code : ResultCode)

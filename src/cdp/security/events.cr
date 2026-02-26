@@ -9,7 +9,7 @@ module Cdp::Security
   struct VisibleSecurityStateChangedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "visibleSecurityState", emit_null: false)]
     property visible_security_state : VisibleSecurityState
 
     def initialize(@visible_security_state : VisibleSecurityState)

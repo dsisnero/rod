@@ -13,7 +13,7 @@ module Cdp::Cast
   struct Enable
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "presentationUrl", emit_null: false)]
     property presentation_url : String?
 
     def initialize(@presentation_url : String?)
@@ -51,7 +51,7 @@ module Cdp::Cast
   struct SetSinkToUse
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sinkName", emit_null: false)]
     property sink_name : String
 
     def initialize(@sink_name : String)
@@ -71,7 +71,7 @@ module Cdp::Cast
   struct StartDesktopMirroring
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sinkName", emit_null: false)]
     property sink_name : String
 
     def initialize(@sink_name : String)
@@ -91,7 +91,7 @@ module Cdp::Cast
   struct StartTabMirroring
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sinkName", emit_null: false)]
     property sink_name : String
 
     def initialize(@sink_name : String)
@@ -111,7 +111,7 @@ module Cdp::Cast
   struct StopCasting
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sinkName", emit_null: false)]
     property sink_name : String
 
     def initialize(@sink_name : String)

@@ -10,7 +10,7 @@ module Cdp::PerformanceTimeline
   struct TimelineEventAddedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "event", emit_null: false)]
     property event : TimelineEvent
 
     def initialize(@event : TimelineEvent)

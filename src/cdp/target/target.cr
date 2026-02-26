@@ -12,7 +12,7 @@ require "./events"
 module Cdp::Target
   struct AttachToTargetResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sessionId", emit_null: false)]
     property session_id : SessionID
 
     def initialize(@session_id : SessionID)
@@ -22,7 +22,7 @@ module Cdp::Target
   @[Experimental]
   struct AttachToBrowserTargetResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sessionId", emit_null: false)]
     property session_id : SessionID
 
     def initialize(@session_id : SessionID)
@@ -38,7 +38,7 @@ module Cdp::Target
 
   struct CreateBrowserContextResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "browserContextId", emit_null: false)]
     property browser_context_id : Cdp::Browser::BrowserContextID
 
     def initialize(@browser_context_id : Cdp::Browser::BrowserContextID)
@@ -47,9 +47,9 @@ module Cdp::Target
 
   struct GetBrowserContextsResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "browserContextIds", emit_null: false)]
     property browser_context_ids : Array(Cdp::Browser::BrowserContextID)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "defaultBrowserContextId", emit_null: false)]
     property default_browser_context_id : Cdp::Browser::BrowserContextID?
 
     def initialize(@browser_context_ids : Array(Cdp::Browser::BrowserContextID), @default_browser_context_id : Cdp::Browser::BrowserContextID?)
@@ -58,7 +58,7 @@ module Cdp::Target
 
   struct CreateTargetResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "targetId", emit_null: false)]
     property target_id : TargetID
 
     def initialize(@target_id : TargetID)
@@ -68,7 +68,7 @@ module Cdp::Target
   @[Experimental]
   struct GetTargetInfoResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "targetInfo", emit_null: false)]
     property target_info : TargetInfo
 
     def initialize(@target_info : TargetInfo)
@@ -77,7 +77,7 @@ module Cdp::Target
 
   struct GetTargetsResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "targetInfos", emit_null: false)]
     property target_infos : Array(TargetInfo)
 
     def initialize(@target_infos : Array(TargetInfo))
@@ -87,7 +87,7 @@ module Cdp::Target
   @[Experimental]
   struct GetDevToolsTargetResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "targetId", emit_null: false)]
     property target_id : TargetID?
 
     def initialize(@target_id : TargetID?)
@@ -97,7 +97,7 @@ module Cdp::Target
   @[Experimental]
   struct OpenDevToolsResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "targetId", emit_null: false)]
     property target_id : TargetID
 
     def initialize(@target_id : TargetID)
@@ -108,7 +108,7 @@ module Cdp::Target
   struct ActivateTarget
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "targetId", emit_null: false)]
     property target_id : TargetID
 
     def initialize(@target_id : TargetID)
@@ -128,9 +128,9 @@ module Cdp::Target
   struct AttachToTarget
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "targetId", emit_null: false)]
     property target_id : TargetID
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "flatten", emit_null: false)]
     property? flatten : Bool?
 
     def initialize(@target_id : TargetID, @flatten : Bool?)
@@ -173,7 +173,7 @@ module Cdp::Target
   struct CloseTarget
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "targetId", emit_null: false)]
     property target_id : TargetID
 
     def initialize(@target_id : TargetID)
@@ -196,11 +196,11 @@ module Cdp::Target
   struct ExposeDevToolsProtocol
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "targetId", emit_null: false)]
     property target_id : TargetID
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "bindingName", emit_null: false)]
     property binding_name : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "inheritPermissions", emit_null: false)]
     property? inherit_permissions : Bool?
 
     def initialize(@target_id : TargetID, @binding_name : String?, @inherit_permissions : Bool?)
@@ -220,13 +220,13 @@ module Cdp::Target
   struct CreateBrowserContext
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "disposeOnDetach", emit_null: false)]
     property? dispose_on_detach : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "proxyServer", emit_null: false)]
     property proxy_server : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "proxyBypassList", emit_null: false)]
     property proxy_bypass_list : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "originsWithUniversalNetworkAccess", emit_null: false)]
     property origins_with_universal_network_access : Array(String)?
 
     def initialize(@dispose_on_detach : Bool?, @proxy_server : String?, @proxy_bypass_list : String?, @origins_with_universal_network_access : Array(String)?)
@@ -268,31 +268,31 @@ module Cdp::Target
   struct CreateTarget
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "url", emit_null: false)]
     property url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "left", emit_null: false)]
     property left : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "top", emit_null: false)]
     property top : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "width", emit_null: false)]
     property width : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "height", emit_null: false)]
     property height : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "windowState", emit_null: false)]
     property window_state : WindowState?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "browserContextId", emit_null: false)]
     property browser_context_id : Cdp::Browser::BrowserContextID?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "enableBeginFrameControl", emit_null: false)]
     property? enable_begin_frame_control : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "newWindow", emit_null: false)]
     property? new_window : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "background", emit_null: false)]
     property? background : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "forTab", emit_null: false)]
     property? for_tab : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "hidden", emit_null: false)]
     property? hidden : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "focus", emit_null: false)]
     property? focus : Bool?
 
     def initialize(@url : String, @left : Int64?, @top : Int64?, @width : Int64?, @height : Int64?, @window_state : WindowState?, @browser_context_id : Cdp::Browser::BrowserContextID?, @enable_begin_frame_control : Bool?, @new_window : Bool?, @background : Bool?, @for_tab : Bool?, @hidden : Bool?, @focus : Bool?)
@@ -314,9 +314,9 @@ module Cdp::Target
   struct DetachFromTarget
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sessionId", emit_null: false)]
     property session_id : SessionID?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "targetId", emit_null: false)]
     property target_id : TargetID?
 
     def initialize(@session_id : SessionID?, @target_id : TargetID?)
@@ -336,7 +336,7 @@ module Cdp::Target
   struct DisposeBrowserContext
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "browserContextId", emit_null: false)]
     property browser_context_id : Cdp::Browser::BrowserContextID
 
     def initialize(@browser_context_id : Cdp::Browser::BrowserContextID)
@@ -357,7 +357,7 @@ module Cdp::Target
   struct GetTargetInfo
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "targetId", emit_null: false)]
     property target_id : TargetID?
 
     def initialize(@target_id : TargetID?)
@@ -379,7 +379,7 @@ module Cdp::Target
   struct GetTargets
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "filter", emit_null: false)]
     property filter : TargetFilter?
 
     def initialize(@filter : TargetFilter?)
@@ -401,13 +401,13 @@ module Cdp::Target
   struct SetAutoAttach
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "autoAttach", emit_null: false)]
     property? auto_attach : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "waitForDebuggerOnStart", emit_null: false)]
     property? wait_for_debugger_on_start : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "flatten", emit_null: false)]
     property? flatten : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "filter", emit_null: false)]
     property filter : TargetFilter?
 
     def initialize(@auto_attach : Bool, @wait_for_debugger_on_start : Bool, @flatten : Bool?, @filter : TargetFilter?)
@@ -428,11 +428,11 @@ module Cdp::Target
   struct AutoAttachRelated
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "targetId", emit_null: false)]
     property target_id : TargetID
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "waitForDebuggerOnStart", emit_null: false)]
     property? wait_for_debugger_on_start : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "filter", emit_null: false)]
     property filter : TargetFilter?
 
     def initialize(@target_id : TargetID, @wait_for_debugger_on_start : Bool, @filter : TargetFilter?)
@@ -452,9 +452,9 @@ module Cdp::Target
   struct SetDiscoverTargets
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "discover", emit_null: false)]
     property? discover : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "filter", emit_null: false)]
     property filter : TargetFilter?
 
     def initialize(@discover : Bool, @filter : TargetFilter?)
@@ -475,7 +475,7 @@ module Cdp::Target
   struct SetRemoteLocations
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "locations", emit_null: false)]
     property locations : Array(RemoteLocation)
 
     def initialize(@locations : Array(RemoteLocation))
@@ -496,7 +496,7 @@ module Cdp::Target
   struct GetDevToolsTarget
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "targetId", emit_null: false)]
     property target_id : TargetID
 
     def initialize(@target_id : TargetID)
@@ -519,9 +519,9 @@ module Cdp::Target
   struct OpenDevTools
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "targetId", emit_null: false)]
     property target_id : TargetID
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "panelId", emit_null: false)]
     property panel_id : String?
 
     def initialize(@target_id : TargetID, @panel_id : String?)

@@ -17,7 +17,7 @@ module Cdp::PerformanceTimeline
   struct Enable
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "eventTypes", emit_null: false)]
     property event_types : Array(String)
 
     def initialize(@event_types : Array(String))

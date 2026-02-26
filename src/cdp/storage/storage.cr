@@ -16,7 +16,7 @@ module Cdp::Storage
   @[Experimental]
   struct GetStorageKeyResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageKey", emit_null: false)]
     property storage_key : SerializedStorageKey
 
     def initialize(@storage_key : SerializedStorageKey)
@@ -25,7 +25,7 @@ module Cdp::Storage
 
   struct GetCookiesResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cookies", emit_null: false)]
     property cookies : Array(Cdp::Network::Cookie)
 
     def initialize(@cookies : Array(Cdp::Network::Cookie))
@@ -34,13 +34,13 @@ module Cdp::Storage
 
   struct GetUsageAndQuotaResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "usage", emit_null: false)]
     property usage : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "quota", emit_null: false)]
     property quota : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "overrideActive", emit_null: false)]
     property? override_active : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "usageBreakdown", emit_null: false)]
     property usage_breakdown : Array(UsageForType)
 
     def initialize(@usage : Float64, @quota : Float64, @override_active : Bool, @usage_breakdown : Array(UsageForType))
@@ -50,7 +50,7 @@ module Cdp::Storage
   @[Experimental]
   struct GetTrustTokensResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "tokens", emit_null: false)]
     property tokens : Array(TrustTokens)
 
     def initialize(@tokens : Array(TrustTokens))
@@ -60,7 +60,7 @@ module Cdp::Storage
   @[Experimental]
   struct ClearTrustTokensResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "didDeleteTokens", emit_null: false)]
     property? did_delete_tokens : Bool
 
     def initialize(@did_delete_tokens : Bool)
@@ -70,7 +70,7 @@ module Cdp::Storage
   @[Experimental]
   struct GetInterestGroupDetailsResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "details", emit_null: false)]
     property details : JSON::Any
 
     def initialize(@details : JSON::Any)
@@ -80,7 +80,7 @@ module Cdp::Storage
   @[Experimental]
   struct GetSharedStorageMetadataResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "metadata", emit_null: false)]
     property metadata : SharedStorageMetadata
 
     def initialize(@metadata : SharedStorageMetadata)
@@ -90,7 +90,7 @@ module Cdp::Storage
   @[Experimental]
   struct GetSharedStorageEntriesResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "entries", emit_null: false)]
     property entries : Array(SharedStorageEntry)
 
     def initialize(@entries : Array(SharedStorageEntry))
@@ -100,7 +100,7 @@ module Cdp::Storage
   @[Experimental]
   struct RunBounceTrackingMitigationsResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "deletedSites", emit_null: false)]
     property deleted_sites : Array(String)
 
     def initialize(@deleted_sites : Array(String))
@@ -110,7 +110,7 @@ module Cdp::Storage
   @[Experimental]
   struct SendPendingAttributionReportsResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "numSent", emit_null: false)]
     property num_sent : Int64
 
     def initialize(@num_sent : Int64)
@@ -120,7 +120,7 @@ module Cdp::Storage
   @[Experimental]
   struct GetRelatedWebsiteSetsResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sets", emit_null: false)]
     property sets : Array(RelatedWebsiteSet)
 
     def initialize(@sets : Array(RelatedWebsiteSet))
@@ -130,7 +130,7 @@ module Cdp::Storage
   @[Experimental]
   struct GetAffectedUrlsForThirdPartyCookieMetadataResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "matchedUrls", emit_null: false)]
     property matched_urls : Array(String)
 
     def initialize(@matched_urls : Array(String))
@@ -142,7 +142,7 @@ module Cdp::Storage
   struct GetStorageKey
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
 
     def initialize(@frame_id : Cdp::Page::FrameId?)
@@ -164,9 +164,9 @@ module Cdp::Storage
   struct ClearDataForOrigin
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "origin", emit_null: false)]
     property origin : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageTypes", emit_null: false)]
     property storage_types : String
 
     def initialize(@origin : String, @storage_types : String)
@@ -186,9 +186,9 @@ module Cdp::Storage
   struct ClearDataForStorageKey
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageKey", emit_null: false)]
     property storage_key : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageTypes", emit_null: false)]
     property storage_types : String
 
     def initialize(@storage_key : String, @storage_types : String)
@@ -208,7 +208,7 @@ module Cdp::Storage
   struct GetCookies
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "browserContextId", emit_null: false)]
     property browser_context_id : Cdp::Browser::BrowserContextID?
 
     def initialize(@browser_context_id : Cdp::Browser::BrowserContextID?)
@@ -230,9 +230,9 @@ module Cdp::Storage
   struct SetCookies
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "cookies", emit_null: false)]
     property cookies : Array(Cdp::Network::CookieParam)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "browserContextId", emit_null: false)]
     property browser_context_id : Cdp::Browser::BrowserContextID?
 
     def initialize(@cookies : Array(Cdp::Network::CookieParam), @browser_context_id : Cdp::Browser::BrowserContextID?)
@@ -252,7 +252,7 @@ module Cdp::Storage
   struct ClearCookies
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "browserContextId", emit_null: false)]
     property browser_context_id : Cdp::Browser::BrowserContextID?
 
     def initialize(@browser_context_id : Cdp::Browser::BrowserContextID?)
@@ -272,7 +272,7 @@ module Cdp::Storage
   struct GetUsageAndQuota
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "origin", emit_null: false)]
     property origin : String
 
     def initialize(@origin : String)
@@ -295,9 +295,9 @@ module Cdp::Storage
   struct OverrideQuotaForOrigin
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "origin", emit_null: false)]
     property origin : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "quotaSize", emit_null: false)]
     property quota_size : Float64?
 
     def initialize(@origin : String, @quota_size : Float64?)
@@ -317,7 +317,7 @@ module Cdp::Storage
   struct TrackCacheStorageForOrigin
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "origin", emit_null: false)]
     property origin : String
 
     def initialize(@origin : String)
@@ -337,7 +337,7 @@ module Cdp::Storage
   struct TrackCacheStorageForStorageKey
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageKey", emit_null: false)]
     property storage_key : String
 
     def initialize(@storage_key : String)
@@ -357,7 +357,7 @@ module Cdp::Storage
   struct TrackIndexedDBForOrigin
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "origin", emit_null: false)]
     property origin : String
 
     def initialize(@origin : String)
@@ -377,7 +377,7 @@ module Cdp::Storage
   struct TrackIndexedDBForStorageKey
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageKey", emit_null: false)]
     property storage_key : String
 
     def initialize(@storage_key : String)
@@ -397,7 +397,7 @@ module Cdp::Storage
   struct UntrackCacheStorageForOrigin
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "origin", emit_null: false)]
     property origin : String
 
     def initialize(@origin : String)
@@ -417,7 +417,7 @@ module Cdp::Storage
   struct UntrackCacheStorageForStorageKey
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageKey", emit_null: false)]
     property storage_key : String
 
     def initialize(@storage_key : String)
@@ -437,7 +437,7 @@ module Cdp::Storage
   struct UntrackIndexedDBForOrigin
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "origin", emit_null: false)]
     property origin : String
 
     def initialize(@origin : String)
@@ -457,7 +457,7 @@ module Cdp::Storage
   struct UntrackIndexedDBForStorageKey
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageKey", emit_null: false)]
     property storage_key : String
 
     def initialize(@storage_key : String)
@@ -499,7 +499,7 @@ module Cdp::Storage
   struct ClearTrustTokens
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "issuerOrigin", emit_null: false)]
     property issuer_origin : String
 
     def initialize(@issuer_origin : String)
@@ -522,9 +522,9 @@ module Cdp::Storage
   struct GetInterestGroupDetails
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ownerOrigin", emit_null: false)]
     property owner_origin : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String
 
     def initialize(@owner_origin : String, @name : String)
@@ -547,7 +547,7 @@ module Cdp::Storage
   struct SetInterestGroupTracking
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "enable", emit_null: false)]
     property? enable : Bool
 
     def initialize(@enable : Bool)
@@ -568,7 +568,7 @@ module Cdp::Storage
   struct SetInterestGroupAuctionTracking
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "enable", emit_null: false)]
     property? enable : Bool
 
     def initialize(@enable : Bool)
@@ -589,7 +589,7 @@ module Cdp::Storage
   struct GetSharedStorageMetadata
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ownerOrigin", emit_null: false)]
     property owner_origin : String
 
     def initialize(@owner_origin : String)
@@ -612,7 +612,7 @@ module Cdp::Storage
   struct GetSharedStorageEntries
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ownerOrigin", emit_null: false)]
     property owner_origin : String
 
     def initialize(@owner_origin : String)
@@ -635,13 +635,13 @@ module Cdp::Storage
   struct SetSharedStorageEntry
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ownerOrigin", emit_null: false)]
     property owner_origin : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "key", emit_null: false)]
     property key : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ignoreIfPresent", emit_null: false)]
     property? ignore_if_present : Bool?
 
     def initialize(@owner_origin : String, @key : String, @value : String, @ignore_if_present : Bool?)
@@ -662,9 +662,9 @@ module Cdp::Storage
   struct DeleteSharedStorageEntry
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ownerOrigin", emit_null: false)]
     property owner_origin : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "key", emit_null: false)]
     property key : String
 
     def initialize(@owner_origin : String, @key : String)
@@ -685,7 +685,7 @@ module Cdp::Storage
   struct ClearSharedStorageEntries
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ownerOrigin", emit_null: false)]
     property owner_origin : String
 
     def initialize(@owner_origin : String)
@@ -706,7 +706,7 @@ module Cdp::Storage
   struct ResetSharedStorageBudget
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ownerOrigin", emit_null: false)]
     property owner_origin : String
 
     def initialize(@owner_origin : String)
@@ -727,7 +727,7 @@ module Cdp::Storage
   struct SetSharedStorageTracking
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "enable", emit_null: false)]
     property? enable : Bool
 
     def initialize(@enable : Bool)
@@ -748,9 +748,9 @@ module Cdp::Storage
   struct SetStorageBucketTracking
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageKey", emit_null: false)]
     property storage_key : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "enable", emit_null: false)]
     property? enable : Bool
 
     def initialize(@storage_key : String, @enable : Bool)
@@ -771,7 +771,7 @@ module Cdp::Storage
   struct DeleteStorageBucket
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "bucket", emit_null: false)]
     property bucket : StorageBucket
 
     def initialize(@bucket : StorageBucket)
@@ -813,7 +813,7 @@ module Cdp::Storage
   struct SetAttributionReportingLocalTestingMode
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "enabled", emit_null: false)]
     property? enabled : Bool
 
     def initialize(@enabled : Bool)
@@ -834,7 +834,7 @@ module Cdp::Storage
   struct SetAttributionReportingTracking
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "enable", emit_null: false)]
     property? enable : Bool
 
     def initialize(@enable : Bool)
@@ -897,9 +897,9 @@ module Cdp::Storage
   struct GetAffectedUrlsForThirdPartyCookieMetadata
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "firstPartyUrl", emit_null: false)]
     property first_party_url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "thirdPartyUrls", emit_null: false)]
     property third_party_urls : Array(String)
 
     def initialize(@first_party_url : String, @third_party_urls : Array(String))
@@ -921,11 +921,11 @@ module Cdp::Storage
   struct SetProtectedAudienceKAnonymity
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "owner", emit_null: false)]
     property owner : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "hashes", emit_null: false)]
     property hashes : Array(String)
 
     def initialize(@owner : String, @name : String, @hashes : Array(String))

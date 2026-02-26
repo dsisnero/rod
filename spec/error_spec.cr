@@ -91,10 +91,10 @@ end
 describe Rod::EvalError do
   it "initializes with exception details" do
     details = Cdp::Runtime::ExceptionDetails.from_json(%({
-      "exception_id": 1,
+      "exceptionId": 1,
       "text": "Error",
-      "line_number": 10,
-      "column_number": 5,
+      "lineNumber": 10,
+      "columnNumber": 5,
       "exception": {"type": "string", "description": "Error", "value": "test error"}
     }))
     err = Rod::EvalError.new(details)
@@ -104,10 +104,10 @@ describe Rod::EvalError do
 
   it "is? returns true for EvalError" do
     details = Cdp::Runtime::ExceptionDetails.from_json(%({
-      "exception_id": 1,
+      "exceptionId": 1,
       "text": "Error",
-      "line_number": 10,
-      "column_number": 5,
+      "lineNumber": 10,
+      "columnNumber": 5,
       "exception": {"type": "string"}
     }))
     err = Rod::EvalError.new(details)

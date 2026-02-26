@@ -8,7 +8,7 @@ module Cdp::HeapProfiler
   struct AddHeapSnapshotChunkEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "chunk", emit_null: false)]
     property chunk : String
 
     def initialize(@chunk : String)
@@ -28,7 +28,7 @@ module Cdp::HeapProfiler
   struct HeapStatsUpdateEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "statsUpdate", emit_null: false)]
     property stats_update : Array(Int64)
 
     def initialize(@stats_update : Array(Int64))
@@ -48,9 +48,9 @@ module Cdp::HeapProfiler
   struct LastSeenObjectIdEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "lastSeenObjectId", emit_null: false)]
     property last_seen_object_id : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : Float64
 
     def initialize(@last_seen_object_id : Int64, @timestamp : Float64)
@@ -70,11 +70,11 @@ module Cdp::HeapProfiler
   struct ReportHeapSnapshotProgressEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "done", emit_null: false)]
     property done : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "total", emit_null: false)]
     property total : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "finished", emit_null: false)]
     property? finished : Bool?
 
     def initialize(@done : Int64, @total : Int64, @finished : Bool?)

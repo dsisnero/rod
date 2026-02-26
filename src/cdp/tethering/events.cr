@@ -6,9 +6,9 @@ module Cdp::Tethering
   struct AcceptedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "port", emit_null: false)]
     property port : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "connectionId", emit_null: false)]
     property connection_id : String
 
     def initialize(@port : Int64, @connection_id : String)

@@ -48,9 +48,9 @@ module Cdp::DeviceAccess
   struct SelectPrompt
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "id", emit_null: false)]
     property id : RequestId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "deviceId", emit_null: false)]
     property device_id : DeviceId
 
     def initialize(@id : RequestId, @device_id : DeviceId)
@@ -70,7 +70,7 @@ module Cdp::DeviceAccess
   struct CancelPrompt
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "id", emit_null: false)]
     property id : RequestId
 
     def initialize(@id : RequestId)

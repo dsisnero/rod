@@ -14,11 +14,11 @@ module Cdp::DOM
 
   struct BackendNode
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeType", emit_null: false)]
     property node_type : Cdp::NodeType
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeName", emit_null: false)]
     property node_name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "backendNodeId", emit_null: false)]
     property backend_node_id : BackendNodeId
   end
 
@@ -90,83 +90,83 @@ module Cdp::DOM
 
   class Node
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : NodeId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "parentId", emit_null: false)]
     property parent_id : NodeId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "backendNodeId", emit_null: false)]
     property backend_node_id : BackendNodeId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeType", emit_null: false)]
     property node_type : Cdp::NodeType
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeName", emit_null: false)]
     property node_name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "localName", emit_null: false)]
     property local_name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeValue", emit_null: false)]
     property node_value : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "childNodeCount", emit_null: false)]
     property child_node_count : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "children", emit_null: false)]
     property children : Array(Node)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "attributes", emit_null: false)]
     property attributes : Array(String)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "documentUrl", emit_null: false)]
     property document_url : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "baseUrl", emit_null: false)]
     property base_url : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "publicId", emit_null: false)]
     property public_id : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "systemId", emit_null: false)]
     property system_id : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "internalSubset", emit_null: false)]
     property internal_subset : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "xmlVersion", emit_null: false)]
     property xml_version : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "pseudoType", emit_null: false)]
     property pseudo_type : PseudoType?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "pseudoIdentifier", emit_null: false)]
     property pseudo_identifier : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "shadowRootType", emit_null: false)]
     property shadow_root_type : ShadowRootType?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "contentDocument", emit_null: false)]
     property content_document : Node?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "shadowRoots", emit_null: false)]
     property shadow_roots : Array(Node)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "templateContent", emit_null: false)]
     property template_content : Node?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "pseudoElements", emit_null: false)]
     property pseudo_elements : Array(Node)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "importedDocument", emit_null: false)]
     property imported_document : Node?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "distributedNodes", emit_null: false)]
     property distributed_nodes : Array(BackendNode)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isSvg", emit_null: false)]
     property? is_svg : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "compatibilityMode", emit_null: false)]
     property compatibility_mode : CompatibilityMode?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "assignedSlot", emit_null: false)]
     property assigned_slot : BackendNode?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isScrollable", emit_null: false)]
     property? is_scrollable : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "affectedByStartingStyles", emit_null: false)]
     property? affected_by_starting_styles : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "adoptedStyleSheets", emit_null: false)]
     property adopted_style_sheets : Array(StyleSheetId)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isAdRelated", emit_null: false)]
     property? is_ad_related : Bool?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "parent", emit_null: false)]
     property parent : DOM::Node?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "invalidated", emit_null: false)]
     property invalidated : Channel(Nil)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "state", emit_null: false)]
     property state : NodeState
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "mutex", emit_null: false)]
     property mutex : Mutex
 
     # AttributeValue returns the named attribute for the node.
@@ -202,21 +202,21 @@ module Cdp::DOM
 
   struct DetachedElementInfo
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "treeNode", emit_null: false)]
     property tree_node : Node
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "retainedNodeIds", emit_null: false)]
     property retained_node_ids : Array(NodeId)
   end
 
   struct RGBA
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "r", emit_null: false)]
     property r : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "g", emit_null: false)]
     property g : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "b", emit_null: false)]
     property b : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "a", emit_null: false)]
     property a : Float64?
   end
 
@@ -225,49 +225,49 @@ module Cdp::DOM
 
   struct BoxModel
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "content", emit_null: false)]
     property content : Quad
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "padding", emit_null: false)]
     property padding : Quad
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "border", emit_null: false)]
     property border : Quad
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "margin", emit_null: false)]
     property margin : Quad
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "width", emit_null: false)]
     property width : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "height", emit_null: false)]
     property height : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "shapeOutside", emit_null: false)]
     property shape_outside : ShapeOutsideInfo?
   end
 
   struct ShapeOutsideInfo
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "bounds", emit_null: false)]
     property bounds : Quad
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "shape", emit_null: false)]
     property shape : Array(JSON::Any)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "marginShape", emit_null: false)]
     property margin_shape : Array(JSON::Any)
   end
 
   struct Rect
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "x", emit_null: false)]
     property x : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "y", emit_null: false)]
     property y : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "width", emit_null: false)]
     property width : Float64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "height", emit_null: false)]
     property height : Float64
   end
 
   struct CSSComputedStyleProperty
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "value", emit_null: false)]
     property value : String
   end
 

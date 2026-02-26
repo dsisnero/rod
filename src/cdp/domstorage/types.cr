@@ -7,11 +7,11 @@ module Cdp::DOMStorage
 
   struct StorageId
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "securityOrigin", emit_null: false)]
     property security_origin : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "storageKey", emit_null: false)]
     property storage_key : SerializedStorageKey?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isLocalStorage", emit_null: false)]
     property? is_local_storage : Bool
   end
 

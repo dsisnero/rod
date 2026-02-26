@@ -15,7 +15,7 @@ module Cdp::BackgroundService
   struct StartObserving
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "service", emit_null: false)]
     property service : ServiceName
 
     def initialize(@service : ServiceName)
@@ -35,7 +35,7 @@ module Cdp::BackgroundService
   struct StopObserving
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "service", emit_null: false)]
     property service : ServiceName
 
     def initialize(@service : ServiceName)
@@ -55,9 +55,9 @@ module Cdp::BackgroundService
   struct SetRecording
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "shouldRecord", emit_null: false)]
     property? should_record : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "service", emit_null: false)]
     property service : ServiceName
 
     def initialize(@should_record : Bool, @service : ServiceName)
@@ -77,7 +77,7 @@ module Cdp::BackgroundService
   struct ClearEvents
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "service", emit_null: false)]
     property service : ServiceName
 
     def initialize(@service : ServiceName)

@@ -9,7 +9,7 @@ require "./events"
 module Cdp::Performance
   struct GetMetricsResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "metrics", emit_null: false)]
     property metrics : Array(Metric)
 
     def initialize(@metrics : Array(Metric))
@@ -38,7 +38,7 @@ module Cdp::Performance
   struct Enable
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timeDomain", emit_null: false)]
     property time_domain : EnableTimeDomain?
 
     def initialize(@time_domain : EnableTimeDomain?)

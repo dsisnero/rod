@@ -9,11 +9,11 @@ require "./types"
 module Cdp::Memory
   struct GetDOMCountersResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "documents", emit_null: false)]
     property documents : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodes", emit_null: false)]
     property nodes : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "jsEventListeners", emit_null: false)]
     property js_event_listeners : Int64
 
     def initialize(@documents : Int64, @nodes : Int64, @js_event_listeners : Int64)
@@ -22,7 +22,7 @@ module Cdp::Memory
 
   struct GetDOMCountersForLeakDetectionResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "counters", emit_null: false)]
     property counters : Array(DOMCounter)
 
     def initialize(@counters : Array(DOMCounter))
@@ -31,7 +31,7 @@ module Cdp::Memory
 
   struct GetAllTimeSamplingProfileResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "profile", emit_null: false)]
     property profile : SamplingProfile
 
     def initialize(@profile : SamplingProfile)
@@ -40,7 +40,7 @@ module Cdp::Memory
 
   struct GetBrowserSamplingProfileResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "profile", emit_null: false)]
     property profile : SamplingProfile
 
     def initialize(@profile : SamplingProfile)
@@ -49,7 +49,7 @@ module Cdp::Memory
 
   struct GetSamplingProfileResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "profile", emit_null: false)]
     property profile : SamplingProfile
 
     def initialize(@profile : SamplingProfile)
@@ -136,7 +136,7 @@ module Cdp::Memory
   struct SetPressureNotificationsSuppressed
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "suppressed", emit_null: false)]
     property? suppressed : Bool
 
     def initialize(@suppressed : Bool)
@@ -156,7 +156,7 @@ module Cdp::Memory
   struct SimulatePressureNotification
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "level", emit_null: false)]
     property level : PressureLevel
 
     def initialize(@level : PressureLevel)
@@ -176,9 +176,9 @@ module Cdp::Memory
   struct StartSampling
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "samplingInterval", emit_null: false)]
     property sampling_interval : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "suppressRandomness", emit_null: false)]
     property? suppress_randomness : Bool?
 
     def initialize(@sampling_interval : Int64?, @suppress_randomness : Bool?)

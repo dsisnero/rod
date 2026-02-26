@@ -9,7 +9,7 @@ module Cdp::CSS
   struct FontsUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "font", emit_null: false)]
     property font : FontFace?
 
     def initialize(@font : FontFace?)
@@ -47,7 +47,7 @@ module Cdp::CSS
   struct StyleSheetAddedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "header", emit_null: false)]
     property header : CSSStyleSheetHeader
 
     def initialize(@header : CSSStyleSheetHeader)
@@ -67,7 +67,7 @@ module Cdp::CSS
   struct StyleSheetChangedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "styleSheetId", emit_null: false)]
     property style_sheet_id : Cdp::DOM::StyleSheetId
 
     def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId)
@@ -87,7 +87,7 @@ module Cdp::CSS
   struct StyleSheetRemovedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "styleSheetId", emit_null: false)]
     property style_sheet_id : Cdp::DOM::StyleSheetId
 
     def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId)
@@ -108,7 +108,7 @@ module Cdp::CSS
   struct ComputedStyleUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : Cdp::DOM::NodeId
 
     def initialize(@node_id : Cdp::DOM::NodeId)

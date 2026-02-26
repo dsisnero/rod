@@ -12,9 +12,9 @@ require "./events"
 module Cdp::LayerTree
   struct CompositingReasonsResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "compositingReasons", emit_null: false)]
     property compositing_reasons : Array(String)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "compositingReasonIds", emit_null: false)]
     property compositing_reason_ids : Array(String)
 
     def initialize(@compositing_reasons : Array(String), @compositing_reason_ids : Array(String))
@@ -23,7 +23,7 @@ module Cdp::LayerTree
 
   struct LoadSnapshotResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "snapshotId", emit_null: false)]
     property snapshot_id : SnapshotId
 
     def initialize(@snapshot_id : SnapshotId)
@@ -32,7 +32,7 @@ module Cdp::LayerTree
 
   struct MakeSnapshotResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "snapshotId", emit_null: false)]
     property snapshot_id : SnapshotId
 
     def initialize(@snapshot_id : SnapshotId)
@@ -41,7 +41,7 @@ module Cdp::LayerTree
 
   struct ProfileSnapshotResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timings", emit_null: false)]
     property timings : Array(PaintProfile)
 
     def initialize(@timings : Array(PaintProfile))
@@ -50,7 +50,7 @@ module Cdp::LayerTree
 
   struct ReplaySnapshotResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "dataUrl", emit_null: false)]
     property data_url : String
 
     def initialize(@data_url : String)
@@ -59,7 +59,7 @@ module Cdp::LayerTree
 
   struct SnapshotCommandLogResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "commandLog", emit_null: false)]
     property command_log : Array(JSON::Any)
 
     def initialize(@command_log : Array(JSON::Any))
@@ -70,7 +70,7 @@ module Cdp::LayerTree
   struct CompositingReasons
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "layerId", emit_null: false)]
     property layer_id : LayerId
 
     def initialize(@layer_id : LayerId)
@@ -128,7 +128,7 @@ module Cdp::LayerTree
   struct LoadSnapshot
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "tiles", emit_null: false)]
     property tiles : Array(PictureTile)
 
     def initialize(@tiles : Array(PictureTile))
@@ -150,7 +150,7 @@ module Cdp::LayerTree
   struct MakeSnapshot
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "layerId", emit_null: false)]
     property layer_id : LayerId
 
     def initialize(@layer_id : LayerId)
@@ -172,13 +172,13 @@ module Cdp::LayerTree
   struct ProfileSnapshot
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "snapshotId", emit_null: false)]
     property snapshot_id : SnapshotId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "minRepeatCount", emit_null: false)]
     property min_repeat_count : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "minDuration", emit_null: false)]
     property min_duration : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "clipRect", emit_null: false)]
     property clip_rect : Cdp::DOM::Rect?
 
     def initialize(@snapshot_id : SnapshotId, @min_repeat_count : Int64?, @min_duration : Float64?, @clip_rect : Cdp::DOM::Rect?)
@@ -200,7 +200,7 @@ module Cdp::LayerTree
   struct ReleaseSnapshot
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "snapshotId", emit_null: false)]
     property snapshot_id : SnapshotId
 
     def initialize(@snapshot_id : SnapshotId)
@@ -220,13 +220,13 @@ module Cdp::LayerTree
   struct ReplaySnapshot
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "snapshotId", emit_null: false)]
     property snapshot_id : SnapshotId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "fromStep", emit_null: false)]
     property from_step : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "toStep", emit_null: false)]
     property to_step : Int64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scale", emit_null: false)]
     property scale : Float64?
 
     def initialize(@snapshot_id : SnapshotId, @from_step : Int64?, @to_step : Int64?, @scale : Float64?)
@@ -248,7 +248,7 @@ module Cdp::LayerTree
   struct SnapshotCommandLog
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "snapshotId", emit_null: false)]
     property snapshot_id : SnapshotId
 
     def initialize(@snapshot_id : SnapshotId)

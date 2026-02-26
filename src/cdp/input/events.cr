@@ -7,7 +7,7 @@ module Cdp::Input
   struct DragInterceptedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "data", emit_null: false)]
     property data : DragData
 
     def initialize(@data : DragData)

@@ -12,7 +12,7 @@ require "./types"
 module Cdp::FileSystem
   struct GetDirectoryResult
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "directory", emit_null: false)]
     property directory : Directory
 
     def initialize(@directory : Directory)
@@ -23,7 +23,7 @@ module Cdp::FileSystem
   struct GetDirectory
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "bucketFileSystemLocator", emit_null: false)]
     property bucket_file_system_locator : BucketFileSystemLocator
 
     def initialize(@bucket_file_system_locator : BucketFileSystemLocator)

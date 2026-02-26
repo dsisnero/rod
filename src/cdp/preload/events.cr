@@ -10,7 +10,7 @@ module Cdp::Preload
   struct RuleSetUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "ruleSet", emit_null: false)]
     property rule_set : RuleSet
 
     def initialize(@rule_set : RuleSet)
@@ -30,7 +30,7 @@ module Cdp::Preload
   struct RuleSetRemovedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "id", emit_null: false)]
     property id : RuleSetId
 
     def initialize(@id : RuleSetId)
@@ -50,15 +50,15 @@ module Cdp::Preload
   struct PreloadEnabledStateUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "disabledByPreference", emit_null: false)]
     property? disabled_by_preference : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "disabledByDataSaver", emit_null: false)]
     property? disabled_by_data_saver : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "disabledByBatterySaver", emit_null: false)]
     property? disabled_by_battery_saver : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "disabledByHoldbackPrefetchSpeculationRules", emit_null: false)]
     property? disabled_by_holdback_prefetch_speculation_rules : Bool
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "disabledByHoldbackPrerenderSpeculationRules", emit_null: false)]
     property? disabled_by_holdback_prerender_speculation_rules : Bool
 
     def initialize(@disabled_by_preference : Bool, @disabled_by_data_saver : Bool, @disabled_by_battery_saver : Bool, @disabled_by_holdback_prefetch_speculation_rules : Bool, @disabled_by_holdback_prerender_speculation_rules : Bool)
@@ -78,19 +78,19 @@ module Cdp::Preload
   struct PrefetchStatusUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "key", emit_null: false)]
     property key : PreloadingAttemptKey
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "pipelineId", emit_null: false)]
     property pipeline_id : PreloadPipelineId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "initiatingFrameId", emit_null: false)]
     property initiating_frame_id : Cdp::Page::FrameId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "prefetchUrl", emit_null: false)]
     property prefetch_url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "status", emit_null: false)]
     property status : PreloadingStatus
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "prefetchStatus", emit_null: false)]
     property prefetch_status : PrefetchStatus
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : Cdp::Network::RequestId
 
     def initialize(@key : PreloadingAttemptKey, @pipeline_id : PreloadPipelineId, @initiating_frame_id : Cdp::Page::FrameId, @prefetch_url : String, @status : PreloadingStatus, @prefetch_status : PrefetchStatus, @request_id : Cdp::Network::RequestId)
@@ -110,17 +110,17 @@ module Cdp::Preload
   struct PrerenderStatusUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "key", emit_null: false)]
     property key : PreloadingAttemptKey
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "pipelineId", emit_null: false)]
     property pipeline_id : PreloadPipelineId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "status", emit_null: false)]
     property status : PreloadingStatus
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "prerenderStatus", emit_null: false)]
     property prerender_status : PrerenderFinalStatus?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "disallowedMojoInterface", emit_null: false)]
     property disallowed_mojo_interface : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "mismatchedHeaders", emit_null: false)]
     property mismatched_headers : Array(PrerenderMismatchedHeaders)?
 
     def initialize(@key : PreloadingAttemptKey, @pipeline_id : PreloadPipelineId, @status : PreloadingStatus, @prerender_status : PrerenderFinalStatus?, @disallowed_mojo_interface : String?, @mismatched_headers : Array(PrerenderMismatchedHeaders)?)
@@ -140,9 +140,9 @@ module Cdp::Preload
   struct PreloadingAttemptSourcesUpdatedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "loaderId", emit_null: false)]
     property loader_id : Cdp::Network::LoaderId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "preloadingAttemptSources", emit_null: false)]
     property preloading_attempt_sources : Array(PreloadingAttemptSource)
 
     def initialize(@loader_id : Cdp::Network::LoaderId, @preloading_attempt_sources : Array(PreloadingAttemptSource))

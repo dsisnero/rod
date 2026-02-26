@@ -7,11 +7,11 @@ module Cdp::Runtime
   struct BindingCalledEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "payload", emit_null: false)]
     property payload : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "executionContextId", emit_null: false)]
     property execution_context_id : ExecutionContextId
 
     def initialize(@name : String, @payload : String, @execution_context_id : ExecutionContextId)
@@ -31,17 +31,17 @@ module Cdp::Runtime
   struct ConsoleAPICalledEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "type", emit_null: false)]
     property type : ConsoleAPICalledType
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "args", emit_null: false)]
     property args : Array(RemoteObject)
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "executionContextId", emit_null: false)]
     property execution_context_id : ExecutionContextId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : Timestamp
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "stackTrace", emit_null: false)]
     property stack_trace : StackTrace?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "context", emit_null: false)]
     property context : String?
 
     def initialize(@type : ConsoleAPICalledType, @args : Array(RemoteObject), @execution_context_id : ExecutionContextId, @timestamp : Timestamp, @stack_trace : StackTrace?, @context : String?)
@@ -61,9 +61,9 @@ module Cdp::Runtime
   struct ExceptionRevokedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "reason", emit_null: false)]
     property reason : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "exceptionId", emit_null: false)]
     property exception_id : Int64
 
     def initialize(@reason : String, @exception_id : Int64)
@@ -83,9 +83,9 @@ module Cdp::Runtime
   struct ExceptionThrownEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : Timestamp
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "exceptionDetails", emit_null: false)]
     property exception_details : ExceptionDetails
 
     def initialize(@timestamp : Timestamp, @exception_details : ExceptionDetails)
@@ -105,7 +105,7 @@ module Cdp::Runtime
   struct ExecutionContextCreatedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "context", emit_null: false)]
     property context : ExecutionContextDescription
 
     def initialize(@context : ExecutionContextDescription)
@@ -125,9 +125,9 @@ module Cdp::Runtime
   struct ExecutionContextDestroyedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "executionContextId", emit_null: false)]
     property execution_context_id : ExecutionContextId
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "executionContextUniqueId", emit_null: false)]
     property execution_context_unique_id : String
 
     def initialize(@execution_context_id : ExecutionContextId, @execution_context_unique_id : String)
@@ -165,11 +165,11 @@ module Cdp::Runtime
   struct InspectRequestedEvent
     include JSON::Serializable
     include Cdp::Event
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "object", emit_null: false)]
     property object : RemoteObject
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "hints", emit_null: false)]
     property hints : JSON::Any
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "executionContextId", emit_null: false)]
     property execution_context_id : ExecutionContextId?
 
     def initialize(@object : RemoteObject, @hints : JSON::Any, @execution_context_id : ExecutionContextId?)

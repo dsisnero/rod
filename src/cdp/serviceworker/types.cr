@@ -9,11 +9,11 @@ module Cdp::ServiceWorker
 
   struct ServiceWorkerRegistration
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "registrationId", emit_null: false)]
     property registration_id : RegistrationID
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scopeUrl", emit_null: false)]
     property scope_url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "isDeleted", emit_null: false)]
     property? is_deleted : Bool
   end
 
@@ -33,41 +33,41 @@ module Cdp::ServiceWorker
 
   struct ServiceWorkerVersion
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "versionId", emit_null: false)]
     property version_id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "registrationId", emit_null: false)]
     property registration_id : RegistrationID
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scriptUrl", emit_null: false)]
     property script_url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "runningStatus", emit_null: false)]
     property running_status : ServiceWorkerVersionRunningStatus
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "status", emit_null: false)]
     property status : ServiceWorkerVersionStatus
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scriptLastModified", emit_null: false)]
     property script_last_modified : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "scriptResponseTime", emit_null: false)]
     property script_response_time : Float64?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "controlledClients", emit_null: false)]
     property controlled_clients : Array(Cdp::Target::TargetID)?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "targetId", emit_null: false)]
     property target_id : Cdp::Target::TargetID?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "routerRules", emit_null: false)]
     property router_rules : String?
   end
 
   struct ServiceWorkerErrorMessage
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "errorMessage", emit_null: false)]
     property error_message : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "registrationId", emit_null: false)]
     property registration_id : RegistrationID
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "versionId", emit_null: false)]
     property version_id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "sourceUrl", emit_null: false)]
     property source_url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "lineNumber", emit_null: false)]
     property line_number : Int64
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "columnNumber", emit_null: false)]
     property column_number : Int64
   end
 end

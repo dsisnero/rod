@@ -24,25 +24,25 @@ module Cdp::FedCm
 
   struct Account
     include JSON::Serializable
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "accountId", emit_null: false)]
     property account_id : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "email", emit_null: false)]
     property email : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "name", emit_null: false)]
     property name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "givenName", emit_null: false)]
     property given_name : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "pictureUrl", emit_null: false)]
     property picture_url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "idpConfigUrl", emit_null: false)]
     property idp_config_url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "idpLoginUrl", emit_null: false)]
     property idp_login_url : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "loginState", emit_null: false)]
     property login_state : LoginState
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "termsOfServiceUrl", emit_null: false)]
     property terms_of_service_url : String?
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "privacyPolicyUrl", emit_null: false)]
     property privacy_policy_url : String?
   end
 end
