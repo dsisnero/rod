@@ -4,13 +4,41 @@ require "../../cdp/page/page"
 require "pluto"
 
 module Rod::Lib::Utils
+  # Sleeper function object. It receives the operation context and returns an
+  # error when it should stop retrying.
   # Sleeper for retries.
   class Sleeper
+    @fn : Proc(Rod::Context, Exception?)
+
     def initialize(@interval : Time::Span = 0.1.seconds, @timeout : Time::Span = 5.seconds)
+      @fn = ->(ctx : Rod::Context) do
+        return ctx.err || Rod::ContextCanceledError.new("context cancelled") if ctx.cancelled?
+        ::sleep(@interval)
+        nil
+      end
+    end
+
+    def initialize(&block : Rod::Context -> Exception?)
+      @interval = Time::Span.zero
+      @timeout = Time::Span.zero
+      @fn = block
+    end
+
+    def call(ctx : Rod::Context) : Exception?
+      @fn.call(ctx)
     end
 
     def sleep : Nil
       ::sleep(@interval)
+    end
+  end
+
+  # MaxSleepCountError is returned when CountSleeper exceeds max calls.
+  class MaxSleepCountError < Rod::RodError
+    getter max : Int32
+
+    def initialize(@max : Int32)
+      super("max sleep count #{@max} exceeded")
     end
   end
 
@@ -34,24 +62,184 @@ module Rod::Lib::Utils
     raise err if err
   end
 
-  # Retry executes fn and sleeps using sleeper until fn returns true or context is cancelled.
+  # CountSleeper wakes immediately until reaching max calls.
+  def self.count_sleeper(max : Int32) : Sleeper
+    lock = Mutex.new
+    count = 0
+
+    Sleeper.new do |ctx|
+      err : Exception? = nil
+      lock.synchronize do
+        if ctx.cancelled?
+          err = ctx.err || Rod::ContextCanceledError.new("context cancelled")
+        elsif count == max
+          err = MaxSleepCountError.new(max)
+        else
+          count += 1
+        end
+      end
+      err
+    end
+  end
+
+  # Default backoff algorithm: A(n) = A(n-1) * random[1.9, 2.1).
+  def self.default_backoff(interval : Time::Span) : Time::Span
+    scale = 2.0 + (Random.rand - 0.5) * 0.2
+    interval * scale
+  end
+
+  # BackoffSleeper grows sleep duration from init_interval up to max_interval.
+  def self.backoff_sleeper(
+    init_interval : Time::Span,
+    max_interval : Time::Span,
+    algorithm : Proc(Time::Span, Time::Span)? = nil,
+  ) : Sleeper
+    lock = Mutex.new
+    algo = algorithm || ->(i : Time::Span) { default_backoff(i) }
+    current = init_interval
+
+    Sleeper.new do |ctx|
+      err : Exception? = nil
+      lock.synchronize do
+        unless max_interval <= Time::Span::ZERO
+          if ctx.cancelled?
+            err = ctx.err || Rod::ContextCanceledError.new("context cancelled")
+          else
+            interval = current < max_interval ? algo.call(current) : max_interval
+            interval = max_interval if interval > max_interval
+
+            step = 10.milliseconds
+            elapsed = Time::Span::ZERO
+            while elapsed < interval
+              if ctx.cancelled?
+                err = ctx.err || Rod::ContextCanceledError.new("context cancelled")
+                break
+              end
+
+              remaining = interval - elapsed
+              nap = remaining < step ? remaining : step
+              ::sleep(nap) if nap > Time::Span::ZERO
+              elapsed += nap
+            end
+
+            current = interval unless err
+          end
+        end
+      end
+      err
+    end
+  end
+
+  # EachSleepers wakes when each sleeper wakes in order.
+  def self.each_sleepers(*list : Sleeper) : Sleeper
+    Sleeper.new do |ctx|
+      result : Exception? = nil
+      list.each do |sleeper_fn|
+        if err = sleeper_fn.call(ctx)
+          result = err
+          break
+        end
+      end
+      result
+    end
+  end
+
+  # RaceSleepers wakes when any one sleeper wakes.
+  def self.race_sleepers(*list : Sleeper) : Sleeper
+    Sleeper.new do |ctx|
+      child, cancel = ctx.with_cancel
+      done = Channel(Exception?).new(list.size)
+
+      list.each do |sleeper_fn|
+        spawn do
+          done.send(sleeper_fn.call(child))
+          cancel.call
+        end
+      end
+
+      done.receive
+    end
+  end
+
+  # Retry executes fn and sleeps using sleeper until fn returns true or sleeper returns error.
   def self.retry(ctx : Rod::Context, sleeper : Sleeper, &fn : -> Tuple(Bool, Exception?)) : Exception?
     loop do
       stop, err = fn.call
-      if stop
-        return err
-      end
+      return err if stop
 
-      # Check context cancellation
-      if ctx.cancelled?
-        return ctx.err || Rod::ContextCanceledError.new("context cancelled")
+      if sleep_err = sleeper.call(ctx)
+        return sleep_err
       end
-
-      # Sleep using sleeper
-      sleeper.sleep
     end
-  rescue ex : Exception
-    ex
+  end
+
+  # IdleCounter resolves only after no jobs are active for a duration.
+  class IdleCounter
+    @lock = Mutex.new
+    @job = 0
+    @duration : Time::Span
+    @timer_token : Int64 = 0_i64
+    @timer_fired = Channel(Int64).new(1)
+
+    def initialize(@duration : Time::Span)
+    end
+
+    def add : Nil
+      @lock.synchronize do
+        @timer_token += 1
+        @job += 1
+      end
+    end
+
+    def done : Nil
+      token_to_fire : Int64? = nil
+      @lock.synchronize do
+        @job -= 1
+        raise "all jobs are already done" if @job < 0
+        if @job == 0
+          @timer_token += 1
+          token_to_fire = @timer_token
+        end
+      end
+
+      if token = token_to_fire
+        token_value = token
+        spawn do
+          ::sleep(@duration) if @duration > Time::Span::ZERO
+          @timer_fired.send(token_value)
+        end
+      end
+    end
+
+    def wait(ctx : Rod::Context) : Nil
+      token_to_fire : Int64? = nil
+      @lock.synchronize do
+        if @job == 0
+          @timer_token += 1
+          token_to_fire = @timer_token
+        end
+      end
+
+      if token = token_to_fire
+        token_value = token
+        spawn do
+          ::sleep(@duration) if @duration > Time::Span::ZERO
+          @timer_fired.send(token_value)
+        end
+      end
+
+      loop do
+        return if ctx.cancelled?
+
+        select
+        when token = @timer_fired.receive
+          current = @lock.synchronize { @timer_token }
+          return if token == current
+        when ctx.done.receive
+          return
+        end
+      end
+    end
   end
 
   # StreamReader reads a stream from CDP IO.

@@ -20,6 +20,9 @@ module Rod
   # Context provides timeout and cancellation support for rod operations.
   # Modeled after Go's context.Context but simplified for rod's needs.
   class Context < HTTP::Client::Context
+    alias ValueKey = String | TimeoutContextKey
+    alias ValueType = String | TimeoutContextVal
+
     # Background context never cancelled.
     class_getter background : Context { Context.new }
 
@@ -29,7 +32,7 @@ module Rod
     @err : Exception? = nil
     @mutex = Mutex.new
     @done = Channel(Nil).new
-    @values = {} of String => String
+    @values = {} of ValueKey => ValueType
 
     # Create a new context, optionally with a parent.
     def initialize(@parent : Context? = nil, @cancel_func : ->? = nil)
@@ -42,20 +45,24 @@ module Rod
 
     # Cancel cancels the context.
     def cancel(reason : String? = nil) : Nil
+      callback : (->)? = nil
       @mutex.synchronize do
         return if @cancelled
         @cancelled = true
         # Create appropriate error based on reason and deadline
+        deadline_at = @deadline
         if reason
           @err = ContextCanceledError.new(reason)
-        elsif deadline && deadline <= Time.monotonic
-          @err = ContextTimeoutError.new(deadline - Time.monotonic)
+        elsif deadline_at && deadline_at <= Time.monotonic
+          @err = ContextTimeoutError.new(deadline_at - Time.monotonic)
         else
           @err = ContextCanceledError.new("context cancelled")
         end
         @done.close
-        @cancel_func.try(&.call)
+        callback = @cancel_func
+        @cancel_func = nil
       end
+      callback.try(&.call)
     end
 
     # Check if context is cancelled.
@@ -87,17 +94,17 @@ module Rod
     end
 
     # Value returns the value for key.
-    def value(key : String) : String?
+    def value(key : ValueKey) : ValueType?
       @values[key]? || @parent.try(&.value(key))
     end
 
     # Set a value in the context.
-    def set_value(key : String, val : String) : Nil
+    def set_value(key : ValueKey, val : ValueType) : Nil
       @values[key] = val
     end
 
     # WithValue creates a new context with key-value pair.
-    def with_value(key : Object, val : Object) : Context
+    def with_value(key : ValueKey, val : ValueType) : Context
       ctx = Context.new(self)
       ctx.set_value(key, val)
       ctx
@@ -110,7 +117,6 @@ module Rod
       ctx.deadline = Time.monotonic + timeout
 
       cancel_fn = -> { ctx.cancel }
-      ctx.cancel_func = cancel_fn
 
       # Store parent context and cancel function in value map for CancelTimeout
       ctx.set_value(TIMEOUT_KEY, TimeoutContextVal.new(self, cancel_fn))
@@ -133,7 +139,6 @@ module Rod
     def with_cancel : Tuple(Context, ->)
       ctx = Context.new(self)
       cancel_fn = -> { ctx.cancel }
-      ctx.cancel_func = cancel_fn
       {ctx, cancel_fn}
     end
 
@@ -142,7 +147,7 @@ module Rod
       value(TIMEOUT_KEY).as?(TimeoutContextVal)
     end
 
-    protected setter cancel_func = (@cancel_func : ->?)
+    protected setter cancel_func = (@cancel_func : ->?) # kept for future parent callbacks
   end
 
   # ContextCanceledError is raised when a context is cancelled.
