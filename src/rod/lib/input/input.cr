@@ -23,6 +23,20 @@ module Rod::Input
   @@key_map = {} of Key => KeyInfo
   @@key_map_shifted = {} of Key => KeyInfo
   @@key_shifted_map = {} of Key => Key
+  @@is_mac = false
+
+  # Mac toggles whether mac editing commands are emitted.
+  def self.mac? : Bool
+    @@is_mac
+  end
+
+  def self.mac=(value : Bool) : Bool
+    @@is_mac = value
+  end
+
+  MAC_COMMANDS = {
+    "ArrowDown" => ["moveDown"],
+  } of String => Array(String)
 
   # Add key to key map
   # Returns the Key identifier
@@ -100,28 +114,25 @@ module Rod::Input
     location = info.location == 3 ? nil : info.location.to_i64?
     keypad = info.location == 3
 
-    text = ""
-    if printable?(key)
-      text = info.key
-    end
+    text = printable?(key) ? info.key : ""
 
-    # TODO: Mac commands (mac_commands mapping)
-    commands = nil
+    commands = mac? ? MAC_COMMANDS[info.key]? : nil
+    modifier_bits = modifiers == 0 ? nil : Cdp::Input::Modifier.new(modifiers.to_i64)
 
     Cdp::Input::DispatchKeyEvent.new(
       type: type,
-      modifiers: modifiers.to_i64?,
+      modifiers: modifier_bits,
       timestamp: nil,
-      text: text.empty? ? nil : text,
-      unmodified_text: text.empty? ? nil : text,
+      text: text,
+      unmodified_text: text,
       key_identifier: nil,
       code: info.code,
       key: info.key,
       windows_virtual_key_code: info.key_code.to_i64?,
       native_virtual_key_code: nil,
-      auto_repeat: nil,
-      is_keypad: keypad ? true : nil,
-      is_system_key: nil,
+      auto_repeat: false,
+      is_keypad: keypad,
+      is_system_key: false,
       location: location,
       commands: commands
     )
