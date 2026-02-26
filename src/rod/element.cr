@@ -6,6 +6,7 @@ require "../cdp/dom/dom"
 require "./lib/quad"
 require "./lib/input/input"
 require "./lib/js"
+require "base64"
 
 module Rod
   # Element represents a DOM element.
@@ -229,8 +230,28 @@ module Rod
       evaluate("() => this.scrollIntoView({behavior: 'instant', block: 'center', inline: 'center'})")
     end
 
+    # CanvasToImage gets image data of a canvas element.
+    # Default format is image/png and quality is 0.92 in browser behavior.
+    def canvas_to_image(format : String = "", quality : Float64 = -1.0) : Bytes
+      res = eval("(format, quality) => this.toDataURL(format, quality)", format, quality)
+      _, bin = parse_data_uri(res.value.as_s? || "")
+      bin
+    end
+
+    # Resource returns the src content of the current element.
+    def resource : Bytes
+      src = evaluate(@page.eval_helper(Rod::JS::RESOURCE).by_promise)
+      @page.context(@ctx).get_resource(src.value.as_s? || "")
+    end
+
+    # BackgroundImage returns the CSS background image resource of the element.
+    def background_image : Bytes
+      res = eval(%(() => window.getComputedStyle(this).backgroundImage.replace(/^url\\("/, '').replace(/"\\)$/, '')))
+      @page.context(@ctx).get_resource(res.value.as_s? || "")
+    end
+
     # Screenshot of the area of the element.
-    def screenshot(format : String = "png", quality : Int32 = 0) : Bytes
+    def screenshot(format : ::Cdp::Page::CaptureScreenshotFormat = ::Cdp::Page::CaptureScreenshotFormatPng, quality : Int32 = 0) : Bytes
       scroll_into_view
 
       opts = Cdp::Page::CaptureScreenshot.new
@@ -252,6 +273,23 @@ module Rod
         )
       else
         raise "Failed to compute bounding box for element"
+      end
+    end
+
+    private DATA_URI_REGEX = /\Adata:(.+?)?(;base64)?,/
+
+    private def parse_data_uri(uri : String) : Tuple(String, Bytes)
+      matches = DATA_URI_REGEX.match(uri)
+      return {"", Bytes.new(0)} unless matches
+
+      prefix_len = matches[0].size
+      content_type = matches[1]? || ""
+      encoded = uri.byte_slice(prefix_len, uri.bytesize - prefix_len) || ""
+
+      begin
+        {content_type, Base64.decode(encoded)}
+      rescue
+        {content_type, Bytes.new(0)}
       end
     end
 
