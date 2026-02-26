@@ -39,7 +39,7 @@ module Rod
     # WithPanic returns an element clone with the specified panic function.
     # The fail must stop the current goroutine's execution immediately.
     def with_panic(fail : Proc(Exception, Nil)) : Element
-      new_obj = self.clone
+      new_obj = dup
       new_obj.instance_variable_set("@e", Browser.gen_e(fail))
       new_obj
     end
@@ -56,7 +56,7 @@ module Rod
 
     # Context returns a clone with the specified ctx for chained sub-operations.
     def context(ctx : Context) : Element
-      new_obj = self.clone
+      new_obj = dup
       new_obj.ctx = ctx
       new_obj
     end
@@ -91,7 +91,7 @@ module Rod
 
     # Sleeper returns a clone with the specified sleeper for chained sub-operations.
     def sleeper(sleeper : Proc(Rod::Utils::Sleeper)) : Element
-      new_obj = self.clone
+      new_obj = dup
       new_obj.sleeper = sleeper
       new_obj
     end
