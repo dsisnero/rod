@@ -36,6 +36,20 @@ module Rod
 
     # Create a new context, optionally with a parent.
     def initialize(@parent : Context? = nil, @cancel_func : ->? = nil)
+      if parent = @parent
+        spawn do
+          select
+          when parent.done.receive?
+            cancel(err_override: parent.err || ContextCanceledError.new("context cancelled"))
+          when @done.receive?
+            # Current context cancelled first, stop parent listener.
+          end
+        rescue Channel::ClosedError
+          unless cancelled?
+            cancel(err_override: parent.err || ContextCanceledError.new("context cancelled"))
+          end
+        end
+      end
     end
 
     # Done returns a channel that's closed when the context is cancelled.
@@ -44,14 +58,16 @@ module Rod
     end
 
     # Cancel cancels the context.
-    def cancel(reason : String? = nil) : Nil
+    def cancel(reason : String? = nil, err_override : Exception? = nil) : Nil
       callback : (->)? = nil
       @mutex.synchronize do
         return if @cancelled
         @cancelled = true
         # Create appropriate error based on reason and deadline
         deadline_at = @deadline
-        if reason
+        if err_override
+          @err = err_override
+        elsif reason
           @err = ContextCanceledError.new(reason)
         elsif deadline_at && deadline_at <= Time.monotonic
           @err = ContextTimeoutError.new(deadline_at - Time.monotonic)
@@ -129,7 +145,7 @@ module Rod
             sleep sleep_time
           end
         end
-        ctx.cancel("context timeout after #{timeout}")
+        ctx.cancel(err_override: ContextTimeoutError.new(timeout))
       end
 
       {ctx, cancel_fn}
