@@ -426,23 +426,40 @@ module Rod
       res.value.as_s? || ""
     end
 
-    # WaitStableRAF waits for the element to be stable using requestAnimationFrame.
-    def wait_stable_raf : Nil
-      wait_visible
-      # TODO: Implement proper RAF stability check
-      # For now, delegate to wait_stable
-      wait_stable
+    # WaitLoad for element like <img>.
+    def wait_load : Nil
+      evaluate(@page.eval_helper(Rod::JS::WAIT_LOAD).by_promise)
     end
 
-    # Wait for element to be stable (no layout changes for a period)
-    def wait_stable(duration : Time::Span = 100.milliseconds) : Nil
-      # TODO: Implement proper stability check
-      # Check context cancellation before sleeping
-      if @ctx.cancelled?
-        raise @ctx.err if @ctx.err
-        raise ContextCanceledError.new("context cancelled")
+    # WaitStableRAF waits for no shape changes across consecutive animation frames.
+    def wait_stable_raf : Nil
+      wait_visible
+
+      shape_json : String? = nil
+      loop do
+        @page.context(@ctx).wait_repaint
+        current = shape.to_json
+        break if shape_json == current
+        shape_json = current
       end
-      sleep(duration)
+    end
+
+    # WaitStable waits until no shape or position change for d duration.
+    def wait_stable(duration : Time::Span = 100.milliseconds) : Nil
+      wait_visible
+
+      last_shape = shape.to_json
+      loop do
+        if @ctx.cancelled?
+          raise @ctx.err if @ctx.err
+          raise ContextCanceledError.new("context cancelled")
+        end
+
+        sleep(duration) if duration > Time::Span::ZERO
+        current_shape = shape.to_json
+        break if current_shape == last_shape
+        last_shape = current_shape
+      end
     end
 
     # Wait for element to be visible

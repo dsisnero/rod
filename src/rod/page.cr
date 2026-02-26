@@ -12,6 +12,7 @@ require "../cdp/cdp"
 require "../cdp/runtime/runtime"
 require "../cdp/page/page"
 require "../cdp/emulation/emulation"
+require "../cdp/domsnapshot/domsnapshot"
 
 module Rod
   # QueryOptions provides configuration for element queries.
@@ -529,14 +530,121 @@ module Rod
       shot.data.to_slice
     end
 
-    # WaitDOMStable waits until the change of the DOM tree is less or equal than diff percent for d duration.
-    # Be careful, d is not the max wait timeout, it's the least stable time.
-    # If you want to set a timeout you can use the [Page.Timeout] function.
-    # TODO: implement proper DOM stability detection using CaptureDOMSnapshot and LCS algorithm
+    # WaitLoad waits for the window.onload event.
+    def wait_load : Nil
+      evaluate(eval_helper(Rod::JS::WAIT_LOAD).by_promise)
+    end
+
+    # WaitRepaint waits until the next repaint.
+    def wait_repaint : Nil
+      evaluate("() => new Promise(r => requestAnimationFrame(r))")
+    end
+
+    # CaptureDOMSnapshot returns a DOM snapshot for stability checks.
+    def capture_dom_snapshot : Cdp::DOMSnapshot::CaptureSnapshotResult
+      Cdp::DOMSnapshot::CaptureSnapshot.new(
+        computed_styles: [] of String,
+        include_paint_order: nil,
+        include_dom_rects: nil,
+        include_blended_background_colors: nil,
+        include_text_color_opacities: nil
+      ).call(self)
+    end
+
+    # WaitDOMStable waits until the DOM diff is <= diff for d duration.
     def wait_dom_stable(d : Time::Span, diff : Float64) : Nil
-      # Simple implementation: just sleep for the duration
-      # This is not behaviorally equivalent to Go implementation
-      sleep(d)
+      dom_snapshot = capture_dom_snapshot
+
+      loop do
+        wait_duration(d)
+        current = capture_dom_snapshot
+
+        dom_diff = dom_diff_ratio(dom_snapshot.strings, current.strings)
+        break if dom_diff <= diff
+
+        dom_snapshot = current
+      end
+    end
+
+    # WaitStable waits until the page is stable for d duration.
+    def wait_stable(d : Time::Span) : Nil
+      error = Channel(Exception?).new(3)
+
+      spawn do
+        begin
+          wait_load
+          error.send(nil)
+        rescue ex
+          error.send(ex)
+        end
+      end
+
+      spawn do
+        begin
+          wait_duration(d)
+          error.send(nil)
+        rescue ex
+          error.send(ex)
+        end
+      end
+
+      spawn do
+        begin
+          wait_dom_stable(d, 0.0)
+          error.send(nil)
+        rescue ex
+          error.send(ex)
+        end
+      end
+
+      first_error : Exception? = nil
+      3.times do
+        if ex = error.receive
+          first_error ||= ex
+        end
+      end
+
+      raise first_error if first_error
+    end
+
+    private def wait_duration(duration : Time::Span) : Nil
+      return if duration <= Time::Span::ZERO
+
+      elapsed = Time::Span::ZERO
+      step = 20.milliseconds
+      while elapsed < duration
+        raise @ctx.err || ContextCanceledError.new("context cancelled") if @ctx.cancelled?
+        nap = {duration - elapsed, step}.min
+        sleep(nap) if nap > Time::Span::ZERO
+        elapsed += nap
+      end
+    end
+
+    private def dom_diff_ratio(previous : Array(String), current : Array(String)) : Float64
+      return 0.0 if current.empty?
+
+      lcs = lcs_length(previous, current)
+      1.0 - lcs.to_f64 / current.size.to_f64
+    end
+
+    private def lcs_length(xs : Array(String), ys : Array(String)) : Int32
+      return 0 if xs.empty? || ys.empty?
+
+      prev = Array(Int32).new(ys.size + 1, 0)
+      curr = Array(Int32).new(ys.size + 1, 0)
+
+      (1..xs.size).each do |i|
+        (1..ys.size).each do |j|
+          if xs[i - 1] == ys[j - 1]
+            curr[j] = prev[j - 1] + 1
+          else
+            curr[j] = {prev[j], curr[j - 1]}.max
+          end
+        end
+        prev, curr = curr, prev
+      end
+
+      prev[ys.size]
     end
 
     # ScrollScreenshot Scroll screenshot does not adjust the size of the viewport,
