@@ -526,15 +526,30 @@ module Rod
     #   eachevent(*callbacks)
     # end
 
-    # WaitEvent waits for the next event for one time. It will also load the data into the event object.
+    # WaitEvent waits for the next event once.
+    # For typed event access use wait_event_typed.
     def wait_event(e : Cdp::Event, session_id : SessionID? = nil) : Proc(Nil)
-      event_class = e.class
-      # Create a callback that stops on first matching event and copies data
+      wait = wait_event_typed(e.class, session_id)
+      -> { wait.call; nil }
+    end
+
+    # WaitEventTyped waits for the next event once and returns the matched event payload.
+    def wait_event_typed(event_class : T.class, session_id : SessionID? = nil) : Proc(T) forall T
+      matched = uninitialized T?
       cb = ->(event : Cdp::Event, _sid : SessionID?) do
-        # TODO: Copy data from event to e (requires mutable reference)
+        matched = event.as(T)
         true
       end
-      each_event(session_id, {event_class.proto_event => CallbackInfo.new(event_class, cb)})
+      wait = each_event(session_id, {event_class.proto_event => CallbackInfo.new(event_class, cb)})
+
+      -> do
+        wait.call
+        if event = matched
+          event
+        else
+          raise "event callback completed without payload"
+        end
+      end
     end
 
     private def page_info(id : TargetID) : Cdp::Target::TargetInfo
@@ -612,44 +627,22 @@ module Rod
     enable_auth = Cdp::Fetch::Enable.new(handle_auth_requests: true)
     enable_auth.call(self)
 
-    # Create event objects to wait for
-    paused_event = Cdp::Fetch::RequestPausedEvent.new(
-      request_id: "",
-      request: Cdp::Network::Request.new,
-      frame_id: 0_i64,
-      resource_type: Cdp::Network::ResourceType::Other,
-      response_error_reason: nil,
-      response_status_code: nil,
-      response_status_text: nil,
-      response_headers: nil,
-      network_id: nil,
-      redirected_request_id: nil
-    )
-
-    auth_event = Cdp::Fetch::AuthRequiredEvent.new(
-      request_id: "",
-      request: Cdp::Network::Request.new,
-      frame_id: 0_i64,
-      resource_type: Cdp::Network::ResourceType::Other,
-      auth_challenge: Cdp::Fetch::AuthChallenge.new
-    )
-
     ctx, cancel = @ctx.with_cancel
     browser_with_ctx = context(ctx)
-    wait_paused = browser_with_ctx.wait_event(paused_event)
-    wait_auth = browser_with_ctx.wait_event(auth_event)
+    wait_paused = browser_with_ctx.wait_event_typed(Cdp::Fetch::RequestPausedEvent)
+    wait_auth = browser_with_ctx.wait_event_typed(Cdp::Fetch::AuthRequiredEvent)
 
     -> do
       begin
         # Wait for request paused event
-        wait_paused.call
+        paused_event = wait_paused.call
 
         # Continue the request (to trigger auth challenge)
         continue_req = Cdp::Fetch::ContinueRequest.new(request_id: paused_event.request_id)
         continue_req.call(self)
 
         # Wait for auth required event
-        wait_auth.call
+        auth_event = wait_auth.call
 
         # Respond with credentials
         auth_response = Cdp::Fetch::AuthChallengeResponse.new(
