@@ -55,20 +55,6 @@ module Rod
       sleep(@slow_motion)
     end
 
-    # Connect with optional monitor auto-open.
-    def connect(ws_url : String) : Nil
-      ws = Lib::Cdp::WebSocket.new
-      ws.connect(ws_url)
-      client = Lib::Cdp::Client.new(@logger)
-      client.start(ws)
-      @client = client
-      init_events
-
-      if monitor = @monitor
-        ::Rod::Lib::Launcher.open(serve_monitor(monitor))
-      end
-    end
-
     # Starts a simple monitor server for current browser targets.
     def serve_monitor(host : String) : String
       host = "127.0.0.1:0" if host.empty?

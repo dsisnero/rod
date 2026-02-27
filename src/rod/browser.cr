@@ -9,6 +9,10 @@ require "./lib/devices"
 require "./lib/launcher"
 require "./lib/utils"
 require "./hijack"
+require "../cdp/target/target"
+require "../cdp/browser/browser"
+require "../cdp/storage/storage"
+require "../cdp/security/security"
 
 module Rod
   # Browser implements these interfaces.
@@ -25,6 +29,8 @@ module Rod
     @slow_motion : Time::Span
     @trace : Bool
     @monitor : String?
+    @default_device : ::Rod::Lib::Devices::Device
+    @control_url : String
     @client : Lib::Cdp::Client?
     @targets : Hash(String, TargetInfo)
     @targets_lock : Mutex
@@ -44,6 +50,8 @@ module Rod
     # New creates a browser instance.
     def initialize(@ctx : Context = Context.background, @sleeper = -> { ::Utils::Sleeper.new }, @logger = ::Defaults.logger, @slow_motion = ::Defaults.slow, @trace = ::Defaults.trace, @monitor = nil)
       @e = ->(err : Exception?) { raise err if err }
+      @default_device = ::Rod::Lib::Devices::LaptopWithMDPIScreen.landscape
+      @control_url = ::Defaults.url
       @targets = {} of String => TargetInfo
       @targets_lock = Mutex.new
       @states = {} of StateKey => JSON::Any
@@ -79,14 +87,209 @@ module Rod
       res
     end
 
+    # ControlURL sets the remote debugging websocket URL.
+    def control_url(url : String) : Browser
+      @control_url = url
+      self
+    end
+
+    # Client sets the cdp client.
+    def client(c : Lib::Cdp::Client) : Browser
+      @client = c
+      self
+    end
+
+    # DefaultDevice sets the default emulation for new pages.
+    def default_device(device : ::Rod::Lib::Devices::Device) : Browser
+      @default_device = device
+      self
+    end
+
+    # NoDefaultDevice clears default emulation.
+    def no_default_device : Browser
+      @default_device = ::Rod::Lib::Devices::Clear
+      self
+    end
+
     # Connect to browser via websocket URL.
-    def connect(ws_url : String) : Nil
-      ws = Lib::Cdp::WebSocket.new
-      ws.connect(ws_url)
-      client = Lib::Cdp::Client.new(@logger)
-      client.start(ws)
-      @client = client
+    def connect(ws_url : String = "") : Nil
+      if @client.nil?
+        url = ws_url.empty? ? @control_url : ws_url
+        url = ::Rod::Lib::Launcher::Launcher.new.launch if url.empty?
+
+        ws = Lib::Cdp::WebSocket.new
+        ws.connect(url)
+        client = Lib::Cdp::Client.new(@logger)
+        client.start(ws)
+        @client = client
+      elsif !@control_url.empty?
+        raise "Browser.Client and Browser.ControlURL can't be set at the same time"
+      end
+
       init_events
+
+      if monitor_url = @monitor
+        ::Rod::Lib::Launcher.open(serve_monitor(monitor_url))
+      end
+
+      Cdp::Target::SetDiscoverTargets.new(true, nil).call(self)
+    end
+
+    # Close the browser.
+    def close : Nil
+      if context_id = @browser_context_id
+        Cdp::Target::DisposeBrowserContext.new(context_id.value).call(self)
+      else
+        Cdp::Browser::Close.new.call(self)
+      end
+    end
+
+    # Incognito creates a new incognito browser context.
+    def incognito : Browser
+      res = Cdp::Target::CreateBrowserContext.new(nil, nil, nil, nil).call(self)
+      incognito = dup
+      incognito.browser_context_id = BrowserContextID.new(res.browser_context_id)
+      incognito
+    end
+
+    # Page creates a new tab with optional navigation.
+    def page(url : String = "about:blank") : Page
+      req = Cdp::Target::CreateTarget.new(
+        "about:blank",
+        nil,
+        nil,
+        nil,
+        nil,
+        nil,
+        @browser_context_id.try(&.value),
+        nil,
+        nil,
+        nil,
+        nil,
+        nil,
+        nil
+      )
+      target = req.call(self)
+      target_id = TargetID.new(target.target_id)
+
+      begin
+        p = page_from_target(target_id)
+        p.navigate(url) unless url.empty? || url == "about:blank"
+        p
+      rescue ex
+        Cdp::Target::CloseTarget.new(target.target_id).call(self) rescue nil
+        raise ex
+      end
+    end
+
+    # Pages retrieves all visible page targets.
+    def pages : Pages
+      list = Cdp::Target::GetTargets.new(nil).call(self)
+      page_list = [] of Page
+      list.target_infos.each do |target|
+        next unless target.type == "page"
+        page_list << page_from_target(TargetID.new(target.target_id))
+      end
+      Pages.new(page_list)
+    end
+
+    # PageFromSession creates a page from session id.
+    def page_from_session(session_id : SessionID) : Page
+      Page.new(self, TargetID.new(""), session_id, nil, @ctx, @sleeper)
+    end
+
+    # PageFromTarget gets or creates a Page instance.
+    def page_from_target(target_id : TargetID) : Page
+      @targets_lock.synchronize do
+        if info = @targets[target_id.value]?
+          if page = info.page
+            return page
+          end
+        end
+
+        attach = Cdp::Target::AttachToTarget.new(target_id.value, true).call(self)
+        sid = SessionID.new(attach.session_id)
+        page = Page.new(self, target_id, sid, FrameID.new(target_id.value), @ctx, @sleeper)
+
+        unless @default_device.clear?
+          if metrics = @default_device.metrics_emulation
+            page.set_viewport(metrics)
+          end
+          @default_device.touch_emulation.call(page)
+          if ua = @default_device.user_agent_emulation
+            ua.call(page)
+          end
+        end
+
+        @targets[target_id.value] = TargetInfo.new(target_id, sid, page)
+        page
+      end
+    end
+
+    # IgnoreCertErrors controls browser certificate handling.
+    def ignore_cert_errors(enable : Bool) : Nil
+      Cdp::Security::SetIgnoreCertificateErrors.new(enable).call(self)
+    end
+
+    # GetCookies returns browser cookies in current browser context.
+    def get_cookies : Array(Cdp::Network::Cookie) # ameba:disable Naming/AccessorMethodName
+      Cdp::Storage::GetCookies.new(@browser_context_id.try(&.value)).call(self).cookies
+    end
+
+    # SetCookies sets browser cookies. nil clears all cookies.
+    def set_cookies(cookies : Array(Cdp::Network::CookieParam)? = nil) : Nil # ameba:disable Naming/AccessorMethodName
+      if cookies.nil?
+        Cdp::Storage::ClearCookies.new(@browser_context_id.try(&.value)).call(self)
+      else
+        Cdp::Storage::SetCookies.new(cookies, @browser_context_id.try(&.value)).call(self)
+      end
+    end
+
+    # SetCookies accepts cookie list and converts to cookie params.
+    def set_cookies(cookies : Array(Cdp::Network::Cookie)) : Nil # ameba:disable Naming/AccessorMethodName
+      params = cookies.map { |cookie| Cdp::Network::CookieParam.from_json(cookie.to_json) }
+      set_cookies(params)
+    end
+
+    # WaitDownload waits for a matching completed download and returns metadata.
+    def wait_download(dir : String) : Proc(Cdp::Browser::DownloadWillBeginEvent?)
+      Cdp::Browser::SetDownloadBehavior.new(
+        Cdp::Browser::SetDownloadBehaviorBehaviorAllowAndName,
+        @browser_context_id.try(&.value),
+        dir,
+        nil
+      ).call(self)
+
+      start_event = uninitialized Cdp::Browser::DownloadWillBeginEvent?
+      wait = eachevent(
+        ->(e : Cdp::Browser::DownloadWillBeginEvent) { start_event = e },
+        ->(e : Cdp::Browser::DownloadProgressEvent) {
+          if start = start_event
+            start.guid == e.guid && e.state == Cdp::Browser::DownloadProgressStateCompleted
+          else
+            false
+          end
+        }
+      )
+
+      -> do
+        begin
+          wait.call
+          start_event
+        ensure
+          Cdp::Browser::SetDownloadBehavior.new(
+            Cdp::Browser::SetDownloadBehaviorBehaviorDefault,
+            @browser_context_id.try(&.value),
+            nil,
+            nil
+          ).call(self)
+        end
+      end
+    end
+
+    # Version info of the browser.
+    def version : Cdp::Browser::GetVersionResult
+      Cdp::Browser::GetVersion.new.call(self)
     end
 
     # EnableDomain and returns a restore function to restore previous state.
@@ -314,7 +517,7 @@ module Rod
             )
           \{% end %}
           each_event(nil, cb_map)
-        \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\}
+        }
       \{% end %}
     end
 
@@ -332,6 +535,10 @@ module Rod
         true
       end
       each_event(session_id, {event_class.proto_event => CallbackInfo.new(event_class, cb)})
+    end
+
+    private def page_info(id : TargetID) : Cdp::Target::TargetInfo
+      Cdp::Target::GetTargetInfo.new(id.value).call(self).target_info
     end
   end
 
