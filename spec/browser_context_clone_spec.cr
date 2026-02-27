@@ -19,4 +19,19 @@ describe Rod::Browser do
 
     cloned.object_id.should_not eq(browser.object_id)
   end
+
+  it "allows control_url to be reset by chaining calls" do
+    browser = Rod::Browser.new
+    chained = browser.control_url("ws://example.invalid").control_url("")
+
+    chained.should be(browser)
+  end
+
+  it "allows chaining client and control_url configuration" do
+    browser = Rod::Browser.new
+      .client(Rod::Lib::Cdp::Client.new)
+      .control_url("ws://example.invalid")
+
+    browser.should be_a(Rod::Browser)
+  end
 end
