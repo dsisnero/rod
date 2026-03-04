@@ -83,4 +83,65 @@ describe Rod::Browser do
     loaded.guid.should eq("guid-1")
     loaded.suggested_filename.should eq("file.txt")
   end
+
+  it "wait_event consumes the next matching event and returns nil" do
+    event = Cdp::Browser::DownloadWillBeginEvent.new(
+      frame_id: "frame-2",
+      guid: "guid-2",
+      url: "https://example.com/other",
+      suggested_filename: "other.txt"
+    )
+    messages = Channel(Rod::Message).new(1)
+    messages.send(Rod::Message.new(nil, event.proto_event, JSON.parse(event.to_json)))
+    browser = WaitEventBrowser.new(messages)
+
+    wait = browser.wait_event(event)
+    wait.call.should be_nil
+  end
+end
+
+describe Rod::Message do
+  it "loads matching event payload by class and returns nil for mismatch" do
+    payload = Cdp::Browser::DownloadWillBeginEvent.new(
+      frame_id: "frame-3",
+      guid: "guid-3",
+      url: "https://example.com/three",
+      suggested_filename: "three.txt"
+    )
+    msg = Rod::Message.new(nil, payload.proto_event, JSON.parse(payload.to_json))
+
+    loaded = msg.load(Cdp::Browser::DownloadWillBeginEvent)
+    loaded.should_not be_nil
+    loaded.not_nil!.as(Cdp::Browser::DownloadWillBeginEvent).guid.should eq("guid-3")
+
+    msg.load(Cdp::Browser::DownloadProgressEvent).should be_nil
+  end
+
+  it "returns boolean load status for event instance matching" do
+    payload = Cdp::Browser::DownloadProgressEvent.new(
+      guid: "guid-4",
+      total_bytes: 100.0,
+      received_bytes: 100.0,
+      state: Cdp::Browser::DownloadProgressStateCompleted,
+      file_path: "/tmp/guid-4"
+    )
+    msg = Rod::Message.new(nil, payload.proto_event, JSON.parse(payload.to_json))
+
+    matching = Cdp::Browser::DownloadProgressEvent.new(
+      guid: "",
+      total_bytes: 0.0,
+      received_bytes: 0.0,
+      state: Cdp::Browser::DownloadProgressStateInProgress,
+      file_path: nil
+    )
+    mismatching = Cdp::Browser::DownloadWillBeginEvent.new(
+      frame_id: "frame",
+      guid: "",
+      url: "",
+      suggested_filename: ""
+    )
+
+    msg.load(matching).should be_true
+    msg.load(mismatching).should be_false
+  end
 end
