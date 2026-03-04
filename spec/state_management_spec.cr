@@ -45,6 +45,17 @@ describe Rod::Browser do
     browser.load_state(nil, DummyReq.new(method)).should be_false
   end
 
+  it "removes geolocation emulation state when clear geolocation is set" do
+    browser = Rod::Browser.new
+    method = "Emulation.setGeolocationOverride"
+
+    browser.set_state(nil, method, JSON::Any.new(true))
+    browser.load_state(nil, DummyReq.new(method)).should be_true
+
+    browser.set_state(nil, "Emulation.clearGeolocationOverride", JSON::Any.new(nil))
+    browser.load_state(nil, DummyReq.new(method)).should be_false
+  end
+
   it "does not call cdp when enable_domain is already enabled" do
     browser = Rod::Browser.new
     req = Cdp::Page::Enable.new(nil)
