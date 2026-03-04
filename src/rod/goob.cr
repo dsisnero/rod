@@ -18,13 +18,12 @@ module Goob
     def write(event : T) : Nil
       @lock.synchronize do
         @buffer << event
-        # Signal if wait channel is empty
-        if @wait.empty?
-          select
-          when @wait.send(nil)
-          when @done.receive
-            # Done signaled, discard
-          end
+        # Signal consumer if channel has capacity; skip if already signaled.
+        select
+        when @wait.send(nil)
+        when @done.receive
+          # Done signaled, discard
+        else
         end
       end
     end

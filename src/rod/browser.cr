@@ -247,7 +247,23 @@ module Rod
 
     # SetCookies accepts cookie list and converts to cookie params.
     def set_cookies(cookies : Array(Cdp::Network::Cookie)) : Nil # ameba:disable Naming/AccessorMethodName
-      params = cookies.map { |cookie| Cdp::Network::CookieParam.from_json(cookie.to_json) }
+      params = cookies.map do |cookie|
+        Cdp::Network::CookieParam.from_json({
+          "name"         => cookie.name,
+          "value"        => cookie.value,
+          "url"          => nil,
+          "domain"       => cookie.domain,
+          "path"         => cookie.path,
+          "secure"       => cookie.secure?,
+          "httpOnly"     => cookie.http_only?,
+          "sameSite"     => cookie.same_site,
+          "expires"      => nil,
+          "priority"     => cookie.priority,
+          "sourceScheme" => cookie.source_scheme,
+          "sourcePort"   => cookie.source_port,
+          "partitionKey" => cookie.partition_key,
+        }.to_json)
+      end
       set_cookies(params)
     end
 
@@ -535,19 +551,24 @@ module Rod
 
     # WaitEventTyped waits for the next event once and returns the matched event payload.
     def wait_event_typed(event_class : T.class, session_id : SessionID? = nil) : Proc(T) forall T
-      matched = uninitialized T?
-      cb = ->(event : Cdp::Event, _sid : SessionID?) do
-        matched = event.as(T)
-        true
-      end
-      wait = each_event(session_id, {event_class.proto_event => CallbackInfo.new(event_class, cb)})
-
+      browser, cancel = with_cancel
+      messages = browser.event
       -> do
-        wait.call
-        if event = matched
-          event
-        else
-          raise "event callback completed without payload"
+        begin
+          loop do
+            select
+            when msg = messages.receive
+              next unless session_id.nil? || msg.session_id == session_id
+              if msg.method == event_class.proto_event
+                json_data = msg.data || JSON::Any.new({} of String => JSON::Any)
+                return event_class.from_json(json_data.to_json).as(T)
+              end
+            when browser.ctx.done.receive
+              raise "context canceled while waiting for event #{event_class.proto_event}"
+            end
+          end
+        ensure
+          cancel.call
         end
       end
     end
@@ -597,6 +618,13 @@ module Rod
       return nil unless method == event_class.proto_event
       json_data = data || JSON::Any.new({} of String => JSON::Any)
       event_class.from_json(json_data.to_json).as(Cdp::Event)
+    end
+
+    # Typed load helper for concrete event classes.
+    def load(event_class : T.class) : T? forall T
+      return nil unless method == event_class.proto_event
+      json_data = data || JSON::Any.new({} of String => JSON::Any)
+      event_class.from_json(json_data.to_json).as(T)
     end
 
     # Load event data into the given event instance (must be of correct type).
