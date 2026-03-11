@@ -39,10 +39,18 @@ module Rod
 
     # WithPanic returns an element clone with the specified panic function.
     # The fail must stop the current goroutine's execution immediately.
-    def with_panic(fail : Proc(Exception, Nil)) : Element
-      new_obj = dup
-      new_obj.instance_variable_set("@e", Browser.gen_e(fail))
+    def with_panic(fail : Proc(Exception, Nil)) : self
+      new_obj = self.dup
+      new_obj.set_panic_handler(fail)
       new_obj
+    end
+
+    def set_panic_handler(fail : Proc(Exception, Nil)) : Nil
+      @e = Browser.gen_e(fail)
+    end
+
+    protected def e_handler=(handler : EFunc?) : EFunc?
+      @e = handler
     end
 
     # Get session ID from parent page
@@ -111,18 +119,38 @@ module Rod
 
     # Scroll into view
     def scroll_into_view : Nil
-      # TODO: Implement ScrollIntoViewIfNeeded CDP call
-      # For now, just evaluate JS
-      evaluate("() => this.scrollIntoViewIfNeeded()")
+      object_id = @object.object_id
+      raise "Element has no object ID" unless object_id
+
+      ::Cdp::DOM::ScrollIntoViewIfNeeded.new(
+        node_id: nil,
+        backend_node_id: nil,
+        object_id: object_id,
+        rect: nil
+      ).call(@page)
     end
 
     # Click will press then release the button just like a human.
     # Before the action, it will try to scroll to the element, hover the mouse over it,
     # wait until the it's interactable and enabled.
     def click(button : String = "left", click_count : Int32 = 1) : Nil
-      hover
+      cleanup = try_trace(Rod::TraceTypeInput, "#{button} click")
+      begin
+        hover
+        wait_enabled
+        @page.mouse.click(button, click_count)
+      ensure
+        cleanup.call
+      end
+    end
+
+    # Tap will scroll to the element and tap it.
+    # Before the action, it will try to scroll to the element and wait until it's interactable and enabled.
+    def tap : Nil
+      scroll_into_view
       wait_enabled
-      @page.mouse.click(button, click_count)
+      pt = wait_interactable
+      @page.touch.tap(pt.x, pt.y)
     end
 
     # Type is similar with Keyboard.Type.
@@ -143,18 +171,11 @@ module Rod
     # Before the action, it will try to scroll to the element and focus on it.
     def select_text(regex : String) : Nil
       focus
-      # TODO: Implement JavaScript helper for selecting text
       evaluate(<<-JS, regex)
         (regex) => {
-          const sel = window.getSelection();
-          const range = document.createRange();
-          const text = this.textContent || this.innerText || '';
-          const match = text.match(new RegExp(regex));
+          const match = this.value.match(new RegExp(regex));
           if (match) {
-            // Simplified implementation
-            range.selectNodeContents(this);
-            sel.removeAllRanges();
-            sel.addRange(range);
+            this.setSelectionRange(match.index, match.index + match[0].length);
           }
         }
       JS
@@ -183,8 +204,37 @@ module Rod
     def input_time(t : Time) : Nil
       focus
       wait_enabled
-      # TODO: Implement proper time input for date/time input elements
-      evaluate("(time) => this.value = time.toISOString().slice(0, -1)", t)
+      wait_writable
+      timestamp_ms = t.to_unix_ms
+      evaluate(<<-JS, timestamp_ms)
+        (timestampMs) => {
+          const time = new Date(timestampMs);
+          const pad = (n) => n.toString().padStart(2, "0");
+          const year = time.getFullYear();
+          const month = pad(time.getMonth() + 1);
+          const day = pad(time.getDate());
+          const hour = pad(time.getHours());
+          const minute = pad(time.getMinutes());
+
+          switch (this.type) {
+            case "date":
+              this.value = `${year}-${month}-${day}`;
+              break;
+            case "datetime-local":
+              this.value = `${year}-${month}-${day}T${hour}:${minute}`;
+              break;
+            case "month":
+              this.value = `${year}-${month}`;
+              break;
+            case "time":
+              this.value = `${hour}:${minute}`;
+              break;
+          }
+
+          this.dispatchEvent(new Event("input", { bubbles: true }));
+          this.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      JS
     end
 
     # InputColor focuses on the element and inputs color to it.
@@ -192,7 +242,14 @@ module Rod
     def input_color(color : String) : Nil
       focus
       wait_enabled
-      evaluate("(color) => this.value = color", color)
+      wait_writable
+      evaluate(<<-JS, color)
+        (newColor) => {
+          this.value = `${newColor}`;
+          this.dispatchEvent(new Event("input", { bubbles: true }));
+          this.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+      JS
     end
 
     # Hover the mouse over the center of the element.
@@ -222,7 +279,11 @@ module Rod
     def shape : ::Cdp::DOM::GetContentQuadsResult
       object_id = @object.object_id
       raise "Element has no object ID" unless object_id
-      ::Cdp::DOM::GetContentQuads.new(object_id: object_id).call(@page)
+      ::Cdp::DOM::GetContentQuads.new(
+        node_id: nil,
+        backend_node_id: nil,
+        object_id: object_id
+      ).call(@page)
     end
 
     # ScrollIntoView scrolls the element into viewport.
@@ -234,20 +295,23 @@ module Rod
     # Default format is image/png and quality is 0.92 in browser behavior.
     def canvas_to_image(format : String = "", quality : Float64 = -1.0) : Bytes
       res = eval("(format, quality) => this.toDataURL(format, quality)", format, quality)
-      _, bin = parse_data_uri(res.value.as_s? || "")
+      data_uri = res.value.try(&.as_s?) || ""
+      _, bin = parse_data_uri(data_uri)
       bin
     end
 
     # Resource returns the src content of the current element.
     def resource : Bytes
       src = evaluate(@page.eval_helper(Rod::JS::RESOURCE).by_promise)
-      @page.context(@ctx).get_resource(src.value.as_s? || "")
+      url = src.value.try(&.as_s?) || ""
+      @page.context(@ctx).get_resource(url)
     end
 
     # BackgroundImage returns the CSS background image resource of the element.
     def background_image : Bytes
       res = eval(%(() => window.getComputedStyle(this).backgroundImage.replace(/^url\\("/, '').replace(/"\\)$/, '')))
-      @page.context(@ctx).get_resource(res.value.as_s? || "")
+      url = res.value.try(&.as_s?) || ""
+      @page.context(@ctx).get_resource(url)
     end
 
     # Screenshot of the area of the element.
@@ -256,14 +320,12 @@ module Rod
 
       opts = Cdp::Page::CaptureScreenshot.new
       opts.format = format
-      opts.quality = quality == 0 ? nil : quality
+      opts.quality = quality == 0 ? nil : quality.to_i64
 
       bin = @page.screenshot(false, opts)
 
       shape_result = shape
-      # Convert quads to JSON::Any for Quad.box
-      json_quads = shape_result.quads.map { |q| ::JSON::Any.new(q) }
-      if box_tuple = Rod::Lib::Quad.box(json_quads)
+      if box_tuple = Rod::Lib::Quad.box(shape_result.quads)
         x, y, width, height = box_tuple
         Rod::Lib::Utils.crop_image(bin, quality,
           x.to_i,
@@ -298,13 +360,11 @@ module Rod
     # If not interactable raises an error (NotInteractableError or subtypes).
     # Returns a point inside the element that can be used for interaction.
     def interactable : Point
-      # Check pointer-events CSS property
       no_pointer_events = evaluate("() => getComputedStyle(this).pointerEvents === 'none'")
-      if no_pointer_events.value.as_bool?
+      if no_pointer_events.value.try(&.as_bool?) == true
         raise NoPointerEventsError.new(self)
       end
 
-      # Get shape
       shape_result = shape
       quads = shape_result.quads
       point = Rod::Lib::Quad.one_point_inside(quads)
@@ -312,53 +372,88 @@ module Rod
         raise InvisibleShapeError.new(self)
       end
 
-      # TODO: Check if element is covered by another element
-      # For now, assume it's not covered
-      point
+      pt = point.not_nil!
+      root = @page
+      while iframe_el = root.element
+        root = iframe_el.page
+      end
+
+      scroll = root.context(@ctx).eval("() => ({ x: window.scrollX, y: window.scrollY })").value
+      scroll_x = scroll.try(&.[]?("x")).try(&.as_f?) || 0.0
+      scroll_y = scroll.try(&.[]?("y")).try(&.as_f?) || 0.0
+
+      x = (pt.x + scroll_x).to_i
+      y = (pt.y + scroll_y).to_i
+
+      begin
+        el_at_point = @page.context(@ctx).element_from_point(x, y)
+        covered = begin
+          !contains_element(el_at_point)
+        rescue ex
+          # Cross-world object checks can happen in nested frame contexts.
+          msg = ex.message.to_s
+          if msg.includes?("same JavaScript world")
+            false
+          else
+            raise ex
+          end
+        end
+        raise CoveredError.new(el_at_point) if covered
+      rescue ex
+        msg = ex.message.to_s
+        if msg.includes?(::Cdp::ErrNodeNotFoundAtPos.message)
+          raise InvisibleShapeError.new(self)
+        end
+        raise ex
+      end
+
+      pt
     end
 
     # WaitInteractable waits for the element to become interactable.
     # Returns a point inside the element that can be used for interaction.
     def wait_interactable(timeout : Time::Span = 5.seconds) : Point
-      # Check context cancellation before starting
       if @ctx.cancelled?
-        raise @ctx.err if @ctx.err
-        raise ContextCanceledError.new("context cancelled")
+        raise(@ctx.err || ContextCanceledError.new("context cancelled"))
       end
 
-      # Calculate effective timeout considering context deadline
       effective_timeout = @ctx.timeout_remaining(timeout)
       if effective_timeout <= Time::Span::ZERO
         raise TimeoutError.new("Timeout waiting for interactable (context deadline exceeded)")
       end
 
-      start = Time.monotonic
-      loop do
-        # Check context cancellation each iteration
-        if @ctx.cancelled?
-          raise @ctx.err if @ctx.err
-          raise ContextCanceledError.new("context cancelled")
-        end
-
+      deadline = Time.instant + effective_timeout
+      out : Point? = nil
+      err = Rod::Lib::Utils.retry(@ctx, @sleeper.call) do
         begin
-          return interactable
-        rescue e : RodError
-          if Rod.is?(e, NotInteractableError)
-            if Time.monotonic - start > effective_timeout
-              raise e
-            end
-            sleep(100.milliseconds)
+          scroll_into_view
+          out = interactable
+          {true, nil}
+        rescue ex : CoveredError
+          if Time.instant >= deadline
+            {true, ex}
           else
-            raise e
+            {false, nil}
           end
+        rescue ex : RodError
+          if Time.instant >= deadline
+            {true, ex}
+          else
+            {true, ex}
+          end
+        rescue ex
+          {true, ex}
         end
       end
+
+      raise err if err
+      out.not_nil!
     end
 
     # Get element text content
     def text : String
-      result = evaluate("() => this.textContent || this.innerText || ''")
-      result.value.to_s
+      result = evaluate(@page.eval_helper(Rod::JS::TEXT))
+      result.value.try(&.as_s?) || ""
     end
 
     # Get element HTML
@@ -383,7 +478,7 @@ module Rod
     # Get property value
     def property(name : String) : JSON::Any
       result = evaluate("(name) => this[name]", name)
-      result.value
+      result.value || JSON::Any.new(nil)
     end
 
     # Set attribute
@@ -396,15 +491,27 @@ module Rod
     def input(text : String) : Nil
       focus
       wait_enabled
-      # TODO: Implement WaitWritable
-      # Clear existing value by selecting all and replacing
-      evaluate("() => {
-        this.select();
-        this.value = '';
-      }")
-      # Use page.insert_text to simulate text input
-      @page.insert_text(text)
-      # TODO: Trigger input event
+      wait_writable
+
+      insert_error : Exception? = nil
+      begin
+        @page.insert_text(text)
+      rescue ex
+        insert_error = ex
+      end
+
+      begin
+        evaluate(<<-JS)
+          () => {
+            this.dispatchEvent(new Event("input", { bubbles: true }));
+            this.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+        JS
+      rescue
+        # Match Go behavior: ignore synthetic event errors.
+      end
+
+      raise insert_error.not_nil! if insert_error
     end
 
     # Check if element is visible
@@ -418,13 +525,13 @@ module Rod
         }
         JS
       )
-      result.value.as_bool? || false
+      result.value.try(&.as_bool?) || false
     end
 
     # Check if element is enabled
     def enabled? : Bool
       result = evaluate("() => !this.disabled")
-      result.value.as_bool? || false
+      result.value.try(&.as_bool?) || false
     end
 
     # Disabled checks if the element is disabled.
@@ -446,7 +553,7 @@ module Rod
     def select(selectors : Array(String), selected : Bool = true, t : String = SelectorType::Text) : Nil
       focus
       # TODO: trace and slow motion
-      res = @page.evaluate(@page.eval_helper(Rod::JS::SELECT, selectors, selected, t).by_user)
+      res = evaluate(@page.eval_helper(Rod::JS::SELECT, selectors, selected, t).by_user)
       unless res.value.try(&.as_bool?) == true
         raise NotFoundError.new("Element not found")
       end
@@ -455,13 +562,15 @@ module Rod
     # Equal checks if two elements are the same.
     def equal(elm : Element) : Bool
       result = evaluate("(elm) => this === elm", elm.object)
-      result.value.as_bool? || false
+      result.value.try(&.as_bool?) || false
     end
 
     # GetXPath returns the xpath of the element.
     def get_xpath(optimized : Bool = false) : String
-      res = @page.evaluate(@page.eval_helper(Rod::JS::GET_XPATH, optimized).by_value)
-      res.value.as_s? || ""
+      opts = @page.eval_helper(Rod::JS::GET_XPATH, optimized)
+      opts.by_value = true
+      res = @page.evaluate(opts)
+      res.value.try(&.as_s?) || ""
     end
 
     # WaitLoad for element like <img>.
@@ -489,7 +598,9 @@ module Rod
       last_shape = shape.to_json
       loop do
         if @ctx.cancelled?
-          raise @ctx.err if @ctx.err
+          if err = @ctx.err
+            raise err
+          end
           raise ContextCanceledError.new("context cancelled")
         end
 
@@ -498,6 +609,11 @@ module Rod
         break if current_shape == last_shape
         last_shape = current_shape
       end
+    end
+
+    # Wait until the js returns true with this element bound as `this`.
+    def wait(opts : EvalOptions) : Nil
+      @page.context(@ctx).sleeper(@sleeper).wait(opts.this(@object))
     end
 
     # Wait for element to be visible
@@ -510,6 +626,14 @@ module Rod
       wait_for(timeout) { enabled? }
     end
 
+    # Wait until the element is writable (not readonly).
+    def wait_writable(timeout : Time::Span = 5.seconds) : Nil
+      wait_for(timeout) do
+        result = evaluate("() => !this.readonly")
+        result.value.try(&.as_bool?) || false
+      end
+    end
+
     # Wait for element to be invisible
     def wait_invisible(timeout : Time::Span = 5.seconds) : Nil
       wait_for(timeout) { !visible? }
@@ -517,27 +641,60 @@ module Rod
 
     # Release the remote object
     def release : Nil
-      if @object.object_id
-        # TODO: Call Runtime.releaseObject
-      end
+      @page.context(@ctx).release(@object)
     end
 
     # Remove element from DOM
     def remove : Nil
       evaluate("() => this.remove()")
+      release
     end
 
     # Evaluate JavaScript with this element as context
     def evaluate(js : String, *params) : ::Cdp::Runtime::RemoteObject
-      # TODO: Implement proper evaluation with element as context
-      # For now, use page.evaluate
-      @page.evaluate(js, params.to_a)
+      js_args = [] of EvalOptions::JsArg
+      params.each do |param|
+        case param
+        when JSON::Any, JS::Function, ::Cdp::Runtime::RemoteObject, String, Int32, Int64, Float64, Bool, Nil
+          js_args << param
+        else
+          js_args << JSON.parse(param.to_json)
+        end
+      end
+
+      opts = EvalOptions.new(
+        by_value: true,
+        await_promise: false,
+        this_obj: @object,
+        js: js,
+        js_args: js_args,
+        user_gesture: false
+      )
+      @page.evaluate(opts)
+    end
+
+    # Eval is a shortcut for evaluate with AwaitPromise enabled.
+    def eval(js : String, *params) : ::Cdp::Runtime::RemoteObject
+      opts = @page.eval_opts(js, *params)
+      opts.await_promise = true
+      evaluate(opts)
+    end
+
+    # Evaluate is a shortcut of Page.evaluate with this object bound as `this`.
+    def evaluate(opts : EvalOptions) : ::Cdp::Runtime::RemoteObject
+      @page.context(@ctx).evaluate(opts.this(@object))
     end
 
     # Find element using JavaScript function with this element as context.
     def element_by_js(opts : EvalOptions) : Element
       opts_with_this = opts.this(@object)
       @page.element_by_js(opts_with_this)
+    end
+
+    # Find elements using JavaScript function with this element as context.
+    def elements_by_js(opts : EvalOptions) : Elements
+      opts_with_this = opts.this(@object)
+      @page.elements_by_js(opts_with_this)
     end
 
     # Check if child element exists matching the CSS selector.
@@ -570,7 +727,7 @@ module Rod
     # Matches checks if the element can be selected by the css selector.
     def matches(selector : String) : Bool
       result = evaluate("(s) => this.matches(s)", selector)
-      result.value.as_bool
+      result.value.try(&.as_bool?) || false
     end
 
     # ContainsElement check if the target is equal or inside the element.
@@ -584,7 +741,7 @@ module Rod
         }
       JS
       result = evaluate(js, target.object)
-      result.value.as_bool
+      result.value.try(&.as_bool?) || false
     end
 
     # Describe the current element. The depth is the maximum depth at which children should be retrieved, defaults to 1,
@@ -601,7 +758,7 @@ module Rod
         depth: depth.to_i64,
         pierce: pierce
       )
-      result = req.call(self)
+      result = req.call(@page)
       result.node
     end
 
@@ -621,46 +778,70 @@ module Rod
         object_group: nil,
         execution_context_id: nil
       )
-      result = req.call(self)
+      result = req.call(@page)
       Element.new(result.object, @page)
     end
 
     # Frame creates a page instance that represents the iframe.
-    def frame : Page?
+    # Go parity: returns a cloned page even when frame_id is empty.
+    def frame : Page
       node = describe(1, false)
-      frame_id = node.frame_id
-      return nil unless frame_id
+      frame_id = node.frame_id || ""
 
       # Clone page with new frame ID
-      clone = Page.new(@page.browser, @page.target_id, @page.session_id, frame_id, @page.ctx, @sleeper, self)
+      session_id = @page.session_id.try { |sid| SessionID.new(sid) }
+      clone = Page.new(@page.browser, @page.target_id, session_id, FrameID.new(frame_id), @page.ctx, @sleeper, self)
       clone
     end
 
     # Find single child element by CSS selector.
     # Raises NotFoundError if element not found.
     def element(selector : String) : Element
-      opts = EvalOptions.new(js: "function(selector) { return this.querySelector(selector) }", js_args: [selector])
+      opts = EvalOptions.new(
+        js: "/* rod.element */ function(selector) { return this.querySelector(selector) }",
+        js_args: [::JSON::Any.new(selector)] of EvalOptions::JsArg
+      )
       element_by_js(opts)
     end
 
     # Find single child element by XPath selector.
     # Raises NotFoundError if element not found.
     def element_x(xpath : String) : Element
-      opts = EvalOptions.new(js: "function(xpath) { return document.evaluate(xpath, this, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue }", js_args: [xpath])
+      opts = EvalOptions.new(
+        js: "function(xpath) { return document.evaluate(xpath, this, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue }",
+        js_args: [::JSON::Any.new(xpath)] of EvalOptions::JsArg
+      )
       element_by_js(opts)
     end
 
     # Find single child element by CSS selector with text matching regex.
     # Raises NotFoundError if element not found.
     def element_r(selector : String, regex : String) : Element
-      opts = EvalOptions.new(js: "function(selector, regex) { const els = this.querySelectorAll(selector); const re = new RegExp(regex); for (const el of els) { if (re.test(el.textContent || el.innerText || '')) return el; } return null; }", js_args: [selector, regex])
+      opts = EvalOptions.new(
+        js: "function(selector, regex) { const els = this.querySelectorAll(selector); const re = new RegExp(regex); for (const el of els) { if (re.test(el.textContent || el.innerText || '')) return el; } return null; }",
+        js_args: [::JSON::Any.new(selector), ::JSON::Any.new(regex)] of EvalOptions::JsArg
+      )
       element_by_js(opts)
     end
 
     # Find all child elements matching CSS selector.
     # Returns empty Elements if none found.
     def elements(selector : String) : Elements
-      opts = EvalOptions.new(js: "function(selector) { return Array.from(this.querySelectorAll(selector)) }", js_args: [selector])
+      opts = EvalOptions.new(
+        js: "/* rod.elements */ function(selector) { return Array.from(this.querySelectorAll(selector)) }",
+        js_args: [::JSON::Any.new(selector)] of EvalOptions::JsArg,
+        this_obj: @object
+      )
+      @page.elements_by_js(opts)
+    end
+
+    # Find all child elements matching XPath selector.
+    # Returns empty Elements if none found.
+    def elements_x(xpath : String) : Elements
+      opts = EvalOptions.new(
+        js: "function(xpath) { const out = []; const it = document.evaluate(xpath, this, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null); let n; while (n = it.iterateNext()) out.push(n); return out; }",
+        js_args: [::JSON::Any.new(xpath)] of EvalOptions::JsArg
+      )
       @page.elements_by_js(opts)
     end
 
@@ -689,7 +870,8 @@ module Rod
           return parents;
         }
         JS
-      opts = EvalOptions.new(js: js, js_args: selector ? [selector] : [] of String)
+      js_args = selector ? [::JSON::Any.new(selector)] of EvalOptions::JsArg : [] of EvalOptions::JsArg
+      opts = EvalOptions.new(js: js, js_args: js_args)
       @page.elements_by_js(opts)
     end
 
@@ -721,7 +903,9 @@ module Rod
     private def wait_for(timeout : Time::Span = 5.seconds, &block : -> Bool) : Nil
       # Check context cancellation before starting
       if @ctx.cancelled?
-        raise @ctx.err if @ctx.err
+        if err = @ctx.err
+          raise err
+        end
         raise ContextCanceledError.new("context cancelled")
       end
 
@@ -731,15 +915,17 @@ module Rod
         raise TimeoutError.new("Timeout waiting for condition (context deadline exceeded)")
       end
 
-      start_time = Time.monotonic
+      start_time = Time.instant
       until block.call
         # Check context cancellation each iteration
         if @ctx.cancelled?
-          raise @ctx.err if @ctx.err
+          if err = @ctx.err
+            raise err
+          end
           raise ContextCanceledError.new("context cancelled")
         end
 
-        elapsed = Time.monotonic - start_time
+        elapsed = Time.instant - start_time
         if elapsed > effective_timeout
           raise TimeoutError.new("Timeout waiting for condition")
         end

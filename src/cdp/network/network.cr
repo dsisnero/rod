@@ -411,9 +411,7 @@ module Cdp::Network
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetCookiesResult
-      res = GetCookiesResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetCookiesResult, c)
     end
   end
 

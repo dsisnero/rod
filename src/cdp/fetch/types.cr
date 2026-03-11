@@ -21,6 +21,13 @@ module Cdp::Fetch
     property resource_type : Cdp::Network::ResourceType?
     @[JSON::Field(key: "requestStage", emit_null: false)]
     property request_stage : RequestStage?
+
+    def initialize(
+      @url_pattern : String? = nil,
+      @resource_type : Cdp::Network::ResourceType? = nil,
+      @request_stage : RequestStage? = nil,
+    )
+    end
   end
 
   struct HeaderEntry
@@ -29,6 +36,9 @@ module Cdp::Fetch
     property name : String
     @[JSON::Field(key: "value", emit_null: false)]
     property value : String
+
+    def initialize(@name : String, @value : String)
+    end
   end
 
   struct AuthChallenge
@@ -51,6 +61,9 @@ module Cdp::Fetch
     property username : String?
     @[JSON::Field(key: "password", emit_null: false)]
     property password : String?
+
+    def initialize(@response : AuthChallengeResponseResponse, @username : String? = nil, @password : String? = nil)
+    end
   end
 
   alias AuthChallengeSource = String

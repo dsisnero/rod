@@ -1,16 +1,12 @@
+---
 name: rod
 version: 0.1.0
-
 authors:
-  - Dominic Sisneros <dsisnero@gmail.com>
-
-crystal: '>= 1.19.1'
-
+- Dominic Sisneros <dsisnero@gmail.com>
+crystal: ">= 1.19.1"
 license: MIT
-
 executables:
-  - pdlgen
-
+- pdlgen
 dependencies:
   protobuf:
     github: jeromegn/protobuf.cr
@@ -18,15 +14,16 @@ dependencies:
     github: dsisnero/similar.cr
   event_handler:
     github: crystallabs/event_handler
-    version: ~> 1.0
+    version: "~> 1.0"
   goob:
-    path: lib/goob
+    path: ../goob
   gson:
-    path: lib/gson
+    path: ../gson
   pluto:
     github: phenopolis/pluto
-
+  crimage:
+    github: naqvis/crimage
 development_dependencies:
   ameba:
     github: crystal-ameba/ameba
-    version: ~> 1.0
+    version: "~> 1.0"

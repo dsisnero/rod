@@ -144,34 +144,41 @@ module Rod
       element : Element? = nil
 
       err = ::Rod::Lib::Utils.retry(@page.ctx, @page.sleeper.call) do
+        stop = false
+        stop_error : Exception? = nil
+
         @branches.each do |branch|
           begin
-            element = branch.condition.call(@page)
+            found = branch.condition.call(@page)
+            element = found
 
             # Run callback if exists
             if callback = branch.callback
-              callback.call(element)
+              callback.call(found)
             end
 
             # Found element, stop retrying
-            return {true, nil}
+            stop = true
+            break
           rescue ex : NotFoundError
             # Element not found, try next branch
             next
           rescue ex : Exception
             # Other error, stop retrying
-            return {true, ex}
+            stop = true
+            stop_error = ex
+            break
           end
         end
 
-        # All branches failed with NotFoundError
-        {false, nil}
+        {stop, stop_error}
       end
 
       if err
         raise err
       end
 
+      raise NotFoundError.new("Element not found") unless element
       element.not_nil!
     end
   end

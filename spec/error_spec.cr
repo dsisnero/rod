@@ -1,6 +1,13 @@
 require "spec"
 require "../src/rod"
 
+private def build_test_element : Rod::Element
+  browser = Rod::Browser.new
+  page = Rod::Page.new(browser, Rod::TargetID.new("target-id"))
+  remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type":"object","description":"div"}))
+  Rod::Element.new(remote_obj, page)
+end
+
 describe Rod::TryError do
   it "initializes with value and stack" do
     err = Rod::TryError.new("test value", "stack trace")
@@ -145,75 +152,55 @@ describe Rod::NotInteractableError do
 end
 
 describe Rod::InvisibleShapeError do
-  pending
-  #   it "initializes with element" do
-  #     page = Rod::Page.new(nil)
-  #     remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
-  #     element = Rod::Element.new(remote_obj, page)
-  #     err = Rod::InvisibleShapeError.new(element)
-  #     err.message.as(String).should contain("element has no visible shape or outside the viewport")
-  #     err.element.should eq(element)
-  #   end
+  it "initializes with element" do
+    element = build_test_element
+    err = Rod::InvisibleShapeError.new(element)
+    err.message.as(String).should contain("element has no visible shape or outside the viewport")
+    err.element.should eq(element)
+  end
 
-  #   it "unwrap returns NotInteractableError" do
-  #     page = Rod::Page.new(nil)
-  #     remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
-  #     element = Rod::Element.new(remote_obj, page)
-  #     err = Rod::InvisibleShapeError.new(element)
-  #     unwrapped = err.unwrap
-  #     unwrapped.should be_a(Rod::NotInteractableError)
-  #   end
+  it "unwrap returns NotInteractableError" do
+    element = build_test_element
+    err = Rod::InvisibleShapeError.new(element)
+    err.unwrap.should be_a(Rod::NotInteractableError)
+  end
 
-  #   it "is? returns true for InvisibleShapeError" do
-  #     page = Rod::Page.new(nil)
-  #     remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
-  #     element = Rod::Element.new(remote_obj, page)
-  #     err = Rod::InvisibleShapeError.new(element)
-  #     err.is?(Rod::InvisibleShapeError).should be_true
-  #     err.is?(Rod::CoveredError).should be_false
-  #   end
+  it "is? returns true for InvisibleShapeError" do
+    element = build_test_element
+    err = Rod::InvisibleShapeError.new(element)
+    err.is?(Rod::InvisibleShapeError).should be_true
+    err.is?(Rod::CoveredError).should be_false
+  end
 end
 
 describe Rod::CoveredError do
-  pending
-  #   it "initializes with element" do
-  #     page = Rod::Page.new(nil)
-  #     remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
-  #     element = Rod::Element.new(remote_obj, page)
-  #     err = Rod::CoveredError.new(element)
-  #     err.message.as(String).should contain("element covered by")
-  #     err.element.should eq(element)
-  #   end
+  it "initializes with element" do
+    element = build_test_element
+    err = Rod::CoveredError.new(element)
+    err.message.as(String).should contain("element covered by")
+    err.element.should eq(element)
+  end
 
-  #   it "unwrap returns NotInteractableError" do
-  #     page = Rod::Page.new(nil)
-  #     remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
-  #     element = Rod::Element.new(remote_obj, page)
-  #     err = Rod::CoveredError.new(element)
-  #     unwrapped = err.unwrap
-  #     unwrapped.should be_a(Rod::NotInteractableError)
-  #   end
+  it "unwrap returns NotInteractableError" do
+    element = build_test_element
+    err = Rod::CoveredError.new(element)
+    err.unwrap.should be_a(Rod::NotInteractableError)
+  end
 end
 
 describe Rod::NoPointerEventsError do
-  pending
-  #   it "initializes with element" do
-  #     page = Rod::Page.new(nil)
-  #     remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
-  #     element = Rod::Element.new(remote_obj, page)
-  #     err = Rod::NoPointerEventsError.new(element)
-  #     err.message.as(String).should contain("element's pointer-events is none")
-  #     err.element.should eq(element)
-  #   end
+  it "initializes with element" do
+    element = build_test_element
+    err = Rod::NoPointerEventsError.new(element)
+    err.message.as(String).should contain("element's pointer-events is none")
+    err.element.should eq(element)
+  end
 
-  #   it "unwrap returns NotInteractableError" do
-  #     page = Rod::Page.new(nil)
-  #     remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
-  #     element = Rod::Element.new(remote_obj, page)
-  #     err = Rod::NoPointerEventsError.new(element)
-  #     unwrapped = err.unwrap
-  #     unwrapped.should be_a(Rod::NotInteractableError)
-  #   end
+  it "unwrap returns NotInteractableError" do
+    element = build_test_element
+    err = Rod::NoPointerEventsError.new(element)
+    err.unwrap.should be_a(Rod::NotInteractableError)
+  end
 end
 
 describe Rod::PageNotFoundError do
@@ -224,15 +211,12 @@ describe Rod::PageNotFoundError do
 end
 
 describe Rod::NoShadowRootError do
-  pending
-  #   it "initializes with element" do
-  #     page = Rod::Page.new(nil)
-  #     remote_obj = Cdp::Runtime::RemoteObject.from_json(%({"type": "string"}))
-  #     element = Rod::Element.new(remote_obj, page)
-  #     err = Rod::NoShadowRootError.new(element)
-  #     err.message.as(String).should contain("element has no shadow root")
-  #     err.element.should eq(element)
-  #   end
+  it "initializes with element" do
+    element = build_test_element
+    err = Rod::NoShadowRootError.new(element)
+    err.message.as(String).should contain("element has no shadow root")
+    err.element.should eq(element)
+  end
 end
 
 describe "Rod.is?" do

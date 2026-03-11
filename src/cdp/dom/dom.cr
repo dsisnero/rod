@@ -71,6 +71,42 @@ module Cdp::DOM
 
     def initialize(@quads : Array(Quad))
     end
+
+    # OnePointInside returns center point of the first quad with area >= 1.
+    def one_point_inside : Point?
+      @quads.each do |quad|
+        if Cdp::DOM.area(quad) >= 1.0
+          return Cdp::DOM.center(quad)
+        end
+      end
+      nil
+    end
+
+    # Box returns smallest axis-aligned rect covering all quads.
+    def box : Rect?
+      return nil if @quads.empty?
+
+      left = Float64::MAX
+      top = Float64::MAX
+      right = Float64::MIN
+      bottom = Float64::MIN
+
+      @quads.each do |quad|
+        Cdp::DOM.each_point(quad) do |pt|
+          left = pt.x if pt.x < left
+          top = pt.y if pt.y < top
+          right = pt.x if pt.x > right
+          bottom = pt.y if pt.y > bottom
+        end
+      end
+
+      Rect.from_json({
+        "x"      => left,
+        "y"      => top,
+        "width"  => right - left,
+        "height" => bottom - top,
+      }.to_json)
+    end
   end
 
   struct GetDocumentResult
@@ -340,9 +376,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : CollectClassNamesFromSubtreeResult
-      res = CollectClassNamesFromSubtreeResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, CollectClassNamesFromSubtreeResult, c)
     end
   end
 
@@ -367,9 +401,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : CopyToResult
-      res = CopyToResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, CopyToResult, c)
     end
   end
 
@@ -397,9 +429,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : DescribeNodeResult
-      res = DescribeNodeResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, DescribeNodeResult, c)
     end
   end
 
@@ -528,9 +558,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetAttributesResult
-      res = GetAttributesResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetAttributesResult, c)
     end
   end
 
@@ -554,9 +582,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetBoxModelResult
-      res = GetBoxModelResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetBoxModelResult, c)
     end
   end
 
@@ -581,9 +607,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetContentQuadsResult
-      res = GetContentQuadsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetContentQuadsResult, c)
     end
   end
 
@@ -605,9 +629,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetDocumentResult
-      res = GetDocumentResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetDocumentResult, c)
     end
   end
 
@@ -632,9 +654,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetNodesForSubtreeByStyleResult
-      res = GetNodesForSubtreeByStyleResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetNodesForSubtreeByStyleResult, c)
     end
   end
 
@@ -660,9 +680,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetNodeForLocationResult
-      res = GetNodeForLocationResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetNodeForLocationResult, c)
     end
   end
 
@@ -688,9 +706,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetOuterHTMLResult
-      res = GetOuterHTMLResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetOuterHTMLResult, c)
     end
   end
 
@@ -711,9 +727,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetRelayoutBoundaryResult
-      res = GetRelayoutBoundaryResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetRelayoutBoundaryResult, c)
     end
   end
 
@@ -738,9 +752,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetSearchResultsResult
-      res = GetSearchResultsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetSearchResultsResult, c)
     end
   end
 
@@ -783,9 +795,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : MoveToResult
-      res = MoveToResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, MoveToResult, c)
     end
   end
 
@@ -808,9 +818,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : PerformSearchResult
-      res = PerformSearchResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, PerformSearchResult, c)
     end
   end
 
@@ -831,9 +839,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : PushNodeByPathToFrontendResult
-      res = PushNodeByPathToFrontendResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, PushNodeByPathToFrontendResult, c)
     end
   end
 
@@ -854,9 +860,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : PushNodesByBackendIdsToFrontendResult
-      res = PushNodesByBackendIdsToFrontendResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, PushNodesByBackendIdsToFrontendResult, c)
     end
   end
 
@@ -878,9 +882,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : QuerySelectorResult
-      res = QuerySelectorResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, QuerySelectorResult, c)
     end
   end
 
@@ -902,9 +904,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : QuerySelectorAllResult
-      res = QuerySelectorAllResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, QuerySelectorAllResult, c)
     end
   end
 
@@ -923,9 +923,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetTopLayerElementsResult
-      res = GetTopLayerElementsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetTopLayerElementsResult, c)
     end
   end
 
@@ -948,9 +946,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetElementByRelationResult
-      res = GetElementByRelationResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetElementByRelationResult, c)
     end
   end
 
@@ -1055,9 +1051,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : RequestNodeResult
-      res = RequestNodeResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, RequestNodeResult, c)
     end
   end
 
@@ -1083,9 +1077,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : ResolveNodeResult
-      res = ResolveNodeResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, ResolveNodeResult, c)
     end
   end
 
@@ -1201,9 +1193,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetNodeStackTracesResult
-      res = GetNodeStackTracesResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetNodeStackTracesResult, c)
     end
   end
 
@@ -1224,9 +1214,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetFileInfoResult
-      res = GetFileInfoResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetFileInfoResult, c)
     end
   end
 
@@ -1245,9 +1233,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetDetachedDomNodesResult
-      res = GetDetachedDomNodesResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetDetachedDomNodesResult, c)
     end
   end
 
@@ -1290,9 +1276,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SetNodeNameResult
-      res = SetNodeNameResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SetNodeNameResult, c)
     end
   end
 
@@ -1376,9 +1360,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetFrameOwnerResult
-      res = GetFrameOwnerResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetFrameOwnerResult, c)
     end
   end
 
@@ -1409,9 +1391,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetContainerForNodeResult
-      res = GetContainerForNodeResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetContainerForNodeResult, c)
     end
   end
 
@@ -1432,9 +1412,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetQueryingDescendantsForContainerResult
-      res = GetQueryingDescendantsForContainerResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetQueryingDescendantsForContainerResult, c)
     end
   end
 
@@ -1457,9 +1435,7 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetAnchorElementResult
-      res = GetAnchorElementResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetAnchorElementResult, c)
     end
   end
 
@@ -1482,9 +1458,49 @@ module Cdp::DOM
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : ForceShowPopoverResult
-      res = ForceShowPopoverResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, ForceShowPopoverResult, c)
     end
+  end
+end
+
+module Cdp::DOM
+  def self.quad_to_floats(quad : Quad) : Array(Float64)
+    quad.as_a.map(&.as_f)
+  end
+
+  def self.each_point(quad : Quad, & : Point ->) : Nil
+    arr = quad_to_floats(quad)
+    size = arr.size // 2
+    (0...size).each do |i|
+      yield Point.new(arr[i * 2], arr[i * 2 + 1])
+    end
+  end
+
+  # Center returns average point of quad vertices.
+  def self.center(quad : Quad) : Point
+    total_x = 0.0
+    total_y = 0.0
+    count = 0
+    each_point(quad) do |pt|
+      total_x += pt.x
+      total_y += pt.y
+      count += 1
+    end
+    Point.new(total_x / count, total_y / count)
+  end
+
+  # Area computes polygon area using shoelace formula.
+  def self.area(quad : Quad) : Float64
+    arr = quad_to_floats(quad)
+    n = arr.size // 2
+    sum = 0.0
+    (0...n).each do |i|
+      x1 = arr[i * 2]
+      y1 = arr[i * 2 + 1]
+      x2 = arr[((i + 1) % n) * 2]
+      y2 = arr[((i + 1) % n) * 2 + 1]
+      sum += x1 * y2 - x2 * y1
+    end
+    sum.abs / 2.0
   end
 end

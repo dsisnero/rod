@@ -27,6 +27,27 @@ module Cdp::Input
     property twist : Int64?
     @[JSON::Field(key: "id", emit_null: false)]
     property id : Float64?
+
+    def initialize(
+      @x : Float64,
+      @y : Float64,
+      @radius_x : Float64? = nil,
+      @radius_y : Float64? = nil,
+      @rotation_angle : Float64? = nil,
+      @force : Float64? = nil,
+      @tangential_pressure : Float64? = nil,
+      @tilt_x : Float64? = nil,
+      @tilt_y : Float64? = nil,
+      @twist : Int64? = nil,
+      @id : Float64? = nil,
+    )
+    end
+
+    # MoveTo updates X and Y coordinates.
+    def move_to(x : Float64, y : Float64) : Nil
+      @x = x
+      @y = y
+    end
   end
 
   @[Experimental]
@@ -71,7 +92,6 @@ module Cdp::Input
 
   @[Flags]
   enum Modifier : Int64
-    None
     Alt
     Ctrl
     Meta
@@ -99,8 +119,8 @@ module Cdp::Input
   MouseWheel    = "mouseWheel"
 
   alias DispatchMouseEventPointerType = String
-  Mouse = "mouse"
-  Pen   = "pen"
+  DispatchMouseEventPointerTypeMouse = "mouse"
+  DispatchMouseEventPointerTypePen   = "pen"
 
   alias TouchType = String
   TouchStart  = "touchStart"

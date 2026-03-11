@@ -1,6 +1,7 @@
 require "mutex"
 require "./types"
 require "./lib/input/input"
+require "../cdp/input/input"
 
 module Rod
   # Mouse represents the mouse on a page, it's always related the main frame.
@@ -35,10 +36,10 @@ module Rod
           type: "mouseMoved",
           x: p.x,
           y: p.y,
-          modifiers: @page.keyboard.modifiers,
+          modifiers: @page.keyboard.modifiers.to_i64,
           timestamp: nil,
           button: button,
-          buttons: buttons,
+          buttons: buttons.to_i64,
           click_count: nil,
           force: nil,
           tangential_pressure: nil,
@@ -114,10 +115,10 @@ module Rod
             type: "mouseWheel",
             x: @pos.x,
             y: @pos.y,
-            modifiers: @page.keyboard.modifiers,
+            modifiers: @page.keyboard.modifiers.to_i64,
             timestamp: nil,
             button: button,
-            buttons: buttons,
+            buttons: buttons.to_i64,
             click_count: nil,
             force: nil,
             tangential_pressure: nil,
@@ -143,11 +144,11 @@ module Rod
           type: "mousePressed",
           x: @pos.x,
           y: @pos.y,
-          modifiers: @page.keyboard.modifiers,
+          modifiers: @page.keyboard.modifiers.to_i64,
           timestamp: nil,
           button: button,
-          buttons: buttons,
-          click_count: click_count,
+          buttons: buttons.to_i64,
+          click_count: click_count.to_i64,
           force: nil,
           tangential_pressure: nil,
           tilt_x: nil,
@@ -172,11 +173,11 @@ module Rod
           type: "mouseReleased",
           x: @pos.x,
           y: @pos.y,
-          modifiers: @page.keyboard.modifiers,
+          modifiers: @page.keyboard.modifiers.to_i64,
           timestamp: nil,
           button: button,
-          buttons: buttons,
-          click_count: click_count,
+          buttons: buttons.to_i64,
+          click_count: click_count.to_i64,
           force: nil,
           tangential_pressure: nil,
           tilt_x: nil,

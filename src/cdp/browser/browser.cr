@@ -249,9 +249,7 @@ module Cdp::Browser
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetVersionResult
-      res = GetVersionResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetVersionResult, c)
     end
   end
 
@@ -270,9 +268,7 @@ module Cdp::Browser
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetBrowserCommandLineResult
-      res = GetBrowserCommandLineResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetBrowserCommandLineResult, c)
     end
   end
 
@@ -295,9 +291,7 @@ module Cdp::Browser
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetHistogramsResult
-      res = GetHistogramsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetHistogramsResult, c)
     end
   end
 
@@ -320,9 +314,7 @@ module Cdp::Browser
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetHistogramResult
-      res = GetHistogramResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetHistogramResult, c)
     end
   end
 
@@ -343,9 +335,7 @@ module Cdp::Browser
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetWindowBoundsResult
-      res = GetWindowBoundsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetWindowBoundsResult, c)
     end
   end
 
@@ -366,9 +356,7 @@ module Cdp::Browser
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetWindowForTargetResult
-      res = GetWindowForTargetResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetWindowForTargetResult, c)
     end
   end
 

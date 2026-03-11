@@ -13,7 +13,7 @@ module Rod::Lib
     end
 
     # Regular expression to match WebSocket URL in browser output
-    WS_REGEX = /ws:\/\/.+\//
+    WS_REGEX = /ws:\/\/\S+/
 
     private def to_http(uri : URI) : URI
       new_uri = uri.dup
@@ -88,9 +88,7 @@ module Rod::Lib
           str = match[0].strip
           begin
             uri = URI.parse(str)
-            host = uri.host
-            host = "#{host}:#{uri.port}" if uri.port
-            http_url = "http://#{host}"
+            ws_url = uri.to_s
 
             # Context cancellation
             send_url = true
@@ -100,7 +98,7 @@ module Rod::Lib
 
             if send_url
               begin
-                @url.send(http_url)
+                @url.send(ws_url)
               rescue Channel::ClosedError
                 # Channel closed, ignore
               end
@@ -122,15 +120,14 @@ module Rod::Lib
     end
 
     # Get error message from buffer
-    def error : String?
+    def error : String
       @lock.synchronize do
         if @buffer.includes?("error while loading shared libraries")
           return "[launcher] Failed to launch the browser, the doc might help https://go-rod.github.io/#/compatibility?id=os: #{@buffer}"
         end
 
-        return "[launcher] Failed to get the debug url: #{@buffer}" unless @buffer.empty?
+        return "[launcher] Failed to get the debug url: #{@buffer}"
       end
-      nil
     end
 
     # Resolve URL by requesting the JSON version endpoint
@@ -175,8 +172,6 @@ module Rod::Lib
       ws_uri.port = uri.port
 
       ws_uri.to_s
-    rescue ex
-      raise "Failed to resolve debug URL: #{ex.message}"
     end
 
     # MustResolveURL variant that raises on error

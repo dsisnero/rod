@@ -21,8 +21,8 @@ module Rod
 
   # Element not found error
   class NotFoundError < RodError
-    def initialize(message : String = "Element not found")
-      super(message)
+    def initialize(message : String = "Element not found", cause : Exception? = nil)
+      super(message, cause: cause)
     end
   end
 

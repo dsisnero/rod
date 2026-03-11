@@ -7,11 +7,18 @@ module Rod::Lib::Cdp
   struct Request
     include JSON::Serializable
     property id : Int32
+    @[JSON::Field(key: "sessionId", emit_null: false)]
     property session_id : String?
     property method : String
     property params : JSON::Any?
 
     def initialize(@id, @method, @params = nil, @session_id = nil)
+    end
+
+    def to_s : String
+      sid = (@session_id || "").ljust(8, ' ')[0, 8].gsub(' ', '0')
+      body = @params ? @params.to_json : "null"
+      "=> ##{@id} @#{sid} #{@method} #{body}"
     end
   end
 
@@ -24,16 +31,32 @@ module Rod::Lib::Cdp
 
     def initialize(@id, @result = nil, @error = nil)
     end
+
+    def to_s : String
+      if err = @error
+        "<= ##{@id} error: #{err.to_json}"
+      else
+        body = @result ? @result.to_json : "null"
+        "<= ##{@id} #{body}"
+      end
+    end
   end
 
   # Event from browser.
   struct Event
     include JSON::Serializable
+    @[JSON::Field(key: "sessionId", emit_null: false)]
     property session_id : String?
     property method : String
     property params : JSON::Any?
 
     def initialize(@method, @params = nil, @session_id = nil)
+    end
+
+    def to_s : String
+      sid = (@session_id || "").ljust(8, ' ')[0, 8].gsub(' ', '0')
+      body = @params ? @params.to_json : "null"
+      "<- @#{sid} #{@method} #{body}"
     end
   end
 
@@ -42,12 +65,28 @@ module Rod::Lib::Cdp
     include JSON::Serializable
     property code : Int32
     property message : String
+    @[JSON::Field(emit_null: false)]
+    property data : JSON::Any?
 
-    def initialize(@code, @message)
+    def initialize(@code, @message, @data = JSON::Any.new(""))
     end
 
     def to_s : String
-      "#{message} (#{code})"
+      data_str = begin
+        raw = @data.try(&.raw)
+        if raw.nil?
+          ""
+        elsif raw.is_a?(String)
+          raw.as(String)
+        else
+          @data.not_nil!.to_json
+        end
+      end
+      "{#{code} #{message} #{data_str}}"
+    end
+
+    def is?(other : Error) : Bool
+      code == other.code && message == other.message && data == other.data
     end
   end
 
@@ -56,12 +95,18 @@ module Rod::Lib::Cdp
     @count = Atomic(Int32).new(0)
     @pending = {} of Int32 => Channel(Result)
     @pending_lock = Mutex.new
-    @event_channel = Channel(Event).new
+    @event_channel = Channel(Event).new(1024)
     @ws : WebSocket?
     @logger : ::Log?
 
     # New creates a cdp connection, all messages from Client.event must be received or they will block the client.
     def initialize(@logger : ::Log? = nil)
+    end
+
+    # Logger sets logger and returns self for fluent chaining.
+    def logger(logger : ::Log?) : self
+      @logger = logger
+      self
     end
 
     # Start to browser.
@@ -95,17 +140,35 @@ module Rod::Lib::Cdp
         raise ex
       end
 
-      select
-      when result = done.receive
-        @pending_lock.synchronize { @pending.delete(id) }
-        if result.error
-          raise result.error.to_s
-        else
-          result.msg.to_s.to_slice
+      if ctx = context.as?(Rod::Context)
+        select
+        when result = done.receive
+          @pending_lock.synchronize { @pending.delete(id) }
+          if result.error
+            raise result.error.to_s
+          else
+            result.msg.to_json.to_slice
+          end
+        when ctx.done.receive?
+          @pending_lock.synchronize { @pending.delete(id) }
+          raise(ctx.err || Rod::ContextCanceledError.new("context cancelled"))
+        when timeout 30.seconds
+          @pending_lock.synchronize { @pending.delete(id) }
+          raise "CDP call timeout"
         end
-      when timeout 30.seconds
-        @pending_lock.synchronize { @pending.delete(id) }
-        raise "CDP call timeout"
+      else
+        select
+        when result = done.receive
+          @pending_lock.synchronize { @pending.delete(id) }
+          if result.error
+            raise result.error.to_s
+          else
+            result.msg.to_json.to_slice
+          end
+        when timeout 30.seconds
+          @pending_lock.synchronize { @pending.delete(id) }
+          raise "CDP call timeout"
+        end
       end
     end
 
@@ -116,23 +179,28 @@ module Rod::Lib::Cdp
 
     # Consume messages coming from the browser via the websocket.
     private def consume_messages
-      ws = @ws.not_nil!
+      ws = @ws
+      return unless ws
       loop do
         data = ws.read
-        json = JSON.parse(String.new(data))
+        envelope = MessageEnvelope.from_json(String.new(data))
 
-        id = json["id"]?.try &.as_i
+        id = envelope.id
         if id.nil?
           # Event
-          evt = Event.from_json(json.to_json)
-          @logger.try &.info { "CDP event: #{json}" }
+          evt = Event.new(
+            method: envelope.method || "",
+            params: envelope.params,
+            session_id: envelope.session_id
+          )
+          @logger.try &.info { "CDP event: #{evt.to_json}" }
           @event_channel.send(evt)
           next
         end
 
         # Response
-        res = Response.from_json(json.to_json)
-        @logger.try &.info { "CDP response: #{json}" }
+        res = Response.new(id, envelope.result, envelope.error)
+        @logger.try &.info { "CDP response: #{res.to_json}" }
 
         @pending_lock.synchronize do
           if channel = @pending[id]?
@@ -142,8 +210,8 @@ module Rod::Lib::Cdp
       rescue ex
         # Handle error: notify all pending requests
         @pending_lock.synchronize do
-          @pending.each_value do |ch|
-            ch.send(Result.new(nil, Error.new(0, ex.message.to_s)))
+          @pending.each_value do |channel|
+            channel.send(Result.new(nil, Error.new(0, ex.message.to_s)))
           end
           @pending.clear
         end
@@ -158,6 +226,18 @@ module Rod::Lib::Cdp
 
       def initialize(@msg = nil, @error = nil)
       end
+    end
+
+    private struct MessageEnvelope
+      include JSON::Serializable
+
+      property id : Int32?
+      property method : String?
+      property params : JSON::Any?
+      property result : JSON::Any?
+      property error : Error?
+      @[JSON::Field(key: "sessionId", emit_null: false)]
+      property session_id : String?
     end
   end
 end

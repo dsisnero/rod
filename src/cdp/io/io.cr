@@ -19,6 +19,12 @@ module Cdp::IO
 
     def initialize(@base64_encoded : Bool?, @data : String, @eof : Bool)
     end
+
+    def initialize
+      @base64_encoded = nil
+      @data = ""
+      @eof = false
+    end
   end
 
   struct ResolveBlobResult
@@ -27,6 +33,10 @@ module Cdp::IO
     property uuid : String
 
     def initialize(@uuid : String)
+    end
+
+    def initialize
+      @uuid = ""
     end
   end
 
@@ -71,9 +81,7 @@ module Cdp::IO
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : ReadResult
-      res = ReadResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, ReadResult, c)
     end
   end
 
@@ -93,9 +101,7 @@ module Cdp::IO
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : ResolveBlobResult
-      res = ResolveBlobResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, ResolveBlobResult, c)
     end
   end
 end

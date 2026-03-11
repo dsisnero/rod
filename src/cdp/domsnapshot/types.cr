@@ -142,11 +142,11 @@ module Cdp::DOMSnapshot
   struct DocumentSnapshot
     include JSON::Serializable
     @[JSON::Field(key: "documentUrl", emit_null: false)]
-    property document_url : StringIndex
+    property document_url : StringIndex?
     @[JSON::Field(key: "title", emit_null: false)]
     property title : StringIndex
     @[JSON::Field(key: "baseUrl", emit_null: false)]
-    property base_url : StringIndex
+    property base_url : StringIndex?
     @[JSON::Field(key: "contentLanguage", emit_null: false)]
     property content_language : StringIndex
     @[JSON::Field(key: "encodingName", emit_null: false)]

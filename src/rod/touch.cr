@@ -20,7 +20,7 @@ module Rod
       event = Cdp::Input::DispatchTouchEvent.new(
         type: "touchStart",
         touch_points: points.to_a,
-        modifiers: @page.keyboard.modifiers,
+        modifiers: @page.keyboard.modifiers.to_i64,
         timestamp: nil
       )
       event.call(@page)
@@ -32,7 +32,7 @@ module Rod
       event = Cdp::Input::DispatchTouchEvent.new(
         type: "touchMove",
         touch_points: points.to_a,
-        modifiers: @page.keyboard.modifiers,
+        modifiers: @page.keyboard.modifiers.to_i64,
         timestamp: nil
       )
       event.call(@page)
@@ -43,7 +43,7 @@ module Rod
       event = Cdp::Input::DispatchTouchEvent.new(
         type: "touchEnd",
         touch_points: [] of Cdp::Input::TouchPoint,
-        modifiers: @page.keyboard.modifiers,
+        modifiers: @page.keyboard.modifiers.to_i64,
         timestamp: nil
       )
       event.call(@page)
@@ -54,7 +54,7 @@ module Rod
       event = Cdp::Input::DispatchTouchEvent.new(
         type: "touchCancel",
         touch_points: [] of Cdp::Input::TouchPoint,
-        modifiers: @page.keyboard.modifiers,
+        modifiers: @page.keyboard.modifiers.to_i64,
         timestamp: nil
       )
       event.call(@page)

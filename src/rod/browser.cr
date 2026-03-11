@@ -26,6 +26,7 @@ module Rod
     property ctx : Context
     property sleeper : Proc(::Utils::Sleeper)
     @logger : ::Log
+    @trace_logger : Rod::Lib::Utils::Log?
     @slow_motion : Time::Span
     @trace : Bool
     @monitor : String?
@@ -40,16 +41,21 @@ module Rod
 
     # CallbackInfo for event handling
     struct CallbackInfo
-      property event_class : Cdp::Event.class
+      property event_name : String
+      property loader : Proc(JSON::Any, Cdp::Event)
       property callback : Proc(Cdp::Event, SessionID?, Bool?)
 
-      def initialize(@event_class, @callback)
+      def initialize(event_class : T.class, callback : Proc(Cdp::Event, SessionID?, U)) forall T, U
+        @event_name = event_class.proto_event
+        @loader = ->(data : JSON::Any) { event_class.from_json(Cdp.normalize_incoming(data).to_json).as(Cdp::Event) }
+        @callback = ->(event : Cdp::Event, session_id : SessionID?) { callback.call(event, session_id).as(Bool?) }
       end
     end
 
     # New creates a browser instance.
     def initialize(@ctx : Context = Context.background, @sleeper = -> { ::Utils::Sleeper.new }, @logger = ::Defaults.logger, @slow_motion = ::Defaults.slow, @trace = ::Defaults.trace, @monitor = nil)
       @e = ->(err : Exception?) { raise err if err }
+      @trace_logger = nil
       @default_device = ::Rod::Lib::Devices::LaptopWithMDPIScreen.landscape
       @control_url = ::Defaults.url
       @targets = {} of String => TargetInfo
@@ -72,10 +78,18 @@ module Rod
 
     # WithPanic returns a browser clone with the specified panic function.
     # The fail must stop the current goroutine's execution immediately.
-    def with_panic(fail : Proc(Exception, Nil)) : Browser
-      new_obj = dup
-      new_obj.instance_variable_set("@e", Browser.gen_e(fail))
+    def with_panic(fail : Proc(Exception, Nil)) : self
+      new_obj = self.dup
+      new_obj.set_panic_handler(fail)
       new_obj
+    end
+
+    def set_panic_handler(fail : Proc(Exception, Nil)) : Nil
+      @e = Browser.gen_e(fail)
+    end
+
+    protected def e_handler=(handler : EFunc?) : EFunc?
+      @e = handler
     end
 
     # Call implements Cdp::Client.
@@ -195,7 +209,8 @@ module Rod
 
     # PageFromSession creates a page from session id.
     def page_from_session(session_id : SessionID) : Page
-      Page.new(self, TargetID.new(""), session_id, nil, @ctx, @sleeper)
+      page_ctx, _cancel = @ctx.with_cancel
+      Page.new(self, TargetID.new(""), session_id, nil, page_ctx, @sleeper)
     end
 
     # PageFromTarget gets or creates a Page instance.
@@ -209,7 +224,11 @@ module Rod
 
         attach = Cdp::Target::AttachToTarget.new(target_id.value, true).call(self)
         sid = SessionID.new(attach.session_id)
-        page = Page.new(self, target_id, sid, FrameID.new(target_id.value), @ctx, @sleeper)
+        page_ctx, _cancel = @ctx.with_cancel
+        page = Page.new(self, target_id, sid, FrameID.new(target_id.value), page_ctx, @sleeper)
+        # Match Go rod: enable Page domain for newly attached pages to avoid
+        # agent-not-enabled behavior for page-scoped commands.
+        Cdp::Page::Enable.new(nil).call(page)
 
         unless @default_device.clear?
           if metrics = @default_device.metrics_emulation
@@ -247,24 +266,23 @@ module Rod
 
     # SetCookies accepts cookie list and converts to cookie params.
     def set_cookies(cookies : Array(Cdp::Network::Cookie)) : Nil # ameba:disable Naming/AccessorMethodName
-      params = cookies.map do |cookie|
-        Cdp::Network::CookieParam.from_json({
-          "name"         => cookie.name,
-          "value"        => cookie.value,
-          "url"          => nil,
-          "domain"       => cookie.domain,
-          "path"         => cookie.path,
-          "secure"       => cookie.secure?,
-          "httpOnly"     => cookie.http_only?,
-          "sameSite"     => cookie.same_site,
-          "expires"      => nil,
-          "priority"     => cookie.priority,
-          "sourceScheme" => cookie.source_scheme,
-          "sourcePort"   => cookie.source_port,
-          "partitionKey" => cookie.partition_key,
-        }.to_json)
+      set_cookies(Cdp::Network.cookies_to_params(cookies))
+    end
+
+    # Headless detection mirrors Go rod: prefer command-line switches.
+    # Fallback to product string when Browser.getBrowserCommandLine is unavailable.
+    def headless? : Bool
+      begin
+        args = Cdp::Browser::GetBrowserCommandLine.new.call(self).arguments
+        return args.any?(&.includes?("headless"))
+      rescue
       end
-      set_cookies(params)
+
+      begin
+        version.product.includes?("Headless")
+      rescue
+        false
+      end
     end
 
     # WaitDownload waits for a matching completed download and returns metadata.
@@ -277,16 +295,26 @@ module Rod
       ).call(self)
 
       start_event = uninitialized Cdp::Browser::DownloadWillBeginEvent?
-      wait = eachevent(
-        ->(e : Cdp::Browser::DownloadWillBeginEvent) { start_event = e },
-        ->(e : Cdp::Browser::DownloadProgressEvent) {
+      callbacks = {} of String => CallbackInfo
+      callbacks[Cdp::Browser::DownloadWillBeginEvent.proto_event] = CallbackInfo.new(
+        Cdp::Browser::DownloadWillBeginEvent,
+        ->(event : Cdp::Event, _sid : SessionID?) do
+          start_event = event.as(Cdp::Browser::DownloadWillBeginEvent)
+          nil
+        end
+      )
+      callbacks[Cdp::Browser::DownloadProgressEvent.proto_event] = CallbackInfo.new(
+        Cdp::Browser::DownloadProgressEvent,
+        ->(event : Cdp::Event, _sid : SessionID?) do
+          progress = event.as(Cdp::Browser::DownloadProgressEvent)
           if start = start_event
-            start.guid == e.guid && e.state == Cdp::Browser::DownloadProgressStateCompleted
+            start.guid == progress.guid && progress.state == Cdp::Browser::DownloadProgressStateCompleted
           else
             false
           end
-        }
+        end
       )
+      wait = each_event(nil, callbacks)
 
       -> do
         begin
@@ -388,11 +416,15 @@ module Rod
       done = @ctx.done
       spawn do
         loop do
-          select
-          when msg = src.receive
-            session_id = msg.session_id.try { |sid| SessionID.new(sid) }
-            @event.publish(Message.new(session_id, msg.method, msg.params))
-          when done.receive
+          begin
+            select
+            when msg = src.receive
+              session_id = msg.session_id.try { |sid| SessionID.new(sid) }
+              @event.publish(Message.new(session_id, msg.method, msg.params))
+            when done.receive?
+              break
+            end
+          rescue Channel::ClosedError
             break
           end
         end
@@ -447,94 +479,101 @@ module Rod
       # Enable domains for each event type if not already enabled
       callbacks.each_key do |event_name|
         domain, _ = Cdp.parse_method_name(event_name)
-        enable_type = begin
-          Cdp.get_type(domain + ".enable")
+        begin
+          call(nil, session_id.try(&.value), domain + ".enable", JSON::Any.new({} of String => JSON::Any))
+          restores << -> { call(nil, session_id.try(&.value), domain + ".disable", JSON::Any.new({} of String => JSON::Any)) }
         rescue
-          nil
-        end
-        if enable_type
-          req = enable_type.new.as(Cdp::Request)
-          restores << enable_domain(session_id, req)
+          # Some domains may not support explicit enable/disable.
         end
       end
 
       browser, cancel = with_cancel
       messages = browser.event
+      used = false
 
       -> {
-        if messages.nil?
+        if used
           raise "can't use wait function twice"
         end
+        used = true
 
         begin
           loop do
             select
-            when msg = messages.receive
+            when msg = messages.receive?
+              break unless msg
               next unless session_id.nil? || msg.session_id == session_id
 
               if cb_info = callbacks[msg.method]?
-                event = msg.load(cb_info.event_class)
-                # event should never be nil because we matched the method
-                if event
-                  result = cb_info.callback.call(event, msg.session_id)
-                  if !result.nil? && result == true
-                    return
-                  end
+                event_data = msg.data || JSON::Any.new({} of String => JSON::Any)
+                event = cb_info.loader.call(event_data)
+                result = cb_info.callback.call(event, msg.session_id)
+                if !result.nil? && result == true
+                  return
                 end
               end
-            when browser.ctx.done.receive
+            when _ = browser.ctx.done.receive?
               break
             end
           end
         ensure
           cancel.call
-          messages = nil
-          restores.each(&.call)
+          restores.each do |restore|
+            begin
+              restore.call
+            rescue
+              # Best-effort cleanup: domain disable failures should not fail waits.
+            end
+          end
         end
       }
     end
 
     # EachEvent is similar to Page.EachEvent, but catches events of the entire browser.
     macro eachevent(*callbacks)
-      \{% begin %}
-        {
+      {% begin %}
+        begin
           cb_map = {} of String => CallbackInfo
-          \{% for cb in callbacks %}
-            \{% t = cb.type %}
-            \{% unless t.is_a?(Proc) %}
-              \{% raise "EachEvent expects Proc(...) callbacks; got #{t}" %}
-            \{% end %}
-            \{% event_t = t.type_vars[0] %}
-            \{% if event_t.is_a?(Union) %}
-              \{% non_nil = event_t.types.reject(&.==(Nil)).first %}
-              \{% event_t = non_nil %}
-            \{% end %}
-            \{% event_class = event_t.resolve %}
-            \{% event_name = event_class.proto_event %}
-            \{% num_args = t.type_vars.size - 1 %}
-            \{% if num_args == 1 %}
+          {% for cb in callbacks %}
+            {% unless cb.is_a?(ProcLiteral) %}
+              {% raise "EachEvent expects proc literals, got: #{cb.class_name}" %}
+            {% end %}
+            {% num_args = cb.args.size %}
+            {% if num_args < 1 || num_args > 2 %}
+              {% raise "EachEvent callback must have 1 or 2 arguments" %}
+            {% end %}
+            {% event_t = cb.args[0].restriction %}
+            {% if event_t.nil? %}
+              {% raise "EachEvent callback first argument must have an explicit event type restriction" %}
+            {% end %}
+            {% if event_t.is_a?(Union) %}
+              {% non_nil = event_t.types.reject(&.==(Nil)).first %}
+              {% event_t = non_nil %}
+            {% end %}
+            {% event_class = event_t.resolve %}
+            {% if num_args == 1 %}
               # Original callback takes event only
-              wrapper = ->(event : Cdp::Event, session_id : SessionID?) do
-                typed_event = event.as(\{{event_class}})
-                \{{cb}}.call(typed_event)
+              wrapper = ->(event : Cdp::Event, session_id : Rod::SessionID?) do
+                typed_event = event.as({{event_class}})
+                {{cb}}.call(typed_event)
               end
-            \{% elsif num_args == 2 %}
+            {% elsif num_args == 2 %}
               # Original callback takes event and session_id
-              wrapper = ->(event : Cdp::Event, session_id : SessionID?) do
-                typed_event = event.as(\{{event_class}})
-                \{{cb}}.call(typed_event, session_id)
+              wrapper = ->(event : Cdp::Event, session_id : Rod::SessionID?) do
+                typed_event = event.as({{event_class}})
+                {{cb}}.call(typed_event, session_id)
               end
-            \{% else %}
-              \{% raise "EachEvent callback must have 1 or 2 arguments" %}
-            \{% end %}
-            cb_map[\{{event_name}}] = CallbackInfo.new(
-              \{{event_class}},
+            {% else %}
+              {% raise "EachEvent callback must have 1 or 2 arguments" %}
+            {% end %}
+            cb_map[{{event_class}}.proto_event] = CallbackInfo.new(
+              {{event_class}},
               wrapper
             )
-          \{% end %}
+          {% end %}
           each_event(nil, cb_map)
-        }
-      \{% end %}
+        end
+      {% end %}
     end
 
     # EachEvent public API with uppercase name
@@ -551,30 +590,105 @@ module Rod
 
     # WaitEventTyped waits for the next event once and returns the matched event payload.
     def wait_event_typed(event_class : T.class, session_id : SessionID? = nil) : Proc(T) forall T
+      domain, _ = Cdp.parse_method_name(event_class.proto_event)
+      begin
+        call(nil, session_id.try(&.value), domain + ".enable", JSON::Any.new({} of String => JSON::Any))
+      rescue
+        # Some domains don't require explicit enabling.
+      end
+
       browser, cancel = with_cancel
       messages = browser.event
       -> do
         begin
           loop do
             select
-            when msg = messages.receive
+            when msg = messages.receive?
+              raise "event channel closed while waiting for event #{event_class.proto_event}" unless msg
               next unless session_id.nil? || msg.session_id == session_id
               if msg.method == event_class.proto_event
                 json_data = msg.data || JSON::Any.new({} of String => JSON::Any)
                 return event_class.from_json(json_data.to_json).as(T)
               end
-            when browser.ctx.done.receive
+            when _ = browser.ctx.done.receive?
               raise "context canceled while waiting for event #{event_class.proto_event}"
             end
           end
         ensure
           cancel.call
+          begin
+            call(nil, session_id.try(&.value), domain + ".disable", JSON::Any.new({} of String => JSON::Any))
+          rescue
+            # Best-effort cleanup.
+          end
         end
       end
     end
 
     private def page_info(id : TargetID) : Cdp::Target::TargetInfo
       Cdp::Target::GetTargetInfo.new(id.value).call(self).target_info
+    end
+
+    # HijackRequests same as Page.HijackRequests, but can intercept requests of the entire browser.
+    def hijack_requests : HijackRouter
+      HijackRouter.new(self, self).init_events
+    end
+
+    # HandleAuth for the next basic HTTP authentication.
+    # It will prevent the popup that requires user to input user name and password.
+    # Ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication
+    def handle_auth(username : String, password : String) : Proc(Exception?)
+      # First disable fetch domain (stop any existing hijacking)
+      disable_fetch = Cdp::Fetch::Disable.new
+      disable_fetch.call(self)
+
+      # Enable fetch domain with auth handling
+      enable_auth = Cdp::Fetch::Enable.new(nil, true)
+      enable_auth.call(self)
+
+      ctx, cancel = @ctx.with_cancel
+      browser_with_ctx = context(ctx)
+      wait_paused = browser_with_ctx.wait_event_typed(Cdp::Fetch::RequestPausedEvent)
+      wait_auth = browser_with_ctx.wait_event_typed(Cdp::Fetch::AuthRequiredEvent)
+
+      -> do
+        begin
+          # Wait for request paused event
+          paused_event = wait_paused.call
+
+          # Continue the request (to trigger auth challenge)
+          continue_req = Cdp::Fetch::ContinueRequest.new(paused_event.request_id, nil, nil, nil, nil, nil)
+          continue_req.call(self)
+
+          # Wait for auth required event
+          auth_event = wait_auth.call
+
+          # Respond with credentials
+          auth_response = Cdp::Fetch::AuthChallengeResponse.new(
+            Cdp::Fetch::AuthChallengeResponseResponseProvideCredentials,
+            username,
+            password
+          )
+
+          continue_auth_req = Cdp::Fetch::ContinueWithAuth.new(
+            auth_event.request_id,
+            auth_response
+          )
+
+          continue_auth_req.call(self)
+
+          # Clean up
+          cancel.call
+          disable_fetch.call(self) # Disable auth handling
+
+          nil # No error
+        rescue ex
+          # Ensure cleanup even on error
+          cancel.call
+          disable_fetch.call(self) rescue nil
+          ex
+        end
+      end
     end
   end
 
@@ -614,10 +728,11 @@ module Rod
 
     # Load event data into a new instance of the given event class.
     # Returns the event instance if the method matches the event's proto_event.
-    def load(event_class : Cdp::Event.class) : Cdp::Event?
-      return nil unless method == event_class.proto_event
+    def load(event_class : Class) : Cdp::Event?
+      klass = event_class.as(Cdp::Event.class)
+      return nil unless method == klass.proto_event
       json_data = data || JSON::Any.new({} of String => JSON::Any)
-      event_class.from_json(json_data.to_json).as(Cdp::Event)
+      klass.from_json(json_data.to_json).as(Cdp::Event)
     end
 
     # Typed load helper for concrete event classes.
@@ -638,79 +753,18 @@ module Rod
     end
   end
 
-  # HijackRequests same as Page.HijackRequests, but can intercept requests of the entire browser.
-  def hijack_requests : HijackRouter
-    HijackRouter.new(self, self).init_events
-  end
-
-  # HandleAuth for the next basic HTTP authentication.
-  # It will prevent the popup that requires user to input user name and password.
-  # Ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication
-  def handle_auth(username : String, password : String) : Proc(Exception?)
-    # First disable fetch domain (stop any existing hijacking)
-    disable_fetch = Cdp::Fetch::Disable.new
-    disable_fetch.call(self)
-
-    # Enable fetch domain with auth handling
-    enable_auth = Cdp::Fetch::Enable.new(handle_auth_requests: true)
-    enable_auth.call(self)
-
-    ctx, cancel = @ctx.with_cancel
-    browser_with_ctx = context(ctx)
-    wait_paused = browser_with_ctx.wait_event_typed(Cdp::Fetch::RequestPausedEvent)
-    wait_auth = browser_with_ctx.wait_event_typed(Cdp::Fetch::AuthRequiredEvent)
-
-    -> do
-      begin
-        # Wait for request paused event
-        paused_event = wait_paused.call
-
-        # Continue the request (to trigger auth challenge)
-        continue_req = Cdp::Fetch::ContinueRequest.new(request_id: paused_event.request_id)
-        continue_req.call(self)
-
-        # Wait for auth required event
-        auth_event = wait_auth.call
-
-        # Respond with credentials
-        auth_response = Cdp::Fetch::AuthChallengeResponse.new(
-          response: Cdp::Fetch::AuthChallengeResponseResponseProvideCredentials,
-          username: username,
-          password: password
-        )
-
-        continue_auth_req = Cdp::Fetch::ContinueWithAuth.new(
-          request_id: auth_event.request_id,
-          auth_challenge_response: auth_response
-        )
-
-        continue_auth_req.call(self)
-
-        # Clean up
-        cancel.call
-        disable_fetch.call(self) # Disable auth handling
-
-        nil # No error
-      rescue ex
-        # Ensure cleanup even on error
-        cancel.call
-        disable_fetch.call(self) rescue nil
-        ex
-      end
-    end
-  end
-
-  # Generate an EFunc with the specified fail function.
-  # If the error is not nil, the fail function will be called.
-  private def self.gen_e(fail : Proc(Exception, Nil)) : EFunc
-    ->(err : Exception?) do
-      if err
-        fail.call(err)
+  class Browser
+    # Generate an EFunc with the specified fail function.
+    # If the error is not nil, the fail function will be called.
+    def self.gen_e(fail : Proc(Exception, Nil)) : EFunc
+      ->(err : Exception?) do
+        if err
+          fail.call(err)
+        end
       end
     end
   end
 
   # EFunc is an internal function type for error handling.
-  # It panics if the error is not nil.
   alias EFunc = Proc(Exception?, Nil)
 end

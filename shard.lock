@@ -4,9 +4,21 @@ shards:
     git: https://github.com/crystal-ameba/ameba.git
     version: 1.6.4
 
+  crimage:
+    git: https://github.com/naqvis/crimage.git
+    version: 1.0.4+git.commit.b65f67df27f4cb8807a34d94a90dfd4162acf45a
+
   event_handler:
     git: https://github.com/crystallabs/event_handler.git
     version: 1.0.3
+
+  goob:
+    path: ../goob
+    version: 0.1.0
+
+  gson:
+    path: ../gson
+    version: 0.1.0
 
   pluto:
     git: https://github.com/phenopolis/pluto.git

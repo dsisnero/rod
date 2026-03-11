@@ -2,6 +2,8 @@ require "http/client"
 require "file"
 require "file_utils"
 require "digest"
+require "digest/sha256"
+require "base64"
 require "process"
 require "json"
 require "lib_c"
@@ -9,6 +11,54 @@ require "./leakless"
 require "./url_parser"
 
 module Rod::Lib::Launcher
+  HEADER_NAME          = "Rod-Launcher"
+  ERR_ALREADY_LAUNCHED = "already launched"
+  @@look_path_provider = -> { Browser.look_path }
+  @@open_runner = ->(bin : String, args : Array(String)) {
+    Process.new(bin, args)
+    nil
+  }
+
+  @@in_container = begin
+    File.exists?("/.dockerenv") || File.exists?("/.containerenv") ||
+    begin
+      cgroup = File.read("/proc/1/cgroup")
+      cgroup.includes?("docker") || cgroup.includes?("kubepods") || cgroup.includes?("containerd")
+    rescue
+      false
+    end
+  end
+
+  def self.in_container? : Bool
+    @@in_container
+  end
+
+  def self.in_container=(value : Bool) : Bool
+    @@in_container = value
+  end
+
+  def self.to_http(uri : URI) : URI
+    new_uri = uri.dup
+    case new_uri.scheme
+    when "ws"
+      new_uri.scheme = "http"
+    when "wss"
+      new_uri.scheme = "https"
+    end
+    new_uri
+  end
+
+  def self.to_ws(uri : URI) : URI
+    new_uri = uri.dup
+    case new_uri.scheme
+    when "http"
+      new_uri.scheme = "ws"
+    when "https"
+      new_uri.scheme = "wss"
+    end
+    new_uri
+  end
+
   # Platform detection
   private macro os
     {% if flag?(:darwin) %}
@@ -25,7 +75,31 @@ module Rod::Lib::Launcher
   private macro arch
     {% if flag?(:x86_64) %}
       "amd64"
-    {% elsif flag?(:arm64) %}
+    {% elsif flag?(:arm64) || flag?(:aarch64) %}
+      "arm64"
+    {% elsif flag?(:i386) %}
+      "386"
+    {% else %}
+      "unknown"
+    {% end %}
+  end
+
+  def self.os_name : String
+    {% if flag?(:darwin) %}
+      "darwin"
+    {% elsif flag?(:linux) %}
+      "linux"
+    {% elsif flag?(:windows) %}
+      "windows"
+    {% else %}
+      "unknown"
+    {% end %}
+  end
+
+  def self.arch_name : String
+    {% if flag?(:x86_64) %}
+      "amd64"
+    {% elsif flag?(:arm64) || flag?(:aarch64) %}
       "arm64"
     {% elsif flag?(:i386) %}
       "386"
@@ -149,7 +223,7 @@ module Rod::Lib::Launcher
     property revision : Int32 = REVISION_DEFAULT
     property root_dir : String = ::Rod::Lib::Launcher.default_browser_dir
     property logger : ::Log = ::Log.for("rod.launcher")
-    property lock_port : Int32 = 2968
+    property lock_port : Int32 = ::Rod::Lib::Defaults.lock_port
     property http_client : HTTP::Client? = nil
 
     def initialize(
@@ -158,7 +232,7 @@ module Rod::Lib::Launcher
       @revision = REVISION_DEFAULT,
       @root_dir = ::Rod::Lib::Launcher.default_browser_dir,
       @logger = ::Log.for("rod.launcher"),
-      @lock_port = 2968,
+      @lock_port = ::Rod::Lib::Defaults.lock_port,
       @http_client = nil,
     )
     end
@@ -170,7 +244,7 @@ module Rod::Lib::Launcher
 
     # Binary path of the downloaded browser.
     def bin_path : String
-      bin = case Launcher.os
+      bin = case ::Rod::Lib::Launcher.os_name
             when "darwin"
               "Chromium.app/Contents/MacOS/Chromium"
             when "linux"
@@ -178,7 +252,7 @@ module Rod::Lib::Launcher
             when "windows"
               "chrome.exe"
             else
-              raise "Unsupported OS: #{Launcher.os}"
+              raise "Unsupported OS: #{::Rod::Lib::Launcher.os_name}"
             end
       File.join(dir, bin)
     end
@@ -219,8 +293,11 @@ module Rod::Lib::Launcher
       # Download the file
       zip_path = File.join(dir, "download.zip")
 
-      http_client = @http_client || HTTP::Client.new
-      response = http_client.get(url)
+      response = if http_client = @http_client
+                   http_client.get(url)
+                 else
+                   HTTP::Client.get(url)
+                 end
       unless response.status_code == 200
         raise "HTTP #{response.status_code} from #{url}"
       end
@@ -241,9 +318,11 @@ module Rod::Lib::Launcher
       result = Process.run("unzip", ["-q", "-o", zip_path, "-d", dir], output: Process::Redirect::Pipe, error: Process::Redirect::Pipe)
       unless result.success?
         # Try with -qq for quieter output
-        result = Process.run("unzip", ["-qq", "-o", zip_path, "-d", dir], output: Process::Redirect::Pipe, error: Process::Redirect::Pipe)
+        unzip_out = IO::Memory.new
+        unzip_err = IO::Memory.new
+        result = Process.run("unzip", ["-qq", "-o", zip_path, "-d", dir], output: unzip_out, error: unzip_err)
         unless result.success?
-          raise "Failed to extract zip: #{result.error.gets_to_end}"
+          raise "Failed to extract zip: #{unzip_err}"
         end
       end
     end
@@ -278,20 +357,23 @@ module Rod::Lib::Launcher
       # Test running the browser
       args = ["--headless", "--no-sandbox", "--use-mock-keychain", "--disable-dev-shm-usage",
               "--disable-gpu", "--dump-dom", "about:blank"]
-      result = Process.run(bin, args, output: Process::Redirect::Pipe, error: Process::Redirect::Pipe)
+      browser_out = IO::Memory.new
+      browser_err = IO::Memory.new
+      result = Process.run(bin, args, output: browser_out, error: browser_err)
 
       unless result.success?
-        output = result.error.gets_to_end
+        output = "#{browser_out}#{browser_err}"
         # When the os is missing some dependencies for chromium we treat it as valid binary.
         if output.includes?("error while loading shared libraries")
           return
         end
-        raise "Failed to run the browser: #{result.exit_status}\n#{output}"
+        code = result.exit_code?.try(&.to_s) || result.to_s
+        raise "failed to run the browser: #{code}\n#{output}"
       end
 
-      output = result.output.gets_to_end
+      output = browser_out.to_s
       unless output.includes?("<html><head></head><body></body></html>")
-        raise "The browser executable doesn't support headless mode"
+        raise "the browser executable doesn't support headless mode"
       end
     end
 
@@ -320,7 +402,7 @@ module Rod::Lib::Launcher
 
     # LookPath searches for the browser executable from often used paths on current OS.
     def self.look_path : Tuple(String?, Bool)
-      list = case os
+      list = case ::Rod::Lib::Launcher.os_name
              when "darwin"
                [
                  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -356,8 +438,11 @@ module Rod::Lib::Launcher
              end
 
       list.each do |path|
-        if File.executable?(path) || (path.includes?('.') && Process.find_executable(path))
-          return {path, true}
+        executable = File::Info.executable?(path) rescue false
+        found = Process.find_executable(path)
+
+        if executable || found
+          return {(found || path), true}
         end
       end
 
@@ -370,10 +455,82 @@ module Rod::Lib::Launcher
     # Windows doesn't support format [::]
     url = url.gsub("[::]", "[::1]")
 
-    found, has = look_path
+    found, has = look_path_provider.call
     if has && found
-      Process.new(found.not_nil!, [url]).start # ameba:disable Lint/NotNil
+      open_runner.call(found.not_nil!, [url]) # ameba:disable Lint/NotNil
     end
+  end
+
+  # Test seam: override executable lookup.
+  def self.look_path_provider=(provider : -> Tuple(String?, Bool))
+    @@look_path_provider = provider
+  end
+
+  def self.look_path_provider
+    @@look_path_provider.not_nil!
+  end
+
+  # Test seam: override process spawn used by open.
+  def self.open_runner=(runner : String, Array(String) -> Nil)
+    @@open_runner = runner
+  end
+
+  def self.open_runner
+    @@open_runner.not_nil!
+  end
+
+  # New returns the default arguments to start browser.
+  def self.new : Launcher
+    Launcher.new
+  end
+
+  # NewUserMode enables reusing current user profile.
+  def self.new_user_mode : Launcher
+    bin, _has = Browser.look_path
+    launcher = Launcher.new
+    launcher.flags.clear
+    launcher.set(Flags::REMOTE_DEBUGGING_PORT, "37712")
+    launcher.set("no-startup-window")
+    launcher.set(Flags::BIN, bin || "")
+    launcher
+  end
+
+  # NewAppMode runs browser like a native app window.
+  def self.new_app_mode(url : String) : Launcher
+    new
+      .set(Flags::APP, url)
+      .set(Flags::ENV, "GOOGLE_API_KEY=no")
+      .headless(false)
+      .delete("no-startup-window")
+      .delete("enable-automation")
+  end
+
+  # NewManaged creates launcher defaults from a remote manager endpoint.
+  def self.new_managed(service_url : String = "") : Launcher
+    service_url = "ws://127.0.0.1:7317" if service_url.empty?
+
+    uri = URI.parse(service_url)
+    launcher = new
+    launcher.mark_managed!(to_ws(uri).to_s)
+    launcher.flags.clear
+
+    res = HTTP::Client.get(to_http(uri).to_s)
+    body = res.body
+    launcher.load_flags_json(body)
+    launcher
+  end
+
+  # MustNewManaged variant.
+  def self.must_new_managed(service_url : String = "") : Launcher
+    launcher = new_managed(service_url)
+    # Keep parity with Go helper for managed docker environments.
+    launcher.set("disable-http2")
+    launcher
+  end
+
+  # NewManager creates a launcher manager HTTP handler.
+  def self.new_manager : Manager
+    Manager.new
   end
 
   # Launcher is a helper to launch browser binary smartly.
@@ -381,9 +538,12 @@ module Rod::Lib::Launcher
     property flags : Hash(String, Array(String))
     property logger : ::Log
     property browser : Browser
+    property managed : Bool = false
+    property service_url : String = ""
     @pid : Int32 = 0
     @exit : Channel(Nil)? = nil
     @is_launched : Bool = false
+    @ctx : Channel(Nil)? = nil
 
     # Default user data directory prefix
     DEFAULT_USER_DATA_DIR_PREFIX = File.join(Dir.tempdir, "rod", "user-data")
@@ -406,7 +566,7 @@ module Rod::Lib::Launcher
       @is_launched = false
 
       # Set default flags (similar to Go's New())
-      set(Flags::BIN, ::Rod::Lib::Defaults.bin) unless ::Rod::Lib::Defaults.bin.empty?
+      set(Flags::BIN, ::Rod::Lib::Defaults.bin)
       set(Flags::LEAKLESS) if ::Rod::Lib::Defaults.lock_port > 0
       set(Flags::USER_DATA_DIR, dir)
       set(Flags::REMOTE_DEBUGGING_PORT, ::Rod::Lib::Defaults.port)
@@ -439,12 +599,20 @@ module Rod::Lib::Launcher
 
       # Conditional defaults
       set("auto-open-devtools-for-tabs") if ::Rod::Lib::Defaults.devtools
+      set(Flags::NO_SANDBOX) if ::Rod::Lib::Launcher.in_container?
       set(Flags::PROXY_SERVER, ::Rod::Lib::Defaults.proxy) unless ::Rod::Lib::Defaults.proxy.empty?
     end
 
     # Set a command line argument when launching the browser.
     # Be careful the first argument is a flag name, it shouldn't contain values. The values the will be joined with comma.
     # A flag can have multiple values. If no values are provided the flag will be a boolean flag.
+    def set(name : String) : self
+      Flags.check(name)
+      normalized = Flags.normalize(name)
+      @flags[normalized] = [] of String
+      self
+    end
+
     def set(name : String, *values : String) : self
       Flags.check(name)
       normalized = Flags.normalize(name)
@@ -482,6 +650,20 @@ module Rod::Lib::Launcher
       set(Flags::BIN, path)
     end
 
+    # Set browser process output sink for API parity with Go Logger(io.Writer).
+    def logger(io : IO) : self
+      # Keep existing structured logger as source of launch logs; output sink
+      # integration can be expanded when websocket launch path is fully ported.
+      io # mark argument as used
+      self
+    end
+
+    # Set launch context cancellation channel.
+    def context(ctx : Channel(Nil)) : self
+      @ctx = ctx
+      self
+    end
+
     # Set browser revision to auto download.
     def revision(rev : Int32) : self
       @browser.revision = rev
@@ -493,9 +675,34 @@ module Rod::Lib::Launcher
       enable ? set(Flags::HEADLESS) : delete(Flags::HEADLESS)
     end
 
+    # Enable or disable --headless=new mode.
+    def headless_new(enable : Bool = true) : self
+      enable ? set(Flags::HEADLESS, "new") : delete(Flags::HEADLESS)
+    end
+
     # Enable or disable no-sandbox mode.
     def no_sandbox(enable : Bool = true) : self
       enable ? set(Flags::NO_SANDBOX) : delete(Flags::NO_SANDBOX)
+    end
+
+    # Enable xvfb wrapper options.
+    def xvfb : self
+      set(Flags::XVFB)
+    end
+
+    # Enable xvfb wrapper options.
+    def xvfb(*args : String) : self
+      set(Flags::XVFB, *args)
+    end
+
+    # Set chromium preferences json.
+    def preferences(pref : String) : self
+      set(Flags::PREFERENCES, pref)
+    end
+
+    # Set preferences to always open PDFs externally.
+    def always_open_pdf_externally : self
+      preferences(%({"plugins":{"always_open_pdf_externally": true}}))
     end
 
     # Enable or disable leakless mode.
@@ -513,6 +720,11 @@ module Rod::Lib::Launcher
       dir.empty? ? delete(Flags::USER_DATA_DIR) : set(Flags::USER_DATA_DIR, dir)
     end
 
+    # Set profile directory.
+    def profile_dir(dir : String) : self
+      dir.empty? ? delete(Flags::PROFILE_DIR) : set(Flags::PROFILE_DIR, dir)
+    end
+
     # Set remote debugging port.
     def remote_debugging_port(port : Int32) : self
       set(Flags::REMOTE_DEBUGGING_PORT, port.to_s)
@@ -521,6 +733,89 @@ module Rod::Lib::Launcher
     # Set proxy server.
     def proxy(host : String) : self
       set(Flags::PROXY_SERVER, host)
+    end
+
+    # Set browser window size.
+    def window_size(x : Int32, y : Int32) : self
+      set(Flags::WINDOW_SIZE, "#{x},#{y}")
+    end
+
+    # Set browser window position.
+    def window_position(x : Int32, y : Int32) : self
+      set(Flags::WINDOW_POSITION, "#{x},#{y}")
+    end
+
+    # Set working directory for process launch.
+    def working_dir(path : String) : self
+      set(Flags::WORKING_DIR, path)
+    end
+
+    # Set process environment variables.
+    def env(*env : String) : self
+      set(Flags::ENV, *env)
+    end
+
+    # Ignore certificates by SPKI fingerprints derived from public-key PEM blocks.
+    # Mirrors Go launcher's IgnoreCerts behavior.
+    def ignore_certs(keys : Array(String?)) : Nil
+      hashes = [] of String
+
+      keys.each do |key|
+        raise "invalid certificate key" if key.nil?
+        pem = key.not_nil!.strip
+        raise "invalid certificate key" if pem.empty?
+
+        b64 = pem
+          .lines
+          .map(&.strip)
+          .reject { |line| line.starts_with?("-----BEGIN ") || line.starts_with?("-----END ") || line.empty? }
+          .join
+
+        raise "invalid certificate key" if b64.empty?
+        der = Base64.decode(b64)
+        hashes << Base64.strict_encode(Digest::SHA256.digest(der))
+      rescue
+        raise "invalid certificate key"
+      end
+
+      set("ignore-certificate-errors-spki-list", hashes.join(","))
+    end
+
+    # Add startup URL argument.
+    def start_url(url : String) : self
+      set(Flags::ARGUMENTS, url)
+    end
+
+    # Keep user data dir after cleanup.
+    def keep_user_data_dir : self
+      must_managed!
+      set(Flags::KEEP_USER_DATA_DIR)
+    end
+
+    # JSON payload for remote manager.
+    def json : Bytes
+      to_manager_json.to_json.to_slice
+    end
+
+    # Build websocket URL and headers for remote manager launching.
+    def client_header : Tuple(String, HTTP::Headers)
+      must_managed!
+      headers = HTTP::Headers.new
+      headers.add(HEADER_NAME, String.new(json))
+      {@service_url, headers}
+    end
+
+    # Start a managed websocket CDP client.
+    def client : Rod::Lib::Cdp::Client
+      url, headers = client_header
+      ws = Rod::Lib::Cdp::WebSocket.new
+      ws.connect(url, headers)
+      Rod::Lib::Cdp::Client.new.start(ws)
+    end
+
+    # MustClient variant.
+    def must_client : Rod::Lib::Cdp::Client
+      client
     end
 
     # Format flags as command line arguments.
@@ -551,11 +846,22 @@ module Rod::Lib::Launcher
 
     # Launch a standalone temp browser instance and returns the debug url.
     def launch : String
-      raise "Launcher can only be used once" if @is_launched
+      raise ERR_ALREADY_LAUNCHED if @is_launched
       @is_launched = true
 
-      # Get browser binary path (auto-downloads if needed)
-      bin_path = @browser.must_get
+      # Respect explicit --bin when provided; otherwise fallback to managed browser.
+      bin_path = if explicit_bin = get(Flags::BIN)
+                   if explicit_bin.empty?
+                     @browser.must_get
+                   else
+                     unless File.exists?(explicit_bin)
+                       raise "Browser executable not found: #{explicit_bin}"
+                     end
+                     explicit_bin
+                   end
+                 else
+                   @browser.must_get
+                 end
 
       # Setup user preferences if needed
       setup_user_preferences
@@ -570,7 +876,7 @@ module Rod::Lib::Launcher
       unless has(Flags::LEAKLESS) && Rod::Lib::Leakless.support?
         port = get(Flags::REMOTE_DEBUGGING_PORT) || "0"
         begin
-          return self.class.resolve_url(port)
+          return ::Rod::Lib::Launcher.resolve_url(port)
         rescue
           # Browser not running on that port, continue to launch
         end
@@ -579,6 +885,9 @@ module Rod::Lib::Launcher
       ll : Rod::Lib::Leakless::Launcher? = nil
       process : Process
       parser = Rod::Lib::URLParser.new
+      if ctx = @ctx
+        parser.context(ctx)
+      end
 
       if has(Flags::LEAKLESS) && Rod::Lib::Leakless.support?
         ll = Rod::Lib::Leakless.new
@@ -598,9 +907,9 @@ module Rod::Lib::Launcher
           raise "Leakless error: #{err}"
         end
       else
-        # Launch new process with stderr piped to parser
-        process = Process.new(bin_path, args, output: Process::Redirect::Pipe, error: parser)
-        @pid = process.pid
+        # Launch new process with output piped to parser
+        process = Process.new(bin_path, args, env_hash, false, false, Process::Redirect::Close, parser, parser, working_dir_or_nil)
+        @pid = process.pid.to_i32
       end
 
       # Create exit channel
@@ -613,15 +922,22 @@ module Rod::Lib::Launcher
       end
 
       # Get WebSocket URL from parser channel
-      select
-      when ws_url = parser.url.receive
-        ws_url
-      when timeout 10.seconds
-        # Check for error in parser
-        if err = parser.error
-          raise err
+      if done = @exit
+        select
+        when ws_url = parser.url.receive
+          ws_url
+        when done.receive?
+          raise parser.error
+        when timeout 10.seconds
+          raise parser.error
         end
-        raise "Timeout waiting for WebSocket URL from browser"
+      else
+        select
+        when ws_url = parser.url.receive
+          ws_url
+        when timeout 10.seconds
+          raise parser.error
+        end
       end
     end
 
@@ -640,20 +956,20 @@ module Rod::Lib::Launcher
 
     # Kill the browser process.
     def kill : Nil
-      return if @pid == 0
-
       # Give browser time to start children processes
       sleep 1.second
+
+      return if @pid == 0
 
       # Try to kill process group
       {% if flag?(:unix) %}
         # On Unix, negative PID kills process group
-        Process.kill("TERM", -@pid) rescue nil
-        Process.kill("KILL", -@pid) rescue nil
+        Process.signal(Signal::TERM, -@pid) rescue nil
+        Process.signal(Signal::KILL, -@pid) rescue nil
       {% else %}
         # On Windows, positive PID kills process
-        Process.kill("TERM", @pid) rescue nil
-        Process.kill("KILL", @pid) rescue nil
+        Process.signal(Signal::TERM, @pid) rescue nil
+        Process.signal(Signal::KILL, @pid) rescue nil
       {% end %}
     end
 
@@ -677,6 +993,203 @@ module Rod::Lib::Launcher
 
       FileUtils.mkdir_p(File.dirname(path))
       File.write(path, pref)
+    end
+
+    private def working_dir_or_nil : String?
+      dir = get(Flags::WORKING_DIR)
+      return nil if dir.nil? || dir.empty?
+      dir
+    end
+
+    private def env_hash : Hash(String, String)?
+      values = @flags[Flags::ENV]?
+      return nil if values.nil? || values.empty?
+
+      env = {} of String => String
+      values.each do |entry|
+        next if entry.empty?
+        parts = entry.split("=", 2)
+        key = parts[0]? || ""
+        next if key.empty?
+        val = parts[1]? || ""
+        env[key] = val
+      end
+      env
+    end
+
+    def mark_managed!(service_url : String) : self
+      @managed = true
+      @service_url = service_url
+      self
+    end
+
+    def load_flags_json(json : String) : self
+      parsed = JSON.parse(json)
+      flags_any = parsed["flags"]?
+      return self unless flags_any
+
+      @flags.clear
+      flags_any.as_h.each do |k, v|
+        if v.raw.nil?
+          @flags[k] = [] of String
+        else
+          @flags[k] = v.as_a.map(&.as_s)
+        end
+      end
+      self
+    end
+
+    private def to_manager_json : Hash(String, Hash(String, JSON::Any))
+      out = {} of String => JSON::Any
+      @flags.each do |k, v|
+        if v.empty?
+          out[k] = JSON::Any.new(nil)
+        else
+          out[k] = JSON::Any.new(v.map { |item| JSON::Any.new(item) })
+        end
+      end
+      {"flags" => out}
+    end
+
+    private def must_managed! : Nil
+      raise "Must be used with launcher.new_managed" unless @managed
+    end
+  end
+
+  # Manager serves launcher defaults and remote launch endpoints.
+  class Manager
+    include HTTP::Handler
+
+    property logger : ::Log
+    property defaults : HTTP::Server::Context -> Launcher
+    property before_launch : Launcher, HTTP::Server::Context -> Nil
+
+    def initialize
+      @logger = ::Log.for("rod.launcher.manager")
+      @defaults = ->(_ctx : HTTP::Server::Context) { Launcher.new }
+
+      working_dir = Dir.current
+      @before_launch = ->(launcher : Launcher, ctx : HTTP::Server::Context) {
+        {
+          Flags::BIN           => ::Rod::Lib::Launcher.default_browser_dir,
+          Flags::WORKING_DIR   => working_dir,
+          Flags::USER_DATA_DIR => Launcher::DEFAULT_USER_DATA_DIR_PREFIX,
+        }.each do |flag, allowed|
+          if value = launcher.get(flag)
+            next if value.empty?
+            next if value.starts_with?(allowed)
+
+            msg = "[rod-manager] not allowed #{flag} path: #{value} (use --allow-all to disable the protection)"
+            ctx.response.status_code = 400
+            ctx.response.content_type = "text/plain"
+            ctx.response.print(msg)
+            return nil
+          end
+        end
+        nil
+      }
+    end
+
+    def call(context : HTTP::Server::Context) : Nil
+      if context.request.headers["Upgrade"]?.try(&.downcase) == "websocket"
+        options = context.request.headers[HEADER_NAME]?
+        unless options
+          context.response.status_code = 501
+          context.response.print("[rod-manager] websocket launch not implemented")
+          return
+        end
+
+        launcher = Launcher.new
+        launcher.flags.clear
+        launcher.load_flags_json(options)
+        @before_launch.call(launcher, context)
+        return if context.response.status_code == 400
+
+        handler = HTTP::WebSocketHandler.new do |client_ws, _ws_ctx|
+          begin
+            upstream_url = launcher.launch
+            upstream_ws = HTTP::WebSocket.new(upstream_url)
+
+            client_ws.on_message do |message|
+              begin
+                upstream_ws.send(message)
+              rescue
+              end
+            end
+
+            client_ws.on_binary do |message|
+              begin
+                upstream_ws.send(message)
+              rescue
+              end
+            end
+
+            client_ws.on_close do |_code, _reason|
+              begin
+                upstream_ws.close
+              rescue
+              end
+              begin
+                launcher.kill
+              rescue
+              end
+            end
+
+            upstream_ws.on_message do |message|
+              begin
+                client_ws.send(message)
+              rescue
+              end
+            end
+
+            upstream_ws.on_binary do |message|
+              begin
+                client_ws.send(message)
+              rescue
+              end
+            end
+
+            upstream_ws.on_close do |_code, _reason|
+              begin
+                client_ws.close
+              rescue
+              end
+              begin
+                launcher.kill
+              rescue
+              end
+            end
+
+            spawn do
+              begin
+                upstream_ws.run
+              rescue
+              ensure
+                begin
+                  launcher.kill
+                rescue
+                end
+              end
+            end
+          rescue
+            begin
+              client_ws.close
+            rescue
+            end
+            begin
+              launcher.kill
+            rescue
+            end
+          end
+        end
+
+        handler.call(context)
+        return
+      end
+
+      launcher = @defaults.call(context)
+      context.response.content_type = "application/json"
+      context.response.print(String.new(launcher.json))
     end
   end
 end

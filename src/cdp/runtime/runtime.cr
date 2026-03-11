@@ -156,9 +156,7 @@ module Cdp::Runtime
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : AwaitPromiseResult
-      res = AwaitPromiseResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, AwaitPromiseResult, c)
     end
   end
 
@@ -192,7 +190,21 @@ module Cdp::Runtime
     @[JSON::Field(key: "serializationOptions", emit_null: false)]
     property serialization_options : SerializationOptions?
 
-    def initialize(@function_declaration : String, @object_id : RemoteObjectId?, @arguments : Array(CallArgument)?, @silent : Bool?, @return_by_value : Bool?, @generate_preview : Bool?, @user_gesture : Bool?, @await_promise : Bool?, @execution_context_id : ExecutionContextId?, @object_group : String?, @throw_on_side_effect : Bool?, @unique_context_id : String?, @serialization_options : SerializationOptions?)
+    def initialize(
+      @function_declaration : String,
+      @object_id : RemoteObjectId? = nil,
+      @arguments : Array(CallArgument)? = nil,
+      @silent : Bool? = nil,
+      @return_by_value : Bool? = nil,
+      @generate_preview : Bool? = nil,
+      @user_gesture : Bool? = nil,
+      @await_promise : Bool? = nil,
+      @execution_context_id : ExecutionContextId? = nil,
+      @object_group : String? = nil,
+      @throw_on_side_effect : Bool? = nil,
+      @unique_context_id : String? = nil,
+      @serialization_options : SerializationOptions? = nil,
+    )
     end
 
     # ProtoReq returns the protocol method name.
@@ -202,9 +214,7 @@ module Cdp::Runtime
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : CallFunctionOnResult
-      res = CallFunctionOnResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, CallFunctionOnResult, c)
     end
   end
 
@@ -230,9 +240,7 @@ module Cdp::Runtime
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : CompileScriptResult
-      res = CompileScriptResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, CompileScriptResult, c)
     end
   end
 
@@ -326,7 +334,24 @@ module Cdp::Runtime
     @[JSON::Field(key: "serializationOptions", emit_null: false)]
     property serialization_options : SerializationOptions?
 
-    def initialize(@expression : String, @object_group : String?, @include_command_line_api : Bool?, @silent : Bool?, @context_id : ExecutionContextId?, @return_by_value : Bool?, @generate_preview : Bool?, @user_gesture : Bool?, @await_promise : Bool?, @throw_on_side_effect : Bool?, @timeout : TimeDelta?, @disable_breaks : Bool?, @repl_mode : Bool?, @allow_unsafe_eval_blocked_by_csp : Bool?, @unique_context_id : String?, @serialization_options : SerializationOptions?)
+    def initialize(
+      @expression : String,
+      @object_group : String? = nil,
+      @include_command_line_api : Bool? = nil,
+      @silent : Bool? = nil,
+      @context_id : ExecutionContextId? = nil,
+      @return_by_value : Bool? = nil,
+      @generate_preview : Bool? = nil,
+      @user_gesture : Bool? = nil,
+      @await_promise : Bool? = nil,
+      @throw_on_side_effect : Bool? = nil,
+      @timeout : TimeDelta? = nil,
+      @disable_breaks : Bool? = nil,
+      @repl_mode : Bool? = nil,
+      @allow_unsafe_eval_blocked_by_csp : Bool? = nil,
+      @unique_context_id : String? = nil,
+      @serialization_options : SerializationOptions? = nil,
+    )
     end
 
     # ProtoReq returns the protocol method name.
@@ -336,9 +361,7 @@ module Cdp::Runtime
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : EvaluateResult
-      res = EvaluateResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, EvaluateResult, c)
     end
   end
 
@@ -357,9 +380,7 @@ module Cdp::Runtime
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetIsolateIdResult
-      res = GetIsolateIdResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetIsolateIdResult, c)
     end
   end
 
@@ -378,9 +399,7 @@ module Cdp::Runtime
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetHeapUsageResult
-      res = GetHeapUsageResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetHeapUsageResult, c)
     end
   end
 
@@ -408,9 +427,7 @@ module Cdp::Runtime
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetPropertiesResult
-      res = GetPropertiesResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetPropertiesResult, c)
     end
   end
 
@@ -430,9 +447,7 @@ module Cdp::Runtime
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GlobalLexicalScopeNamesResult
-      res = GlobalLexicalScopeNamesResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GlobalLexicalScopeNamesResult, c)
     end
   end
 
@@ -454,9 +469,7 @@ module Cdp::Runtime
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : QueryObjectsResult
-      res = QueryObjectsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, QueryObjectsResult, c)
     end
   end
 
@@ -548,9 +561,7 @@ module Cdp::Runtime
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : RunScriptResult
-      res = RunScriptResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, RunScriptResult, c)
     end
   end
 
@@ -676,9 +687,7 @@ module Cdp::Runtime
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetExceptionDetailsResult
-      res = GetExceptionDetailsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetExceptionDetailsResult, c)
     end
   end
 end

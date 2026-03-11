@@ -162,12 +162,12 @@ module Cdp::DOM
     property? is_ad_related : Bool?
     @[JSON::Field(key: "parent", emit_null: false)]
     property parent : DOM::Node?
-    @[JSON::Field(key: "invalidated", emit_null: false)]
-    property invalidated : Channel(Nil)
-    @[JSON::Field(key: "state", emit_null: false)]
-    property state : NodeState
-    @[JSON::Field(key: "mutex", emit_null: false)]
-    property mutex : Mutex
+    @[JSON::Field(ignore: true)]
+    property invalidated : Channel(Nil) = Channel(Nil).new(1)
+    @[JSON::Field(ignore: true)]
+    property state : NodeState = NodeState.new(0u8)
+    @[JSON::Field(ignore: true)]
+    property mutex : Mutex = Mutex.new
 
     # AttributeValue returns the named attribute for the node.
     def attribute_value(name : String) : String
@@ -222,6 +222,17 @@ module Cdp::DOM
 
   # TODO: Implement type array for DOM.Quad
   alias Quad = JSON::Any
+
+  struct Point
+    include JSON::Serializable
+    @[JSON::Field(key: "x", emit_null: false)]
+    property x : Float64
+    @[JSON::Field(key: "y", emit_null: false)]
+    property y : Float64
+
+    def initialize(@x : Float64, @y : Float64)
+    end
+  end
 
   struct BoxModel
     include JSON::Serializable

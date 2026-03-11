@@ -79,9 +79,11 @@ module Rod::Input
 
   # Get key info
   def self.key_info(key : Key) : KeyInfo
+    ensure_key_map_initialized
     if info = @@key_map[key]?
       return info
     end
+    ensure_shifted_keys
     if info = @@key_map_shifted[key]?
       return info
     end
@@ -95,6 +97,8 @@ module Rod::Input
 
   # Get shifted version of key if available
   def self.shifted(key : Key) : {Key, Bool}
+    ensure_key_map_initialized
+    ensure_shifted_keys
     if shifted = @@key_shifted_map[key]?
       {shifted, true}
     else
@@ -111,13 +115,13 @@ module Rod::Input
     end
 
     info = key_info(key)
-    location = info.location == 3 ? nil : info.location.to_i64?
+    location = info.location == 3 ? nil : info.location.to_i64
     keypad = info.location == 3
 
     text = printable?(key) ? info.key : ""
 
     commands = mac? ? MAC_COMMANDS[info.key]? : nil
-    modifier_bits = modifiers == 0 ? nil : Cdp::Input::Modifier.new(modifiers.to_i64)
+    modifier_bits = modifiers == 0 ? nil : modifiers.to_i64
 
     Cdp::Input::DispatchKeyEvent.new(
       type: type,
@@ -128,7 +132,7 @@ module Rod::Input
       key_identifier: nil,
       code: info.code,
       key: info.key,
-      windows_virtual_key_code: info.key_code.to_i64?,
+      windows_virtual_key_code: info.key_code.to_i64,
       native_virtual_key_code: nil,
       auto_repeat: false,
       is_keypad: keypad,
@@ -259,6 +263,122 @@ module Rod::Input
   NUMPAD0         = add_key("0", "", "Numpad0", 45, 3)
   NUMPAD_DECIMAL  = add_key(".", "", "NumpadDecimal", 46, 3)
   NUMPAD_ENTER    = add_key("\r", "", "NumpadEnter", 13, 3)
+
+  SHIFTED_CHAR_MAP = {
+    '`'  => '~',
+    '1'  => '!',
+    '2'  => '@',
+    '3'  => '#',
+    '4'  => '$',
+    '5'  => '%',
+    '6'  => '^',
+    '7'  => '&',
+    '8'  => '*',
+    '9'  => '(',
+    '0'  => ')',
+    '-'  => '_',
+    '='  => '+',
+    '['  => '{',
+    ']'  => '}',
+    '\\' => '|',
+    ';'  => ':',
+    '\'' => '"',
+    ','  => '<',
+    '.'  => '>',
+    '/'  => '?',
+  } of Char => Char
+
+  # Rebuild shifted rune maps from printable keys. This mirrors Go's shifted key behavior.
+  private def self.bootstrap_shifted_keys : Nil
+    @@key_map_shifted.clear
+    @@key_shifted_map.clear
+
+    @@key_map.each do |key_id, info|
+      next unless info.key.size == 1
+      base = info.key[0]
+      shifted = base.ascii_lowercase? ? base.upcase : SHIFTED_CHAR_MAP[base]?
+      next unless shifted
+
+      rs = shifted.ord.to_i32
+      @@key_map_shifted[rs] = KeyInfo.new(shifted.to_s, info.code, info.key_code, info.location)
+      @@key_shifted_map[key_id] = rs
+    end
+  end
+
+  private def self.ensure_shifted_keys : Nil
+    return unless @@key_map_shifted.empty?
+    bootstrap_shifted_keys
+  end
+
+  # Crystal lazily initializes constants. Force key constants to initialize
+  # before key map lookups so map-backed key_info/shifted behave like Go.
+  private def self.ensure_key_map_initialized : Nil
+    return unless @@key_map.empty?
+
+    ESCAPE
+    TAB
+    ENTER
+    BACKSPACE
+    SPACE
+    SHIFT_LEFT
+    SHIFT_RIGHT
+    CONTROL_LEFT
+    CONTROL_RIGHT
+    ALT_LEFT
+    ALT_RIGHT
+    META_LEFT
+    META_RIGHT
+
+    DIGIT0
+    DIGIT1
+    DIGIT2
+    DIGIT3
+    DIGIT4
+    DIGIT5
+    DIGIT6
+    DIGIT7
+    DIGIT8
+    DIGIT9
+
+    BACKQUOTE
+    MINUS
+    EQUAL
+    BRACKET_LEFT
+    BRACKET_RIGHT
+    BACKSLASH
+    SEMICOLON
+    QUOTE
+    COMMA
+    PERIOD
+    SLASH
+
+    KEY_A
+    KEY_B
+    KEY_C
+    KEY_D
+    KEY_E
+    KEY_F
+    KEY_G
+    KEY_H
+    KEY_I
+    KEY_J
+    KEY_K
+    KEY_L
+    KEY_M
+    KEY_N
+    KEY_O
+    KEY_P
+    KEY_Q
+    KEY_R
+    KEY_S
+    KEY_T
+    KEY_U
+    KEY_V
+    KEY_W
+    KEY_X
+    KEY_Y
+    KEY_Z
+  end
 
   # Mouse button constants
   MOUSE_BUTTON_NONE    = "none"

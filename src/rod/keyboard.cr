@@ -20,7 +20,7 @@ module Rod
     def press(key : Input::Key) : Nil
       @mutex.synchronize do
         @pressed.add(key)
-        event = Input.encode(key, "keyDown", modifiers)
+        event = Input.encode(key, "keyDown", modifiers_unlocked)
         event.call(@page)
       end
     end
@@ -32,7 +32,7 @@ module Rod
           return
         end
         @pressed.delete(key)
-        event = Input.encode(key, "keyUp", modifiers)
+        event = Input.encode(key, "keyUp", modifiers_unlocked)
         event.call(@page)
       end
     end
@@ -146,13 +146,15 @@ module Rod
 
     # Get current modifier flags.
     def modifiers : Int32
-      @mutex.synchronize do
-        ms = 0
-        @pressed.each do |key|
-          ms |= Input.modifier(key)
-        end
-        ms
+      @mutex.synchronize { modifiers_unlocked }
+    end
+
+    private def modifiers_unlocked : Int32
+      ms = 0
+      @pressed.each do |key|
+        ms |= Input.modifier(key)
       end
+      ms
     end
   end
 end

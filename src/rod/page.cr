@@ -13,7 +13,12 @@ require "../cdp/runtime/runtime"
 require "../cdp/page/page"
 require "../cdp/emulation/emulation"
 require "../cdp/domsnapshot/domsnapshot"
+require "../cdp/dom/dom"
+require "../cdp/network/network"
+require "../cdp/browser/browser"
+require "../cdp/target/target"
 require "base64"
+require "digest/md5"
 
 module Rod
   # QueryOptions provides configuration for element queries.
@@ -42,7 +47,7 @@ module Rod
 
   # EvalOptions for Page.Evaluate.
   struct EvalOptions
-    alias JsArg = ::JSON::Any | JS::Function | ::Cdp::Runtime::RemoteObject
+    alias JsArg = ::JSON::Any | JS::Function | ::Cdp::Runtime::RemoteObject | String | Int32 | Int64 | Float64 | Bool | Nil
 
     # If enabled the eval result will be a plain JSON value.
     # If disabled the eval result will be a reference of a remote js object.
@@ -70,6 +75,32 @@ module Rod
       @js_args : Array(JsArg) = [] of JsArg,
       @user_gesture : Bool = false,
     )
+    end
+
+    def initialize(
+      @by_value : Bool = true,
+      @await_promise : Bool = false,
+      @this_obj : ::Cdp::Runtime::RemoteObject? = nil,
+      @js : String = "",
+      js_args : Array(::JSON::Any) = [] of ::JSON::Any,
+      @user_gesture : Bool = false,
+    )
+      args = [] of JsArg
+      js_args.each { |arg| args << arg }
+      @js_args = args
+    end
+
+    # Positional convenience overload used by existing callsites:
+    # EvalOptions.new(js, args)
+    def initialize(js : String, js_args : Array(::JSON::Any) = [] of ::JSON::Any)
+      @by_value = true
+      @await_promise = false
+      @this_obj = nil
+      @js = js
+      args = [] of JsArg
+      js_args.each { |arg| args << arg }
+      @js_args = args
+      @user_gesture = false
     end
 
     # Set the obj as ThisObj.
@@ -118,12 +149,23 @@ module Rod
           f = args.first.as(JS::Function)
           fn = "rod." + f.name
           args = args[1..]
+        elsif marker = @js.match(/\A\/\*\s*rod\.([a-zA-Z0-9_]+)\s*\*\//)
+          fn = "rod.#{marker[1]}"
         end
 
-        params_str = args.to_json.strip("[]\r\n")
+        params_str = args.map { |arg| serialize_eval_arg(arg) }.join(",")
       end
 
       io << fn << "(" << params_str << ") " << this_str
+    end
+
+    private def serialize_eval_arg(arg : JsArg) : String
+      case arg
+      when JS::Function
+        arg.name.to_json
+      else
+        arg.to_json
+      end
     end
   end
 
@@ -188,6 +230,26 @@ module Rod
       !@element.nil?
     end
 
+    # RootPage returns the top-level page for this target/frame chain.
+    def root_page : Page
+      iframe_el = @element
+      return self unless iframe_el
+      iframe_el.page.root_page
+    end
+
+    # MouseOffset returns the accumulated top-left offset of this page's frame
+    # relative to the top-level page viewport.
+    def mouse_offset : Point
+      iframe_el = @element
+      return Point.new(0.0, 0.0) unless iframe_el
+
+      parent_offset = iframe_el.page.mouse_offset
+      rect = iframe_el.eval("() => { const r = this.getBoundingClientRect(); return { x: r.left, y: r.top }; }").value
+      x = rect.try(&.[]?("x")).try(&.as_f?) || 0.0
+      y = rect.try(&.[]?("y")).try(&.as_f?) || 0.0
+      parent_offset.add(Point.new(x, y))
+    end
+
     # e is the error handler for Must methods.
     # It calls the configured EFunc with the error.
     protected def e(err : Exception?) : Nil
@@ -196,24 +258,42 @@ module Rod
 
     # WithPanic returns a page clone with the specified panic function.
     # The fail must stop the current goroutine's execution immediately.
-    def with_panic(fail : Proc(Exception, Nil)) : Page
-      new_obj = dup
-      new_obj.instance_variable_set("@e", Browser.gen_e(fail))
+    def with_panic(fail : Proc(Exception, Nil)) : self
+      new_obj = self.dup
+      new_obj.set_panic_handler(fail)
       new_obj
+    end
+
+    def set_panic_handler(fail : Proc(Exception, Nil)) : Nil
+      @e = Browser.gen_e(fail)
+    end
+
+    protected def e_handler=(handler : EFunc?) : EFunc?
+      @e = handler
+    end
+
+    protected def js_ctx_id_cache=(id : String?) : String?
+      @js_ctx_id = id
     end
 
     # Sleeper for retry logic
     @sleeper : Proc(Rod::Utils::Sleeper)
 
     def keyboard : Keyboard
+      root = root_page
+      return root.keyboard unless root.same?(self)
       @keyboard ||= Keyboard.new(self)
     end
 
     def mouse : Mouse
+      root = root_page
+      return root.mouse unless root.same?(self)
       @mouse ||= Mouse.new(self)
     end
 
     def touch : Touch
+      root = root_page
+      return root.touch unless root.same?(self)
       @touch ||= Touch.new(self)
     end
 
@@ -234,36 +314,38 @@ module Rod
 
     # Retry a block that may raise NotFoundError until it succeeds or timeout expires.
     private def retry_finding(timeout : Time::Span, interval : Time::Span, &block : -> T) : T forall T
-      # Check context cancellation before starting
+      _ = interval
       if @ctx.cancelled?
-        raise @ctx.err if @ctx.err
-        raise ContextCanceledError.new("context cancelled")
+        raise(@ctx.err || ContextCanceledError.new("context cancelled"))
       end
 
-      # Calculate effective timeout considering context deadline
-      effective_timeout = @ctx.timeout_remaining(timeout)
-      if effective_timeout <= Time::Span::ZERO
-        raise NotFoundError.new("Element not found within #{timeout} (context deadline exceeded)")
-      end
-
-      start_time = Time.monotonic
-      loop do
-        # Check context cancellation each iteration
-        if @ctx.cancelled?
-          raise @ctx.err if @ctx.err
-          raise ContextCanceledError.new("context cancelled")
+      effective_timeout = timeout
+      if remaining = @ctx.deadline_remaining
+        if remaining <= Time::Span::ZERO
+          raise(@ctx.err || ContextTimeoutError.new(timeout))
         end
+        effective_timeout = remaining if remaining < effective_timeout
+      end
 
+      result : T? = nil
+      started = Time.instant
+      err = Rod::Lib::Utils.retry(@ctx, @sleeper.call) do
         begin
-          return block.call
-        rescue NotFoundError
-          elapsed = Time.monotonic - start_time
-          if elapsed >= effective_timeout
-            raise NotFoundError.new("Element not found within #{timeout}")
+          result = block.call
+          {true, nil}
+        rescue ex : NotFoundError
+          if timeout > Time::Span::ZERO && Time.instant - started >= effective_timeout
+            {true, NotFoundError.new("Element not found within #{timeout}")}
+          else
+            {false, nil}
           end
-          sleep(interval)
+        rescue ex
+          {true, ex}
         end
       end
+
+      raise err if err
+      result.not_nil!
     end
 
     # Get document root node ID with DOM domain enabled.
@@ -275,9 +357,9 @@ module Rod
 
         restore = @browser.enable_domain(@session_id, ::Cdp::DOM::Enable.new(nil))
         result = ::Cdp::DOM::GetDocument.new(nil, nil).call(self)
-        @document_root_cache = result.root
+        @document_root_cache = result.root.node_id
         @dom_restore = restore
-        result.root
+        result.root.node_id
       end
     end
 
@@ -288,6 +370,10 @@ module Rod
         @dom_restore.try &.call
         @dom_restore = nil
       end
+    end
+
+    private def get_window_id : Cdp::Browser::WindowID
+      Cdp::Browser::GetWindowForTarget.new(@target_id.value).call(self).window_id
     end
 
     # Check if element matches QueryOptions (visible/enabled requirements)
@@ -361,45 +447,49 @@ module Rod
 
     # EachEvent is similar to Browser.EachEvent, but catches events of the current page only.
     macro eachevent(*callbacks)
-      \{% begin %}
-        {
-          cb_map = {} of String => Browser::CallbackInfo
-          \{% for cb in callbacks %}
-            \{% t = cb.type %}
-            \{% unless t.is_a?(Proc) %}
-              \{% raise "EachEvent expects Proc(...) callbacks; got #{t}" %}
-            \{% end %}
-            \{% event_t = t.type_vars[0] %}
-            \{% if event_t.is_a?(Union) %}
-              \{% non_nil = event_t.types.reject(&.==(Nil)).first %}
-              \{% event_t = non_nil %}
-            \{% end %}
-            \{% event_class = event_t.resolve %}
-            \{% event_name = event_class.proto_event %}
-            \{% num_args = t.type_vars.size - 1 %}
-            \{% if num_args == 1 %}
+      {% begin %}
+        begin
+          cb_map = {} of String => Rod::Browser::CallbackInfo
+          {% for cb in callbacks %}
+            {% unless cb.is_a?(ProcLiteral) %}
+              {% raise "EachEvent expects proc literals, got: #{cb.class_name}" %}
+            {% end %}
+            {% num_args = cb.args.size %}
+            {% if num_args < 1 || num_args > 2 %}
+              {% raise "EachEvent callback must have 1 or 2 arguments" %}
+            {% end %}
+            {% event_t = cb.args[0].restriction %}
+            {% if event_t.nil? %}
+              {% raise "EachEvent callback first argument must have an explicit event type restriction" %}
+            {% end %}
+            {% if event_t.is_a?(Union) %}
+              {% non_nil = event_t.types.reject(&.==(Nil)).first %}
+              {% event_t = non_nil %}
+            {% end %}
+            {% event_class = event_t.resolve %}
+            {% if num_args == 1 %}
               # Original callback takes event only
-              wrapper = ->(event : Cdp::Event, session_id : SessionID?) do
-                typed_event = event.as(\{{event_class}})
-                \{{cb}}.call(typed_event)
+              wrapper = ->(event : Cdp::Event, session_id : Rod::SessionID?) do
+                typed_event = event.as({{event_class}})
+                {{cb}}.call(typed_event)
               end
-            \{% elsif num_args == 2 %}
+            {% elsif num_args == 2 %}
               # Original callback takes event and session_id
-              wrapper = ->(event : Cdp::Event, session_id : SessionID?) do
-                typed_event = event.as(\{{event_class}})
-                \{{cb}}.call(typed_event, session_id)
+              wrapper = ->(event : Cdp::Event, session_id : Rod::SessionID?) do
+                typed_event = event.as({{event_class}})
+                {{cb}}.call(typed_event, session_id)
               end
-            \{% else %}
-              \{% raise "EachEvent callback must have 1 or 2 arguments" %}
-            \{% end %}
-            cb_map[\{{event_name}}] = Browser::CallbackInfo.new(
-              \{{event_class}},
+            {% else %}
+              {% raise "EachEvent callback must have 1 or 2 arguments" %}
+            {% end %}
+            cb_map[{{event_class}}.proto_event] = Rod::Browser::CallbackInfo.new(
+              {{event_class}},
               wrapper
             )
-          \{% end %}
+          {% end %}
           browser.context(@ctx).each_event(@session_id, cb_map)
-        }
-      \{% end %}
+        end
+      {% end %}
     end
 
     # EachEvent public API with uppercase name
@@ -410,6 +500,297 @@ module Rod
     # WaitEvent waits for the next event for one time. It will also load the data into the event object.
     def wait_event(e : Cdp::Event) : Proc(Nil)
       browser.context(@ctx).wait_event(e, @session_id)
+    end
+
+    # GetSessionID returns the page session id.
+    def get_session_id : SessionID?
+      @session_id
+    end
+
+    # String compatibility alias.
+    def string : String
+      "<Page #{@target_id}>"
+    end
+
+    # Event returns page-scoped events.
+    def event : Channel(Message)
+      src = @browser.event
+      dst = Channel(Message).new
+      sid = @session_id
+
+      spawn do
+        begin
+          loop do
+            select
+            when msg = src.receive?
+              break unless msg
+              if sid.nil? || msg.session_id == sid
+                dst.send(msg)
+              end
+
+              if sid && msg.method == Cdp::Target::DetachedFromTargetEvent.proto_event
+                if data = msg.data
+                  detached = Cdp::Target::DetachedFromTargetEvent.from_json(data.to_json)
+                  break if detached.session_id == sid.value
+                end
+              end
+
+              if msg.method == Cdp::Target::TargetDestroyedEvent.proto_event
+                if data = msg.data
+                  destroyed = Cdp::Target::TargetDestroyedEvent.from_json(data.to_json)
+                  break if destroyed.target_id == @target_id.value
+                end
+              end
+            when @ctx.done.receive?
+              break
+            end
+          end
+        rescue Channel::ClosedError
+        ensure
+          begin
+            dst.close
+          rescue Channel::ClosedError
+            nil
+          end
+        end
+      end
+
+      dst
+    end
+
+    # HTML of the page.
+    def html : String
+      element("html").html
+    end
+
+    # Cookies returns page cookies. Defaults to current page URL when urls is empty.
+    def cookies(urls : Array(String) = [] of String) : Array(Cdp::Network::Cookie)
+      target_urls = urls
+      if target_urls.empty?
+        target_urls = [info.url]
+      end
+      Cdp::Network::GetCookies.new(target_urls).call(self).cookies
+    end
+
+    # SetCookies sets page cookies. nil clears all browser cookies.
+    def set_cookies(cookies : Array(Cdp::Network::CookieParam)? = nil) : Nil
+      if cookies.nil?
+        Cdp::Network::ClearBrowserCookies.new.call(self)
+      else
+        Cdp::Network::SetCookies.new(cookies).call(self)
+      end
+    end
+
+    # SetExtraHeaders sets extra HTTP headers and returns a cleanup to disable Network domain.
+    def set_extra_headers(dict : Array(String)) : Proc(Nil)
+      headers = {} of String => JSON::Any
+      i = 0
+      while i < dict.size
+        headers[dict[i]] = JSON::Any.new(dict[i + 1])
+        i += 2
+      end
+
+      Cdp::Network::Enable.new(nil, nil, nil, nil, nil).call(self)
+      Cdp::Network::SetExtraHTTPHeaders.new(JSON::Any.new(headers)).call(self)
+
+      -> { Cdp::Network::Disable.new.call(self) }
+    end
+
+    # SetUserAgent override; defaults to LaptopWithMDPIScreen emulation when nil.
+    def set_user_agent(req : Cdp::Emulation::SetUserAgentOverride? = nil) : Nil
+      request = req || Rod::Lib::Devices::LaptopWithMDPIScreen.user_agent_emulation
+      request.try(&.call(self))
+    end
+
+    # SetBlockedURLs blocks matching URL patterns.
+    def set_blocked_urls(urls : Array(String)) : Nil
+      return if urls.empty?
+      Cdp::Network::SetBlockedURLs.new(nil, urls).call(self)
+    end
+
+    # HandleDialog accepts or dismisses the next JavaScript initiated dialog.
+    # Returns wait and handle callbacks.
+    def handle_dialog : Tuple(Proc(Cdp::Page::JavascriptDialogOpeningEvent), Proc(Cdp::Page::HandleJavaScriptDialog, Nil))
+      Cdp::Page::Enable.new(nil).call(self)
+      wait = browser.context(@ctx).wait_event_typed(Cdp::Page::JavascriptDialogOpeningEvent, @session_id)
+
+      {
+        -> { wait.call },
+        ->(h : Cdp::Page::HandleJavaScriptDialog) do
+          begin
+            h.call(self)
+          ensure
+            Cdp::Page::Disable.new.call(self)
+          end
+        end,
+      }
+    end
+
+    # HandleFileDialog waits for the next file chooser dialog and sets files for it.
+    def handle_file_dialog : Proc(Array(String), Nil)
+      Cdp::Page::SetInterceptFileChooserDialog.new(true, nil).call(self)
+      wait = browser.context(@ctx).wait_event_typed(Cdp::Page::FileChooserOpenedEvent, @session_id)
+
+      ->(paths : Array(String)) do
+        e = wait.call
+
+        Cdp::Page::SetInterceptFileChooserDialog.new(false, nil).call(self)
+
+        backend_node_id = e.backend_node_id
+        raise "file chooser event missing backend node id" unless backend_node_id
+
+        Cdp::DOM::SetFileInputFiles.new(
+          files: ::Rod::Lib::Utils.absolute_paths(paths),
+          node_id: nil,
+          backend_node_id: backend_node_id,
+          object_id: nil
+        ).call(self)
+      end
+    end
+
+    # WaitOpen waits for the next new page opened by the current page.
+    def wait_open : Proc(Page)
+      target_id : TargetID? = nil
+
+      b = browser.context(@ctx)
+      wait = b.each_event(nil, {
+        Cdp::Target::TargetCreatedEvent.proto_event => Browser::CallbackInfo.new(
+          Cdp::Target::TargetCreatedEvent,
+          ->(event : Cdp::Event, _session_id : SessionID?) do
+            created = event.as(Cdp::Target::TargetCreatedEvent)
+            target_id = TargetID.new(created.target_info.target_id)
+            created.target_info.opener_id == @target_id.value
+          end
+        ),
+      })
+
+      -> do
+        wait.call
+        id = target_id
+        raise "target ID not captured from Target.targetCreated event" unless id
+        b.page_from_target(id)
+      end
+    end
+
+    # WaitNavigation waits for a page lifecycle event while navigating.
+    # Usually you will wait for "networkAlmostIdle".
+    def wait_navigation(name : String = "networkAlmostIdle") : Proc(Nil)
+      begin
+        Cdp::Page::SetLifecycleEventsEnabled.new(enabled: true).call(self)
+      rescue
+        # Ignore protocol/domain support errors to mirror Go's best-effort enable.
+      end
+
+      wait = browser.context(@ctx).each_event(@session_id, {
+        Cdp::Page::LifecycleEventEvent.proto_event => Browser::CallbackInfo.new(
+          Cdp::Page::LifecycleEventEvent,
+          ->(event : Cdp::Event, _session_id : SessionID?) { event.as(Cdp::Page::LifecycleEventEvent).name == name }
+        ),
+      })
+
+      -> do
+        begin
+          wait.call
+        ensure
+          begin
+            Cdp::Page::SetLifecycleEventsEnabled.new(enabled: false).call(self)
+          rescue
+            # Ignore disable errors to preserve wait completion behavior.
+          end
+        end
+      end
+    end
+
+    # WaitRequestIdle waits for no matching in-flight requests for the given duration.
+    def wait_request_idle(
+      d : Time::Span,
+      includes : Array(String)? = nil,
+      excludes : Array(String)? = nil,
+      exclude_types : Array(Cdp::Network::ResourceType)? = nil,
+    ) : Proc(Nil)
+      exclude_types ||= [
+        Cdp::Network::ResourceTypeWebSocket,
+        Cdp::Network::ResourceTypeEventSource,
+        Cdp::Network::ResourceTypeMedia,
+        Cdp::Network::ResourceTypeImage,
+        Cdp::Network::ResourceTypeFont,
+      ]
+
+      includes = (includes.nil? || includes.empty?) ? [""] of String : includes
+      excludes ||= [] of String
+
+      p, cancel = with_cancel
+      match = gen_reg_matcher(includes, excludes)
+      wait_list = {} of String => String
+      idle_counter = Rod::Lib::Utils::IdleCounter.new(d)
+      update = try_trace_req(includes, excludes)
+      update.call(wait_list)
+
+      check_done = ->(request_id : String) do
+        if wait_list.delete(request_id)
+          update.call(wait_list)
+          idle_counter.done
+        end
+      end
+
+      wait = p.browser.context(p.get_context).each_event(@session_id, {
+        Cdp::Network::RequestWillBeSentEvent.proto_event => Browser::CallbackInfo.new(
+          Cdp::Network::RequestWillBeSentEvent,
+          ->(event : Cdp::Event, _session_id : SessionID?) do
+            sent = event.as(Cdp::Network::RequestWillBeSentEvent)
+            request_type = sent.type
+
+            if request_type
+              skip = exclude_types.not_nil!.any? { |t| t == request_type }
+              if skip
+                nil
+              elsif match.call(sent.request.url)
+                request_id = sent.request_id.to_s
+                unless wait_list.has_key?(request_id)
+                  wait_list[request_id] = sent.request.url
+                  update.call(wait_list)
+                  idle_counter.add
+                end
+                nil
+              else
+                nil
+              end
+            elsif match.call(sent.request.url)
+              request_id = sent.request_id.to_s
+              unless wait_list.has_key?(request_id)
+                wait_list[request_id] = sent.request.url
+                update.call(wait_list)
+                idle_counter.add
+              end
+              nil
+            else
+              nil
+            end
+          end
+        ),
+        Cdp::Network::LoadingFinishedEvent.proto_event => Browser::CallbackInfo.new(
+          Cdp::Network::LoadingFinishedEvent,
+          ->(event : Cdp::Event, _session_id : SessionID?) do
+            check_done.call(event.as(Cdp::Network::LoadingFinishedEvent).request_id.to_s)
+            nil
+          end
+        ),
+        Cdp::Network::LoadingFailedEvent.proto_event => Browser::CallbackInfo.new(
+          Cdp::Network::LoadingFailedEvent,
+          ->(event : Cdp::Event, _session_id : SessionID?) do
+            check_done.call(event.as(Cdp::Network::LoadingFailedEvent).request_id.to_s)
+            nil
+          end
+        ),
+      })
+
+      -> do
+        spawn do
+          idle_counter.wait(p.get_context)
+          cancel.call
+        end
+        wait.call
+      end
     end
 
     # Sessionable implementation
@@ -423,23 +804,107 @@ module Rod
         url = "about:blank"
       end
 
-      # try to stop loading
-      stop_loading
+      http_url = url.starts_with?("http://") || url.starts_with?("https://")
+      response_status : Int32? = nil
+      wait_response_done = Channel(Nil).new(1)
+      response_cancel : Proc(Nil)? = nil
 
-      res = Cdp::Page::Navigate.new(url: url, referrer: nil, transition_type: nil, frame_id: nil, referrer_policy: nil).call(self)
-      if error_text = res.error_text
-        raise NavigationError.new(error_text)
+      if http_url
+        watch_page, cancel = with_cancel
+        response_cancel = cancel
+        wait_response = watch_page.browser.context(watch_page.get_context).each_event(@session_id, {
+          Cdp::Network::ResponseReceivedEvent.proto_event => Browser::CallbackInfo.new(
+            Cdp::Network::ResponseReceivedEvent,
+            ->(event : Cdp::Event, _session_id : SessionID?) do
+              received = event.as(Cdp::Network::ResponseReceivedEvent)
+              if received.type == Cdp::Network::ResourceTypeDocument
+                response_status = received.response.status.round.to_i
+                true
+              else
+                nil
+              end
+            end
+          ),
+        })
+
+        spawn do
+          begin
+            wait_response.call
+          rescue
+          ensure
+            begin
+              wait_response_done.send(nil)
+            rescue Channel::ClosedError
+            end
+          end
+        end
+      end
+
+      # try to stop loading
+      begin
+        stop_loading
+      rescue
+        # Go parity: ignore StopLoading errors before navigate.
+      end
+
+      begin
+        res = Cdp::Page::Navigate.new(url: url, referrer: nil, transition_type: nil, frame_id: nil, referrer_policy: nil).call(self)
+        if error_text = res.error_text
+          raise NavigationError.new(error_text)
+        end
+
+        if http_url
+          select
+          when wait_response_done.receive?
+          when timeout(3.seconds)
+          end
+
+          if status = response_status
+            if status >= 400
+              raise NavigationError.new("net::ERR_HTTP_RESPONSE_CODE_FAILURE")
+            end
+          end
+        end
+      ensure
+        response_cancel.try(&.call)
       end
 
       unset_js_ctx_id
     end
 
+    # NavigateBack history.
+    def navigate_back : Nil
+      evaluate(EvalOptions.new(js: "() => history.back()", by_value: true, user_gesture: true))
+    end
+
+    # NavigateForward history.
+    def navigate_forward : Nil
+      evaluate(EvalOptions.new(js: "() => history.forward()", by_value: true, user_gesture: true))
+    end
+
     # Reload page.
     def reload : Nil
-      # TODO: implement proper wait for navigation event (rod-edo)
-      # For now use CDP reload (doesn't work for iframes)
-      Cdp::Page::Reload.new.call(self)
+      # Use JS reload to match rod behavior for iframe compatibility.
+      evaluate(EvalOptions.new(js: "() => location.reload()", by_value: true, user_gesture: true))
       unset_js_ctx_id
+    end
+
+    # Activate focuses the page target.
+    def activate : Page
+      Cdp::Target::ActivateTarget.new(@target_id.value).call(@browser)
+      self
+    end
+
+    # GetWindow returns current window bounds.
+    def get_window : Cdp::Browser::Bounds
+      window_id = get_window_id
+      Cdp::Browser::GetWindowBounds.new(window_id).call(self).bounds
+    end
+
+    # SetWindow updates current window bounds.
+    def set_window(bounds : Cdp::Browser::Bounds) : Nil
+      window_id = get_window_id
+      Cdp::Browser::SetWindowBounds.new(window_id, bounds).call(self)
     end
 
     # SetViewport overrides the values of device screen dimensions.
@@ -454,19 +919,26 @@ module Rod
       end
     end
 
+    # Emulate applies device viewport/touch/user-agent settings.
+    def emulate(device : Rod::Lib::Devices::Device) : Nil
+      set_viewport(device.metrics_emulation)
+      device.touch_emulation.call(self)
+      set_user_agent(device.user_agent_emulation)
+    end
+
     # LoadState into the method.
     def load_state(method : Cdp::Request) : Bool
-      browser.load_state(session_id, method)
+      browser.load_state(@session_id, method)
     end
 
     # EnableDomain and returns a restore function to restore previous state.
     def enable_domain(method : Cdp::Request) : Proc(Nil)
-      browser.context(@ctx).enable_domain(session_id, method)
+      browser.context(@ctx).enable_domain(@session_id, method)
     end
 
     # DisableDomain and returns a restore function to restore previous state.
     def disable_domain(method : Cdp::Request) : Proc(Nil)
-      browser.context(@ctx).disable_domain(session_id, method)
+      browser.context(@ctx).disable_domain(@session_id, method)
     end
 
     # Screenshot captures the screenshot of current page.
@@ -504,13 +976,13 @@ module Rod
           width: css_content_size.width.to_i64,
           height: css_content_size.height.to_i64,
           device_scale_factor: base.device_scale_factor,
-          mobile: base.mobile,
+          mobile: base.mobile?,
           scale: base.scale,
           screen_width: base.screen_width,
           screen_height: base.screen_height,
           position_x: base.position_x,
           position_y: base.position_y,
-          dont_set_visible_size: base.dont_set_visible_size,
+          dont_set_visible_size: base.dont_set_visible_size?,
           screen_orientation: base.screen_orientation,
           viewport: base.viewport,
           display_feature: base.display_feature,
@@ -521,19 +993,43 @@ module Rod
 
         begin
           shot = req.call(self)
-          return shot.data.to_slice
+          return Base64.decode(shot.data)
         ensure
           set_viewport(old_viewport)
         end
       end
 
       shot = req.call(self)
-      shot.data.to_slice
+      Base64.decode(shot.data)
     end
 
     # WaitLoad waits for the window.onload event.
     def wait_load : Nil
-      evaluate(eval_helper(Rod::JS::WAIT_LOAD).by_promise)
+      cleanup = try_trace(Rod::TraceTypeWait, "load")
+      begin
+        evaluate(eval_helper(Rod::JS::WAIT_LOAD).by_promise)
+      ensure
+        cleanup.call
+      end
+    end
+
+    # Wait until the js returns true.
+    def wait(opts : EvalOptions) : Nil
+      err = Rod::Lib::Utils.retry(@ctx, @sleeper.call) do
+        begin
+          res = evaluate(opts)
+          {res.value.try(&.as_bool?) == true, nil}
+        rescue ex
+          {true, ex}
+        end
+      end
+
+      raise err if err
+    end
+
+    # WaitElementsMoreThan waits until there are more than num elements that match the selector.
+    def wait_elements_more_than(selector : String, num : Int32) : Nil
+      wait(eval_opts("(s, n) => document.querySelectorAll(s).length > n", selector, num))
     end
 
     # WaitRepaint waits until the next repaint.
@@ -550,6 +1046,11 @@ module Rod
         include_blended_background_colors: nil,
         include_text_color_opacities: nil
       ).call(self)
+    end
+
+    # CaptureDOMSnapshot compatibility alias.
+    def capture_domsnapshot : Cdp::DOMSnapshot::CaptureSnapshotResult
+      capture_dom_snapshot
     end
 
     # GetResource content by the url. Such as image, css, html, etc.
@@ -570,6 +1071,33 @@ module Rod
       end
     end
 
+    # TriggerFavicon triggers favicon request in headless mode.
+    def trigger_favicon : Nil
+      unless @browser.headless?
+        raise "browser is no-headless"
+      end
+
+      evaluate(eval_helper(Rod::JS::TRIGGER_FAVICON).by_promise)
+    end
+
+    # WaitIdle waits until the next requestIdleCallback.
+    def wait_idle(timeout : Time::Span) : Nil
+      timeout_ms = timeout.total_milliseconds.to_i64
+      evaluate(eval_helper(Rod::JS::WAIT_IDLE, timeout_ms).by_promise)
+    end
+
+    # AddScriptTag to page. If url is empty, content will be used.
+    def add_script_tag(url : String, content : String = "") : Nil
+      id = Digest::MD5.hexdigest(url + content)
+      evaluate(eval_helper(Rod::JS::ADD_SCRIPT_TAG, id, url, content).by_promise)
+    end
+
+    # AddStyleTag to page. If url is empty, content will be used.
+    def add_style_tag(url : String, content : String = "") : Nil
+      id = Digest::MD5.hexdigest(url + content)
+      evaluate(eval_helper(Rod::JS::ADD_STYLE_TAG, id, url, content).by_promise)
+    end
+
     # WaitDOMStable waits until the DOM diff is <= diff for d duration.
     def wait_dom_stable(d : Time::Span, diff : Float64) : Nil
       dom_snapshot = capture_dom_snapshot
@@ -583,6 +1111,11 @@ module Rod
 
         dom_snapshot = current
       end
+    end
+
+    # WaitDOMStable compatibility alias.
+    def wait_domstable(d : Time::Span, diff : Float64) : Nil
+      wait_dom_stable(d, diff)
     end
 
     # WaitStable waits until the page is stable for d duration.
@@ -721,13 +1254,14 @@ module Rod
           optimize_for_speed: false
         )
         shot = req.call(self)
-        img_boxes << ::Rod::Lib::Utils::ImgWithBox.new(shot.data.to_slice)
+        box = ::Rod::Lib::Utils::Rect.new(0, 0, clip.width.round.to_i, clip.height.round.to_i)
+        img_boxes << ::Rod::Lib::Utils::ImgWithBox.new(Base64.decode(shot.data), box)
 
         scroll_top += scroll_y
         break if scroll_top >= content_height
 
         mouse.scroll(0.0, scroll_y, 1)
-        wait_dom_stable(opt.wait_per_scroll, 0.seconds)
+        wait_dom_stable(opt.wait_per_scroll, 0.0)
       end
 
       format = opt.format || Cdp::Page::CaptureScreenshotFormatPng
@@ -768,9 +1302,76 @@ module Rod
       Cdp::Page::GetNavigationHistory.new.call(self)
     end
 
+    # GetNavigationHistory compatibility alias.
+    def get_navigation_history : Cdp::Page::GetNavigationHistoryResult
+      navigation_history
+    end
+
     # ResetNavigationHistory resets navigation history.
     def reset_navigation_history : Nil
       Cdp::Page::ResetNavigationHistory.new.call(self)
+    end
+
+    # SetDocumentContent sets the page document HTML content.
+    def set_document_content(html : String) : Nil
+      frame_id = @frame_id
+      raise "page has no frame id" unless frame_id
+      Cdp::Page::SetDocumentContent.new(frame_id.value, html).call(self)
+    end
+
+    # Close tries to close page.
+    def close : Nil
+      cancel : Proc(Nil)? = nil
+      ctx, cancel_fn = @ctx.with_cancel
+      cancel = cancel_fn
+      messages = @browser.context(ctx).event
+      success = true
+
+      loop do
+        begin
+          Cdp::Page::Close.new.call(self)
+          break
+        rescue ex
+          if not_attached_to_active_page_error?(ex)
+            sleep(100.milliseconds)
+            next
+          end
+          raise ex
+        end
+      end
+
+      loop do
+        msg = messages.receive
+
+        stop = false
+        if destroyed = msg.load(Cdp::Target::TargetDestroyedEvent)
+          stop = destroyed.target_id == @target_id.value
+        elsif sid = @session_id
+          if msg.session_id == sid
+            if closed = msg.load(Cdp::Page::JavascriptDialogClosedEvent)
+              success = closed.result? ? true : false
+              stop = !success
+            end
+          end
+        end
+
+        break if stop
+      end
+
+      raise PageCloseCanceledError.new unless success
+    ensure
+      cancel.try(&.call)
+      @ctx.cancel("page closed")
+    end
+
+    # Info of the page, such as URL or title.
+    def info : Cdp::Target::TargetInfo
+      Cdp::Target::GetTargetInfo.new(@target_id.value).call(self).target_info
+    end
+
+    # IsIframe compatibility alias.
+    def is_iframe : Bool
+      iframe?
     end
 
     # Evaluate JavaScript.
@@ -866,17 +1467,19 @@ module Rod
       loop do
         # Check context cancellation each iteration
         if @ctx.cancelled?
-          raise @ctx.err if @ctx.err
+          if err = @ctx.err
+            raise err
+          end
           raise ContextCanceledError.new("context cancelled")
         end
 
         begin
           return evaluate_internal(opts)
-        rescue ex : ::Rod::Lib::Cdp::Error
+        rescue ex : Exception
           # Check if error is context not found
           if ctx_not_found_error?(ex)
             if opts.this_obj
-              raise NotFoundError.new("Object not found: #{opts.this_obj}")
+              raise ObjectNotFoundError.new(opts.this_obj.not_nil!)
             end
 
             # Wait before retry
@@ -908,9 +1511,18 @@ module Rod
     end
 
     # eval_helper creates EvalOptions for a JS helper function.
-    private def eval_helper(fn : JS::Function, *args) : EvalOptions
-      js_args = [fn.as(EvalOptions::JsArg)] + args.map { |arg| ::JSON::Any.new(arg).as(EvalOptions::JsArg) }
-      js = "function (f /* #{fn.name} */, ...args) { return f.apply(this, args) }"
+    protected def eval_helper(fn : JS::Function, *args) : EvalOptions
+      js_args = [] of EvalOptions::JsArg
+      js_args << fn.as(EvalOptions::JsArg)
+      args.each do |arg|
+        case arg
+        when EvalOptions::JsArg
+          js_args << arg
+        else
+          js_args << JSON.parse(arg.to_json)
+        end
+      end
+      js = "function (f /* #{fn.name}: #{fn.definition} */, ...args) { return f.apply(this, args) }"
       EvalOptions.new(
         js: js,
         js_args: js_args,
@@ -920,7 +1532,15 @@ module Rod
 
     # eval_opts creates an EvalOptions with ByValue set to true (similar to Go's Eval).
     def eval_opts(js : String, *args) : EvalOptions
-      js_args = args.map { |arg| ::JSON::Any.new(arg).as(EvalOptions::JsArg) }
+      js_args = [] of EvalOptions::JsArg
+      args.each do |arg|
+        case arg
+        when EvalOptions::JsArg
+          js_args << arg
+        else
+          js_args << JSON.parse(arg.to_json)
+        end
+      end
       EvalOptions.new(js: js, js_args: js_args, by_value: true)
     end
 
@@ -963,7 +1583,7 @@ module Rod
       begin
         evaluate(EvalOptions.new(
           js: expose_func_def,
-          js_args: [name, bind].map { |arg| ::JSON::Any.new(arg) },
+          js_args: [name, bind].map { |arg| ::JSON::Any.new(arg).as(EvalOptions::JsArg) },
           by_value: true,
           await_promise: true
         ))
@@ -1003,7 +1623,7 @@ module Rod
               err_json = err || JSON::Any.new(nil)
               eval_opts = EvalOptions.new(
                 js: js_code,
-                js_args: [result_json, err_json].map { |arg| ::JSON::Any.new(arg) },
+                js_args: [result_json, err_json].map { |arg| arg.as(EvalOptions::JsArg) },
                 by_value: true,
                 await_promise: true
               )
@@ -1051,22 +1671,37 @@ module Rod
 
     # element_by_js returns the element from the return value of the js function.
     def element_by_js(opts : EvalOptions) : Element
-      # Evaluate with by_object to get remote object reference
-      eval_opts = opts.by_object
-      res = evaluate(eval_opts)
-      # Check if result is null or undefined
-      if res.type == "undefined" || res.type == "null" || res.subtype == "null"
-        raise NotFoundError.new("Element not found via JavaScript")
+      res : Cdp::Runtime::RemoteObject? = nil
+      remove_trace = -> { }
+
+      err = ::Rod::Lib::Utils.retry(@ctx, @sleeper.call) do
+        remove = try_trace_query(opts)
+        remove_trace.call
+        remove_trace = remove
+
+        evaluated = evaluate(opts.by_object)
+        res = evaluated
+
+        if evaluated.type == "object" && evaluated.subtype == "null"
+          {false, nil}
+        else
+          {true, nil}
+        end
+      rescue ex
+        {true, ex}
       end
-      # Ensure result is an object with object_id
-      unless res.object_id
-        raise "JavaScript did not return an element object (type: #{res.type})"
+
+      remove_trace.call
+      raise err if err
+
+      remote = res
+      raise ElementNotFoundError.new unless remote
+      remote = remote.not_nil!
+      unless remote.subtype == "node"
+        raise ExpectElementError.new(remote)
       end
-      # Ensure it's a DOM node
-      unless res.subtype == "node"
-        raise "JavaScript did not return a DOM node (subtype: #{res.subtype})"
-      end
-      Element.new(res, self)
+
+      element_from_object(remote)
     end
 
     # elements_by_js returns the elements from the return value of the js.
@@ -1106,15 +1741,16 @@ module Rod
           next if prop.name == "__proto__" || prop.name == "length"
 
           # Ensure we have a value
-          next unless prop.value
+          value = prop.value
+          next unless value
 
           # Ensure it's a DOM node
-          unless prop.value.subtype == "node"
-            raise "Expected DOM node but got subtype: #{prop.value.subtype}"
+          unless value.subtype == "node"
+            raise "Expected DOM node but got subtype: #{value.subtype}"
           end
 
           # Create element from remote object
-          elem = Element.new(prop.value, self)
+          elem = Element.new(value, self)
           elements << elem
         end
 
@@ -1127,16 +1763,73 @@ module Rod
 
     # release releases a remote object.
     def release(obj : ::Cdp::Runtime::RemoteObject) : Nil
-      return unless obj.object_id
-      req = ::Cdp::Runtime::ReleaseObject.new(object_id: obj.object_id)
+      object_id = obj.object_id
+      return unless object_id
+      req = ::Cdp::Runtime::ReleaseObject.new(object_id: object_id)
       req.call(self)
+    end
+
+    # object_to_json resolves a remote object to by-value JSON.
+    # Mirrors Go Page.ObjectToJSON behavior.
+    def object_to_json(obj : ::Cdp::Runtime::RemoteObject) : ::JSON::Any
+      object_id = obj.object_id
+      return obj.value || JSON::Any.new(nil) unless object_id
+
+      req = ::Cdp::Runtime::CallFunctionOn.new(
+        function_declaration: "function() { return this }",
+        object_id: object_id,
+        arguments: nil,
+        silent: nil,
+        return_by_value: true,
+        generate_preview: nil,
+        user_gesture: nil,
+        await_promise: nil,
+        execution_context_id: nil,
+        object_group: nil,
+        throw_on_side_effect: nil,
+        unique_context_id: nil,
+        serialization_options: nil
+      )
+
+      result = req.call(self).result.value
+      result || JSON::Any.new(nil)
     end
 
     # Convert a DOM NodeID to an Element.
     def element_from_node(node_id : ::Cdp::DOM::NodeId) : Element
       req = ::Cdp::DOM::ResolveNode.new(node_id: node_id, backend_node_id: nil, object_group: nil, execution_context_id: nil)
       result = req.call(self)
-      element_from_object(result.object)
+      normalize_element_node(element_from_object(result.object))
+    end
+
+    # Convert a DOM Node to an Element.
+    def element_from_node(node : ::Cdp::DOM::Node) : Element
+      req = ::Cdp::DOM::ResolveNode.new(
+        node_id: node.node_id == 0 ? nil : node.node_id,
+        backend_node_id: node.backend_node_id == 0 ? nil : node.backend_node_id,
+        object_group: nil,
+        execution_context_id: nil
+      )
+      result = req.call(self)
+      normalize_element_node(element_from_object(result.object))
+    end
+
+    # ElementFromPoint creates an Element from an absolute point on the page.
+    def element_from_point(x : Int32, y : Int32) : Element
+      node = ::Cdp::DOM::GetNodeForLocation.new(
+        x: x.to_i64,
+        y: y.to_i64,
+        include_user_agent_shadow_dom: nil,
+        ignore_pointer_events_none: nil
+      ).call(self)
+
+      req = ::Cdp::DOM::ResolveNode.new(
+        node_id: nil,
+        backend_node_id: node.backend_node_id,
+        object_group: nil,
+        execution_context_id: nil
+      )
+      normalize_element_node(element_from_object(req.call(self).object))
     end
 
     # Create an Element from a remote object.
@@ -1151,7 +1844,7 @@ module Rod
       page = self
       if id != page_ctx_id
         page = dup
-        page.instance_variable_set("@js_ctx_id", id)
+        page.js_ctx_id_cache = id
       end
 
       Element.new(obj, page)
@@ -1183,7 +1876,7 @@ module Rod
 
         if res.result_count == 0
           # No results, retry
-          return {false, nil}
+          next {false, nil}
         end
 
         # Get first element to verify search result is ready
@@ -1199,8 +1892,8 @@ module Rod
         # invalidate all the existing NodeID. We have to call proto.DOMGetDocument
         # to reset the remote browser's tracker.
         if id == 0
-          ::Cdp::DOM::GetDocument.new.call(self)
-          return {false, nil}
+          ::Cdp::DOM::GetDocument.new(nil, nil).call(self)
+          next {false, nil}
         end
 
         element = element_from_node(id)
@@ -1208,16 +1901,20 @@ module Rod
 
         # Found element, stop retrying
         {true, nil}
-      rescue ex : ::Rod::Lib::Cdp::Error
+      rescue ex : Exception
         # Check if error is context not found or search session not found
-        if ctx_not_found_error?(ex) || search_session_not_found_error?(ex)
+        if ctx_not_found_error?(ex) || search_session_not_found_error?(ex) || stale_document_root_error?(ex)
+          if stale_document_root_error?(ex)
+            begin
+              ::Cdp::DOM::GetDocument.new(nil, nil).call(self)
+            rescue
+              # Best-effort refresh before retrying stale node IDs.
+            end
+          end
           # Wait before retry
-          return {false, nil}
+          next {false, nil}
         end
         # Other CDP errors: stop retrying with error
-        {true, ex}
-      rescue ex : Exception
-        # Other errors: stop retrying
         {true, ex}
       end
 
@@ -1236,10 +1933,11 @@ module Rod
     private def evaluate_internal(opts : EvalOptions) : ::Cdp::Runtime::RemoteObject
       # Format arguments for CallFunctionOn
       args = format_args(opts)
+      target_object_id = opts.this_obj.try(&.object_id) || get_js_ctx_id
 
       req = ::Cdp::Runtime::CallFunctionOn.new(
         function_declaration: opts.format_to_js_func,
-        object_id: opts.this_obj.try(&.object_id),
+        object_id: target_object_id,
         arguments: args,
         await_promise: opts.await_promise?,
         return_by_value: opts.by_value?,
@@ -1255,7 +1953,7 @@ module Rod
 
       res = req.call(self)
       if ex = res.exception_details
-        raise "JavaScript evaluation error: #{ex}"
+        raise EvalError.new(ex)
       end
       res.result
     end
@@ -1308,31 +2006,46 @@ module Rod
 
         iframe_el = @element
         raise "iframe page has no backing element" unless iframe_el
-        node = iframe_el.describe(1, true)
-        content_doc = node.content_document
-        raise "iframe element has no content document" unless content_doc
-        backend_node_id = content_doc.backend_node_id
+        2.times do |attempt|
+          begin
+            node = iframe_el.describe(1, true)
+            content_doc = node.content_document
+            raise "iframe element has no content document" unless content_doc
+            backend_node_id = content_doc.backend_node_id
 
-        resolved = ::Cdp::DOM::ResolveNode.new(
-          node_id: nil,
-          backend_node_id: backend_node_id,
-          object_group: nil,
-          execution_context_id: nil
-        ).call(self)
+            resolved = ::Cdp::DOM::ResolveNode.new(
+              node_id: nil,
+              backend_node_id: backend_node_id,
+              object_group: nil,
+              execution_context_id: nil
+            ).call(self)
 
-        object_id = resolved.object.object_id
-        raise "Failed to resolve iframe content document object ID" unless object_id
+            object_id = resolved.object.object_id
+            raise "Failed to resolve iframe content document object ID" unless object_id
 
-        old_id = @js_ctx_id
-        @helpers_lock.synchronize do
-          if helpers = @helpers
-            helpers.delete(old_id) if old_id
+            old_id = @js_ctx_id
+            @helpers_lock.synchronize do
+              if helpers = @helpers
+                helpers.delete(old_id) if old_id
+              end
+            end
+
+            id = js_ctx_id_by_object_id(object_id)
+            @js_ctx_id = id
+            return id
+          rescue ex
+            if stale_iframe_node_error?(ex) && attempt == 0
+              refreshed = refresh_iframe_element
+              raise ex unless refreshed
+              @element = refreshed
+              iframe_el = refreshed
+              next
+            end
+            raise ex
           end
         end
 
-        id = js_ctx_id_by_object_id(object_id)
-        @js_ctx_id = id
-        id
+        raise "Failed to resolve iframe js context"
       end
     end
 
@@ -1372,21 +2085,95 @@ module Rod
       id
     end
 
+    private def normalize_element_node(el : Element) : Element
+      desc = el.describe(0, false)
+      if desc.node_name == "#text"
+        parent = el.parent
+        raise "text node has no parent element" unless parent
+        return parent
+      end
+      el
+    end
+
+    private def stale_iframe_node_error?(error : Exception) : Bool
+      if message = error.message
+        return true if message.includes?("Node with given id does not belong to the document")
+        return true if message.includes?("Could not find node with given id")
+      end
+
+      if cause = error.cause
+        return stale_iframe_node_error?(cause.as(Exception))
+      end
+
+      false
+    end
+
+    private def refresh_iframe_element : Element?
+      fid = @frame_id.try(&.value)
+      return nil unless fid
+
+      root_id = document_root
+      node_ids = ::Cdp::DOM::QuerySelectorAll.new(root_id, "iframe").call(self).node_ids
+
+      node_ids.each do |node_id|
+        next if node_id == 0
+        begin
+          resolved = ::Cdp::DOM::ResolveNode.new(
+            node_id: node_id,
+            backend_node_id: nil,
+            object_group: nil,
+            execution_context_id: nil
+          ).call(self)
+          candidate = Element.new(resolved.object, self)
+          described = candidate.describe(1, false)
+          return candidate if described.frame_id == fid
+        rescue
+          next
+        end
+      end
+
+      nil
+    end
+
     # Check if error is a context not found error.
     private def ctx_not_found_error?(error : ::Exception) : Bool
-      # Check if it's a Rod::Lib::Cdp::Error with code -32000 and matching message
-      if error.is_a?(::Rod::Lib::Cdp::Error)
-        return error.code == -32000 && error.message.includes?("Cannot find context with specified id")
+      if message = error.message
+        return true if message.includes?(Cdp::ErrCtxNotFound.message)
       end
+
+      if cause = error.cause
+        return ctx_not_found_error?(cause.as(Exception))
+      end
+
       false
     end
 
     # Check if error is a search session not found error.
     private def search_session_not_found_error?(error : ::Exception) : Bool
-      # Check if it's a Rod::Lib::Cdp::Error with code -32000 and matching message
-      if error.is_a?(::Rod::Lib::Cdp::Error)
-        return error.code == -32000 && error.message.includes?("No search session with given id found")
+      if message = error.message
+        return true if message.includes?(Cdp::ErrSearchSessionNotFound.message)
       end
+
+      if cause = error.cause
+        return search_session_not_found_error?(cause.as(Exception))
+      end
+
+      false
+    end
+
+    private def not_attached_to_active_page_error?(error : ::Exception) : Bool
+      if error.is_a?(::Rod::Lib::Cdp::Error)
+        return error.code == -32000 && error.message == "Not attached to an active page"
+      end
+
+      if error.message == "Not attached to an active page"
+        return true
+      end
+
+      if cause = error.cause
+        return not_attached_to_active_page_error?(cause.as(Exception))
+      end
+
       false
     end
 
@@ -1452,12 +2239,32 @@ module Rod
         when ::Cdp::Runtime::RemoteObject
           ::Cdp::Runtime::CallArgument.new(object_id: arg.object_id)
         else
-          ::Cdp::Runtime::CallArgument.new(value: arg)
+          value = arg.is_a?(::JSON::Any) ? arg : ::JSON.parse(arg.to_json)
+          ::Cdp::Runtime::CallArgument.new(value: value)
         end
       end
     end
 
     private def element_by_css(selector : String, opts : QueryOptions) : Element
+      if iframe?
+        eval_opts = eval_helper(JS::ELEMENT, selector)
+        if opts.timeout > 0.seconds
+          return retry_finding(opts.timeout, opts.retry_interval) do
+            element = element_by_js(eval_opts)
+            unless element_matches_options?(element, opts)
+              raise NotFoundError.new("Element found but doesn't match options: #{selector}")
+            end
+            element
+          end
+        end
+
+        element = element_by_js(eval_opts)
+        unless element_matches_options?(element, opts)
+          raise NotFoundError.new("Element found but doesn't match options: #{selector}")
+        end
+        return element
+      end
+
       if opts.timeout > 0.seconds
         retry_finding(opts.timeout, opts.retry_interval) do
           element_by_css_cdp(selector, opts)
@@ -1466,6 +2273,12 @@ module Rod
         element_by_css_cdp(selector, opts)
       end
     rescue ex : NotFoundError
+      raise ex
+    rescue ex : Rod::Lib::Utils::MaxSleepCountError
+      raise ex
+    rescue ex : ContextCanceledError
+      raise ex
+    rescue ex : ContextTimeoutError
       raise ex
     rescue ex
       raise NotFoundError.new("Element not found: #{selector}", cause: ex)
@@ -1476,8 +2289,16 @@ module Rod
       # Try twice in case document root cache is stale
       2.times do |i|
         root_id = document_root
-        req = ::Cdp::DOM::QuerySelector.new(root_id, selector)
-        result = req.call(self)
+        result = begin
+          req = ::Cdp::DOM::QuerySelector.new(root_id, selector)
+          req.call(self)
+        rescue ex
+          if i == 0 && stale_document_root_error?(ex)
+            clear_document_root_cache
+            next
+          end
+          raise ex
+        end
 
         if result.node_id == 0
           # If first attempt failed, clear cache and try again
@@ -1503,14 +2324,33 @@ module Rod
     end
 
     private def elements_by_css(selector : String, opts : QueryOptions) : Elements
+      if iframe?
+        elements = elements_by_js(eval_helper(JS::ELEMENTS, selector))
+        filtered = [] of Element
+        elements.each do |element|
+          filtered << element if element_matches_options?(element, opts)
+        end
+        return Elements.new(filtered)
+      end
+
       elements_by_css_cdp(selector, opts)
     end
 
     # CDP-based implementation of elements_by_css
     private def elements_by_css_cdp(selector : String, opts : QueryOptions) : Elements
       root_id = document_root
-      req = ::Cdp::DOM::QuerySelectorAll.new(root_id, selector)
-      result = req.call(self)
+      result = begin
+        req = ::Cdp::DOM::QuerySelectorAll.new(root_id, selector)
+        req.call(self)
+      rescue ex
+        if stale_document_root_error?(ex)
+          clear_document_root_cache
+          req = ::Cdp::DOM::QuerySelectorAll.new(document_root, selector)
+          req.call(self)
+        else
+          raise ex
+        end
+      end
 
       elements = [] of Element
       result.node_ids.each do |node_id|
@@ -1537,6 +2377,8 @@ module Rod
       end
     rescue ex : NotFoundError
       raise ex
+    rescue ex : Rod::Lib::Utils::MaxSleepCountError
+      raise ex
     rescue ex
       raise NotFoundError.new("Element not found via XPath: #{xpath}", cause: ex)
     end
@@ -1558,8 +2400,33 @@ module Rod
       end
     rescue ex : NotFoundError
       raise ex
+    rescue ex : Rod::Lib::Utils::MaxSleepCountError
+      raise ex
     rescue ex
       raise NotFoundError.new("Element not found via regex: #{selector} / #{regex}", cause: ex)
+    end
+
+    private def gen_reg_matcher(includes : Array(String), excludes : Array(String)) : Proc(String, Bool)
+      include_list = includes.map { |p| Regex.new(p) }
+      exclude_list = excludes.map { |p| Regex.new(p) }
+
+      ->(url : String) do
+        include_list.any?(&.matches?(url)) &&
+          exclude_list.none?(&.matches?(url))
+      end
+    end
+
+    private def stale_document_root_error?(error : Exception) : Bool
+      if message = error.message
+        return true if message.includes?("Could not find node with given id")
+        return true if message.includes?("Node with given id does not belong to the document")
+      end
+
+      if cause = error.cause
+        return stale_document_root_error?(cause.as(Exception))
+      end
+
+      false
     end
   end
 
@@ -1645,12 +2512,10 @@ module Rod
     # Find the page that has the url that matches the js_regex.
     # Returns nil if no page matches.
     def find_by_url(js_regex : String) : Page?
-      regex = Regex.new(js_regex) # ameba:disable Lint/UselessAssign
-      @pages.each do |_|
-        # TODO: Implement Page#url method
-        # For now, return nil
-        # url = page.url
-        # return page if regex.match?(url)
+      regex = Regex.new(js_regex)
+      @pages.each do |page|
+        url = page.eval("() => location.href").value.try(&.as_s) || ""
+        return page if regex.match(url)
       end
       nil
     end

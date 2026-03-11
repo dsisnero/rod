@@ -497,6 +497,15 @@ module Cdp::Page
     property height : Float64
     @[JSON::Field(key: "scale", emit_null: false)]
     property scale : Float64
+
+    def initialize(
+      @x : Float64,
+      @y : Float64,
+      @width : Float64,
+      @height : Float64 = 0.0,
+      @scale : Float64 = 1.0,
+    )
+    end
   end
 
   @[Experimental]

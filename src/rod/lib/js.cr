@@ -6,8 +6,7 @@ module Rod
       getter definition : String
       getter dependencies : Array(Function)
 
-      def initialize(@name : String, @definition : String, @dependencies : Array(Function)? = nil)
-        @dependencies = @dependencies || [] of Function
+      def initialize(@name : String, @definition : String, @dependencies : Array(Function) = [] of Function)
       end
     end
 
@@ -15,7 +14,7 @@ module Rod
     FUNCTIONS = Function.new(
       name: "functions",
       definition: "() => ({})",
-      dependencies: nil
+      dependencies: [] of Function
     )
 
     TRIGGER_FAVICON = Function.new(

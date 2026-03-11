@@ -83,9 +83,7 @@ module Cdp::DOMSnapshot
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : CaptureSnapshotResult
-      res = CaptureSnapshotResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, CaptureSnapshotResult, c)
     end
   end
 end

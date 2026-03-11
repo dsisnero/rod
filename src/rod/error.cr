@@ -9,9 +9,9 @@ module Rod
     property value : String
     property stack : String
 
-    def initialize(value : String, @stack : String = "")
+    def initialize(value : String, @stack : String = "", cause : Exception? = nil)
       @value = value
-      super("error value: #{@value}\n#{@stack}")
+      super("error value: #{@value}\n#{@stack}", cause: cause)
     end
 
     # Returns true if err is a TryError.
@@ -22,9 +22,18 @@ module Rod
     # Unwrap returns the underlying error if value is an error, otherwise
     # returns a new error with the value stringified.
     def unwrap : Exception
-      # In Go, if value is an error, return it. Since we store as String,
-      # we can't determine if it was originally an error.
-      Exception.new(@value)
+      cause || Exception.new(@value)
+    end
+  end
+
+  # Try executes a block and converts raised exceptions to TryError.
+  def self.try(&block : ->) : Exception?
+    begin
+      block.call
+      nil
+    rescue ex
+      stack = ex.backtrace?.try(&.join('\n')) || ""
+      TryError.new(ex.message || ex.class.name, stack, ex)
     end
   end
 
@@ -63,8 +72,8 @@ module Rod
 
   # NotFoundSleeper returns a sleeper that raises ElementNotFoundError on first call.
   def self.not_found_sleeper : Proc(HTTP::Client::Context?, Exception?)
-    ->(_ctx : HTTP::Client::Context?) do
-      ElementNotFoundError.new
+    ->(_ctx : HTTP::Client::Context?) : Exception? do
+      ElementNotFoundError.new.as(Exception)
     end
   end
 

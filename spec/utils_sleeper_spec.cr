@@ -94,9 +94,9 @@ describe Rod::Lib::Utils do
       counter.done
     end
 
-    start = Time.monotonic
+    start = Time.instant
     counter.wait(ctx)
-    elapsed = Time.monotonic - start
+    elapsed = Time.instant - start
     elapsed.should be > 380.milliseconds
     elapsed.should be < 550.milliseconds
 
@@ -105,24 +105,24 @@ describe Rod::Lib::Utils do
     end
 
     ctx.cancel
-    start = Time.monotonic
+    start = Time.instant
     counter.wait(ctx)
-    (Time.monotonic - start).should be < 20.milliseconds
+    (Time.instant - start).should be < 20.milliseconds
   end
 
   it "waits from zero jobs state" do
     ctx = Rod::Context.new
     counter = Rod::Lib::Utils::IdleCounter.new(100.milliseconds)
-    start = Time.monotonic
+    start = Time.instant
     counter.wait(ctx)
-    (Time.monotonic - start).should be < 180.milliseconds
+    (Time.instant - start).should be < 180.milliseconds
   end
 
   it "returns immediately for zero idle duration" do
     ctx = Rod::Context.new
     counter = Rod::Lib::Utils::IdleCounter.new(0.seconds)
-    start = Time.monotonic
+    start = Time.instant
     counter.wait(ctx)
-    (Time.monotonic - start).should be < 20.milliseconds
+    (Time.instant - start).should be < 20.milliseconds
   end
 end

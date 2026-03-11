@@ -117,13 +117,13 @@ module Cdp::Page
     @[JSON::Field(key: "contentSize", emit_null: false)]
     property content_size : Cdp::DOM::Rect
     @[JSON::Field(key: "cssLayoutViewport", emit_null: false)]
-    property css_layout_viewport : LayoutViewport
+    property css_layout_viewport : LayoutViewport?
     @[JSON::Field(key: "cssVisualViewport", emit_null: false)]
-    property css_visual_viewport : VisualViewport
+    property css_visual_viewport : VisualViewport?
     @[JSON::Field(key: "cssContentSize", emit_null: false)]
-    property css_content_size : Cdp::DOM::Rect
+    property css_content_size : Cdp::DOM::Rect?
 
-    def initialize(@layout_viewport : LayoutViewport, @visual_viewport : VisualViewport, @content_size : Cdp::DOM::Rect, @css_layout_viewport : LayoutViewport, @css_visual_viewport : VisualViewport, @css_content_size : Cdp::DOM::Rect)
+    def initialize(@layout_viewport : LayoutViewport, @visual_viewport : VisualViewport, @content_size : Cdp::DOM::Rect, @css_layout_viewport : LayoutViewport?, @css_visual_viewport : VisualViewport?, @css_content_size : Cdp::DOM::Rect?)
     end
   end
 
@@ -249,9 +249,7 @@ module Cdp::Page
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : AddScriptToEvaluateOnNewDocumentResult
-      res = AddScriptToEvaluateOnNewDocumentResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, AddScriptToEvaluateOnNewDocumentResult, c)
     end
   end
 
@@ -289,7 +287,14 @@ module Cdp::Page
     @[JSON::Field(key: "optimizeForSpeed", emit_null: false)]
     property? optimize_for_speed : Bool?
 
-    def initialize(@format : CaptureScreenshotFormat?, @quality : Int64?, @clip : Viewport?, @from_surface : Bool?, @capture_beyond_viewport : Bool?, @optimize_for_speed : Bool?)
+    def initialize(
+      @format : CaptureScreenshotFormat? = nil,
+      @quality : Int64? = nil,
+      @clip : Viewport? = nil,
+      @from_surface : Bool? = nil,
+      @capture_beyond_viewport : Bool? = nil,
+      @optimize_for_speed : Bool? = nil,
+    )
     end
 
     # ProtoReq returns the protocol method name.
@@ -299,9 +304,7 @@ module Cdp::Page
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : CaptureScreenshotResult
-      res = CaptureScreenshotResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, CaptureScreenshotResult, c)
     end
   end
 
@@ -513,9 +516,7 @@ module Cdp::Page
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetLayoutMetricsResult
-      res = GetLayoutMetricsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetLayoutMetricsResult, c)
     end
   end
 
@@ -533,9 +534,7 @@ module Cdp::Page
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetNavigationHistoryResult
-      res = GetNavigationHistoryResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetNavigationHistoryResult, c)
     end
   end
 
@@ -576,9 +575,7 @@ module Cdp::Page
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetResourceContentResult
-      res = GetResourceContentResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetResourceContentResult, c)
     end
   end
 
@@ -597,9 +594,7 @@ module Cdp::Page
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetResourceTreeResult
-      res = GetResourceTreeResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetResourceTreeResult, c)
     end
   end
 
@@ -649,9 +644,7 @@ module Cdp::Page
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : NavigateResult
-      res = NavigateResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, NavigateResult, c)
     end
   end
 
@@ -713,7 +706,25 @@ module Cdp::Page
     @[JSON::Field(key: "generateDocumentOutline", emit_null: false)]
     property? generate_document_outline : Bool?
 
-    def initialize(@landscape : Bool?, @display_header_footer : Bool?, @print_background : Bool?, @scale : Float64?, @paper_width : Float64?, @paper_height : Float64?, @margin_top : Float64?, @margin_bottom : Float64?, @margin_left : Float64?, @margin_right : Float64?, @page_ranges : String?, @header_template : String?, @footer_template : String?, @prefer_css_page_size : Bool?, @transfer_mode : PrintToPDFTransferMode?, @generate_tagged_pdf : Bool?, @generate_document_outline : Bool?)
+    def initialize(
+      @landscape : Bool? = nil,
+      @display_header_footer : Bool? = nil,
+      @print_background : Bool? = nil,
+      @scale : Float64? = nil,
+      @paper_width : Float64? = nil,
+      @paper_height : Float64? = nil,
+      @margin_top : Float64? = nil,
+      @margin_bottom : Float64? = nil,
+      @margin_left : Float64? = nil,
+      @margin_right : Float64? = nil,
+      @page_ranges : String? = nil,
+      @header_template : String? = nil,
+      @footer_template : String? = nil,
+      @prefer_css_page_size : Bool? = nil,
+      @transfer_mode : PrintToPDFTransferMode? = nil,
+      @generate_tagged_pdf : Bool? = nil,
+      @generate_document_outline : Bool? = nil,
+    )
     end
 
     # ProtoReq returns the protocol method name.
@@ -723,9 +734,7 @@ module Cdp::Page
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : PrintToPDFResult
-      res = PrintToPDFResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, PrintToPDFResult, c)
     end
   end
 

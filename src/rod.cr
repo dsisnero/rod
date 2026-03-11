@@ -32,6 +32,7 @@ require "./rod/lib/input/input"
 # Utilities
 require "./rod/lib/utils"
 require "./rod/lib/defaults"
+require "./rod/lib/check_issue"
 require "./rod/lib/devices"
 require "./rod/lib/launcher"
 require "./rod/lib/proto"

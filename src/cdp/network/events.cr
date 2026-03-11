@@ -148,7 +148,7 @@ module Cdp::Network
     property request_id : RequestId
     @[JSON::Field(key: "loaderId", emit_null: false)]
     property loader_id : LoaderId
-    @[JSON::Field(key: "documentUrl", emit_null: false)]
+    @[JSON::Field(key: "documentURL", emit_null: false)]
     property document_url : String
     @[JSON::Field(key: "request", emit_null: false)]
     property request : Request

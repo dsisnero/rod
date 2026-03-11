@@ -27,6 +27,15 @@ private class WaitEventBrowser < Rod::Browser
   end
 end
 
+private class CookiesStubBrowser < Rod::Browser
+  getter calls = 0
+
+  def get_cookies : Array(Cdp::Network::Cookie) # ameba:disable Naming/AccessorMethodName
+    @calls += 1
+    [] of Cdp::Network::Cookie
+  end
+end
+
 describe Rod::Browser do
   it "converts Network::Cookie to Network::CookieParam when setting cookies" do
     browser = CookieCaptureBrowser.new
@@ -55,6 +64,8 @@ describe Rod::Browser do
       captured[0].name.should eq("a")
       captured[0].value.should eq("1")
       captured[0].domain.should eq("example.com")
+      captured[0].expires.should_not be_nil
+      captured[0].expires.not_nil!.to_unix.should eq(0)
     else
       raise "expected converted cookie params to be captured"
     end
@@ -82,6 +93,36 @@ describe Rod::Browser do
 
     loaded.guid.should eq("guid-1")
     loaded.suggested_filename.should eq("file.txt")
+  end
+
+  it "supports timeout cancel chain before get_cookies" do
+    browser = CookiesStubBrowser.new
+    derived = browser.timeout(1.second).cancel_timeout.as(CookiesStubBrowser)
+    derived.get_cookies
+    derived.calls.should eq(1)
+  end
+
+  it "raises on connect conflict when both client and control_url are set" do
+    browser = Rod::Browser.new
+      .client(Rod::Lib::Cdp::Client.new)
+      .control_url("ws://example.invalid")
+
+    expect_raises(Exception, /can't be set at the same time/) do
+      browser.connect
+    end
+  end
+
+  it "must_connect raises when control_url is invalid (go TestBrowserConnectErr parity)" do
+    browser = Rod::Browser.new.control_url("bad-url")
+    expect_raises(Exception) { browser.must_connect }
+  end
+
+  it "connect fails when called with an already-canceled context" do
+    ctx, cancel = Rod::Context.background.with_cancel
+    cancel.call
+    browser = Rod::Browser.new.context(ctx).control_url("bad-url")
+
+    expect_raises(Exception) { browser.connect }
   end
 
   it "wait_event consumes the next matching event and returns nil" do

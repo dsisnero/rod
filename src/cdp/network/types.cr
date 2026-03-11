@@ -52,9 +52,9 @@ module Cdp::Network
   ErrorReasonBlockedByClient      = "BlockedByClient"
   ErrorReasonBlockedByResponse    = "BlockedByResponse"
 
-  alias TimeSinceEpoch = Time
+  alias TimeSinceEpoch = Time | Float64
 
-  alias MonotonicTime = Time
+  alias MonotonicTime = Time | Float64
 
   alias Headers = JSON::Any
 
@@ -165,6 +165,8 @@ module Cdp::Network
     property headers : Headers
     @[JSON::Field(key: "hasPostData", emit_null: false)]
     property? has_post_data : Bool?
+    @[JSON::Field(key: "postData", emit_null: false)]
+    property post_data : String?
     @[JSON::Field(key: "postDataEntries", emit_null: false)]
     property post_data_entries : Array(PostDataEntry)?
     @[JSON::Field(key: "mixedContentType", emit_null: false)]
@@ -617,7 +619,7 @@ module Cdp::Network
     @[JSON::Field(key: "sameSite", emit_null: false)]
     property same_site : CookieSameSite?
     @[JSON::Field(key: "expires", emit_null: false)]
-    property expires : TimeSinceEpoch?
+    property expires : Time?
     @[JSON::Field(key: "priority", emit_null: false)]
     property priority : CookiePriority?
     @[JSON::Field(key: "sourceScheme", emit_null: false)]
@@ -626,6 +628,28 @@ module Cdp::Network
     property source_port : Int64?
     @[JSON::Field(key: "partitionKey", emit_null: false)]
     property partition_key : CookiePartitionKey?
+  end
+
+  # CookiesToParams converts Cookie list to CookieParam list.
+  def self.cookies_to_params(cookies : Array(Cookie)) : Array(CookieParam)
+    cookies.map do |c|
+      expires = Time.unix_ms((c.expires * 1000).round.to_i64).to_s("%Y-%m-%dT%H:%M:%S.%3N%:z")
+      CookieParam.from_json({
+        "name"         => c.name,
+        "value"        => c.value,
+        "url"          => nil,
+        "domain"       => c.domain,
+        "path"         => c.path,
+        "secure"       => c.secure?,
+        "httpOnly"     => c.http_only?,
+        "sameSite"     => c.same_site,
+        "expires"      => expires,
+        "priority"     => c.priority,
+        "sourceScheme" => c.source_scheme,
+        "sourcePort"   => c.source_port,
+        "partitionKey" => c.partition_key,
+      }.to_json)
+    end
   end
 
   @[Experimental]

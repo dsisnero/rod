@@ -23,11 +23,13 @@ module Rod
     alias ValueKey = String | TimeoutContextKey
     alias ValueType = String | TimeoutContextVal
 
-    # Background context never cancelled.
-    class_getter background : Context { Context.new }
+    # Background context root. Return a fresh instance to avoid shared cancellation state.
+    def self.background : Context
+      Context.new
+    end
 
     # Absolute deadline when context times out, nil if no deadline.
-    property deadline : Time::Span?
+    property deadline : Time::Instant?
     @cancelled = false
     @err : Exception? = nil
     @mutex = Mutex.new
@@ -69,8 +71,8 @@ module Rod
           @err = err_override
         elsif reason
           @err = ContextCanceledError.new(reason)
-        elsif deadline_at && deadline_at <= Time.monotonic
-          @err = ContextTimeoutError.new(deadline_at - Time.monotonic)
+        elsif deadline_at && deadline_at <= Time.instant
+          @err = DeadlineExceededError.new
         else
           @err = ContextCanceledError.new("context cancelled")
         end
@@ -98,7 +100,7 @@ module Rod
     def deadline_remaining : Time::Span?
       deadline = @deadline
       return nil unless deadline
-      deadline - Time.monotonic
+      deadline - Time.instant
     end
 
     # TimeoutRemaining returns the minimum of given timeout and context deadline remaining.
@@ -130,7 +132,7 @@ module Rod
     # Returns the new context and a cancel function.
     def with_timeout(timeout : Time::Span) : Tuple(Context, ->)
       ctx = Context.new(self)
-      ctx.deadline = Time.monotonic + timeout
+      ctx.deadline = Time.instant + timeout
 
       cancel_fn = -> { ctx.cancel }
 
@@ -140,12 +142,12 @@ module Rod
       spawn do
         deadline = ctx.deadline
         if deadline
-          sleep_time = deadline - Time.monotonic
+          sleep_time = deadline - Time.instant
           if sleep_time > Time::Span::ZERO
             sleep sleep_time
           end
         end
-        ctx.cancel(err_override: ContextTimeoutError.new(timeout))
+        ctx.cancel(err_override: DeadlineExceededError.new)
       end
 
       {ctx, cancel_fn}
@@ -177,6 +179,15 @@ module Rod
   class ContextTimeoutError < RodError
     def initialize(timeout : Time::Span)
       super("context timeout after #{timeout}")
+    end
+  end
+
+  # DeadlineExceededError is raised when a timeout context reaches its deadline.
+  # Mirrors Go's context.DeadlineExceeded semantics while still being a timeout error.
+  class DeadlineExceededError < ContextTimeoutError
+    def initialize
+      super(Time::Span::ZERO)
+      @message = "context deadline exceeded"
     end
   end
 end

@@ -1,9 +1,246 @@
 require "base64"
 require "../../cdp/io/io"
 require "../../cdp/page/page"
+require "crimage"
 require "pluto"
+require "pluto/format/jpeg"
 
 module Rod::Lib::Utils
+  @@pause_ch = Channel(Nil).new
+  @@reg_space = /\s/
+
+  # Log adapter with Println compatibility.
+  class Log
+    def initialize(&@fn : Array(String) ->)
+    end
+
+    def println(*vs) : Nil
+      @fn.call(vs.map(&.to_s).to_a)
+    end
+
+    def println(vs : Array(String)) : Nil
+      @fn.call(vs)
+    end
+  end
+
+  @@logger_quiet = Log.new { |_msg| }
+  @@use_node_resolver : Proc(Bool, String)?
+
+  def self.log(&block : Array(String) ->) : Log
+    Log.new { |msg| block.call(msg) }
+  end
+
+  def self.logger_quiet : Log
+    @@logger_quiet
+  end
+
+  # MultiLogger dispatches Println to all loggers.
+  def self.multi_logger(*list : Log) : Log
+    Log.new do |msg|
+      list.each(&.println(msg))
+    end
+  end
+
+  # Noop does nothing.
+  def self.noop : Nil
+  end
+
+  # Sleep for the given number of seconds.
+  def self.sleep(seconds : Float64) : Nil
+    ::sleep(seconds.seconds)
+  end
+
+  # Mkdir creates a directory recursively.
+  def self.mkdir(path : String) : Nil
+    Dir.mkdir_p(path)
+  end
+
+  # OutputFile writes bytes/string/io/json-serialized value to file.
+  def self.output_file(path : String, data) : Nil
+    mkdir(File.dirname(path))
+
+    case data
+    when Bytes
+      File.write(path, data)
+    when String
+      File.write(path, data)
+    when IO
+      File.open(path, "w") { |file| IO.copy(data, file) }
+    else
+      File.write(path, must_to_json_bytes(data))
+    end
+  end
+
+  # ReadString reads a file as text.
+  def self.read_string(path : String) : String
+    File.read(path)
+  end
+
+  # All runs all actions concurrently and returns a wait function.
+  def self.all(*actions : Proc(Nil)) : Proc(Nil)
+    done = Channel(Nil).new(actions.size)
+    actions.each do |action|
+      spawn do
+        action.call
+        done.send(nil)
+      end
+    end
+
+    -> do
+      actions.size.times { done.receive }
+    end
+  end
+
+  # Pause blocks forever.
+  def self.pause : Nil
+    @@pause_ch.receive
+  end
+
+  # Dump values for debugging.
+  def self.dump(*list) : String
+    list.map(&.to_json).join(" ")
+  end
+
+  # MustToJSONBytes encode data to json bytes.
+  def self.must_to_json_bytes(data) : Bytes
+    data.to_json.to_slice
+  end
+
+  # MustToJSON encode data to json string.
+  def self.must_to_json(data) : String
+    data.to_json
+  end
+
+  # FileExists checks if file exists and is not a directory.
+  def self.file_exists(path : String) : Bool
+    info = File.info?(path)
+    return false unless info
+    !info.directory?
+  end
+
+  # FormatCLIArgs into one line string.
+  def self.format_cli_args(args : Array(String)) : String
+    args.map { |arg| @@reg_space.matches?(arg) ? arg.inspect : arg }.join(" ")
+  end
+
+  # EscapeGoString formats string literal fragments in Go raw-string style.
+  def self.escape_go_string(s : String) : String
+    "`" + s.gsub("`", "` + \"`\" + `") + "`"
+  end
+
+  # use_node_resolver_for_test overrides use_node command output in specs.
+  def self.use_node_resolver_for_test(resolver : Proc(Bool, String)?) : Nil
+    @@use_node_resolver = resolver
+  end
+
+  # S template render with key-value params.
+  def self.s(tpl : String, *params) : String
+    values = {} of String => JSON::Any
+    funcs = {} of String => Proc(String)
+
+    i = 0
+    while i + 1 < params.size
+      key = params[i].to_s
+      value = params[i + 1]
+
+      case value
+      when Proc(String)
+        fn = value.as(Proc(String))
+        funcs[key] = -> { fn.call.to_s }
+      else
+        values[key] = JSON.parse(value.to_json)
+      end
+
+      i += 2
+    end
+
+    tpl.gsub(/\{\{\s*[^}]+\s*\}\}/) do |match|
+      token = match.gsub(/\A\{\{\s*|\s*\}\}\z/, "")
+      next funcs[token].call if funcs.has_key?(token)
+
+      path = token.starts_with?('.') ? token[1..] : token
+      segments = path.split('.')
+      next "" if segments.empty?
+
+      current = values[segments[0]]?
+      next "" unless current
+
+      segments[1..].each do |seg|
+        obj = current.as_h?
+        break current = nil unless obj
+        next_value = obj[seg]?
+        break current = nil unless next_value
+        current = next_value
+      end
+
+      current ? (current.raw.is_a?(String) ? current.as_s : current.to_json) : ""
+    end
+  end
+
+  # Exec command line with stdio forwarding enabled.
+  def self.exec(line : String) : String
+    exec_line(true, line)
+  end
+
+  # Exec command line with stdio forwarding enabled.
+  def self.exec(line : String, *rest : String) : String
+    exec_line(true, line, *rest)
+  end
+
+  # ExecLine runs command. When std is false, output is captured and returned.
+  def self.exec_line(std : Bool, line : String) : String
+    exec_line_impl(std, line, [] of String)
+  end
+
+  # ExecLine runs command. When std is false, output is captured and returned.
+  def self.exec_line(std : Bool, line : String, *rest : String) : String
+    exec_line_impl(std, line, rest.to_a)
+  end
+
+  private def self.exec_line_impl(std : Bool, line : String, rest : Array(String)) : String
+    args = [] of String
+    unless line.empty?
+      args.concat(line.split(@@reg_space).reject(&.empty?))
+    end
+    args.concat(rest)
+    raise "empty command" if args.empty?
+
+    output = IO::Memory.new
+    error = IO::Memory.new
+
+    status = if std
+               out_writer = IO::MultiWriter.new(output, STDOUT)
+               err_writer = IO::MultiWriter.new(error, STDERR)
+               Process.run(args[0], args: args[1..], input: Process::Redirect::Inherit, output: out_writer, error: err_writer)
+             else
+               Process.run(args[0], args: args[1..], output: output, error: error)
+             end
+
+    unless status.success?
+      if std
+        raise "command failed: #{format_cli_args(args)}"
+      end
+
+      text = output.to_s + error.to_s
+      raise "#{status}\n#{text}"
+    end
+
+    output.to_s + error.to_s
+  end
+
+  # UseNode installs Node.js and prepends returned bin path into PATH.
+  def self.use_node(std : Bool) : Nil
+    bin_path = if resolver = @@use_node_resolver
+                 resolver.call(std).strip
+               else
+                 exec_line(std, "go run github.com/ysmood/use-node@latest -p v20").strip
+               end
+
+    current = ENV["PATH"]? || ""
+    separator = {% if flag?(:win32) %} ';' {% else %} ':' {% end %}
+    ENV["PATH"] = "#{bin_path}#{separator}#{current}"
+  end
+
   # Sleeper function object. It receives the operation context and returns an
   # error when it should stop retrying.
   # Sleeper for retries.
@@ -44,8 +281,7 @@ module Rod::Lib::Utils
 
   # Random string generator.
   def self.rand_string(length : Int32 = 8) : String
-    chars = ('a'..'z').to_a + ('A'..'Z').to_a + ('0'..'9').to_a
-    String.new(length) { chars.sample }
+    Random::Secure.random_bytes(length).hexstring
   end
 
   # AbsolutePaths returns absolute paths of files in current working directory.
@@ -243,45 +479,47 @@ module Rod::Lib::Utils
   end
 
   # StreamReader reads a stream from CDP IO.
-  class StreamReader
-    include IO::Buffered
-
+  class StreamReader < IO
     @offset : Int64?
     @handle : ::Cdp::IO::StreamHandle
-    @client : Cdp::Client
+    @client : ::Cdp::Client
     @buffer : Bytes = Bytes.new(0)
     @buffer_pos : Int32 = 0
     @eof : Bool = false
+    @closed : Bool = false
 
-    def initialize(@client : Cdp::Client, @handle : ::Cdp::IO::StreamHandle, @offset : Int64? = nil)
+    def initialize(@client : ::Cdp::Client, @handle : ::Cdp::IO::StreamHandle, @offset : Int64? = nil)
     end
 
-    private def unbuffered_close : Nil
-      Cdp::IO::Close.new(@handle).call(@client)
+    def close : Nil
+      return if @closed
+      @closed = true
+      ::Cdp::IO::Close.new(@handle).call(@client)
     rescue
       # Ignore errors on close
     end
 
-    private def unbuffered_read(slice : Bytes) : Int32
+    def closed? : Bool
+      @closed
+    end
+
+    def read(slice : Bytes) : Int32
+      raise IO::Error.new("Closed stream") if @closed
       return 0 if @eof
 
       # If we have data in buffer, serve from there
       if @buffer_pos < @buffer.size
         to_copy = Math.min(slice.size, @buffer.size - @buffer_pos)
-        slice[0, to_copy] = @buffer[@buffer_pos, to_copy]
+        slice[0, to_copy].copy_from(@buffer[@buffer_pos, to_copy])
         @buffer_pos += to_copy
         return to_copy
       end
 
       # Read more data from CDP
-      res = Cdp::IO::Read.new(@handle, @offset, nil).call(@client)
-      if res.eof
-        @eof = true
-        return 0
-      end
+      res = ::Cdp::IO::Read.new(@handle, @offset, nil).call(@client)
 
       data = res.data
-      if res.base64_encoded == true
+      if res.base64_encoded? == true
         # Decode base64
         @buffer = Base64.decode(data)
       else
@@ -290,49 +528,51 @@ module Rod::Lib::Utils
 
       @buffer_pos = 0
       @offset = @offset.try { |off| off + @buffer.size }
+      @eof = res.eof?
+
+      if @buffer.empty? && @eof
+        return 0
+      end
 
       # Copy to slice
       to_copy = Math.min(slice.size, @buffer.size)
-      slice[0, to_copy] = @buffer[0, to_copy]
+      slice[0, to_copy].copy_from(@buffer[0, to_copy])
       @buffer_pos = to_copy
       to_copy
     rescue ex
       raise IO::Error.new("Stream read error: #{ex.message}", ex)
     end
 
-    private def unbuffered_write(slice : Bytes) : Nil
+    def write(slice : Bytes) : Nil
       raise IO::Error.new("StreamReader is read-only")
     end
 
-    private def unbuffered_flush : Nil
+    def flush : Nil
       # Nothing to flush
     end
 
-    private def unbuffered_rewind : Nil
+    def rewind : Nil
       raise IO::Error.new("StreamReader does not support rewind")
     end
   end
 
   # CropImage by the specified box, quality is only for jpeg bin.
-  def crop_image(bin : Bytes, quality : Int32, x : Int32, y : Int32, width : Int32, height : Int32) : Bytes
+  def self.crop_image(bin : Bytes, quality : Int32, x : Int32, y : Int32, width : Int32, height : Int32) : Bytes
     io = IO::Memory.new(bin)
 
     # Try to detect format by magic bytes
     header = bin[0, 8]
 
     if header[0, 8] == Bytes[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]
-      # PNG
-      image = Pluto::PNG.read(io)
+      image = PngProcessor.new.decode(io)
       cropped = image.crop(x, y, width, height)
-      output = IO::Memory.new
-      Pluto::PNG.write(output, cropped)
-      output.to_slice
+      PngProcessor.new.encode(cropped, nil)
     elsif header[0, 2] == Bytes[0xFF, 0xD8]
       # JPEG
-      image = Pluto::JPEG.read(io)
+      image = Pluto::ImageRGBA.from_jpeg(io)
       cropped = image.crop(x, y, width, height)
       output = IO::Memory.new
-      Pluto::JPEG.write(output, cropped, quality: quality == 0 ? 80 : quality)
+      cropped.to_jpeg(output, quality: quality == 0 ? 80 : quality)
       output.to_slice
     else
       raise "Unsupported image format"
@@ -377,12 +617,99 @@ module Rod::Lib::Utils
     end
   end
 
+  # ImgProcessor handles encoding and decoding for a screenshot format.
+  module ImgProcessor
+    abstract def encode(img : Pluto::ImageRGBA, opt : ImgOption?) : Bytes
+    abstract def decode(file : IO) : Pluto::ImageRGBA
+  end
+
+  class JpegProcessor
+    include ImgProcessor
+
+    def encode(img : Pluto::ImageRGBA, opt : ImgOption?) : Bytes
+      output = IO::Memory.new
+      quality = opt.try(&.quality) || 80
+      img.to_jpeg(output, quality: quality)
+      output.to_slice
+    end
+
+    def decode(file : IO) : Pluto::ImageRGBA
+      Pluto::ImageRGBA.from_jpeg(file)
+    end
+  end
+
+  class PngProcessor
+    include ImgProcessor
+
+    def encode(img : Pluto::ImageRGBA, opt : ImgOption?) : Bytes
+      _ = opt
+      output = IO::Memory.new
+      CrImage::PNG.write(output, Rod::Lib::Utils.crimage_from_pluto(img))
+      output.to_slice
+    end
+
+    def decode(file : IO) : Pluto::ImageRGBA
+      Rod::Lib::Utils.pluto_from_crimage(CrImage::PNG.read(file))
+    end
+  end
+
+  def self.crimage_from_pluto(img : Pluto::ImageRGBA) : CrImage::RGBA
+    out = CrImage::RGBA.new(CrImage.rect(0, 0, img.width, img.height))
+    i = 0
+    img.height.times do |y|
+      img.width.times do |x|
+        out.set_rgba(x, y, CrImage::Color::RGBA.new(img.red[i], img.green[i], img.blue[i], img.alpha[i]))
+        i += 1
+      end
+    end
+    out
+  end
+
+  def self.pluto_from_crimage(img : CrImage::Image) : Pluto::ImageRGBA
+    bounds = img.bounds
+    width = bounds.width
+    height = bounds.height
+    size = width * height
+    red = Array(UInt8).new(size, 0u8)
+    green = Array(UInt8).new(size, 0u8)
+    blue = Array(UInt8).new(size, 0u8)
+    alpha = Array(UInt8).new(size, 0u8)
+
+    i = 0
+    (0...height).each do |y|
+      (0...width).each do |x|
+        color = img.at(bounds.min.x + x, bounds.min.y + y).to_rgba8
+        red[i] = color.r
+        green[i] = color.g
+        blue[i] = color.b
+        alpha[i] = color.a
+        i += 1
+      end
+    end
+
+    Pluto::ImageRGBA.new(red, green, blue, alpha, width, height)
+  end
+
+  # NewImgProcessor creates an image processor by screenshot format.
+  def self.new_img_processor(format : String) : ImgProcessor
+    case format
+    when "jpeg"
+      JpegProcessor.new
+    when "", "png"
+      PngProcessor.new
+    else
+      raise "not support format: #{format}"
+    end
+  end
+
   # SplicePngVertical splice png vertically, if there is only one image, it will return the image directly.
   # Only support png and jpeg format yet, webP is not supported because no suitable processing
   # library was found in Crystal.
-  def splice_png_vertical(files : Array(ImgWithBox), format : Cdp::Page::CaptureScreenshotFormat, opt : ImgOption? = nil) : Bytes
+  def self.splice_png_vertical(files : Array(ImgWithBox), format : String, opt : ImgOption? = nil) : Bytes
     return Bytes.new(0) if files.empty?
     return files[0].img if files.size == 1
+
+    processor = new_img_processor(format)
 
     width = 0
     height = 0
@@ -390,30 +717,14 @@ module Rod::Lib::Utils
 
     files.each do |file|
       io = IO::Memory.new(file.img)
-      # Detect format by magic bytes or use specified format
-      header = file.img[0, 8]
-      image = if header[0, 8] == Bytes[0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]
-                # PNG
-                Pluto::PNG.read(io).as(Pluto::ImageRGBA)
-              elsif header[0, 2] == Bytes[0xFF, 0xD8]
-                # JPEG
-                Pluto::JPEG.read(io).as(Pluto::ImageRGBA)
-              else
-                # Fallback to format parameter
-                case format
-                when Cdp::Page::CaptureScreenshotFormatJpeg
-                  Pluto::JPEG.read(io).as(Pluto::ImageRGBA)
-                else # PNG default
-                  Pluto::PNG.read(io).as(Pluto::ImageRGBA)
-                end
-              end
+      image = processor.decode(io)
 
       images << image
       if box = file.box
-        width = box.width if width == 0
+        width = box.width
         height += box.height
       else
-        width = image.width if width == 0
+        width = image.width
         height += image.height
       end
     end
@@ -448,16 +759,6 @@ module Rod::Lib::Utils
     end
 
     composite = Pluto::ImageRGBA.new(red, green, blue, alpha, width, height)
-    output = IO::Memory.new
-
-    case format
-    when Cdp::Page::CaptureScreenshotFormatJpeg
-      quality = opt.try(&.quality) || 80
-      Pluto::JPEG.write(output, composite, quality: quality)
-    else # PNG default
-      Pluto::PNG.write(output, composite)
-    end
-
-    output.to_slice
+    processor.encode(composite, opt)
   end
 end

@@ -32,6 +32,15 @@ module Cdp::Browser
     property height : Int64?
     @[JSON::Field(key: "windowState", emit_null: false)]
     property window_state : WindowState?
+
+    def initialize(
+      @left : Int64? = nil,
+      @top : Int64? = nil,
+      @width : Int64? = nil,
+      @height : Int64? = nil,
+      @window_state : WindowState? = nil,
+    )
+    end
   end
 
   @[Experimental]

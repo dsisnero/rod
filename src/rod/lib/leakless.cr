@@ -10,15 +10,15 @@ module Rod::Lib::Leakless
   @@cleanup_registered = false
 
   # Register at_exit handler for cleanup
-  private def self.register_cleanup
+  def self.register_cleanup
     return if @@cleanup_registered
     at_exit do
       tracked_processes.each do |pid|
         begin
           {% if flag?(:unix) %}
-            Process.kill("KILL", -pid) rescue nil
+            Process.signal(Signal::KILL, -pid) rescue nil
           {% else %}
-            Process.kill("KILL", pid) rescue nil
+            Process.signal(Signal::KILL, pid) rescue nil
           {% end %}
         rescue
           # Ignore errors during exit
@@ -45,7 +45,7 @@ module Rod::Lib::Leakless
     # Create a command that will be managed by leakless
     def command(bin : String, args : Array(String) = [] of String, error : IO = Process::Redirect::Pipe) : Process
       # Register cleanup handler if not already done
-      self.class.register_cleanup
+      ::Rod::Lib::Leakless.register_cleanup
 
       # Create process with pipes for stderr/stdout
       process = Process.new(bin, args, output: Process::Redirect::Pipe, error: error)
@@ -55,11 +55,11 @@ module Rod::Lib::Leakless
       spawn do
         begin
           # Wait for process to start and get PID
-          sleep 0.1 # small delay to ensure process started
-          pid = process.pid
+          sleep 100.milliseconds # small delay to ensure process started
+          pid = process.pid.to_i32
           @pid = pid
           # Track PID for cleanup
-          self.class.tracked_processes << pid
+          ::Rod::Lib::Leakless.tracked_processes << pid
           @pid_channel.try &.send(pid)
         rescue ex
           @error = ex.message
@@ -83,7 +83,7 @@ module Rod::Lib::Leakless
     # Cleanup resources
     def cleanup : Nil
       if pid = @pid
-        self.class.tracked_processes.delete(pid)
+        ::Rod::Lib::Leakless.tracked_processes.delete(pid)
       end
       @process.try &.terminate rescue nil
       @pid_channel.try &.close
@@ -108,7 +108,7 @@ module Rod::Lib::Leakless
     # Attempt to bind to the port to create a lock
     server = TCPServer.new("127.0.0.1", port) rescue nil
 
-    proc do
+    -> do
       server.try &.close
     end
   end

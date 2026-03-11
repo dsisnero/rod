@@ -73,6 +73,12 @@ module Cdp::Target
 
     def initialize(@target_info : TargetInfo)
     end
+
+    # Support generated request wrappers that instantiate an empty result and
+    # then populate it via JSON::Serializable#from_json.
+    def initialize
+      @target_info = uninitialized TargetInfo
+    end
   end
 
   struct GetTargetsResult
@@ -81,6 +87,12 @@ module Cdp::Target
     property target_infos : Array(TargetInfo)
 
     def initialize(@target_infos : Array(TargetInfo))
+    end
+
+    # Support generated request wrappers that instantiate an empty result and
+    # then populate it via JSON::Serializable#from_json.
+    def initialize
+      @target_infos = [] of TargetInfo
     end
   end
 
@@ -143,9 +155,7 @@ module Cdp::Target
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : AttachToTargetResult
-      res = AttachToTargetResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, AttachToTargetResult, c)
     end
   end
 
@@ -164,9 +174,7 @@ module Cdp::Target
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : AttachToBrowserTargetResult
-      res = AttachToBrowserTargetResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, AttachToBrowserTargetResult, c)
     end
   end
 
@@ -186,9 +194,7 @@ module Cdp::Target
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : CloseTargetResult
-      res = CloseTargetResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, CloseTargetResult, c)
     end
   end
 
@@ -239,9 +245,7 @@ module Cdp::Target
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : CreateBrowserContextResult
-      res = CreateBrowserContextResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, CreateBrowserContextResult, c)
     end
   end
 
@@ -259,9 +263,7 @@ module Cdp::Target
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetBrowserContextsResult
-      res = GetBrowserContextsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetBrowserContextsResult, c)
     end
   end
 
@@ -305,9 +307,7 @@ module Cdp::Target
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : CreateTargetResult
-      res = CreateTargetResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, CreateTargetResult, c)
     end
   end
 
@@ -370,9 +370,7 @@ module Cdp::Target
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetTargetInfoResult
-      res = GetTargetInfoResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetTargetInfoResult, c)
     end
   end
 
@@ -392,9 +390,7 @@ module Cdp::Target
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetTargetsResult
-      res = GetTargetsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetTargetsResult, c)
     end
   end
 
@@ -509,9 +505,7 @@ module Cdp::Target
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetDevToolsTargetResult
-      res = GetDevToolsTargetResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetDevToolsTargetResult, c)
     end
   end
 
@@ -534,9 +528,7 @@ module Cdp::Target
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : OpenDevToolsResult
-      res = OpenDevToolsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, OpenDevToolsResult, c)
     end
   end
 end

@@ -5,6 +5,7 @@ require "http/client"
 require "uri"
 require "regex"
 require "json"
+require "base64"
 
 module Rod
   # Forward declaration
@@ -22,7 +23,7 @@ module Rod
 
     # Creates a new hijack router.
     def initialize(@browser : Browser, @client : Cdp::Client)
-      @enable = Cdp::Fetch::Enable.new
+      @enable = Cdp::Fetch::Enable.new(nil, nil)
       @handlers = [] of HijackHandler
       @run = -> { }
       @stop = -> { }
@@ -31,13 +32,15 @@ module Rod
     # Initializes event listeners.
     def init_events : self
       ctx = @browser.ctx
-      if @client.responds_to?(:get_context)
-        ctx = @client.get_context
+      if client = @client.as?(Page)
+        ctx = client.get_context
+      elsif client = @client.as?(Element)
+        ctx = client.get_context
       end
 
       session_id = nil
-      if @client.responds_to?(:get_session_id)
-        session_id = @client.get_session_id
+      if client = @client.as?(Page)
+        session_id = client.get_session_id
       end
 
       event_ctx, cancel = ctx.with_cancel
@@ -46,7 +49,7 @@ module Rod
       @enable.call(@client)
 
       # Create callback for Fetch.requestPaused events
-      callback = ->(event : Cdp::Event, sid : SessionID?) do
+      callback = ->(event : Cdp::Event, _sid : SessionID?) do
         e = event.as(Cdp::Fetch::RequestPausedEvent)
         spawn do
           hijack = new(event_ctx, e)
@@ -62,7 +65,7 @@ module Rod
               rescue err
                 hijack.on_error.call(err)
               end
-              return
+              break
             end
 
             if hijack.skip
@@ -75,7 +78,7 @@ module Rod
               rescue err
                 hijack.on_error.call(err)
               end
-              return
+              break
             end
 
             begin
@@ -104,8 +107,8 @@ module Rod
 
     # Add a hijack handler to router, the doc of the pattern is the same as "Cdp::Fetch::RequestPattern.url_pattern".
     def add(pattern : String, resource_type : Cdp::Network::ResourceType, handler : Hijack -> Nil) : Nil
-      @enable.patterns ||= [] of Cdp::Fetch::RequestPattern
-      @enable.patterns << Cdp::Fetch::RequestPattern.new(
+      patterns = @enable.patterns ||= [] of Cdp::Fetch::RequestPattern
+      patterns << Cdp::Fetch::RequestPattern.new(
         url_pattern: pattern,
         resource_type: resource_type
       )
@@ -137,30 +140,35 @@ module Rod
     end
 
     # Creates a new hijack context.
-    private def new(ctx : Context, e : Cdp::Fetch::RequestPaused) : Hijack
+    private def new(ctx : Context, e : Cdp::Fetch::RequestPausedEvent) : Hijack
       headers = HTTP::Headers.new
-      e.request.headers.each do |k, v|
+      e.request.headers.as_h.each do |k, v|
         headers[k] = v.to_s
       end
 
       u = URI.parse(e.request.url)
 
       req = HTTP::Request.new(
-        method: e.request.method,
-        uri: u,
-        body: e.request.post_data || "",
-        headers: headers
+        e.request.method,
+        u.request_target,
+        headers,
+        e.request.post_data || ""
       )
 
       Hijack.new(
         request: HijackRequest.new(event: e, req: req),
         response: HijackResponse.new(
           payload: Cdp::Fetch::FulfillRequest.new(
-            response_code: 200,
-            request_id: e.request_id
+            e.request_id,
+            200,
+            nil,
+            nil,
+            nil,
+            nil
           ),
           fail: Cdp::Fetch::FailRequest.new(
-            request_id: e.request_id
+            e.request_id,
+            ""
           )
         ),
         on_error: ->(_err : Exception) { },
@@ -177,6 +185,12 @@ module Rod
     def stop : Nil
       @stop.call
       Cdp::Fetch::Disable.new.call(@client)
+    end
+
+    # PatternToReg converts a URL pattern to a regex string.
+    # Ported from Go's a_utils.go PatternToReg.
+    private def proto_pattern_to_reg(pattern : String) : String
+      Cdp.pattern_to_reg(pattern)
     end
   end
 
@@ -226,12 +240,10 @@ module Rod
       end
 
       if load_body
-        response.payload.body = res.body.to_slice
+        response.set_body(res.body)
       end
     rescue err
       raise err
-    ensure
-      res.try(&.close)
     end
   end
 
@@ -290,21 +302,21 @@ module Rod
     end
 
     # SetBody of the request, if obj is Bytes or String, raw body will be used, else it will be encoded as json.
-    def set_body(obj : Bytes | String | JSON::Any) : self
+    def set_body(obj) : self
       case obj
       when Bytes
         @req.body = obj
       when String
-        @req.body = obj.to_slice
+        @req.body = obj
       else
-        @req.body = obj.to_json.to_slice
+        @req.body = obj.to_json
       end
       self
     end
 
     # IsNavigation determines whether the request is a navigation request.
     def navigation? : Bool
-      type == Cdp::Network::ResourceType::Document
+      type == Cdp::Network::ResourceTypeDocument
     end
   end
 
@@ -313,44 +325,56 @@ module Rod
     property payload : Cdp::Fetch::FulfillRequest
     property raw_response : HTTP::Client::Response?
     property fail : Cdp::Fetch::FailRequest
+    @body_text : String?
 
     def initialize(@payload : Cdp::Fetch::FulfillRequest, @fail : Cdp::Fetch::FailRequest)
+      @body_text = nil
     end
 
     # Body of the payload.
     def body : String
-      String.new(payload.body)
+      @body_text || ""
     end
 
     # Headers returns the clone of response headers.
     def headers : HTTP::Headers
       headers = HTTP::Headers.new
-      payload.response_headers.each do |h|
+      (payload.response_headers || [] of Cdp::Fetch::HeaderEntry).each do |h|
         headers.add(h.name, h.value)
       end
       headers
     end
 
     # SetHeader of the payload via key-value pairs.
-    def set_header(pairs : String*) : self
+    def set_header(*pairs : String) : self
+      header_entries = @payload.response_headers
+      unless header_entries
+        header_entries = [] of Cdp::Fetch::HeaderEntry
+        @payload.response_headers = header_entries
+      end
+
       # Build index of existing headers
       header_index = {} of String => Int32
-      payload.response_headers.each_with_index do |header, idx|
-        header_index[header.name] = idx
+      header_entries.each_with_index do |header, idx|
+        header_index[header.name.downcase] = idx
       end
 
       i = 0
       while i < pairs.size
         name = pairs[i]
         value = pairs[i + 1]
+        key = name.downcase
 
-        if idx = header_index[name]?
+        if idx = header_index[key]?
           # Update existing header
-          payload.response_headers[idx].value = value
+          entry = header_entries[idx]
+          entry.value = value
+          entry.name = name
+          header_entries[idx] = entry
         else
           # Add new header
-          payload.response_headers << Cdp::Fetch::HeaderEntry.new(name: name, value: value)
-          header_index[name] = payload.response_headers.size - 1
+          header_entries << Cdp::Fetch::HeaderEntry.new(name: name, value: value)
+          header_index[key] = header_entries.size - 1
         end
 
         i += 2
@@ -360,12 +384,18 @@ module Rod
     end
 
     # AddHeader appends key-value pairs to the end of the response headers.
-    def add_header(pairs : String*) : self
+    def add_header(*pairs : String) : self
+      header_entries = @payload.response_headers
+      unless header_entries
+        header_entries = [] of Cdp::Fetch::HeaderEntry
+        @payload.response_headers = header_entries
+      end
+
       i = 0
       while i < pairs.size
         name = pairs[i]
         value = pairs[i + 1]
-        payload.response_headers << Cdp::Fetch::HeaderEntry.new(name: name, value: value)
+        header_entries << Cdp::Fetch::HeaderEntry.new(name: name, value: value)
         i += 2
       end
 
@@ -373,15 +403,18 @@ module Rod
     end
 
     # SetBody of the payload, if obj is Bytes or String, raw body will be used, else it will be encoded as json.
-    def set_body(obj : Bytes | String | JSON::Any) : self
+    def set_body(obj) : self
+      text = ""
       case obj
       when Bytes
-        payload.body = obj
+        text = String.new(obj)
       when String
-        payload.body = obj.to_slice
+        text = obj
       else
-        payload.body = must_to_json_bytes(obj)
+        text = obj.to_json
       end
+      @body_text = text
+      @payload.body = Base64.strict_encode(text.to_slice)
       self
     end
 
@@ -390,37 +423,5 @@ module Rod
       @fail.error_reason = reason
       self
     end
-  end
-
-  # PatternToReg converts a URL pattern to a regex string.
-  # Ported from Go's a_utils.go PatternToReg.
-  private def proto_pattern_to_reg(pattern : String) : String
-    return "" if pattern.empty?
-
-    # Prepend a space to make regex replacements easier
-    pattern = " " + pattern
-
-    # Replace unescaped * with .* and unescaped ? with .
-    result = String.build do |str|
-      i = 0
-      while i < pattern.size
-        ch = pattern[i]
-        if i > 0 && ch == '*' && pattern[i - 1] != '\\'
-          str << ".*"
-        elsif i > 0 && ch == '?' && pattern[i - 1] != '\\'
-          str << '.'
-        else
-          str << ch
-        end
-        i += 1
-      end
-    end
-
-    # Remove the leading space we added, then add anchors
-    "\\A" + result.lstrip + "\\z"
-  end
-
-  private def must_to_json_bytes(obj) : Bytes
-    obj.to_json.to_slice
   end
 end

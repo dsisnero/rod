@@ -158,6 +158,13 @@ module Cdp::Runtime
     property unserializable_value : UnserializableValue?
     @[JSON::Field(key: "objectId", emit_null: false)]
     property object_id : RemoteObjectId?
+
+    def initialize(
+      @value : JSON::Any? = nil,
+      @unserializable_value : UnserializableValue? = nil,
+      @object_id : RemoteObjectId? = nil,
+    )
+    end
   end
 
   alias ExecutionContextId = Int64
@@ -219,7 +226,7 @@ module Cdp::Runtime
     end
   end
 
-  alias Timestamp = Time
+  alias Timestamp = Float64
 
   alias TimeDelta = Float64
 

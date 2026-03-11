@@ -1,4 +1,8 @@
-.PHONY: install update format lint test clean generate generate-crystal generate-go-ref build-pdlgen-crystal build-pdlgen-go
+.PHONY: install update format lint test clean generate generate-crystal generate-go-ref build-pdlgen-crystal build-pdlgen-go \
+	check-go-port-inventory check-go-source-parity check-go-test-parity \
+	generate-go-port-inventory generate-go-source-parity generate-go-test-parity
+
+GO_PORT_SOURCE_DIR ?= vendor/rod
 
 
 install:
@@ -16,6 +20,24 @@ lint:
 
 test:
 	crystal spec
+
+check-go-port-inventory:
+	./bin/check_go_port_inventory.sh . plans/inventory/go_port_inventory.tsv $(GO_PORT_SOURCE_DIR)
+
+check-go-source-parity:
+	./bin/check_go_source_parity.sh . plans/inventory/go_source_parity.tsv $(GO_PORT_SOURCE_DIR)
+
+check-go-test-parity:
+	./bin/check_go_test_parity.sh . plans/inventory/go_test_parity.tsv $(GO_PORT_SOURCE_DIR)
+
+generate-go-port-inventory:
+	./bin/generate_go_port_inventory.sh . plans/inventory/go_port_inventory.tsv $(GO_PORT_SOURCE_DIR)
+
+generate-go-source-parity:
+	./bin/generate_go_source_parity_manifest.sh . plans/inventory/go_source_parity.tsv $(GO_PORT_SOURCE_DIR)
+
+generate-go-test-parity:
+	./bin/generate_go_test_parity_manifest.sh . plans/inventory/go_test_parity.tsv $(GO_PORT_SOURCE_DIR)
 
 clean:
 	rm -rf ./temp/*

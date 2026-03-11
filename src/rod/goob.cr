@@ -36,7 +36,6 @@ module Goob
     # Close the pipe.
     def close : Nil
       @events.close
-      @done.close
       @wait.close
     end
 
@@ -62,6 +61,9 @@ module Goob
           return
         end
       end
+    rescue Channel::ClosedError
+      # Normal shutdown race: one of the channels was closed.
+      nil
     end
   end
 
@@ -86,7 +88,10 @@ module Goob
 
         # Cleanup when done
         spawn do
-          done.receive
+          begin
+            done.receive
+          rescue Channel::ClosedError
+          end
           @lock.synchronize do
             @subscribers.delete(pipe)
             pipe.close
