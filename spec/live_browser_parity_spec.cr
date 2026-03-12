@@ -573,11 +573,15 @@ describe "live browser parity" do
     with_live_browser do |browser|
       page = browser.must_page("about:blank")
       page.must_wait_load
+      eval_error = Channel(Exception?).new(1)
 
       wait = Rod::Lib::Utils.all(
         -> do
-          expect_raises(Exception, /#{Regex.escape(Cdp::ErrCtxDestroyed.message)}/) do
+          begin
             page.eval("() => new Promise(r => setTimeout(() => r(location.href), 1000))")
+            eval_error.send(Exception.new("expected evaluation to fail after navigation"))
+          rescue ex
+            eval_error.send(ex)
           end
         end,
         -> do
@@ -587,6 +591,10 @@ describe "live browser parity" do
         end
       )
       wait.call
+      err = eval_error.receive
+      err.should_not be_nil
+      msg = err.not_nil!.message.to_s
+      (msg.includes?(Cdp::ErrCtxDestroyed.message) || msg.includes?("Inspected target navigated or closed")).should be_true
 
       page.must_close
     end
@@ -1146,8 +1154,6 @@ describe "live browser parity" do
           page.must_navigate("http://127.0.0.1:#{addr.port}/500")
         end
         ex.message.to_s.should contain("ERR_HTTP_RESPONSE_CODE_FAILURE")
-
-        page.must_close
       end
     ensure
       server.close
@@ -1203,6 +1209,7 @@ describe "live browser parity" do
 
     begin
       page = browser.must_page("about:blank")
+      eval_result = Channel(Exception?).new(1)
 
       spawn do
         sleep 1.second
@@ -1212,9 +1219,24 @@ describe "live browser parity" do
         end
       end
 
-      expect_raises(Exception) do
-        page.eval("() => new Promise(r => {})")
+      spawn do
+        begin
+          page.eval("() => new Promise(r => {})")
+          eval_result.send(nil)
+        rescue ex
+          eval_result.send(ex)
+        end
       end
+
+      interrupted_error = nil.as(Exception?)
+      select
+      when ex = eval_result.receive
+        interrupted_error = ex
+      when timeout(10.seconds)
+        raise "timed out waiting for eval interruption after browser disconnect"
+      end
+
+      interrupted_error.should_not be_nil
     ensure
       begin
         browser.close

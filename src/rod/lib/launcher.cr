@@ -966,6 +966,9 @@ module Rod::Lib::Launcher
         # On Unix, negative PID kills process group
         Process.signal(Signal::TERM, -@pid) rescue nil
         Process.signal(Signal::KILL, -@pid) rescue nil
+        # Go parity: also kill the browser PID directly as a fallback.
+        Process.signal(Signal::TERM, @pid) rescue nil
+        Process.signal(Signal::KILL, @pid) rescue nil
       {% else %}
         # On Windows, positive PID kills process
         Process.signal(Signal::TERM, @pid) rescue nil
