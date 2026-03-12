@@ -31,3 +31,8 @@ rod
 # Vendor directories (temporary reference)
 vendor/goob/
 vendor/gson/
+/.crystal-cache
+
+# Dolt database files (added by bd init)
+.dolt/
+*.db
