@@ -80,11 +80,11 @@ module Rod
     # The fail must stop the current goroutine's execution immediately.
     def with_panic(fail : Proc(Exception, Nil)) : self
       new_obj = self.dup
-      new_obj.set_panic_handler(fail)
+      new_obj.panic_handler = fail
       new_obj
     end
 
-    def set_panic_handler(fail : Proc(Exception, Nil)) : Nil
+    def panic_handler=(fail : Proc(Exception, Nil)) : Nil
       @e = Browser.gen_e(fail)
     end
 
@@ -410,8 +410,8 @@ module Rod
     end
 
     private def init_events
-      # ameba:disable Lint/NotNil
-      client = @client.not_nil!
+      client = @client
+      raise "Browser not connected" unless client
       src = client.event
       done = @ctx.done
       spawn do
@@ -438,9 +438,8 @@ module Rod
       new_obj
     end
 
-    # GetContext of current instance.
-    # ameba:disable Naming/AccessorMethodName
-    def get_context : Context
+    # Context accessor of current instance.
+    def current_context : Context
       @ctx
     end
 

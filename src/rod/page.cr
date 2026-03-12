@@ -260,12 +260,17 @@ module Rod
     # The fail must stop the current goroutine's execution immediately.
     def with_panic(fail : Proc(Exception, Nil)) : self
       new_obj = self.dup
-      new_obj.set_panic_handler(fail)
+      new_obj.panic_handler = fail
       new_obj
     end
 
-    def set_panic_handler(fail : Proc(Exception, Nil)) : Nil
+    def panic_handler=(fail : Proc(Exception, Nil)) : Nil
       @e = Browser.gen_e(fail)
+    end
+
+    # ameba:disable Naming/AccessorMethodName
+    def set_panic_handler(fail : Proc(Exception, Nil)) : Nil
+      self.panic_handler = fail
     end
 
     protected def e_handler=(handler : EFunc?) : EFunc?
@@ -345,7 +350,9 @@ module Rod
       end
 
       raise err if err
-      result.not_nil!
+      found = result
+      raise NotFoundError.new("Element not found") unless found
+      found
     end
 
     # Get document root node ID with DOM domain enabled.
@@ -502,9 +509,14 @@ module Rod
       browser.context(@ctx).wait_event(e, @session_id)
     end
 
-    # GetSessionID returns the page session id.
-    def get_session_id : SessionID?
+    # Returns the page session id.
+    def page_session_id : SessionID?
       @session_id
+    end
+
+    # ameba:disable Naming/AccessorMethodName
+    def get_session_id : SessionID?
+      page_session_id
     end
 
     # String compatibility alias.
@@ -572,8 +584,8 @@ module Rod
       Cdp::Network::GetCookies.new(target_urls).call(self).cookies
     end
 
-    # SetCookies sets page cookies. nil clears all browser cookies.
-    def set_cookies(cookies : Array(Cdp::Network::CookieParam)? = nil) : Nil
+    # Sets page cookies. nil clears all browser cookies.
+    def cookies=(cookies : Array(Cdp::Network::CookieParam)?)
       if cookies.nil?
         Cdp::Network::ClearBrowserCookies.new.call(self)
       else
@@ -581,8 +593,13 @@ module Rod
       end
     end
 
-    # SetExtraHeaders sets extra HTTP headers and returns a cleanup to disable Network domain.
-    def set_extra_headers(dict : Array(String)) : Proc(Nil)
+    # ameba:disable Naming/AccessorMethodName
+    def set_cookies(cookies : Array(Cdp::Network::CookieParam)? = nil) : Nil
+      self.cookies = cookies
+    end
+
+    # Sets extra HTTP headers and returns a cleanup to disable Network domain.
+    def extra_headers(dict : Array(String)) : Proc(Nil)
       headers = {} of String => JSON::Any
       i = 0
       while i < dict.size
@@ -596,16 +613,31 @@ module Rod
       -> { Cdp::Network::Disable.new.call(self) }
     end
 
-    # SetUserAgent override; defaults to LaptopWithMDPIScreen emulation when nil.
-    def set_user_agent(req : Cdp::Emulation::SetUserAgentOverride? = nil) : Nil
+    # ameba:disable Naming/AccessorMethodName
+    def set_extra_headers(dict : Array(String)) : Proc(Nil)
+      extra_headers(dict)
+    end
+
+    # Sets user agent override; defaults to LaptopWithMDPIScreen emulation when nil.
+    def user_agent=(req : Cdp::Emulation::SetUserAgentOverride?)
       request = req || Rod::Lib::Devices::LaptopWithMDPIScreen.user_agent_emulation
       request.try(&.call(self))
     end
 
-    # SetBlockedURLs blocks matching URL patterns.
-    def set_blocked_urls(urls : Array(String)) : Nil
+    # ameba:disable Naming/AccessorMethodName
+    def set_user_agent(req : Cdp::Emulation::SetUserAgentOverride? = nil) : Nil
+      self.user_agent = req
+    end
+
+    # Sets blocked URL patterns.
+    def blocked_urls=(urls : Array(String))
       return if urls.empty?
       Cdp::Network::SetBlockedURLs.new(nil, urls).call(self)
+    end
+
+    # ameba:disable Naming/AccessorMethodName
+    def set_blocked_urls(urls : Array(String)) : Nil
+      self.blocked_urls = urls
     end
 
     # HandleDialog accepts or dismisses the next JavaScript initiated dialog.
@@ -741,7 +773,8 @@ module Rod
             request_type = sent.type
 
             if request_type
-              skip = exclude_types.not_nil!.any? { |t| t == request_type }
+              excluded_types = exclude_types || [] of Cdp::Network::ResourceType
+              skip = excluded_types.any? { |resource_type| resource_type == request_type }
               if skip
                 nil
               elsif match.call(sent.request.url)
@@ -895,16 +928,26 @@ module Rod
       self
     end
 
-    # GetWindow returns current window bounds.
-    def get_window : Cdp::Browser::Bounds
+    # Returns current window bounds.
+    def window : Cdp::Browser::Bounds
       window_id = get_window_id
       Cdp::Browser::GetWindowBounds.new(window_id).call(self).bounds
     end
 
-    # SetWindow updates current window bounds.
-    def set_window(bounds : Cdp::Browser::Bounds) : Nil
+    # Updates current window bounds.
+    def window=(bounds : Cdp::Browser::Bounds)
       window_id = get_window_id
       Cdp::Browser::SetWindowBounds.new(window_id, bounds).call(self)
+    end
+
+    # ameba:disable Naming/AccessorMethodName
+    def get_window : Cdp::Browser::Bounds
+      window
+    end
+
+    # ameba:disable Naming/AccessorMethodName
+    def set_window(bounds : Cdp::Browser::Bounds) : Nil
+      self.window = bounds
     end
 
     # SetViewport overrides the values of device screen dimensions.
@@ -923,7 +966,7 @@ module Rod
     def emulate(device : Rod::Lib::Devices::Device) : Nil
       set_viewport(device.metrics_emulation)
       device.touch_emulation.call(self)
-      set_user_agent(device.user_agent_emulation)
+      self.user_agent = device.user_agent_emulation
     end
 
     # LoadState into the method.
@@ -1303,6 +1346,7 @@ module Rod
     end
 
     # GetNavigationHistory compatibility alias.
+    # ameba:disable Naming/AccessorMethodName
     def get_navigation_history : Cdp::Page::GetNavigationHistoryResult
       navigation_history
     end
@@ -1312,18 +1356,21 @@ module Rod
       Cdp::Page::ResetNavigationHistory.new.call(self)
     end
 
-    # SetDocumentContent sets the page document HTML content.
-    def set_document_content(html : String) : Nil
+    # Sets the page document HTML content.
+    def document_content=(html : String)
       frame_id = @frame_id
       raise "page has no frame id" unless frame_id
       Cdp::Page::SetDocumentContent.new(frame_id.value, html).call(self)
     end
 
+    # ameba:disable Naming/AccessorMethodName
+    def set_document_content(html : String) : Nil
+      self.document_content = html
+    end
+
     # Close tries to close page.
     def close : Nil
-      cancel : Proc(Nil)? = nil
-      ctx, cancel_fn = @ctx.with_cancel
-      cancel = cancel_fn
+      ctx, cancel = @ctx.with_cancel
       messages = @browser.context(ctx).event
       success = true
 
@@ -1370,6 +1417,7 @@ module Rod
     end
 
     # IsIframe compatibility alias.
+    # ameba:disable Naming/PredicateName
     def is_iframe : Bool
       iframe?
     end
@@ -1479,7 +1527,8 @@ module Rod
           # Check if error is context not found
           if ctx_not_found_error?(ex)
             if opts.this_obj
-              raise ObjectNotFoundError.new(opts.this_obj.not_nil!)
+              object_ref = opts.this_obj
+              raise ObjectNotFoundError.new(object_ref) if object_ref
             end
 
             # Wait before retry
@@ -1694,14 +1743,13 @@ module Rod
       remove_trace.call
       raise err if err
 
-      remote = res
-      raise ElementNotFoundError.new unless remote
-      remote = remote.not_nil!
-      unless remote.subtype == "node"
-        raise ExpectElementError.new(remote)
+      remote_obj = res
+      raise ElementNotFoundError.new unless remote_obj
+      unless remote_obj.subtype == "node"
+        raise ExpectElementError.new(remote_obj)
       end
 
-      element_from_object(remote)
+      element_from_object(remote_obj)
     end
 
     # elements_by_js returns the elements from the return value of the js.
@@ -2407,8 +2455,8 @@ module Rod
     end
 
     private def gen_reg_matcher(includes : Array(String), excludes : Array(String)) : Proc(String, Bool)
-      include_list = includes.map { |p| Regex.new(p) }
-      exclude_list = excludes.map { |p| Regex.new(p) }
+      include_list = includes.map { |pattern| Regex.new(pattern) }
+      exclude_list = excludes.map { |pattern| Regex.new(pattern) }
 
       ->(url : String) do
         include_list.any?(&.matches?(url)) &&

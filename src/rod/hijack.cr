@@ -40,7 +40,7 @@ module Rod
 
       session_id = nil
       if client = @client.as?(Page)
-        session_id = client.get_session_id
+        session_id = client.page_session_id
       end
 
       event_ctx, cancel = ctx.with_cancel
@@ -53,38 +53,38 @@ module Rod
         e = event.as(Cdp::Fetch::RequestPausedEvent)
         spawn do
           hijack = new(event_ctx, e)
-          @handlers.each do |h|
-            next unless h.regex.match(e.request.url)
+          @handlers.each do |handler|
+            next unless handler.regex.match(e.request.url)
 
-            h.handler.call(hijack)
+            handler.handler.call(hijack)
 
             if cont = hijack.continue_request
               cont.request_id = e.request_id
               begin
                 cont.call(@client)
-              rescue err
-                hijack.on_error.call(err)
+              rescue error
+                hijack.on_error.call(error)
               end
               break
             end
 
-            if hijack.skip
+            if hijack.skip?
               next
             end
 
             if hijack.response.fail.error_reason != ""
               begin
                 hijack.response.fail.call(@client)
-              rescue err
-                hijack.on_error.call(err)
+              rescue error
+                hijack.on_error.call(error)
               end
               break
             end
 
             begin
               hijack.response.payload.call(@client)
-            rescue err
-              hijack.on_error.call(err)
+            rescue error
+              hijack.on_error.call(error)
             end
           end
         end
@@ -128,10 +128,10 @@ module Rod
     def remove(pattern : String) : Nil
       patterns = [] of Cdp::Fetch::RequestPattern
       handlers = [] of HijackHandler
-      @handlers.each do |h|
-        if h.pattern != pattern
-          patterns << Cdp::Fetch::RequestPattern.new(url_pattern: h.pattern)
-          handlers << h
+      @handlers.each do |handler|
+        if handler.pattern != pattern
+          patterns << Cdp::Fetch::RequestPattern.new(url_pattern: handler.pattern)
+          handlers << handler
         end
       end
       @enable.patterns = patterns
@@ -209,8 +209,12 @@ module Rod
     property request : HijackRequest
     property response : HijackResponse
     property on_error : Exception -> Nil
-    property skip = false
+    property? skip : Bool = false
     property custom_state : JSON::Any?
+
+    def skip : Bool
+      skip?
+    end
 
     @continue_request : Cdp::Fetch::ContinueRequest?
     @browser : Browser
@@ -233,17 +237,13 @@ module Rod
       response.raw_response = res
       response.payload.response_code = res.status.code
 
-      res.headers.each do |k, vs|
-        vs.each do |v|
+      res.headers.each do |k, values|
+        values.each do |v|
           response.set_header(k, v)
         end
       end
 
-      if load_body
-        response.set_body(res.body)
-      end
-    rescue err
-      raise err
+      response.set_body(res.body) if load_body
     end
   end
 
@@ -296,12 +296,19 @@ module Rod
     end
 
     # SetContext of the underlying HTTP::Request instance.
+    # ameba:disable Naming/AccessorMethodName
     def set_context(c : Context) : self
       # Crystal HTTP::Request doesn't have context, we can store it in custom field
       self
     end
 
+    # Crystal-style fluent alias.
+    def context(c : Context) : self
+      set_context(c)
+    end
+
     # SetBody of the request, if obj is Bytes or String, raw body will be used, else it will be encoded as json.
+    # ameba:disable Naming/AccessorMethodName
     def set_body(obj) : self
       case obj
       when Bytes
@@ -312,6 +319,11 @@ module Rod
         @req.body = obj.to_json
       end
       self
+    end
+
+    # Crystal-style fluent alias.
+    def body=(obj) : self
+      set_body(obj)
     end
 
     # IsNavigation determines whether the request is a navigation request.
@@ -339,13 +351,14 @@ module Rod
     # Headers returns the clone of response headers.
     def headers : HTTP::Headers
       headers = HTTP::Headers.new
-      (payload.response_headers || [] of Cdp::Fetch::HeaderEntry).each do |h|
-        headers.add(h.name, h.value)
+      (payload.response_headers || [] of Cdp::Fetch::HeaderEntry).each do |header_entry|
+        headers.add(header_entry.name, header_entry.value)
       end
       headers
     end
 
     # SetHeader of the payload via key-value pairs.
+    # ameba:disable Naming/AccessorMethodName
     def set_header(*pairs : String) : self
       header_entries = @payload.response_headers
       unless header_entries
@@ -383,6 +396,11 @@ module Rod
       self
     end
 
+    # Crystal-style fluent alias.
+    def header(*pairs : String) : self
+      set_header(*pairs)
+    end
+
     # AddHeader appends key-value pairs to the end of the response headers.
     def add_header(*pairs : String) : self
       header_entries = @payload.response_headers
@@ -403,6 +421,7 @@ module Rod
     end
 
     # SetBody of the payload, if obj is Bytes or String, raw body will be used, else it will be encoded as json.
+    # ameba:disable Naming/AccessorMethodName
     def set_body(obj) : self
       text = ""
       case obj
@@ -416,6 +435,11 @@ module Rod
       @body_text = text
       @payload.body = Base64.strict_encode(text.to_slice)
       self
+    end
+
+    # Crystal-style fluent alias.
+    def body=(obj) : self
+      set_body(obj)
     end
 
     # Fail request.

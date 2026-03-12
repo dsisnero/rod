@@ -456,8 +456,8 @@ module Rod::Lib::Launcher
     url = url.gsub("[::]", "[::1]")
 
     found, has = look_path_provider.call
-    if has && found
-      open_runner.call(found.not_nil!, [url]) # ameba:disable Lint/NotNil
+    if has && (path = found)
+      open_runner.call(path, [url])
     end
   end
 
@@ -467,7 +467,9 @@ module Rod::Lib::Launcher
   end
 
   def self.look_path_provider
-    @@look_path_provider.not_nil!
+    provider = @@look_path_provider
+    raise "look_path_provider not configured" unless provider
+    provider
   end
 
   # Test seam: override process spawn used by open.
@@ -476,7 +478,9 @@ module Rod::Lib::Launcher
   end
 
   def self.open_runner
-    @@open_runner.not_nil!
+    runner = @@open_runner
+    raise "open_runner not configured" unless runner
+    runner
   end
 
   # New returns the default arguments to start browser.
@@ -538,12 +542,16 @@ module Rod::Lib::Launcher
     property flags : Hash(String, Array(String))
     property logger : ::Log
     property browser : Browser
-    property managed : Bool = false
+    property? managed : Bool = false
     property service_url : String = ""
     @pid : Int32 = 0
     @exit : Channel(Nil)? = nil
     @is_launched : Bool = false
     @ctx : Channel(Nil)? = nil
+
+    def managed : Bool
+      managed?
+    end
 
     # Default user data directory prefix
     DEFAULT_USER_DATA_DIR_PREFIX = File.join(Dir.tempdir, "rod", "user-data")
@@ -761,8 +769,7 @@ module Rod::Lib::Launcher
       hashes = [] of String
 
       keys.each do |key|
-        raise "invalid certificate key" if key.nil?
-        pem = key.not_nil!.strip
+        pem = key.to_s.strip
         raise "invalid certificate key" if pem.empty?
 
         b64 = pem

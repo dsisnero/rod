@@ -133,24 +133,28 @@ module Pdlgen
 
           # parameters, returns, properties definition
           if match = line.match(PARAMS_RETS_PROPS_RE)
+            current_item = item
+            raise "line #{i + 1} has no current item for #{match[1]}" unless current_item
             case match[1]
             when "parameters"
-              item.not_nil!.parameters = [] of Type # ameba:disable Lint/NotNil
-              subitems = item.not_nil!.parameters   # ameba:disable Lint/NotNil
+              current_item.parameters = [] of Type
+              subitems = current_item.parameters
             when "returns"
-              item.not_nil!.returns = [] of Type # ameba:disable Lint/NotNil
-              subitems = item.not_nil!.returns   # ameba:disable Lint/NotNil
+              current_item.returns = [] of Type
+              subitems = current_item.returns
             when "properties"
-              item.not_nil!.properties = [] of Type
-              subitems = item.not_nil!.properties
+              current_item.properties = [] of Type
+              subitems = current_item.properties
             end
             next
           end
 
           # enum
           if line.match(ENUM_RE)
-            item.not_nil!.enum = [] of String # ameba:disable Lint/NotNil
-            enumliterals = item.not_nil!.enum # ameba:disable Lint/NotNil
+            current_item = item
+            raise "line #{i + 1} has no current item for enum" unless current_item
+            current_item.enum = [] of String
+            enumliterals = current_item.enum
             next
           end
 
@@ -162,32 +166,42 @@ module Pdlgen
 
           # version major
           if match = line.match(MAJOR_RE)
-            pdl.version.not_nil!.major = match[1].to_i # ameba:disable Lint/NotNil
+            version = pdl.version
+            raise "line #{i + 1} has no version for major" unless version
+            version.major = match[1].to_i
             next
           end
 
           # version minor
           if match = line.match(MINOR_RE)
-            pdl.version.not_nil!.minor = match[1].to_i # ameba:disable Lint/NotNil
+            version = pdl.version
+            raise "line #{i + 1} has no version for minor" unless version
+            version.minor = match[1].to_i
             next
           end
 
           # redirect
           if match = line.match(REDIRECT_RE)
-            item.not_nil!.redirect = Redirect.new(match[1], "") # ameba:disable Lint/NotNil
+            current_item = item
+            raise "line #{i + 1} has no current item for redirect" unless current_item
+            current_item.redirect = Redirect.new(match[1], "")
             if desc_match = desc.match(REDIRECT_COMMENT_RE)
               name = desc_match[1]
               if idx = name.rindex('.')
                 name = name[idx + 1..]
               end
-              item.not_nil!.redirect.not_nil!.name = name # ameba:disable Lint/NotNil
+              redirect = current_item.redirect
+              raise "line #{i + 1} has no redirect object" unless redirect
+              redirect.name = name
             end
             next
           end
 
           # enum literal
           if line.match(ENUM_LITERAL_RE)
-            enumliterals.not_nil! << trimmed # ameba:disable Lint/NotNil
+            literals = enumliterals
+            raise "line #{i + 1} has no enum target" unless literals
+            literals << trimmed
             next
           end
 
@@ -201,7 +215,9 @@ module Pdlgen
         if is_array
           item.type = TypeEnum::Array
           item.items = Type.new
-          assign_type(item.items.not_nil!, typ, false) # ameba:disable Lint/NotNil
+          nested = item.items
+          raise "missing nested type for array assignment" unless nested
+          assign_type(nested, typ, false)
           return
         end
 

@@ -41,12 +41,17 @@ module Rod
     # The fail must stop the current goroutine's execution immediately.
     def with_panic(fail : Proc(Exception, Nil)) : self
       new_obj = self.dup
-      new_obj.set_panic_handler(fail)
+      new_obj.panic_handler = fail
       new_obj
     end
 
-    def set_panic_handler(fail : Proc(Exception, Nil)) : Nil
+    def panic_handler=(fail : Proc(Exception, Nil)) : Nil
       @e = Browser.gen_e(fail)
+    end
+
+    # ameba:disable Naming/AccessorMethodName
+    def set_panic_handler(fail : Proc(Exception, Nil)) : Nil
+      self.panic_handler = fail
     end
 
     protected def e_handler=(handler : EFunc?) : EFunc?
@@ -372,7 +377,8 @@ module Rod
         raise InvisibleShapeError.new(self)
       end
 
-      pt = point.not_nil!
+      pt = point
+      raise InvisibleShapeError.new(self) unless pt
       root = @page
       while iframe_el = root.element
         root = iframe_el.page
@@ -447,7 +453,9 @@ module Rod
       end
 
       raise err if err
-      out.not_nil!
+      result = out
+      raise TimeoutError.new("Timeout waiting for interactable") unless result
+      result
     end
 
     # Get element text content
@@ -511,7 +519,9 @@ module Rod
         # Match Go behavior: ignore synthetic event errors.
       end
 
-      raise insert_error.not_nil! if insert_error
+      if error = insert_error
+        raise error
+      end
     end
 
     # Check if element is visible

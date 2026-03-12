@@ -61,7 +61,8 @@ module Cdp
         elsif raw.is_a?(String)
           raw.as(String)
         else
-          @data.not_nil!.to_json
+          data = @data
+          data ? data.to_json : ""
         end
       end
       "{#{code} #{message} #{data_str}}"

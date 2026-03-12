@@ -92,11 +92,11 @@ module Cdp::DOM
       bottom = Float64::MIN
 
       @quads.each do |quad|
-        Cdp::DOM.each_point(quad) do |pt|
-          left = pt.x if pt.x < left
-          top = pt.y if pt.y < top
-          right = pt.x if pt.x > right
-          bottom = pt.y if pt.y > bottom
+        Cdp::DOM.each_point(quad) do |point|
+          left = point.x if point.x < left
+          top = point.y if point.y < top
+          right = point.x if point.x > right
+          bottom = point.y if point.y > bottom
         end
       end
 
@@ -1481,9 +1481,9 @@ module Cdp::DOM
     total_x = 0.0
     total_y = 0.0
     count = 0
-    each_point(quad) do |pt|
-      total_x += pt.x
-      total_y += pt.y
+    each_point(quad) do |point|
+      total_x += point.x
+      total_y += point.y
       count += 1
     end
     Point.new(total_x / count, total_y / count)

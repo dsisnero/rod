@@ -166,9 +166,8 @@ module Rod
       return -> { } unless @browser.trace?
 
       rendered = [Rod.trace_type_label(typ)] + msg.to_a.map(&.to_s) + [self.to_s]
-      tl = @browser.trace_logger
-      if tl
-        tl.not_nil!.println(rendered)
+      if tl = @browser.trace_logger
+        tl.println(rendered)
       else
         @browser.logger.info { rendered.join(" ") }
       end
@@ -179,9 +178,8 @@ module Rod
       return -> { } unless @browser.trace?
 
       rendered = [Rod.trace_type_label(TraceTypeQuery), opts.to_s, self.to_s]
-      tl = @browser.trace_logger
-      if tl
-        tl.not_nil!.println(rendered)
+      if tl = @browser.trace_logger
+        tl.println(rendered)
       else
         @browser.logger.info { rendered.join(" ") }
       end
@@ -193,9 +191,8 @@ module Rod
 
       meta = {"includes" => includes, "excludes" => excludes}
       rendered = [Rod.trace_type_label(TraceTypeWaitRequestsIdle), meta.to_json, self.to_s]
-      tl = @browser.trace_logger
-      if tl
-        tl.not_nil!.println(rendered)
+      if tl = @browser.trace_logger
+        tl.println(rendered)
       else
         @browser.logger.info { rendered.join(" ") }
       end
@@ -212,9 +209,8 @@ module Rod
               wait_list = list
             when timeout(1.second)
               lines = [Rod.trace_type_label(TraceTypeWaitRequests), self.to_s, wait_list.to_json]
-              tl = @browser.trace_logger
-              if tl
-                tl.not_nil!.println(lines)
+              if tl = @browser.trace_logger
+                tl.println(lines)
               else
                 @browser.logger.info { lines.join(" ") }
               end
@@ -260,9 +256,8 @@ module Rod
       return -> { } unless @page.browser.trace?
 
       rendered = [Rod.trace_type_label(typ)] + msg.to_a.map(&.to_s) + [self.to_s]
-      tl = @page.browser.trace_logger
-      if tl
-        tl.not_nil!.println(rendered)
+      if tl = @page.browser.trace_logger
+        tl.println(rendered)
       else
         @page.browser.logger.info { rendered.join(" ") }
       end

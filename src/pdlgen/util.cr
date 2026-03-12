@@ -144,8 +144,8 @@ module Pdlgen
       vers = [] of Semver
       case xpath_result
       when XML::NodeSet
-        xpath_result.each do |li|
-          text = li.text.strip
+        xpath_result.each do |item|
+          text = item.text.strip
           if VER_RE =~ text
             vers << make_semver(text)
           end

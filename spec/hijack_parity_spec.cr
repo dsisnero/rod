@@ -132,16 +132,16 @@ describe "Hijack parity" do
     request.header("Origin").should eq("https://example.com")
     request.json_body["k"].as_s.should eq("v")
 
-    request.set_body("test")
+    request.body = "test"
     request_body_text(request.req).should eq("test")
 
-    request.set_body(JSON::Any.new({"x" => JSON::Any.new(1_i64)}))
+    request.body = JSON::Any.new({"x" => JSON::Any.new(1_i64)})
     JSON.parse(request_body_text(request.req))["x"].as_i.should eq(1)
 
-    request.set_body(123)
+    request.body = 123
     request_body_text(request.req).should eq("123")
 
-    request.set_body({"text" => "test"})
+    request.body = {"text" => "test"}
     request_body_text(request.req).should eq(%({"text":"test"}))
   end
 
@@ -154,30 +154,30 @@ describe "Hijack parity" do
     response = make_hijack_response
 
     response.add_header("Set-Cookie", "key=val1")
-    response.set_header("Set-Cookie", "key=val")
-    response.set_header("Content-Type", "application/json")
+    response.header("Set-Cookie", "key=val")
+    response.header("Content-Type", "application/json")
 
     headers = response.headers
     header_first_value(headers, "Set-Cookie").should eq("key=val")
     header_first_value(headers, "Content-Type").should eq("application/json")
 
-    response.set_body("test")
+    response.body = "test"
     response.body.should eq("test")
 
-    response.set_body(JSON::Any.new({"text" => JSON::Any.new("test")}))
+    response.body = JSON::Any.new({"text" => JSON::Any.new("test")})
     response.body.should eq(%({"text":"test"}))
 
-    response.set_body(123)
+    response.body = 123
     response.body.should eq("123")
 
-    response.set_body({"text" => "test"})
+    response.body = {"text" => "test"}
     response.body.should eq(%({"text":"test"}))
   end
 
   it "matches TestHijackMockWholeResponseEmptyBody payload semantics" do
     response = make_hijack_response
 
-    response.set_body("")
+    response.body = ""
     response.payload.body.should_not be_nil
     response.payload.body.should eq("")
     response.body.should eq("")
@@ -266,7 +266,7 @@ describe "Hijack parity" do
         err_messages.send(err.message.to_s)
         nil
       end
-      ctx.response.set_body("ok")
+      ctx.response.body = "ok"
       nil
     end)
 

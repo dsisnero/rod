@@ -632,22 +632,22 @@ module Cdp::Network
 
   # CookiesToParams converts Cookie list to CookieParam list.
   def self.cookies_to_params(cookies : Array(Cookie)) : Array(CookieParam)
-    cookies.map do |c|
-      expires = Time.unix_ms((c.expires * 1000).round.to_i64).to_s("%Y-%m-%dT%H:%M:%S.%3N%:z")
+    cookies.map do |cookie|
+      expires = Time.unix_ms((cookie.expires * 1000).round.to_i64).to_s("%Y-%m-%dT%H:%M:%S.%3N%:z")
       CookieParam.from_json({
-        "name"         => c.name,
-        "value"        => c.value,
+        "name"         => cookie.name,
+        "value"        => cookie.value,
         "url"          => nil,
-        "domain"       => c.domain,
-        "path"         => c.path,
-        "secure"       => c.secure?,
-        "httpOnly"     => c.http_only?,
-        "sameSite"     => c.same_site,
+        "domain"       => cookie.domain,
+        "path"         => cookie.path,
+        "secure"       => cookie.secure?,
+        "httpOnly"     => cookie.http_only?,
+        "sameSite"     => cookie.same_site,
         "expires"      => expires,
-        "priority"     => c.priority,
-        "sourceScheme" => c.source_scheme,
-        "sourcePort"   => c.source_port,
-        "partitionKey" => c.partition_key,
+        "priority"     => cookie.priority,
+        "sourceScheme" => cookie.source_scheme,
+        "sourcePort"   => cookie.source_port,
+        "partitionKey" => cookie.partition_key,
       }.to_json)
     end
   end

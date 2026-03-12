@@ -1,22 +1,26 @@
-# Ameba configuration for ansi library
 Version: "1.7.0-dev"
 
 Excluded:
-  - temp/**/*
-  - lib/**/*
-  - vendor/**/*
-  - spec/**/*
-
+  - temp
+  - lib
+  - vendor
+  - spec
 
 Lint/Formatting:
   Excluded:
     - spec/**/*.cr
     - temp/**/*.cr
 
-Lint/NotNil:
+Metrics/CyclomaticComplexity:
   Excluded:
-    - spec/**/*.cr
-
-# need to add file to exclude them so we can selectively turn off
-# Metrics/CyclomaticComplexity:
-# Excluded:
+    - src/pdlgen/fixup.cr
+    - src/pdlgen/gen/crystal_template_generator.cr
+    - src/pdlgen/gen/crystal_util.cr
+    - src/pdlgen/pdl.cr
+    - src/pdlgen/pdl/parser.cr
+    - src/rod/browser.cr
+    - src/rod/dev_helpers.cr
+    - src/rod/lib/defaults.cr
+    - src/rod/lib/launcher.cr
+    - src/rod/lib/utils.cr
+    - src/rod/page.cr

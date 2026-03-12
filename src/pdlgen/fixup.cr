@@ -125,7 +125,7 @@ module Pdlgen
           end
 
           # Ensure missing enum types exist
-          auth_challenge_source_type = domain.types.find { |t| t.name == "AuthChallengeSource" }
+          auth_challenge_source_type = domain.types.find { |type| type.name == "AuthChallengeSource" }
           unless auth_challenge_source_type
             STDOUT.puts "DEBUG: adding AuthChallengeSource type"
             domain.types << Pdl::Type.new(
@@ -137,7 +137,7 @@ module Pdlgen
             )
           end
 
-          auth_challenge_response_response_type = domain.types.find { |t| t.name == "AuthChallengeResponseResponse" }
+          auth_challenge_response_response_type = domain.types.find { |type| type.name == "AuthChallengeResponseResponse" }
           unless auth_challenge_response_response_type
             STDOUT.puts "DEBUG: adding AuthChallengeResponseResponse type"
             domain.types << Pdl::Type.new(

@@ -178,8 +178,9 @@ module Rod
         raise err
       end
 
-      raise NotFoundError.new("Element not found") unless element
-      element.not_nil!
+      found = element
+      raise NotFoundError.new("Element not found") unless found
+      found
     end
   end
 end

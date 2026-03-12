@@ -1366,8 +1366,8 @@ describe "live browser parity" do
       router = page.hijack_requests
       begin
         router.add("http://localhost*", Cdp::Network::ResourceTypeDocument, ->(ctx : Rod::Hijack) do
-          ctx.response.set_header("Content-Type", "text/html; charset=utf-8")
-          ctx.response.set_body("<body>ok</body>")
+          ctx.response.header("Content-Type", "text/html; charset=utf-8")
+          ctx.response.body = "<body>ok</body>"
           nil
         end)
 
@@ -1426,9 +1426,9 @@ describe "live browser parity" do
         router.add("#{base}/a", Cdp::Network::ResourceTypeXHR, ->(ctx : Rod::Hijack) do
           req = ctx.request
           req.req.headers["Test"] = "header"
-          req.set_body("test")
-          req.set_body(123)
-          req.set_body(req.body)
+          req.body = "test"
+          req.body = 123
+          req.body = req.body
 
           req.method.should eq("POST")
           req.url.to_s.should eq("#{base}/a")
@@ -1441,8 +1441,8 @@ describe "live browser parity" do
           ctx.response.payload.response_code = 201
 
           ctx.response.add_header("Set-Cookie", "key=val1; Path=/")
-          ctx.response.set_header("Set-Cookie", "key=val; Path=/")
-          ctx.response.set_body({"text" => "test"})
+          ctx.response.header("Set-Cookie", "key=val; Path=/")
+          ctx.response.body = {"text" => "test"}
           ctx.response.body.should eq(%({"text":"test"}))
           nil
         end)
