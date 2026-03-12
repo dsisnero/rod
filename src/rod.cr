@@ -37,6 +37,9 @@ require "./rod/lib/devices"
 require "./rod/lib/launcher"
 require "./rod/lib/proto"
 require "./rod/lib/cdp"
+require "./rod/lib/utils_shell"
+require "./rod/lib/examples/custom_websocket"
+require "./rod/lib/examples/compare_chromedp_proxy"
 
 # Top-level aliases for convenience
 alias Utils = Rod::Lib::Utils
