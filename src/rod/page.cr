@@ -338,7 +338,7 @@ module Rod
         begin
           result = block.call
           {true, nil}
-        rescue ex : NotFoundError
+        rescue ex : NotFoundError | ElementNotFoundError
           if timeout > Time::Span::ZERO && Time.instant - started >= effective_timeout
             {true, NotFoundError.new("Element not found within #{timeout}")}
           else
@@ -1752,6 +1752,20 @@ module Rod
       element_from_object(remote_obj)
     end
 
+    # One-shot variant used by timeout-driven query helpers.
+    # Unlike `element_by_js`, this does not include internal retry logic.
+    # Callers like `element_by_regex` own retry/timeout behavior.
+    private def element_by_js_once(opts : EvalOptions) : Element
+      evaluated = evaluate(opts.by_object)
+      if evaluated.type == "object" && evaluated.subtype == "null"
+        raise ElementNotFoundError.new
+      end
+      unless evaluated.subtype == "node"
+        raise ExpectElementError.new(evaluated)
+      end
+      element_from_object(evaluated)
+    end
+
     # elements_by_js returns the elements from the return value of the js.
     def elements_by_js(opts : EvalOptions) : Elements
       # Evaluate with by_object to get remote object reference
@@ -2436,15 +2450,17 @@ module Rod
       elements_by_js(eval_opts)
     end
 
+    # Resolve one element by CSS selector and JS regex text match.
+    # Retry/timeout is controlled exclusively by `QueryOptions` here to avoid nested retries.
     private def element_by_regex(selector : String, regex : String, opts : QueryOptions) : Element
       eval_opts = eval_helper(JS::ELEMENT_R, selector, regex)
 
       if opts.timeout > 0.seconds
         retry_finding(opts.timeout, opts.retry_interval) do
-          element_by_js(eval_opts)
+          element_by_js_once(eval_opts)
         end
       else
-        element_by_js(eval_opts)
+        element_by_js_once(eval_opts)
       end
     rescue ex : NotFoundError
       raise ex

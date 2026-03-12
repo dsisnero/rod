@@ -37,6 +37,30 @@ puts element.text
 browser.close
 ```
 
+### Must Bang Aliases
+
+All `must_*` helpers also support `!` aliases:
+
+```crystal
+browser = Rod::Browser.new.connect!
+page = browser.page!("https://example.com")
+title = page.element!("h1").text!
+```
+
+`page!` is an alias for `must_page`, `element!` for `must_element`, etc.
+
+### Query Timeout Behavior
+
+`element_r` / `must_element_r` now follow page/query timeout settings the same way as other query helpers. When no match exists, they fail with timeout instead of looping indefinitely.
+
+### Download Example
+
+The end-to-end download example is available at:
+
+- `examples/compare-chromedp/download_file/main.cr`
+
+It relies on browser download events (enabled through `Browser#wait_download`) and writes the downloaded bytes after the browser reports completion.
+
 For more examples, see the [go-rod documentation](https://go-rod.github.io/) and the Crystal tests.
 
 ## Development

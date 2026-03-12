@@ -70,6 +70,11 @@ module Rod
       @ctx
     end
 
+    # GetContext returns the current rod context.
+    def get_context : Context # ameba:disable Naming/AccessorMethodName
+      @ctx
+    end
+
     # e is the error handler for Must methods.
     # It calls the configured EFunc with the error.
     protected def e(err : Exception?) : Nil
@@ -133,7 +138,9 @@ module Rod
 
         ws = Lib::Cdp::WebSocket.new
         ws.connect(url)
-        client = Lib::Cdp::Client.new(@logger)
+        # Keep CDP transport logging separate from browser logger.
+        # Go parity: CDP logging is quiet by default unless explicitly enabled.
+        client = Lib::Cdp::Client.new
         client.start(ws)
         @client = client
       elsif !@control_url.empty?
@@ -286,12 +293,13 @@ module Rod
     end
 
     # WaitDownload waits for a matching completed download and returns metadata.
+    # It enables download events so `Browser.download*` CDP events are emitted.
     def wait_download(dir : String) : Proc(Cdp::Browser::DownloadWillBeginEvent?)
       Cdp::Browser::SetDownloadBehavior.new(
         Cdp::Browser::SetDownloadBehaviorBehaviorAllowAndName,
         @browser_context_id.try(&.value),
         dir,
-        nil
+        true
       ).call(self)
 
       start_event = uninitialized Cdp::Browser::DownloadWillBeginEvent?

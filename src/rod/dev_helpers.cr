@@ -166,8 +166,10 @@ module Rod
       return -> { } unless @browser.trace?
 
       rendered = [Rod.trace_type_label(typ)] + msg.to_a.map(&.to_s) + [self.to_s]
-      if tl = @browser.trace_logger
-        tl.println(rendered)
+      trace_logger = @browser.trace_logger
+      if trace_logger
+        logger = trace_logger.as(Rod::Lib::Utils::Log)
+        logger.println(rendered)
       else
         @browser.logger.info { rendered.join(" ") }
       end
@@ -178,8 +180,10 @@ module Rod
       return -> { } unless @browser.trace?
 
       rendered = [Rod.trace_type_label(TraceTypeQuery), opts.to_s, self.to_s]
-      if tl = @browser.trace_logger
-        tl.println(rendered)
+      trace_logger = @browser.trace_logger
+      if trace_logger
+        logger = trace_logger.as(Rod::Lib::Utils::Log)
+        logger.println(rendered)
       else
         @browser.logger.info { rendered.join(" ") }
       end
@@ -191,8 +195,10 @@ module Rod
 
       meta = {"includes" => includes, "excludes" => excludes}
       rendered = [Rod.trace_type_label(TraceTypeWaitRequestsIdle), meta.to_json, self.to_s]
-      if tl = @browser.trace_logger
-        tl.println(rendered)
+      trace_logger = @browser.trace_logger
+      if trace_logger
+        logger = trace_logger.as(Rod::Lib::Utils::Log)
+        logger.println(rendered)
       else
         @browser.logger.info { rendered.join(" ") }
       end
@@ -209,8 +215,10 @@ module Rod
               wait_list = list
             when timeout(1.second)
               lines = [Rod.trace_type_label(TraceTypeWaitRequests), self.to_s, wait_list.to_json]
-              if tl = @browser.trace_logger
-                tl.println(lines)
+              trace_logger = @browser.trace_logger
+              if trace_logger
+                logger = trace_logger.as(Rod::Lib::Utils::Log)
+                logger.println(lines)
               else
                 @browser.logger.info { lines.join(" ") }
               end
@@ -256,8 +264,10 @@ module Rod
       return -> { } unless @page.browser.trace?
 
       rendered = [Rod.trace_type_label(typ)] + msg.to_a.map(&.to_s) + [self.to_s]
-      if tl = @page.browser.trace_logger
-        tl.println(rendered)
+      trace_logger = @page.browser.trace_logger
+      if trace_logger
+        logger = trace_logger.as(Rod::Lib::Utils::Log)
+        logger.println(rendered)
       else
         @page.browser.logger.info { rendered.join(" ") }
       end

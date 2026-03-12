@@ -40,6 +40,17 @@ module Rod
       end
     end
 
+    # `foo!` aliases to `must_foo` (for example `page!` -> `must_page`).
+    # This mirrors Go Rod's Must ergonomics while keeping Crystal call sites concise.
+    macro method_missing(call)
+      {% name = call.name.stringify %}
+      {% if name.ends_with?("!") %}
+        {{("must_" + name[0...-1]).id}}({{call.args.splat}})
+      {% else %}
+        {% raise "undefined method '#{name}' for #{@type}" %}
+      {% end %}
+    end
+
     # MustConnect is similar to connect.
     def must_connect : Browser
       must_try { connect }
@@ -150,6 +161,17 @@ module Rod
         e(ex)
         raise ex
       end
+    end
+
+    # `foo!` aliases to `must_foo` (for example `element!` -> `must_element`).
+    # This keeps bang calls behaviorally equivalent to explicit `must_*` calls.
+    macro method_missing(call)
+      {% name = call.name.stringify %}
+      {% if name.ends_with?("!") %}
+        {{("must_" + name[0...-1]).id}}({{call.args.splat}})
+      {% else %}
+        {% raise "undefined method '#{name}' for #{@type}" %}
+      {% end %}
     end
 
     # MustInfo is similar to info.
@@ -312,6 +334,11 @@ module Rod
         ))
       end
       self
+    end
+
+    # Accept integer/other numeric scale factors and normalize to Float64.
+    def must_set_viewport(width : Int32, height : Int32, device_scale_factor : Number, mobile : Bool) : Page
+      must_set_viewport(width, height, device_scale_factor.to_f64, mobile)
     end
 
     # MustEmulate is similar to emulate.
@@ -553,37 +580,42 @@ module Rod
       end
     end
 
-    # MustElement is similar to element.
+    # MustElement finds one CSS match and raises when none are found.
+    # It respects query timeout behavior from the underlying page context/options.
     def must_element(selector : String) : Element
       must_try { element(selector) }
     end
 
-    # MustElementR is similar to element_r.
+    # MustElementR finds one element by CSS + text regex and raises when none are found.
+    # It respects query timeout behavior from the underlying page context/options.
     def must_element_r(selector : String, js_regex : String) : Element
       must_try { element_r(selector, js_regex) }
     end
 
-    # MustElementX is similar to element_x.
+    # MustElementX finds one XPath match and raises when none are found.
+    # It respects query timeout behavior from the underlying page context/options.
     def must_element_x(x_path : String) : Element
       must_try { element_x(x_path) }
     end
 
-    # MustElementByJS is similar to element_by_js.
+    # MustElementByJS evaluates JS and expects a single DOM node result.
+    # It raises when JS returns null/non-node or evaluation fails.
     def must_element_by_js(js : String, params : Array(::JSON::Any) = [] of ::JSON::Any) : Element
       must_try { element_by_js(EvalOptions.new(js, params)) }
     end
 
-    # MustElements is similar to elements.
+    # MustElements returns all CSS matches (empty list when none are found).
     def must_elements(selector : String) : Elements
       must_try { elements(selector) }
     end
 
-    # MustElementsX is similar to elements_x.
+    # MustElementsX returns all XPath matches (empty list when none are found).
     def must_elements_x(xpath : String) : Elements
       must_try { elements_x(xpath) }
     end
 
-    # MustElementsByJS is similar to elements_by_js.
+    # MustElementsByJS evaluates JS and expects an array of DOM nodes.
+    # It raises when JS does not return an array.
     def must_elements_by_js(js : String, params : Array(::JSON::Any) = [] of ::JSON::Any) : Elements
       must_try { elements_by_js(EvalOptions.new(js, params)) }
     end
@@ -605,6 +637,17 @@ module Rod
         e(ex)
         raise ex
       end
+    end
+
+    # `foo!` aliases to `must_foo` (for example `click!` -> `must_click`).
+    # This keeps bang calls behaviorally equivalent to explicit `must_*` calls.
+    macro method_missing(call)
+      {% name = call.name.stringify %}
+      {% if name.ends_with?("!") %}
+        {{("must_" + name[0...-1]).id}}({{call.args.splat}})
+      {% else %}
+        {% raise "undefined method '#{name}' for #{@type}" %}
+      {% end %}
     end
 
     # MustDescribe is similar to describe.
@@ -835,7 +878,7 @@ module Rod
 
     # MustCanvasToImage is similar to canvas_to_image.
     def must_canvas_to_image : Bytes
-      must_try { canvas_to_image("", -1) }
+      must_try { canvas_to_image("", -1.0) }
     end
 
     # MustResource is similar to resource.
@@ -889,24 +932,29 @@ module Rod
       has
     end
 
-    # MustElement is similar to element.
+    # MustElement finds one descendant CSS match and raises when none are found.
+    # It respects query timeout behavior from the underlying page context/options.
     def must_element(selector : String) : Element
       must_try { element(selector) }
     end
 
-    # MustElementX is similar to element_x.
+    # MustElementX finds one descendant XPath match and raises when none are found.
+    # It respects query timeout behavior from the underlying page context/options.
     def must_element_x(xpath : String) : Element
       must_try { element_x(xpath) }
     end
 
-    # MustElementByJS is similar to element_by_js.
+    # MustElementByJS evaluates JS against this element and expects one DOM node.
+    # It raises when JS returns null/non-node or evaluation fails.
     def must_element_by_js(js : String, params : Array(::JSON::Any) = [] of ::JSON::Any) : Element
       must_try { element_by_js(EvalOptions.new(js, params)) }
     end
 
     # MustParent is similar to parent.
     def must_parent : Element
-      must_try { parent }
+      value = must_try { parent }
+      raise ElementNotFoundError.new unless value
+      value
     end
 
     # MustParents is similar to parents.
@@ -916,30 +964,36 @@ module Rod
 
     # MustNext is similar to next.
     def must_next : Element
-      must_try { self.next }
+      value = must_try { self.next }
+      raise ElementNotFoundError.new unless value
+      value
     end
 
     # MustPrevious is similar to previous.
     def must_previous : Element
-      must_try { previous }
+      value = must_try { previous }
+      raise ElementNotFoundError.new unless value
+      value
     end
 
-    # MustElementR is similar to element_r.
+    # MustElementR finds one descendant by CSS + text regex and raises when none are found.
+    # It respects query timeout behavior from the underlying page context/options.
     def must_element_r(selector : String, regex : String) : Element
       must_try { element_r(selector, regex) }
     end
 
-    # MustElements is similar to elements.
+    # MustElements returns all descendant CSS matches (empty list when none are found).
     def must_elements(selector : String) : Elements
       must_try { elements(selector) }
     end
 
-    # MustElementsX is similar to elements_x.
+    # MustElementsX returns all descendant XPath matches (empty list when none are found).
     def must_elements_x(xpath : String) : Elements
       must_try { elements_x(xpath) }
     end
 
-    # MustElementsByJS is similar to elements_by_js.
+    # MustElementsByJS evaluates JS against this element and expects an array of DOM nodes.
+    # It raises when JS does not return an array.
     def must_elements_by_js(js : String, params : Array(::JSON::Any) = [] of ::JSON::Any) : Elements
       must_try { elements_by_js(EvalOptions.new(js, params)) }
     end

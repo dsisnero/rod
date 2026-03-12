@@ -668,6 +668,26 @@ module Cdp::Network
     time_since_epoch_time(t).to_s
   end
 
+  # TimeSinceEpoch helper from a Time value.
+  def self.time_since_epoch(value : Time) : TimeSinceEpoch
+    value
+  end
+
+  # TimeSinceEpoch helper from seconds since unix epoch.
+  def self.time_since_epoch(value : Float64) : TimeSinceEpoch
+    value
+  end
+
+  # TimeSinceEpoch helper from seconds since unix epoch.
+  def self.time_since_epoch(value : Int) : TimeSinceEpoch
+    value.to_f64
+  end
+
+  # TimeSinceEpoch helper relative to current UTC time.
+  def self.time_since_epoch_from_now(delta : Time::Span) : TimeSinceEpoch
+    (Time.utc + delta).to_unix.to_f64
+  end
+
   # MonotonicTimeToDuration mirrors go proto MonotonicTime.Duration semantics.
   def self.monotonic_time_duration(t : MonotonicTime) : Time::Span
     seconds = t.is_a?(Time) ? (t.to_unix_ms / 1000.0) : t.as(Float64)
