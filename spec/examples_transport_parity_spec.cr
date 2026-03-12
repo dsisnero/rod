@@ -1,4 +1,6 @@
 require "./spec_helper"
+require "http/server"
+require "http/web_socket"
 
 private class StubWebSocket < Rod::Lib::Cdp::WebSocket
   getter connected_url : String?
@@ -18,6 +20,23 @@ private class StubWebSocket < Rod::Lib::Cdp::WebSocket
 
   def read : Bytes
     @next_read
+  end
+end
+
+private def with_ws_echo_server(&)
+  server = HTTP::Server.new([
+    HTTP::WebSocketHandler.new do |ws, _ctx|
+      ws.on_message { |msg| ws.send(msg) }
+    end,
+  ])
+
+  addr = server.bind_tcp("127.0.0.1", 0)
+  spawn { server.listen }
+
+  begin
+    yield "ws://127.0.0.1:#{addr.port}/"
+  ensure
+    server.close
   end
 end
 
@@ -52,6 +71,15 @@ describe Rod::Lib::Examples::CompareChromedpProxy::Transport do
 end
 
 describe Rod::Lib::Examples::CustomWebsocket::WebSocket do
+  it "new_web_socket connects through cdp websocket and roundtrips data" do
+    with_ws_echo_server do |url|
+      socket = Rod::Lib::Examples::CustomWebsocket::WebSocket.new_web_socket(url)
+
+      socket.send("ping".to_slice)
+      String.new(socket.read).should eq("ping")
+    end
+  end
+
   it "delegates send and read to underlying cdp websocket" do
     conn = StubWebSocket.new
     socket = Rod::Lib::Examples::CustomWebsocket::WebSocket.new(conn)

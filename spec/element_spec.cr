@@ -557,7 +557,7 @@ end
 
 describe Rod::Element do
   # TODO: Add proper mocking for Page and CDP calls
-  # For now, mark specs as pending
+  # For now, mark specs as deferred
 
   describe "#matches" do
     it "checks if element matches CSS selector" do

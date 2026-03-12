@@ -652,6 +652,33 @@ module Cdp::Network
     end
   end
 
+  # TimeSinceEpochToTime mirrors go proto TimeSinceEpoch.Time helper semantics.
+  def self.time_since_epoch_time(t : TimeSinceEpoch) : Time
+    if t.is_a?(Time)
+      return t
+    end
+
+    f = t.as(Float64)
+    return Time.unix(0) if f == -1.0
+    Time.unix_ms((f * 1000).round.to_i64)
+  end
+
+  # TimeSinceEpochToString mirrors go proto TimeSinceEpoch.String helper semantics.
+  def self.time_since_epoch_string(t : TimeSinceEpoch) : String
+    time_since_epoch_time(t).to_s
+  end
+
+  # MonotonicTimeToDuration mirrors go proto MonotonicTime.Duration semantics.
+  def self.monotonic_time_duration(t : MonotonicTime) : Time::Span
+    seconds = t.is_a?(Time) ? (t.to_unix_ms / 1000.0) : t.as(Float64)
+    seconds.seconds
+  end
+
+  # MonotonicTimeToString mirrors go proto MonotonicTime.String semantics.
+  def self.monotonic_time_string(t : MonotonicTime) : String
+    monotonic_time_duration(t).to_s
+  end
+
   @[Experimental]
   struct AuthChallenge
     include JSON::Serializable

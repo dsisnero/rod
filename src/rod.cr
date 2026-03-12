@@ -51,4 +51,5 @@ module Rod
   # Internal aliases
   alias Utils = Lib::Utils
   alias Defaults = Lib::Defaults
+  alias CDPClient = ::Cdp::Client
 end

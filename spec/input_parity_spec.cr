@@ -36,7 +36,7 @@ private class TypeFailElement < Rod::Element
 end
 
 describe "input parity" do
-  it "keyboard key_actions balances pending key presses with trailing release" do
+  it "keyboard key_actions balances queued key presses with trailing release" do
     page = InputCdpStubPage.new
 
     page.keyboard.key_actions

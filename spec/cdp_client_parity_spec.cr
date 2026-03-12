@@ -35,6 +35,28 @@ private class MockCdpWebSocket < Rod::Lib::Cdp::WebSocket
   end
 end
 
+private class ProtocolOnlyCdpWebSocket
+  include Rod::Lib::Cdp::WebSocketable
+
+  getter sent = [] of String
+
+  def initialize
+    @reads = Channel(Bytes).new(8)
+  end
+
+  def enqueue_read(payload : String) : Nil
+    @reads.send(payload.to_slice)
+  end
+
+  def send(msg : Bytes) : Nil
+    @sent << String.new(msg)
+  end
+
+  def read : Bytes
+    @reads.receive
+  end
+end
+
 private class EchoCdpWebSocket < Rod::Lib::Cdp::WebSocket
   def initialize
     @responses = Channel(Bytes).new(2048)
@@ -181,6 +203,26 @@ describe "cdp client parity" do
     client = Rod::Lib::Cdp::Client.new.logger(logger).start(ws)
     client.should be_a(Rod::Lib::Cdp::Client)
     ws.close_reads
+  end
+
+  it "accepts websocketable implementations without inheriting websocket" do
+    ws = ProtocolOnlyCdpWebSocket.new
+    client = Rod::Lib::Cdp::Client.new.start(ws)
+
+    done = Channel(String).new(1)
+    spawn do
+      begin
+        res = client.call(nil, nil, "Test.method", JSON.parse(%({"x":1})))
+        done.send(String.new(res))
+      rescue ex
+        done.send("ERR:#{ex.message}")
+      end
+    end
+
+    wait_until { !ws.sent.empty? }
+    id = JSON.parse(ws.sent.first)["id"].as_i
+    ws.enqueue_read(%({"id":#{id},"result":{"ok":1}}))
+    done.receive.should eq(%({"ok":1}))
   end
 
   it "sends request and returns matching response payload" do
@@ -429,7 +471,7 @@ describe "cdp client parity" do
     page_enable_req.not_nil!["sessionId"].as_s.should eq("session-1")
   end
 
-  it "propagates read-side crash errors to pending calls" do
+  it "propagates read-side crash errors to queued calls" do
     ws = CrashyCdpWebSocket.new
     client = Rod::Lib::Cdp::Client.new.start(ws)
 

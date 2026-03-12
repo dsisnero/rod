@@ -70,4 +70,16 @@ describe Rod::Browser do
     restore = browser.disable_domain(nil, Cdp::Page::Enable.new(nil))
     restore.call
   end
+
+  it "remove_state deletes tracked state for a key" do
+    browser = Rod::Browser.new
+    req = Cdp::Page::Enable.new(nil)
+    key = Rod::StateKey.new(nil, nil, req.proto_req)
+
+    browser.set_state(nil, req.proto_req, JSON::Any.new(true))
+    browser.load_state(nil, req).should be_true
+
+    browser.remove_state(key)
+    browser.load_state(nil, req).should be_false
+  end
 end

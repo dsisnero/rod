@@ -1,6 +1,10 @@
 require "./spec_helper"
 
 describe Cdp do
+  it "exposes protocol version constant" do
+    Cdp::Version.should eq("v1.3")
+  end
+
   it "parses method names into domain and command" do
     domain, name = Cdp.parse_method_name("Page.enable")
     domain.should eq("Page")
@@ -60,5 +64,14 @@ describe Cdp do
     p.move_to(1.0, 2.0)
     p.x.should eq(1.0)
     p.y.should eq(2.0)
+  end
+
+  it "provides a_patch time helper equivalents for network time aliases" do
+    Cdp::Network.time_since_epoch_time(-1.0).to_unix.should eq(0)
+    Cdp::Network.time_since_epoch_time(1.5).to_unix.should eq(1)
+    Cdp::Network.time_since_epoch_string(1.0).should contain("1970")
+
+    Cdp::Network.monotonic_time_duration(1.25).total_milliseconds.should eq(1250)
+    Cdp::Network.monotonic_time_string(1.0).should contain("00:00:01")
   end
 end

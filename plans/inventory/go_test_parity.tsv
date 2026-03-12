@@ -1,298 +1,298 @@
-# go_test_id	status	crystal_refs	notes
-browser_test.go::TestBinarySize	ported	spec/binary_size_parity_spec.cr	added Crystal translator example and native release build-size gate (<=11MB) with upstream container skip semantics
-browser_test.go::TestBlockingNavigation	ported	spec/live_browser_parity_spec.cr	verified blocked /a navigation does not deadlock opening separate /b page in same browser
-browser_test.go::TestBrowserCall	ported	spec/browser_pages_parity_spec.cr	getVersion typed call parity covered
-browser_test.go::TestBrowserClearStates	ported	spec/browser_clear_states_parity_spec.cr	clear geolocation override CDP call succeeds without preloaded state parity covered
-browser_test.go::TestBrowserConnectConflict	ported	spec/browser_parity_spec.cr	connect conflict validation parity covered
-browser_test.go::TestBrowserConnectErr	ported	spec/browser_parity_spec.cr	must_connect invalid control_url error propagation parity covered
-browser_test.go::TestBrowserConnectFailure	ported	spec/browser_parity_spec.cr	connect returns error when context is canceled parity covered
-browser_test.go::TestBrowserCookies	ported	spec/browser_parity_spec.cr	set/clear cookie API parity covered
-browser_test.go::TestBrowserCrash	ported	spec/cdp_client_parity_spec.cr,spec/live_browser_parity_spec.cr	connection-drop/EOF propagation plus live Browser.crash interruption of in-flight and subsequent page eval parity covered
-browser_test.go::TestBrowserEvent	ported	spec/browser_each_event_parity_spec.cr	browser each_event/session filtering parity covered
-browser_test.go::TestBrowserLostConnection	ported	spec/cdp_client_parity_spec.cr,spec/page_event_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	connection/read-close propagation, event shutdown, and live launcher-kill blocked eval interruption parity covered
-browser_test.go::TestBrowserOthers	ported	spec/browser_parity_spec.cr	timeout/cancel_timeout chaining before must_get_cookies parity covered
-browser_test.go::TestBrowserPages	ported	spec/browser_pages_parity_spec.cr	pages target filtering parity covered
-browser_test.go::TestBrowserPool	ported	spec/pool_spec.cr	browser pool get/put/must_get/cleanup flow parity covered
-browser_test.go::TestBrowserResetControlURL	ported	spec/browser_context_clone_spec.cr	control_url reset chaining parity covered
-browser_test.go::TestBrowserWaitEvent	ported	spec/browser_parity_spec.cr	wait_event consumption parity covered
-browser_test.go::TestDefaultDevice	ported	spec/browser_page_creation_parity_spec.cr	default_device and no_default_device new-page emulation parity covered
-browser_test.go::TestIncognito	ported	spec/browser_incognito_parity_spec.cr	incognito context create/close parity covered
-browser_test.go::TestOldBrowser	ported	N/A	upstream Go test is skipped (t.Skip) for legacy revision pin; no active Crystal execution parity target
-browser_test.go::TestPageErr	ported	spec/browser_page_creation_parity_spec.cr	must_page page_from_target error propagation and created-target cleanup parity covered
-browser_test.go::TestPageFromTarget	ported	spec/browser_page_creation_parity_spec.cr	page_from_target behavior parity covered
-browser_test.go::TestResolveBlocking	ported	spec/live_browser_parity_spec.cr	verified stop_loading interrupts blocked navigation in live server scenario
-browser_test.go::TestStreamReader	ported	spec/screenshot_spec.cr	stream reader normal read, IO.read error propagation, and invalid base64 decode error parity covered
-browser_test.go::TestTestTry	ported	spec/try_parity_spec.cr	try helper behavior parity covered
-browser_test.go::TestWaitDownload	ported	spec/browser_wait_download_parity_spec.cr	wait_download completion parity covered
-browser_test.go::TestWaitDownloadCancel	ported	spec/browser_wait_download_parity_spec.cr	wait_download canceled-context parity covered
-browser_test.go::TestWaitDownloadDataURI	ported	spec/browser_wait_download_parity_spec.cr	wait_download data-uri initiated event flow parity covered
-browser_test.go::TestWaitDownloadFromNewPage	ported	spec/browser_wait_download_parity_spec.cr	wait_download completion matching across originating frame/page parity covered
-dev_helpers_test.go::TestExposeHelpers	ported	spec/dev_helpers_parity_spec.cr	expose_helpers injects window.rod helpers with js.ElementR dependency parity covered
-dev_helpers_test.go::TestMonitor	ported	spec/dev_helpers_parity_spec.cr,spec/live_browser_parity_spec.cr	serve_monitor api/pages/api-page/screenshot plus live monitor page navigation, title, and screenshot endpoint parity covered
-dev_helpers_test.go::TestMonitorErr	ported	spec/dev_helpers_parity_spec.cr,spec/live_browser_parity_spec.cr	invalid monitor host format parity covered for both direct and launched control-url must_connect flows
-dev_helpers_test.go::TestTrace	ported	spec/dev_helpers_parity_spec.cr,spec/live_browser_parity_spec.cr	trace type label plus live logger callback capture for wait-load and input-click tracing parity covered
-dev_helpers_test.go::TestTraceLogs	ported	spec/dev_helpers_parity_spec.cr,spec/live_browser_parity_spec.cr	trace + logger_quiet live click flow and overlay runtime-error no-panic parity covered
-element_test.go::TestAttribute	ported	spec/element_spec.cr	attribute getter nil/value parity covered
-element_test.go::TestBackgroundImage	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	background-image URL extraction, error paths, and live fixture byte-size parity covered
-element_test.go::TestBlur	ported	spec/element_spec.cr	blur js dispatch parity covered
-element_test.go::TestCanvasToImage	ported	spec/live_browser_parity_spec.cr	verified canvas_to_image PNG bytes by browser round-trip decode and red pixel check at (50,50)
-element_test.go::TestCheckbox	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	checkbox click checked-state integration and click flow parity covered
-element_test.go::TestClick	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	click flow parity covered with live fixture side-effects and error-path coverage
-element_test.go::TestClickWrapped	ported	spec/live_browser_parity_spec.cr	verified wrapped-element two-quad shape and real click side-effects
-element_test.go::TestContains	ported	spec/element_spec.cr	contains_element parity covered
-element_test.go::TestDisabled	ported	spec/element_spec.cr	disabled? property parity covered
-element_test.go::TestElementCancelContext	ported	spec/element_spec.cr	element with_cancel and cancel_timeout context parity covered
-element_test.go::TestElementContext	ported	spec/element_spec.cr	element timeout/cancel_timeout context chaining parity covered
-element_test.go::TestElementEWithDepth	ported	spec/live_browser_parity_spec.cr	verified describe(-1,true) subtree serialization includes nested text content
-element_test.go::TestElementEqual	ported	spec/element_spec.cr	element.equal parity covered
-element_test.go::TestElementErrors	ported	spec/element_spec.cr	canceled-context error matrix for describe/frame/focus/key_actions/input/select/wait_stable/eval/resource/background_image/html/visible/canvas/release parity covered
-element_test.go::TestElementFromNodeErr	ported	spec/page_eval_parity_spec.cr	element_from_node runtime-callFunctionOn error propagation parity covered
-element_test.go::TestElementFromPointErr	ported	spec/page_settings_parity_spec.cr	element_from_point backend-node resolution and DOM.getNodeForLocation error propagation parity covered
-element_test.go::TestElementGetXPath	ported	spec/element_spec.cr	get_xpath optimized/non-optimized return and runtime error propagation parity covered
-element_test.go::TestElementInputDate	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	input_time formatter path and live date input integration parity covered
-element_test.go::TestElementMoveMouseOut	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	move_mouse_out bounding-box/no-shape error paths and live mouseout event parity covered
-element_test.go::TestElementMultipleTimes	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	repeated element lookups with distinct remote object ids parity covered
-element_test.go::TestElementOthers	ported	spec/live_browser_parity_spec.cr	verified focus/scroll/query/html/wait and element-by-js/elements-by-js helper paths
-element_test.go::TestElementRemove	ported	spec/element_lifecycle_parity_spec.cr	remove then release lifecycle parity covered
-element_test.go::TestElementScreenshot	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	live-browser screenshot dimensions/file-output parity covered; source-level error propagation branches for scroll/capture/shape now covered
-element_test.go::TestElementWait	ported	spec/element_spec.cr	element.wait this-binding parity covered
-element_test.go::TestElementWaitLoad	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	wait_load helper wiring and live fixture load-event integration parity covered
-element_test.go::TestEnter	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	element.type focus-before-keyboard delegation and live submit-event integration parity covered
-element_test.go::TestFnErr	ported	spec/live_browser_parity_spec.cr	verified live ReferenceError propagation as EvalError for eval and element_by_js paths
-element_test.go::TestGetElementPage	ported	spec/element_spec.cr	owning page reference parity covered
-element_test.go::TestHover	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	hover wait_interactable-to-mouse.move delegation, live hover side-effects, and error-path parity covered
-element_test.go::TestIframeCrossDomains	ported	spec/live_browser_parity_spec.cr	verified cross-host sandbox iframe traversal using localhost/127.0.0.1 live servers
-element_test.go::TestIframes	ported	spec/live_browser_parity_spec.cr	verified nested iframe click plus parent-frame isolation function behavior
-element_test.go::TestInputColor	ported	spec/element_spec.cr	input_color formatter/event parity covered
-element_test.go::TestInputTime	ported	spec/element_spec.cr	input_time formatter parity covered
-element_test.go::TestInteractable	ported	spec/element_spec.cr	interactable point calculation, pointer-events guard, and no-shape behavior parity covered
-element_test.go::TestInteractableWithNoShape	ported	spec/element_spec.cr	interactable raises InvisibleShapeError when quad interior point is unavailable parity covered
-element_test.go::TestMatches	ported	spec/element_spec.cr	matches selector parity covered
-element_test.go::TestNotInteractable	ported	spec/live_browser_parity_spec.cr	verified covered-element interactable error and recovery after overlay removal
-element_test.go::TestNotInteractableWithNoPointerEvents	ported	spec/element_spec.cr	interactable raises NoPointerEventsError when pointer-events is none parity covered
-element_test.go::TestProperty	ported	spec/element_spec.cr	property getter parity covered
-element_test.go::TestResource	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	resource helper JS path, delegated get_resource/evaluate error propagation, and live fixture byte-size parity covered
-element_test.go::TestSelectOptions	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	select helper invocation/not-found/eval-error paths and live selected-option text/index transitions parity covered
-element_test.go::TestSelectQuery	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	select(css-selector) helper argument wiring and live selectedIndex assertion parity covered
-element_test.go::TestSelectText	ported	spec/element_spec.cr	select_text regex/range parity covered
-element_test.go::TestSetFiles	ported	spec/element_spec.cr	set_files absolute path CDP call parity covered
-element_test.go::TestShadowDOM	ported	spec/live_browser_parity_spec.cr	verified shadow-root traversal and no-shadow error path in real DOM fixture
-element_test.go::TestShapeInIframe	ported	spec/live_browser_parity_spec.cr	verified iframe shape one-point-inside coordinate parity against upstream deltas
-element_test.go::TestTap	ported	spec/live_browser_parity_spec.cr	verified iPad emulation + touch fixture tap side-effect (tapped=true) in real browser
-element_test.go::TestUseReleasedElement	ported	spec/live_browser_parity_spec.cr	verified click fails after element release and manual runtime release in real browser
-element_test.go::TestWaitEnabled	ported	spec/element_spec.cr	wait_enabled polling parity covered
-element_test.go::TestWaitInteractable	ported	spec/element_spec.cr	wait_interactable retries interactability errors until success parity covered
-element_test.go::TestWaitInvisible	ported	spec/element_spec.cr	wait_invisible polling parity covered
-element_test.go::TestWaitStable	ported	spec/live_browser_parity_spec.cr	verified wait_stable blocks until fixture animation class removal
-element_test.go::TestWaitStableRAP	ported	spec/live_browser_parity_spec.cr	verified wait_stable_raf blocks until fixture animation class removal
-element_test.go::TestWaitWritable	ported	spec/element_spec.cr	wait_writable readonly predicate parity covered
-hijack_test.go::TestHandleAuth	ported	spec/browser_handle_auth_parity_spec.cr	browser handle_auth fetch-auth flow and failure cleanup parity covered
-hijack_test.go::TestHijack	ported	spec/live_browser_parity_spec.cr	real-browser backend+hijack parity covers request mutation, load_response, response status/header/body override, and page assertions
-hijack_test.go::TestHijackContinue	ported	spec/hijack_parity_spec.cr	continue_request semantics covered
-hijack_test.go::TestHijackFailRequest	ported	spec/hijack_parity_spec.cr	fail reason override semantics covered
-hijack_test.go::TestHijackLoadResponseErr	ported	spec/hijack_parity_spec.cr	hijack.load_response upstream client error propagation parity covered
-hijack_test.go::TestHijackMockWholeResponse	ported	spec/live_browser_parity_spec.cr	real-browser hijack router intercepts document request and fulfills with mocked html body/header parity
-hijack_test.go::TestHijackMockWholeResponseEmptyBody	ported	spec/hijack_parity_spec.cr	explicit empty-body fulfill payload semantics parity covered (body present as empty string)
-hijack_test.go::TestHijackMockWholeResponseNoBody	ported	spec/hijack_parity_spec.cr	no-body fulfill payload default semantics parity covered (payload body nil, helper body empty)
-hijack_test.go::TestHijackOnErrorLog	ported	spec/hijack_parity_spec.cr	hijack continue_request CDP failure is surfaced via ctx.on_error parity covered
-hijack_test.go::TestHijackResponseErr	ported	spec/hijack_parity_spec.cr	hijack fulfill_request CDP failure is surfaced via ctx.on_error parity covered
-hijack_test.go::TestHijackSkip	ported	spec/hijack_parity_spec.cr	hijack skip flag semantics covered
-input_test.go::TestInput	ported	spec/input_parity_spec.cr,spec/live_browser_parity_spec.cr	input dispatch/error paths and live contenteditable/textarea fixture integration parity covered
-input_test.go::TestKeyActions	ported	spec/input_parity_spec.cr	key action press/type/release ordering and release no-op parity covered
-input_test.go::TestKeyType	ported	spec/input_parity_spec.cr,spec/live_browser_parity_spec.cr	key typing semantics and insert_text integration parity covered
-input_test.go::TestKeyTypeErr	ported	spec/input_parity_spec.cr	element.type focus failure, keyboard.type keyDown/keyUp failures, and key_actions press failure parity covered
-input_test.go::TestMouse	ported	spec/input_parity_spec.cr	mouse move/down/up/scroll dispatch and error propagation parity covered
-input_test.go::TestMouseClick	ported	spec/input_parity_spec.cr	mouse click dispatch and error propagation parity covered
-input_test.go::TestMouseDoubleClick	ported	spec/input_parity_spec.cr	mouse click_count=2 down/up semantics parity covered
-input_test.go::TestMouseDrag	ported	spec/input_parity_spec.cr,spec/live_browser_parity_spec.cr	move_linear interpolation and live drag fixture tracking parity covered
-input_test.go::TestMouseHoldMultiple	ported	spec/input_parity_spec.cr	multiple button pressed-state tracking parity covered
-input_test.go::TestMouseMoveErr	ported	spec/input_parity_spec.cr	move_linear error propagation parity covered
-input_test.go::TestMouseMoveLinear	ported	spec/input_parity_spec.cr	linear interpolation parity covered
-input_test.go::TestMouseScroll	ported	spec/input_parity_spec.cr	scroll step clamping and delta parity covered
-input_test.go::TestNativeDrag	ported	N/A	upstream test is skipped (t.Skip); native drag unsupported path documented
-input_test.go::TestTouch	ported	spec/input_parity_spec.cr	touch tap/start/move/cancel dispatch sequencing and error propagation parity covered
-lib/cdp/client_test.go::TestBasic	ported	spec/cdp_client_parity_spec.cr	real-browser websocket flow now validates create/attach/enable/error/cancel/isolated-world/getOuterHTML parity
-lib/cdp/client_test.go::TestCancelCallLeak	ported	spec/cdp_client_parity_spec.cr	ported 30-iteration canceled-call loop with Go-equivalent send/read timing; verifies no hang in canceled path
-lib/cdp/client_test.go::TestConcurrentCall	ported	spec/cdp_client_parity_spec.cr	concurrent call routing by request id
-lib/cdp/client_test.go::TestCrash	ported	spec/cdp_client_parity_spec.cr	real-browser crash lifecycle parity covered: in-flight awaitPromise eval interrupted and subsequent eval fails on closed transport
-lib/cdp/client_test.go::TestError	ported	spec/cdp_client_parity_spec.cr,spec/cdp_call_parity_spec.cr	error string, self-is semantics, and must_start_with_url empty-url panic parity
-lib/cdp/client_test.go::TestFormat	ported	spec/cdp_client_format_parity_spec.cr	request/response/event string formatting parity
-lib/cdp/client_test.go::TestMassBrowserClose	ported	N/A	upstream test is skipped (t.Skip); no Crystal execution target required
-lib/cdp/client_test.go::TestSlowSend	ported	spec/cdp_client_parity_spec.cr	slow-send path with delayed send and id-routed response parity
-lib/cdp/websocket_private_test.go::TestWebSocketErr	ported	spec/cdp_websocket_parity_spec.cr	invalid URL, TLS dialer init/error, bad-handshake, and malformed-frame read error parity now covered against Go websocket internals
-lib/cdp/websocket_test.go::TestDuplicatedConnectErr	ported	spec/cdp_websocket_parity_spec.cr	duplicated connect panic parity
-lib/cdp/websocket_test.go::TestWebSocketHeader	ported	spec/cdp_websocket_parity_spec.cr	header forwarding and bad-handshake parity
-lib/cdp/websocket_test.go::TestWebSocketLargePayload	ported	spec/cdp_websocket_parity_spec.cr	2MB payload roundtrip parity
-lib/defaults/defaults_test.go::TestBasic	ported	spec/defaults_parity_spec.cr	reset/parse behavior parity covered
-lib/defaults/defaults_test.go::TestParseFlag	ported	spec/defaults_parity_spec.cr	parse_flag behavior parity covered
-lib/devices/utils_test.go::TestErr	ported	spec/devices_spec.cr	device metrics/touch/user-agent parity covered
-lib/examples/e2e-testing/calculator_test.go::TestAdd	ported	spec/examples_e2e_calculator_parity_spec.cr	live browser e2e parity against https://go-rod.github.io/calculator/ with 1 + 2 = 3 sequence and display assertion
-lib/examples/e2e-testing/calculator_test.go::TestMultiple	ported	spec/examples_e2e_calculator_parity_spec.cr	live browser e2e parity against https://go-rod.github.io/calculator/ with looped 2 x 3 = 6 sequence and display assertion
-lib/input/keyboard_test.go::TestKeyEncode	ported	spec/input_keymap_spec.cr	key encode parity covered
-lib/input/keyboard_test.go::TestKeyMap	ported	spec/input_keymap_spec.cr	key map parity covered
-lib/input/keyboard_test.go::TestKeyModifier	ported	spec/input_keymap_spec.cr	key modifier parity covered
-lib/input/keyboard_test.go::TestMac	ported	spec/input_keymap_spec.cr	mac key command parity covered
-lib/input/mouse_test.go::TestMouseEncode	ported	spec/input_keymap_spec.cr	mouse button encode parity covered
-lib/launcher/launcher_test.go::TestAppMode	ported	spec/launcher_parity_spec.cr	app mode defaults covered
-lib/launcher/launcher_test.go::TestBrowserDownloadErr	ported	spec/launcher_parity_spec.cr	browser download error paths covered
-lib/launcher/launcher_test.go::TestBrowserValid	ported	spec/launcher_parity_spec.cr	fixture-binary validation parity covered (exit-err/headless-unsupported/shared-lib-missing) with Go fixture builds
-lib/launcher/launcher_test.go::TestDownload	ported	spec/launcher_parity_spec.cr	download and archive extraction parity covered
-lib/launcher/launcher_test.go::TestDownloadHosts	ported	spec/launcher_parity_spec.cr	download host URL builders covered
-lib/launcher/launcher_test.go::TestGetWebSocketDebuggerURLErr	ported	spec/launcher_parity_spec.cr	resolve_url malformed input error path covered
-lib/launcher/launcher_test.go::TestIgnoreCerts	ported	spec/launcher_parity_spec.cr	ignore-certificate-errors-spki-list fingerprint generation parity covered from PEM public keys
-lib/launcher/launcher_test.go::TestIgnoreCerts_InvalidCert	ported	spec/launcher_parity_spec.cr	invalid key input parity covered (raises invalid certificate key)
-lib/launcher/launcher_test.go::TestLaunch	ported	spec/launcher_parity_spec.cr	live launcher launch/ws-url resolution parity covered alongside existing resolve/new_managed/set error branches
-lib/launcher/launcher_test.go::TestLaunchErr	ported	spec/launcher_parity_spec.cr	missing-bin panic branches, client_header/set parser paths, and xvfb smoke launch branch are covered
-lib/launcher/launcher_test.go::TestLaunchMultiTimes	ported	spec/launcher_parity_spec.cr	already launched reuse error covered
-lib/launcher/launcher_test.go::TestLaunchUserMode	ported	spec/launcher_parity_spec.cr	user-mode defaults/arg formatting and live fixed-port launch URL parity covered
-lib/launcher/launcher_test.go::TestProfileDir	ported	spec/launcher_parity_spec.cr	profile preferences write path covered
-lib/launcher/launcher_test.go::TestUserModeErr	ported	spec/launcher_parity_spec.cr	direct parity spec now asserts user-mode launch errors for not-exists and echo bins
-lib/launcher/private_test.go::TestGetURLErr	ported	spec/launcher_parity_spec.cr	resolve_url malformed path covered
-lib/launcher/private_test.go::TestLaunchClient	ported	spec/launcher_parity_spec.cr	manager websocket header path now launches/proxies CDP and supports managed launcher client Browser.getVersion parity
-lib/launcher/private_test.go::TestLaunchErrs	ported	spec/launcher_parity_spec.cr	launch error parity covered for invalid binary execution and mirror download/extract failure paths
-lib/launcher/private_test.go::TestLaunchOptions	ported	spec/launcher_parity_spec.cr	go-style launch option formatting covered
-lib/launcher/private_test.go::TestManaged	ported	spec/launcher_parity_spec.cr	new_managed and must_new_managed behavior covered
-lib/launcher/private_test.go::TestTestOpen	ported	spec/launcher_parity_spec.cr	[::] normalization behavior covered
-lib/launcher/private_test.go::TestToHTTP	ported	spec/launcher_parity_spec.cr	to_http conversion covered
-lib/launcher/private_test.go::TestToWS	ported	spec/launcher_parity_spec.cr	to_ws conversion covered
-lib/launcher/private_test.go::TestURLParserErr	ported	spec/launcher_parity_spec.cr	url parser error message mapping covered
-lib/proto/a_utils_test.go::Test	ported	spec/cdp_type_parity_spec.cr	pattern_to_reg parity via Cdp.pattern_to_reg
-lib/utils/check-issue/main_test.go::TestBasic	ported	spec/check_issue_parity_spec.cr	check_issue parity utility added with version/markdown/go-code validation against upstream fixture bodies
-lib/utils/imageutil_test.go::TestNewImgProcessor	ported	spec/screenshot_spec.cr	png/default and jpeg processor round-trip parity now covered via crimage-backed PNG encode/decode
-lib/utils/imageutil_test.go::TestSplicePngVertical	ported	spec/screenshot_spec.cr	splice parity covers png/jpeg processors, crop boxes, empty/single input, invalid payloads, and output dimensions
-lib/utils/sleeper_test.go::TestBackoffSleeperWakeNow	ported	spec/utils_sleeper_spec.cr	wakes backoff sleeper immediately when max interval is zero
-lib/utils/sleeper_test.go::TestCountSleeperCancel	ported	spec/utils_sleeper_spec.cr	count sleeper cancel path covered
-lib/utils/sleeper_test.go::TestCountSleeperErr	ported	spec/utils_sleeper_spec.cr	max sleep count error path covered
-lib/utils/sleeper_test.go::TestEachSleepers	ported	spec/utils_sleeper_spec.cr	each_sleepers parity covered
-lib/utils/sleeper_test.go::TestRaceSleepers	ported	spec/utils_sleeper_spec.cr	race_sleepers parity covered
-lib/utils/sleeper_test.go::TestRetry	ported	spec/utils_sleeper_spec.cr	retry returns fn stop error parity covered
-lib/utils/sleeper_test.go::TestRetryCancel	ported	spec/utils_sleeper_spec.cr	retry cancel error parity covered
-lib/utils/utils_test.go::TestAbsolutePaths	ported	spec/utils_misc_parity_spec.cr	absolute_paths parity covered
-lib/utils/utils_test.go::TestAll	ported	spec/utils_io_parity_spec.cr	concurrent all helper parity covered
-lib/utils/utils_test.go::TestCropImage	ported	spec/screenshot_spec.cr	crop_image parity covered
-lib/utils/utils_test.go::TestEscapeGoString	ported	spec/utils_exec_parity_spec.cr	escape_go_string parity covered
-lib/utils/utils_test.go::TestExec	ported	spec/utils_exec_parity_spec.cr	exec returns captured output parity covered
-lib/utils/utils_test.go::TestExecErr	ported	spec/utils_exec_parity_spec.cr	exec error path parity covered
-lib/utils/utils_test.go::TestFileExists	ported	spec/utils_io_parity_spec.cr	file_exists parity covered
-lib/utils/utils_test.go::TestFormatCLIArgs	ported	spec/utils_exec_parity_spec.cr	format_cli_args parity covered
-lib/utils/utils_test.go::TestGenerateRandomString	ported	spec/utils_misc_parity_spec.cr	rand_string parity covered
-lib/utils/utils_test.go::TestIdleCounter	ported	spec/utils_sleeper_spec.cr	idle counter parity covered
-lib/utils/utils_test.go::TestMkdir	ported	spec/utils_io_parity_spec.cr	mkdir parity covered
-lib/utils/utils_test.go::TestMustToJSON	ported	spec/utils_io_parity_spec.cr,spec/utils_misc_parity_spec.cr	dump and must_to_json parity covered
-lib/utils/utils_test.go::TestNoop	ported	spec/utils_io_parity_spec.cr	noop parity covered
-lib/utils/utils_test.go::TestOutputBytes	ported	spec/utils_io_parity_spec.cr	output_file bytes parity covered
-lib/utils/utils_test.go::TestOutputJSONErr	ported	spec/utils_io_parity_spec.cr	output_file json serialization failure parity
-lib/utils/utils_test.go::TestOutputStream	ported	spec/utils_io_parity_spec.cr	output_file stream parity covered
-lib/utils/utils_test.go::TestOutputString	ported	spec/utils_io_parity_spec.cr	output_file string parity covered
-lib/utils/utils_test.go::TestPause	ported	spec/utils_io_parity_spec.cr	pause non-return behavior parity covered
-lib/utils/utils_test.go::TestSTemplate	ported	spec/utils_template_parity_spec.cr	template render parity covered
-lib/utils/utils_test.go::TestSleep	ported	spec/utils_io_parity_spec.cr	sleep helper parity covered
-lib/utils/utils_test.go::TestTestE	ported	spec/utils_misc_parity_spec.cr	error helper parity covered
-lib/utils/utils_test.go::TestTestLog	ported	spec/utils_misc_parity_spec.cr	log/logger_quiet/multi_logger parity
-lib/utils/utils_test.go::TestUseNode	ported	spec/utils_misc_parity_spec.cr,src/rod/lib/utils.cr	use_node path prepend behavior parity covered with deterministic resolver
-must_test.go::TestBrowserWithPanic	ported	spec/must_panic_parity_spec.cr	browser with_panic trigger propagation/count parity covered
-must_test.go::TestElementWithPanic	ported	spec/must_panic_parity_spec.cr	element-scoped with_panic trigger isolation parity covered
-must_test.go::TestPageWithPanic	ported	spec/must_panic_parity_spec.cr	page-scoped with_panic trigger behavior parity covered
-page_eval_test.go::TestConcurrentEval	ported	spec/page_eval_runtime_parity_spec.cr,spec/live_browser_parity_spec.cr	concurrent promise eval timing/order parity validated in real browser; stub coverage retained for deterministic runtime paths
-page_eval_test.go::TestEnsureJSHelperErr	ported	spec/page_eval_runtime_parity_spec.cr	js helper setup callFunctionOn failure propagation parity covered
-page_eval_test.go::TestEvalObjectReferenceChainIsTooLong	ported	spec/page_eval_runtime_parity_spec.cr,spec/live_browser_parity_spec.cr	live cyclic-object runtime behavior parity covered (chain-too-long error + deep reference access success)
-page_eval_test.go::TestEvalOptionsString	ported	spec/page_eval_options_parity_spec.cr	eval options string formatting parity covered
-page_eval_test.go::TestGetJSHelperRetry	ported	spec/page_eval_runtime_parity_spec.cr	transient ErrCtxNotFound during js helper setup retries and completes parity covered
-page_eval_test.go::TestObjectLeak	ported	spec/page_eval_runtime_parity_spec.cr,spec/live_browser_parity_spec.cr	live stale-object cross-reload evaluation panic behavior covered (matching Go panic-only assertion)
-page_eval_test.go::TestObjectRelease	ported	spec/page_eval_parity_spec.cr	remote object release parity covered
-page_eval_test.go::TestPageEval	ported	spec/page_eval_runtime_parity_spec.cr,spec/live_browser_parity_spec.cr	live page-eval parity covers arithmetic/function/object-reuse and both error branches
-page_eval_test.go::TestPageEvalOnNewDocument	ported	spec/page_eval_parity_spec.cr	eval_on_new_document add/remove and error parity covered
-page_eval_test.go::TestPageEvaluateRetry	ported	spec/page_eval_runtime_parity_spec.cr	eval retries ErrCtxNotFound until success
-page_eval_test.go::TestPageExpose	ported	spec/page_eval_parity_spec.cr	expose bind/cleanup error-path parity covered
-page_eval_test.go::TestPageIframeReload	ported	spec/page_iframe_reload_parity_spec.cr	iframe reload retains frame queryability and src contains click.html using upstream fixture parity (mandatory real-browser check via ROD_REAL_BROWSER=1)
-page_eval_test.go::TestPageObjCrossNavigation	ported	spec/page_eval_runtime_parity_spec.cr,spec/live_browser_parity_spec.cr	source now raises ObjectNotFoundError for stale this-object; live cross-navigation behavior parity covered
-page_eval_test.go::TestPageObjectErr	ported	spec/page_eval_parity_spec.cr	object_to_json invalid object id and element_from_node resolve-node error branches parity covered
-page_eval_test.go::TestPageSlowRender	ported	spec/page_slow_render_parity_spec.cr,spec/live_browser_parity_spec.cr	live fixture parity added (slow-render.html div text == ok), with existing deterministic retry coverage retained
-page_eval_test.go::TestPageUpdateJSCtxIDErr	ported	spec/page_eval_runtime_parity_spec.cr	ctx-not-found retry followed by js-context refresh Runtime.evaluate failure propagation parity covered
-page_eval_test.go::TestPromiseLeak	ported	spec/page_eval_runtime_parity_spec.cr,spec/live_browser_parity_spec.cr	live interrupted-async-eval context-destroyed error parity covered with concurrent navigate race
-page_test.go::TestAlert	ported	spec/page_wait_parity_spec.cr	handle_dialog flow parity covered
-page_test.go::TestDisableDomain	ported	spec/page_settings_parity_spec.cr	page load_state/enable_domain/disable_domain parity covered
-page_test.go::TestEmulateDevice	ported	spec/page_settings_parity_spec.cr,spec/live_browser_parity_spec.cr	emulate metrics/touch/user-agent call params plus live window.innerWidth/innerHeight runtime assertions parity covered
-page_test.go::TestFonts	ported	spec/live_browser_parity_spec.cr	container-gated live parity added: fonts fixture loads and PDF generation executes only when running in container (matching upstream gate)
-page_test.go::TestGetPageBrowser	ported	spec/page_settings_parity_spec.cr	owning browser reference parity covered
-page_test.go::TestGetPageURL	ported	spec/page_settings_parity_spec.cr	navigate + wait_load + info.url retrieval parity covered
-page_test.go::TestLoadState	ported	spec/page_settings_parity_spec.cr	page load_state delegation parity covered
-page_test.go::TestMustWaitElementsMoreThan	ported	spec/page_wait_parity_spec.cr	wait_elements_more_than parity covered
-page_test.go::TestPageActionAfterClose	ported	spec/live_browser_parity_spec.cr	verified both post-close element query cancellation and long-running eval cancellation via close
-page_test.go::TestPageActivate	ported	spec/page_settings_parity_spec.cr	activate target call parity covered
-page_test.go::TestPageAddScriptTag	ported	spec/page_settings_parity_spec.cr	add_script_tag helper wiring plus stable idempotency key semantics and dedupe guard behavior parity covered
-page_test.go::TestPageAddStyleTag	ported	spec/page_settings_parity_spec.cr	add_style_tag helper wiring plus stable idempotency key semantics and dedupe guard behavior parity covered
-page_test.go::TestPageCaptureDOMSnapshot	ported	spec/page_settings_parity_spec.cr	capture_domsnapshot call path plus CDP error and timeout-context propagation parity covered
-page_test.go::TestPageCloseCancel	ported	spec/page_settings_parity_spec.cr	close canceled dialog parity covered
-page_test.go::TestPageCloseErr	ported	spec/page_settings_parity_spec.cr	page.close error propagation (including generic close failure) and close-not-attached retry behavior parity covered
-page_test.go::TestPageCloseWhenNotAttached	ported	spec/page_settings_parity_spec.cr	close retries not-attached-active-page parity covered
-page_test.go::TestPageConsoleLog	ported	spec/page_console_parity_spec.cr,spec/live_browser_parity_spec.cr	console argument object/json conversion and live Runtime.consoleAPICalled wait-event integration parity covered
-page_test.go::TestPageContext	ported	spec/page_settings_parity_spec.cr	timeout/cancel_timeout and with_cancel context chaining covered
-page_test.go::TestPageElementFromObjectErr	ported	spec/page_settings_parity_spec.cr	element_from_object js-context resolution failure propagation parity covered
-page_test.go::TestPageEvent	ported	spec/page_settings_parity_spec.cr	page.event session filtering plus detach/destroy/context-cancel close behavior parity covered
-page_test.go::TestPageEventSession	ported	spec/page_eachevent_macro_parity_spec.cr	page-scoped session filtering in eachevent parity covered
-page_test.go::TestPageHTML	ported	spec/page_misc_parity_spec.cr	html retrieval and error propagation parity covered
-page_test.go::TestPageHandleFileDialog	ported	spec/page_wait_parity_spec.cr	file chooser intercept/set-files and intercept enable/disable error paths now covered
-page_test.go::TestPageNavigateBlank	ported	spec/page_settings_parity_spec.cr	navigate empty string mapped to about:blank
-page_test.go::TestPageNavigateErr	ported	spec/page_navigation_error_parity_spec.cr,spec/live_browser_parity_spec.cr	errorText and live HTTP 404/500 document-response navigation failures map to NavigationError parity
-page_test.go::TestPageNavigateNetworkErr	ported	spec/page_navigation_error_parity_spec.cr	network navigation error type/message and same-page recovery navigate parity covered (stub + mandatory real-browser check via ROD_REAL_BROWSER=1)
-page_test.go::TestPageNavigation	ported	spec/page_wait_parity_spec.cr,spec/live_browser_parity_spec.cr	wait_navigation wiring and live history back/forward traversal parity covered
-page_test.go::TestPagePDF	ported	spec/screenshot_spec.cr	pdf stream path, printToPDF error propagation, and must_pdf explicit+empty-path file-output behavior parity covered
-page_test.go::TestPagePool	ported	spec/pool_spec.cr	new_page_pool get/put/must_get/cleanup page-specific integration parity covered
-page_test.go::TestPageResetNavigationHistory	ported	spec/page_settings_parity_spec.cr	reset_navigation_history call parity covered
-page_test.go::TestPageScreenshot	ported	spec/screenshot_spec.cr	screenshot call path, capture error propagation, explicit+empty-path file output, and screenshot-byte dimension assertions parity covered
-page_test.go::TestPageStopEventAfterDetach	ported	spec/page_event_lifecycle_parity_spec.cr	page event stream closes on matching Target.detachedFromTarget / Target.targetDestroyed parity covered
-page_test.go::TestPageTriggerFavicon	ported	spec/page_settings_parity_spec.cr,spec/live_browser_parity_spec.cr	headless guard via command-line parity, runtime call error propagation, and live favicon network request event behavior covered
-page_test.go::TestPageUseNonExistSession	ported	spec/page_misc_parity_spec.cr	page_from_session missing-session error propagation covered
-page_test.go::TestPageWait	ported	spec/page_wait_parity_spec.cr	wait retry and evaluate error parity covered
-page_test.go::TestPageWaitDOMStable	ported	spec/wait_conditions_spec.cr	wait_dom_stable convergence, timeout-context cancellation, and capture-snapshot error propagation parity covered
-page_test.go::TestPageWaitEvent	ported	spec/page_wait_event_parity_spec.cr	wait_event session forwarding parity covered
-page_test.go::TestPageWaitEventParseEventOnlyOnce	ported	spec/page_wait_event_parity_spec.cr	two wait_event listeners complete on one event emission with page-session filtering parity
-page_test.go::TestPageWaitIdle	ported	spec/page_settings_parity_spec.cr	wait_idle helper promise parity covered
-page_test.go::TestPageWaitLoadErr	ported	spec/page_misc_parity_spec.cr	wait_load runtime error propagation parity covered
-page_test.go::TestPageWaitNavigation	ported	spec/page_wait_parity_spec.cr	wait_navigation lifecycle wiring parity covered
-page_test.go::TestPageWaitOpen	ported	spec/page_wait_parity_spec.cr	wait_open opener-target parity covered
-page_test.go::TestPageWaitRequestIdle	ported	spec/page_wait_parity_spec.cr,spec/live_browser_parity_spec.cr	wait_request_idle wiring plus live timing/list semantics, include/exclude behavior, and single-use wait panic parity covered
-page_test.go::TestPageWaitStable	ported	spec/wait_conditions_spec.cr	wait_stable composition and wait_load/wait_dom_stable error propagation parity covered
-page_test.go::TestScreenshotFullPage	ported	spec/live_browser_parity_spec.cr	verified full-page screenshot dimensions match document scroll size and viewport restoration
-page_test.go::TestScreenshotFullPageInit	ported	spec/live_browser_parity_spec.cr	verified full-page screenshot succeeds with cleared viewport (set_viewport nil)
-page_test.go::TestScrollScreenshot	ported	spec/screenshot_spec.cr,spec/live_browser_parity_spec.cr	scroll_screenshot stitched-output behavior parity covered with live dimension/viewport assertions and repeated/no-emulation runs
-page_test.go::TestScrollScreenshotErrors	ported	spec/screenshot_spec.cr	layout metrics missing-css branches, scroll dispatch failure, capture failure, wait-dom-stable failure, and unsupported format parity covered
-page_test.go::TestSetBlockedURLs	ported	spec/page_settings_parity_spec.cr	set_blocked_urls parity covered
-page_test.go::TestSetCookies	ported	spec/page_settings_parity_spec.cr	set_cookies set/clear and default-url cookies path covered
-page_test.go::TestSetDocumentContent	ported	spec/page_settings_parity_spec.cr	set_document_content call parity covered
-page_test.go::TestSetExtraHeaders	ported	spec/page_settings_parity_spec.cr	set_extra_headers enable/cleanup parity covered
-page_test.go::TestSetUserAgent	ported	spec/page_settings_parity_spec.cr	set_user_agent default parity covered
-page_test.go::TestSetViewport	ported	spec/page_settings_parity_spec.cr,spec/live_browser_parity_spec.cr	set_viewport clear/set call paths and live viewport size assertions parity covered
-page_test.go::TestWindow	ported	spec/page_settings_parity_spec.cr	get_window/set_window, window state transitions (max/normal/fullscreen/min/normal), resize, and error propagation parity covered
-query_test.go::TestElementFromElement	ported	spec/element_spec.cr	element child query parity covered
-query_test.go::TestElementFromElementX	ported	spec/element_spec.cr	element xpath child query parity covered
-query_test.go::TestElementHas	ported	spec/query_has_parity_spec.cr	element has/has_x/has_r parity covered
-query_test.go::TestElementParent	ported	spec/element_spec.cr	element.parent parity covered
-query_test.go::TestElementParents	ported	spec/element_spec.cr	element.parents selector/no-selector parity covered
-query_test.go::TestElementR	ported	spec/element_spec.cr	element_r regex query parity covered
-query_test.go::TestElementSiblings	ported	spec/element_spec.cr	element.previous/element.next sibling traversal parity covered
-query_test.go::TestElementTracing	ported	spec/dev_helpers_parity_spec.cr,spec/live_browser_parity_spec.cr	element try_trace overlay/log behavior and live traced MustElement chain text parity covered
-query_test.go::TestElementsFromElement	ported	spec/element_spec.cr	elements from element parity covered
-query_test.go::TestElementsFromElementsX	ported	spec/element_spec.cr	element.elements_x XPath descendant query parity covered
-query_test.go::TestElementsOthers	ported	spec/element_spec.cr	elements first/last empty and non-empty list behavior parity covered
-query_test.go::TestPageElementByJS	ported	spec/page_search_parity_spec.cr,spec/live_browser_parity_spec.cr	page element_by_js success and ExpectElementError live parity covered
-query_test.go::TestPageElementMaxRetry	ported	spec/page_element_timeout_parity_spec.cr	count_sleeper-constrained element polling now surfaces MaxSleepCountError parity
-query_test.go::TestPageElementTimeout	ported	spec/page_element_timeout_parity_spec.cr	timeout polling now surfaces Go-style deadline exceeded timeout error parity
-query_test.go::TestPageElementX	ported	spec/page_query_api_parity_spec.cr	page.element_x eval helper wiring parity covered
-query_test.go::TestPageElements	ported	spec/page_elements_query_parity_spec.cr	page.elements querySelectorAll node-id mapping and zero-node filtering parity covered
-query_test.go::TestPageElementsByJS	ported	spec/page_elements_query_parity_spec.cr	elements_by_js success and non-array/non-node/getProperties-error paths parity covered
-query_test.go::TestPageElementsX	ported	spec/page_query_api_parity_spec.cr	page.elements_x eval helper wiring parity covered
-query_test.go::TestPageHas	ported	spec/query_has_parity_spec.cr	page has/has_x/has_r parity covered
-query_test.go::TestPageRace	ported	spec/query_race_parity_spec.cr	race context branch selection and errors parity covered
-query_test.go::TestPageRaceRetryInHandle	ported	spec/live_browser_parity_spec.cr	verified race handle callback retry/wait behavior against live selector fixture mutation
-query_test.go::TestPageRaceSearchCrossIframe	ported	spec/query_race_parity_spec.cr,spec/live_browser_parity_spec.cr	search branch parity covered including live cross-iframe race scenario
-query_test.go::TestPagesOthers	ported	spec/pages_parity_spec.cr	pages.first/pages.last empty/non-empty collection behavior parity covered
-query_test.go::TestPagesQuery	ported	spec/pages_parity_spec.cr,spec/live_browser_parity_spec.cr	pages find/find_by_url semantics and live browser query parity covered
-query_test.go::TestSearch	ported	spec/page_search_parity_spec.cr	search retry semantics, not-found sleeper behavior, node-id-zero refresh retry, and perform/get/node-resolution error propagation parity covered
-query_test.go::TestSearchElements	ported	spec/query_search_result_parity_spec.cr	search result get/all/release and node-resolution error-path parity covered
-query_test.go::TestSearchIframes	ported	spec/live_browser_parity_spec.cr	verified with real browser nested-iframe click/match behavior
-query_test.go::TestSearchIframesAfterReload	ported	spec/live_browser_parity_spec.cr	verified with real browser nested-iframe reload then click/match behavior
-rod_test.go::TestRod	ported	spec/rod_spec.cr	basic rod template parity smoke test
-setup_test.go::TestLintIgnore	ported	N/A	upstream Go test is skipped (t.Skip); no Crystal execution target required
-setup_test.go::TestMain	ported	spec/spec_helper.cr	upstream TestMain bootstrap parity is mapped to Crystal spec_helper bootstrap and global test setup
+# source_test_id	status	crystal_refs	notes
+browser_test.go::test::TestBinarySize	ported	spec/binary_size_parity_spec.cr	added Crystal translator example and native release build-size gate (<=11MB) with upstream container skip semantics
+browser_test.go::test::TestBlockingNavigation	ported	spec/live_browser_parity_spec.cr	verified blocked /a navigation does not deadlock opening separate /b page in same browser
+browser_test.go::test::TestBrowserCall	ported	spec/browser_pages_parity_spec.cr	getVersion typed call parity covered
+browser_test.go::test::TestBrowserClearStates	ported	spec/browser_clear_states_parity_spec.cr	clear geolocation override CDP call succeeds without preloaded state parity covered
+browser_test.go::test::TestBrowserConnectConflict	ported	spec/browser_parity_spec.cr	connect conflict validation parity covered
+browser_test.go::test::TestBrowserConnectErr	ported	spec/browser_parity_spec.cr	must_connect invalid control_url error propagation parity covered
+browser_test.go::test::TestBrowserConnectFailure	ported	spec/browser_parity_spec.cr	connect returns error when context is canceled parity covered
+browser_test.go::test::TestBrowserCookies	ported	spec/browser_parity_spec.cr	set/clear cookie API parity covered
+browser_test.go::test::TestBrowserCrash	ported	spec/cdp_client_parity_spec.cr,spec/live_browser_parity_spec.cr	connection-drop/EOF propagation plus live Browser.crash interruption of in-flight and subsequent page eval parity covered
+browser_test.go::test::TestBrowserEvent	ported	spec/browser_each_event_parity_spec.cr	browser each_event/session filtering parity covered
+browser_test.go::test::TestBrowserLostConnection	ported	spec/cdp_client_parity_spec.cr,spec/page_event_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	connection/read-close propagation, event shutdown, and live launcher-kill blocked eval interruption parity covered
+browser_test.go::test::TestBrowserOthers	ported	spec/browser_parity_spec.cr	timeout/cancel_timeout chaining before must_get_cookies parity covered
+browser_test.go::test::TestBrowserPages	ported	spec/browser_pages_parity_spec.cr	pages target filtering parity covered
+browser_test.go::test::TestBrowserPool	ported	spec/pool_spec.cr	browser pool get/put/must_get/cleanup flow parity covered
+browser_test.go::test::TestBrowserResetControlURL	ported	spec/browser_context_clone_spec.cr	control_url reset chaining parity covered
+browser_test.go::test::TestBrowserWaitEvent	ported	spec/browser_parity_spec.cr	wait_event consumption parity covered
+browser_test.go::test::TestDefaultDevice	ported	spec/browser_page_creation_parity_spec.cr	default_device and no_default_device new-page emulation parity covered
+browser_test.go::test::TestIncognito	ported	spec/browser_incognito_parity_spec.cr	incognito context create/close parity covered
+browser_test.go::test::TestOldBrowser	ported	N/A	upstream Go test is skipped (t.Skip) for legacy revision pin; no active Crystal execution parity target
+browser_test.go::test::TestPageErr	ported	spec/browser_page_creation_parity_spec.cr	must_page page_from_target error propagation and created-target cleanup parity covered
+browser_test.go::test::TestPageFromTarget	ported	spec/browser_page_creation_parity_spec.cr	page_from_target behavior parity covered
+browser_test.go::test::TestResolveBlocking	ported	spec/live_browser_parity_spec.cr	verified stop_loading interrupts blocked navigation in live server scenario
+browser_test.go::test::TestStreamReader	ported	spec/screenshot_spec.cr	stream reader normal read, IO.read error propagation, and invalid base64 decode error parity covered
+browser_test.go::test::TestTestTry	ported	spec/try_parity_spec.cr	try helper behavior parity covered
+browser_test.go::test::TestWaitDownload	ported	spec/browser_wait_download_parity_spec.cr	wait_download completion parity covered
+browser_test.go::test::TestWaitDownloadCancel	ported	spec/browser_wait_download_parity_spec.cr	wait_download canceled-context parity covered
+browser_test.go::test::TestWaitDownloadDataURI	ported	spec/browser_wait_download_parity_spec.cr	wait_download data-uri initiated event flow parity covered
+browser_test.go::test::TestWaitDownloadFromNewPage	ported	spec/browser_wait_download_parity_spec.cr	wait_download completion matching across originating frame/page parity covered
+dev_helpers_test.go::test::TestExposeHelpers	ported	spec/dev_helpers_parity_spec.cr	expose_helpers injects window.rod helpers with js.ElementR dependency parity covered
+dev_helpers_test.go::test::TestMonitor	ported	spec/dev_helpers_parity_spec.cr,spec/live_browser_parity_spec.cr	serve_monitor api/pages/api-page/screenshot plus live monitor page navigation, title, and screenshot endpoint parity covered
+dev_helpers_test.go::test::TestMonitorErr	ported	spec/dev_helpers_parity_spec.cr,spec/live_browser_parity_spec.cr	invalid monitor host format parity covered for both direct and launched control-url must_connect flows
+dev_helpers_test.go::test::TestTrace	ported	spec/dev_helpers_parity_spec.cr,spec/live_browser_parity_spec.cr	trace type label plus live logger callback capture for wait-load and input-click tracing parity covered
+dev_helpers_test.go::test::TestTraceLogs	ported	spec/dev_helpers_parity_spec.cr,spec/live_browser_parity_spec.cr	trace + logger_quiet live click flow and overlay runtime-error no-panic parity covered
+element_test.go::test::TestAttribute	ported	spec/element_spec.cr	attribute getter nil/value parity covered
+element_test.go::test::TestBackgroundImage	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	background-image URL extraction, error paths, and live fixture byte-size parity covered
+element_test.go::test::TestBlur	ported	spec/element_spec.cr	blur js dispatch parity covered
+element_test.go::test::TestCanvasToImage	ported	spec/live_browser_parity_spec.cr	verified canvas_to_image PNG bytes by browser round-trip decode and red pixel check at (50,50)
+element_test.go::test::TestCheckbox	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	checkbox click checked-state integration and click flow parity covered
+element_test.go::test::TestClick	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	click flow parity covered with live fixture side-effects and error-path coverage
+element_test.go::test::TestClickWrapped	ported	spec/live_browser_parity_spec.cr	verified wrapped-element two-quad shape and real click side-effects
+element_test.go::test::TestContains	ported	spec/element_spec.cr	contains_element parity covered
+element_test.go::test::TestDisabled	ported	spec/element_spec.cr	disabled? property parity covered
+element_test.go::test::TestElementCancelContext	ported	spec/element_spec.cr	element with_cancel and cancel_timeout context parity covered
+element_test.go::test::TestElementContext	ported	spec/element_spec.cr	element timeout/cancel_timeout context chaining parity covered
+element_test.go::test::TestElementEWithDepth	ported	spec/live_browser_parity_spec.cr	verified describe(-1,true) subtree serialization includes nested text content
+element_test.go::test::TestElementEqual	ported	spec/element_spec.cr	element.equal parity covered
+element_test.go::test::TestElementErrors	ported	spec/element_spec.cr	canceled-context error matrix for describe/frame/focus/key_actions/input/select/wait_stable/eval/resource/background_image/html/visible/canvas/release parity covered
+element_test.go::test::TestElementFromNodeErr	ported	spec/page_eval_parity_spec.cr	element_from_node runtime-callFunctionOn error propagation parity covered
+element_test.go::test::TestElementFromPointErr	ported	spec/page_settings_parity_spec.cr	element_from_point backend-node resolution and DOM.getNodeForLocation error propagation parity covered
+element_test.go::test::TestElementGetXPath	ported	spec/element_spec.cr	get_xpath optimized/non-optimized return and runtime error propagation parity covered
+element_test.go::test::TestElementInputDate	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	input_time formatter path and live date input integration parity covered
+element_test.go::test::TestElementMoveMouseOut	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	move_mouse_out bounding-box/no-shape error paths and live mouseout event parity covered
+element_test.go::test::TestElementMultipleTimes	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	repeated element lookups with distinct remote object ids parity covered
+element_test.go::test::TestElementOthers	ported	spec/live_browser_parity_spec.cr	verified focus/scroll/query/html/wait and element-by-js/elements-by-js helper paths
+element_test.go::test::TestElementRemove	ported	spec/element_lifecycle_parity_spec.cr	remove then release lifecycle parity covered
+element_test.go::test::TestElementScreenshot	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	live-browser screenshot dimensions/file-output parity covered; source-level error propagation branches for scroll/capture/shape now covered
+element_test.go::test::TestElementWait	ported	spec/element_spec.cr	element.wait this-binding parity covered
+element_test.go::test::TestElementWaitLoad	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	wait_load helper wiring and live fixture load-event integration parity covered
+element_test.go::test::TestEnter	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	element.type focus-before-keyboard delegation and live submit-event integration parity covered
+element_test.go::test::TestFnErr	ported	spec/live_browser_parity_spec.cr	verified live ReferenceError propagation as EvalError for eval and element_by_js paths
+element_test.go::test::TestGetElementPage	ported	spec/element_spec.cr	owning page reference parity covered
+element_test.go::test::TestHover	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	hover wait_interactable-to-mouse.move delegation, live hover side-effects, and error-path parity covered
+element_test.go::test::TestIframeCrossDomains	ported	spec/live_browser_parity_spec.cr	verified cross-host sandbox iframe traversal using localhost/127.0.0.1 live servers
+element_test.go::test::TestIframes	ported	spec/live_browser_parity_spec.cr	verified nested iframe click plus parent-frame isolation function behavior
+element_test.go::test::TestInputColor	ported	spec/element_spec.cr	input_color formatter/event parity covered
+element_test.go::test::TestInputTime	ported	spec/element_spec.cr	input_time formatter parity covered
+element_test.go::test::TestInteractable	ported	spec/element_spec.cr	interactable point calculation, pointer-events guard, and no-shape behavior parity covered
+element_test.go::test::TestInteractableWithNoShape	ported	spec/element_spec.cr	interactable raises InvisibleShapeError when quad interior point is unavailable parity covered
+element_test.go::test::TestMatches	ported	spec/element_spec.cr	matches selector parity covered
+element_test.go::test::TestNotInteractable	ported	spec/live_browser_parity_spec.cr	verified covered-element interactable error and recovery after overlay removal
+element_test.go::test::TestNotInteractableWithNoPointerEvents	ported	spec/element_spec.cr	interactable raises NoPointerEventsError when pointer-events is none parity covered
+element_test.go::test::TestProperty	ported	spec/element_spec.cr	property getter parity covered
+element_test.go::test::TestResource	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	resource helper JS path, delegated get_resource/evaluate error propagation, and live fixture byte-size parity covered
+element_test.go::test::TestSelectOptions	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	select helper invocation/not-found/eval-error paths and live selected-option text/index transitions parity covered
+element_test.go::test::TestSelectQuery	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	select(css-selector) helper argument wiring and live selectedIndex assertion parity covered
+element_test.go::test::TestSelectText	ported	spec/element_spec.cr	select_text regex/range parity covered
+element_test.go::test::TestSetFiles	ported	spec/element_spec.cr	set_files absolute path CDP call parity covered
+element_test.go::test::TestShadowDOM	ported	spec/live_browser_parity_spec.cr	verified shadow-root traversal and no-shadow error path in real DOM fixture
+element_test.go::test::TestShapeInIframe	ported	spec/live_browser_parity_spec.cr	verified iframe shape one-point-inside coordinate parity against upstream deltas
+element_test.go::test::TestTap	ported	spec/live_browser_parity_spec.cr	verified iPad emulation + touch fixture tap side-effect (tapped=true) in real browser
+element_test.go::test::TestUseReleasedElement	ported	spec/live_browser_parity_spec.cr	verified click fails after element release and manual runtime release in real browser
+element_test.go::test::TestWaitEnabled	ported	spec/element_spec.cr	wait_enabled polling parity covered
+element_test.go::test::TestWaitInteractable	ported	spec/element_spec.cr	wait_interactable retries interactability errors until success parity covered
+element_test.go::test::TestWaitInvisible	ported	spec/element_spec.cr	wait_invisible polling parity covered
+element_test.go::test::TestWaitStable	ported	spec/live_browser_parity_spec.cr	verified wait_stable blocks until fixture animation class removal
+element_test.go::test::TestWaitStableRAP	ported	spec/live_browser_parity_spec.cr	verified wait_stable_raf blocks until fixture animation class removal
+element_test.go::test::TestWaitWritable	ported	spec/element_spec.cr	wait_writable readonly predicate parity covered
+hijack_test.go::test::TestHandleAuth	ported	spec/browser_handle_auth_parity_spec.cr	browser handle_auth fetch-auth flow and failure cleanup parity covered
+hijack_test.go::test::TestHijack	ported	spec/live_browser_parity_spec.cr	real-browser backend+hijack parity covers request mutation, load_response, response status/header/body override, and page assertions
+hijack_test.go::test::TestHijackContinue	ported	spec/hijack_parity_spec.cr	continue_request semantics covered
+hijack_test.go::test::TestHijackFailRequest	ported	spec/hijack_parity_spec.cr	fail reason override semantics covered
+hijack_test.go::test::TestHijackLoadResponseErr	ported	spec/hijack_parity_spec.cr	hijack.load_response upstream client error propagation parity covered
+hijack_test.go::test::TestHijackMockWholeResponse	ported	spec/live_browser_parity_spec.cr	real-browser hijack router intercepts document request and fulfills with mocked html body/header parity
+hijack_test.go::test::TestHijackMockWholeResponseEmptyBody	ported	spec/hijack_parity_spec.cr	explicit empty-body fulfill payload semantics parity covered (body present as empty string)
+hijack_test.go::test::TestHijackMockWholeResponseNoBody	ported	spec/hijack_parity_spec.cr	no-body fulfill payload default semantics parity covered (payload body nil, helper body empty)
+hijack_test.go::test::TestHijackOnErrorLog	ported	spec/hijack_parity_spec.cr	hijack continue_request CDP failure is surfaced via ctx.on_error parity covered
+hijack_test.go::test::TestHijackResponseErr	ported	spec/hijack_parity_spec.cr	hijack fulfill_request CDP failure is surfaced via ctx.on_error parity covered
+hijack_test.go::test::TestHijackSkip	ported	spec/hijack_parity_spec.cr	hijack skip flag semantics covered
+input_test.go::test::TestInput	ported	spec/input_parity_spec.cr,spec/live_browser_parity_spec.cr	input dispatch/error paths and live contenteditable/textarea fixture integration parity covered
+input_test.go::test::TestKeyActions	ported	spec/input_parity_spec.cr	key action press/type/release ordering and release no-op parity covered
+input_test.go::test::TestKeyType	ported	spec/input_parity_spec.cr,spec/live_browser_parity_spec.cr	key typing semantics and insert_text integration parity covered
+input_test.go::test::TestKeyTypeErr	ported	spec/input_parity_spec.cr	element.type focus failure, keyboard.type keyDown/keyUp failures, and key_actions press failure parity covered
+input_test.go::test::TestMouse	ported	spec/input_parity_spec.cr	mouse move/down/up/scroll dispatch and error propagation parity covered
+input_test.go::test::TestMouseClick	ported	spec/input_parity_spec.cr	mouse click dispatch and error propagation parity covered
+input_test.go::test::TestMouseDoubleClick	ported	spec/input_parity_spec.cr	mouse click_count=2 down/up semantics parity covered
+input_test.go::test::TestMouseDrag	ported	spec/input_parity_spec.cr,spec/live_browser_parity_spec.cr	move_linear interpolation and live drag fixture tracking parity covered
+input_test.go::test::TestMouseHoldMultiple	ported	spec/input_parity_spec.cr	multiple button pressed-state tracking parity covered
+input_test.go::test::TestMouseMoveErr	ported	spec/input_parity_spec.cr	move_linear error propagation parity covered
+input_test.go::test::TestMouseMoveLinear	ported	spec/input_parity_spec.cr	linear interpolation parity covered
+input_test.go::test::TestMouseScroll	ported	spec/input_parity_spec.cr	scroll step clamping and delta parity covered
+input_test.go::test::TestNativeDrag	ported	N/A	upstream test is skipped (t.Skip); native drag unsupported path documented
+input_test.go::test::TestTouch	ported	spec/input_parity_spec.cr	touch tap/start/move/cancel dispatch sequencing and error propagation parity covered
+lib/cdp/client_test.go::test::TestBasic	ported	spec/cdp_client_parity_spec.cr	real-browser websocket flow now validates create/attach/enable/error/cancel/isolated-world/getOuterHTML parity
+lib/cdp/client_test.go::test::TestCancelCallLeak	ported	spec/cdp_client_parity_spec.cr	ported 30-iteration canceled-call loop with Go-equivalent send/read timing; verifies no hang in canceled path
+lib/cdp/client_test.go::test::TestConcurrentCall	ported	spec/cdp_client_parity_spec.cr	concurrent call routing by request id
+lib/cdp/client_test.go::test::TestCrash	ported	spec/cdp_client_parity_spec.cr	real-browser crash lifecycle parity covered: in-flight awaitPromise eval interrupted and subsequent eval fails on closed transport
+lib/cdp/client_test.go::test::TestError	ported	spec/cdp_client_parity_spec.cr,spec/cdp_call_parity_spec.cr	error string, self-is semantics, and must_start_with_url empty-url panic parity
+lib/cdp/client_test.go::test::TestFormat	ported	spec/cdp_client_format_parity_spec.cr	request/response/event string formatting parity
+lib/cdp/client_test.go::test::TestMassBrowserClose	ported	N/A	upstream test is skipped (t.Skip); no Crystal execution target required
+lib/cdp/client_test.go::test::TestSlowSend	ported	spec/cdp_client_parity_spec.cr	slow-send path with delayed send and id-routed response parity
+lib/cdp/websocket_private_test.go::test::TestWebSocketErr	ported	spec/cdp_websocket_parity_spec.cr	invalid URL, TLS dialer init/error, bad-handshake, and malformed-frame read error parity now covered against Go websocket internals
+lib/cdp/websocket_test.go::test::TestDuplicatedConnectErr	ported	spec/cdp_websocket_parity_spec.cr	duplicated connect panic parity
+lib/cdp/websocket_test.go::test::TestWebSocketHeader	ported	spec/cdp_websocket_parity_spec.cr	header forwarding and bad-handshake parity
+lib/cdp/websocket_test.go::test::TestWebSocketLargePayload	ported	spec/cdp_websocket_parity_spec.cr	2MB payload roundtrip parity
+lib/defaults/defaults_test.go::test::TestBasic	ported	spec/defaults_parity_spec.cr	reset/parse behavior parity covered
+lib/defaults/defaults_test.go::test::TestParseFlag	ported	spec/defaults_parity_spec.cr	parse_flag behavior parity covered
+lib/devices/utils_test.go::test::TestErr	ported	spec/devices_spec.cr	device metrics/touch/user-agent parity covered
+lib/examples/e2e-testing/calculator_test.go::test::TestAdd	ported	spec/examples_e2e_calculator_parity_spec.cr	live browser e2e parity against https://go-rod.github.io/calculator/ with 1 + 2 = 3 sequence and display assertion
+lib/examples/e2e-testing/calculator_test.go::test::TestMultiple	ported	spec/examples_e2e_calculator_parity_spec.cr	live browser e2e parity against https://go-rod.github.io/calculator/ with looped 2 x 3 = 6 sequence and display assertion
+lib/input/keyboard_test.go::test::TestKeyEncode	ported	spec/input_keymap_spec.cr	key encode parity covered
+lib/input/keyboard_test.go::test::TestKeyMap	ported	spec/input_keymap_spec.cr	key map parity covered
+lib/input/keyboard_test.go::test::TestKeyModifier	ported	spec/input_keymap_spec.cr	key modifier parity covered
+lib/input/keyboard_test.go::test::TestMac	ported	spec/input_keymap_spec.cr	mac key command parity covered
+lib/input/mouse_test.go::test::TestMouseEncode	ported	spec/input_keymap_spec.cr	mouse button encode parity covered
+lib/launcher/launcher_test.go::test::TestAppMode	ported	spec/launcher_parity_spec.cr	app mode defaults covered
+lib/launcher/launcher_test.go::test::TestBrowserDownloadErr	ported	spec/launcher_parity_spec.cr	browser download error paths covered
+lib/launcher/launcher_test.go::test::TestBrowserValid	ported	spec/launcher_parity_spec.cr	fixture-binary validation parity covered (exit-err/headless-unsupported/shared-lib-missing) with Go fixture builds
+lib/launcher/launcher_test.go::test::TestDownload	ported	spec/launcher_parity_spec.cr	download and archive extraction parity covered
+lib/launcher/launcher_test.go::test::TestDownloadHosts	ported	spec/launcher_parity_spec.cr	download host URL builders covered
+lib/launcher/launcher_test.go::test::TestGetWebSocketDebuggerURLErr	ported	spec/launcher_parity_spec.cr	resolve_url malformed input error path covered
+lib/launcher/launcher_test.go::test::TestIgnoreCerts	ported	spec/launcher_parity_spec.cr	ignore-certificate-errors-spki-list fingerprint generation parity covered from PEM public keys
+lib/launcher/launcher_test.go::test::TestIgnoreCerts_InvalidCert	ported	spec/launcher_parity_spec.cr	invalid key input parity covered (raises invalid certificate key)
+lib/launcher/launcher_test.go::test::TestLaunch	ported	spec/launcher_parity_spec.cr	live launcher launch/ws-url resolution parity covered alongside existing resolve/new_managed/set error branches
+lib/launcher/launcher_test.go::test::TestLaunchErr	ported	spec/launcher_parity_spec.cr	missing-bin panic branches, client_header/set parser paths, and xvfb smoke launch branch are covered
+lib/launcher/launcher_test.go::test::TestLaunchMultiTimes	ported	spec/launcher_parity_spec.cr	already launched reuse error covered
+lib/launcher/launcher_test.go::test::TestLaunchUserMode	ported	spec/launcher_parity_spec.cr	user-mode defaults/arg formatting and live fixed-port launch URL parity covered
+lib/launcher/launcher_test.go::test::TestProfileDir	ported	spec/launcher_parity_spec.cr	profile preferences write path covered
+lib/launcher/launcher_test.go::test::TestUserModeErr	ported	spec/launcher_parity_spec.cr	direct parity spec now asserts user-mode launch errors for not-exists and echo bins
+lib/launcher/private_test.go::test::TestGetURLErr	ported	spec/launcher_parity_spec.cr	resolve_url malformed path covered
+lib/launcher/private_test.go::test::TestLaunchClient	ported	spec/launcher_parity_spec.cr	manager websocket header path now launches/proxies CDP and supports managed launcher client Browser.getVersion parity
+lib/launcher/private_test.go::test::TestLaunchErrs	ported	spec/launcher_parity_spec.cr	launch error parity covered for invalid binary execution and mirror download/extract failure paths
+lib/launcher/private_test.go::test::TestLaunchOptions	ported	spec/launcher_parity_spec.cr	go-style launch option formatting covered
+lib/launcher/private_test.go::test::TestManaged	ported	spec/launcher_parity_spec.cr	new_managed and must_new_managed behavior covered
+lib/launcher/private_test.go::test::TestTestOpen	ported	spec/launcher_parity_spec.cr	[::] normalization behavior covered
+lib/launcher/private_test.go::test::TestToHTTP	ported	spec/launcher_parity_spec.cr	to_http conversion covered
+lib/launcher/private_test.go::test::TestToWS	ported	spec/launcher_parity_spec.cr	to_ws conversion covered
+lib/launcher/private_test.go::test::TestURLParserErr	ported	spec/launcher_parity_spec.cr	url parser error message mapping covered
+lib/proto/a_utils_test.go::test::Test	ported	spec/cdp_type_parity_spec.cr	pattern_to_reg parity via Cdp.pattern_to_reg
+lib/utils/check-issue/main_test.go::test::TestBasic	ported	spec/check_issue_parity_spec.cr	check_issue parity utility added with version/markdown/go-code validation against upstream fixture bodies
+lib/utils/imageutil_test.go::test::TestNewImgProcessor	ported	spec/screenshot_spec.cr	png/default and jpeg processor round-trip parity now covered via crimage-backed PNG encode/decode
+lib/utils/imageutil_test.go::test::TestSplicePngVertical	ported	spec/screenshot_spec.cr	splice parity covers png/jpeg processors, crop boxes, empty/single input, invalid payloads, and output dimensions
+lib/utils/sleeper_test.go::test::TestBackoffSleeperWakeNow	ported	spec/utils_sleeper_spec.cr	wakes backoff sleeper immediately when max interval is zero
+lib/utils/sleeper_test.go::test::TestCountSleeperCancel	ported	spec/utils_sleeper_spec.cr	count sleeper cancel path covered
+lib/utils/sleeper_test.go::test::TestCountSleeperErr	ported	spec/utils_sleeper_spec.cr	max sleep count error path covered
+lib/utils/sleeper_test.go::test::TestEachSleepers	ported	spec/utils_sleeper_spec.cr	each_sleepers parity covered
+lib/utils/sleeper_test.go::test::TestRaceSleepers	ported	spec/utils_sleeper_spec.cr	race_sleepers parity covered
+lib/utils/sleeper_test.go::test::TestRetry	ported	spec/utils_sleeper_spec.cr	retry returns fn stop error parity covered
+lib/utils/sleeper_test.go::test::TestRetryCancel	ported	spec/utils_sleeper_spec.cr	retry cancel error parity covered
+lib/utils/utils_test.go::test::TestAbsolutePaths	ported	spec/utils_misc_parity_spec.cr	absolute_paths parity covered
+lib/utils/utils_test.go::test::TestAll	ported	spec/utils_io_parity_spec.cr	concurrent all helper parity covered
+lib/utils/utils_test.go::test::TestCropImage	ported	spec/screenshot_spec.cr	crop_image parity covered
+lib/utils/utils_test.go::test::TestEscapeGoString	ported	spec/utils_exec_parity_spec.cr	escape_go_string parity covered
+lib/utils/utils_test.go::test::TestExec	ported	spec/utils_exec_parity_spec.cr	exec returns captured output parity covered
+lib/utils/utils_test.go::test::TestExecErr	ported	spec/utils_exec_parity_spec.cr	exec error path parity covered
+lib/utils/utils_test.go::test::TestFileExists	ported	spec/utils_io_parity_spec.cr	file_exists parity covered
+lib/utils/utils_test.go::test::TestFormatCLIArgs	ported	spec/utils_exec_parity_spec.cr	format_cli_args parity covered
+lib/utils/utils_test.go::test::TestGenerateRandomString	ported	spec/utils_misc_parity_spec.cr	rand_string parity covered
+lib/utils/utils_test.go::test::TestIdleCounter	ported	spec/utils_sleeper_spec.cr	idle counter parity covered
+lib/utils/utils_test.go::test::TestMkdir	ported	spec/utils_io_parity_spec.cr	mkdir parity covered
+lib/utils/utils_test.go::test::TestMustToJSON	ported	spec/utils_io_parity_spec.cr,spec/utils_misc_parity_spec.cr	dump and must_to_json parity covered
+lib/utils/utils_test.go::test::TestNoop	ported	spec/utils_io_parity_spec.cr	noop parity covered
+lib/utils/utils_test.go::test::TestOutputBytes	ported	spec/utils_io_parity_spec.cr	output_file bytes parity covered
+lib/utils/utils_test.go::test::TestOutputJSONErr	ported	spec/utils_io_parity_spec.cr	output_file json serialization failure parity
+lib/utils/utils_test.go::test::TestOutputStream	ported	spec/utils_io_parity_spec.cr	output_file stream parity covered
+lib/utils/utils_test.go::test::TestOutputString	ported	spec/utils_io_parity_spec.cr	output_file string parity covered
+lib/utils/utils_test.go::test::TestPause	ported	spec/utils_io_parity_spec.cr	pause non-return behavior parity covered
+lib/utils/utils_test.go::test::TestSTemplate	ported	spec/utils_template_parity_spec.cr	template render parity covered
+lib/utils/utils_test.go::test::TestSleep	ported	spec/utils_io_parity_spec.cr	sleep helper parity covered
+lib/utils/utils_test.go::test::TestTestE	ported	spec/utils_misc_parity_spec.cr	error helper parity covered
+lib/utils/utils_test.go::test::TestTestLog	ported	spec/utils_misc_parity_spec.cr	log/logger_quiet/multi_logger parity
+lib/utils/utils_test.go::test::TestUseNode	ported	spec/utils_misc_parity_spec.cr,src/rod/lib/utils.cr	use_node path prepend behavior parity covered with deterministic resolver
+must_test.go::test::TestBrowserWithPanic	ported	spec/must_panic_parity_spec.cr	browser with_panic trigger propagation/count parity covered
+must_test.go::test::TestElementWithPanic	ported	spec/must_panic_parity_spec.cr	element-scoped with_panic trigger isolation parity covered
+must_test.go::test::TestPageWithPanic	ported	spec/must_panic_parity_spec.cr	page-scoped with_panic trigger behavior parity covered
+page_eval_test.go::test::TestConcurrentEval	ported	spec/page_eval_runtime_parity_spec.cr,spec/live_browser_parity_spec.cr	concurrent promise eval timing/order parity validated in real browser; stub coverage retained for deterministic runtime paths
+page_eval_test.go::test::TestEnsureJSHelperErr	ported	spec/page_eval_runtime_parity_spec.cr	js helper setup callFunctionOn failure propagation parity covered
+page_eval_test.go::test::TestEvalObjectReferenceChainIsTooLong	ported	spec/page_eval_runtime_parity_spec.cr,spec/live_browser_parity_spec.cr	live cyclic-object runtime behavior parity covered (chain-too-long error + deep reference access success)
+page_eval_test.go::test::TestEvalOptionsString	ported	spec/page_eval_options_parity_spec.cr	eval options string formatting parity covered
+page_eval_test.go::test::TestGetJSHelperRetry	ported	spec/page_eval_runtime_parity_spec.cr	transient ErrCtxNotFound during js helper setup retries and completes parity covered
+page_eval_test.go::test::TestObjectLeak	ported	spec/page_eval_runtime_parity_spec.cr,spec/live_browser_parity_spec.cr	live stale-object cross-reload evaluation panic behavior covered (matching Go panic-only assertion)
+page_eval_test.go::test::TestObjectRelease	ported	spec/page_eval_parity_spec.cr	remote object release parity covered
+page_eval_test.go::test::TestPageEval	ported	spec/page_eval_runtime_parity_spec.cr,spec/live_browser_parity_spec.cr	live page-eval parity covers arithmetic/function/object-reuse and both error branches
+page_eval_test.go::test::TestPageEvalOnNewDocument	ported	spec/page_eval_parity_spec.cr	eval_on_new_document add/remove and error parity covered
+page_eval_test.go::test::TestPageEvaluateRetry	ported	spec/page_eval_runtime_parity_spec.cr	eval retries ErrCtxNotFound until success
+page_eval_test.go::test::TestPageExpose	ported	spec/page_eval_parity_spec.cr	expose bind/cleanup error-path parity covered
+page_eval_test.go::test::TestPageIframeReload	ported	spec/page_iframe_reload_parity_spec.cr	iframe reload retains frame queryability and src contains click.html using upstream fixture parity (mandatory real-browser check via ROD_REAL_BROWSER=1)
+page_eval_test.go::test::TestPageObjCrossNavigation	ported	spec/page_eval_runtime_parity_spec.cr,spec/live_browser_parity_spec.cr	source now raises ObjectNotFoundError for stale this-object; live cross-navigation behavior parity covered
+page_eval_test.go::test::TestPageObjectErr	ported	spec/page_eval_parity_spec.cr	object_to_json invalid object id and element_from_node resolve-node error branches parity covered
+page_eval_test.go::test::TestPageSlowRender	ported	spec/page_slow_render_parity_spec.cr,spec/live_browser_parity_spec.cr	live fixture parity added (slow-render.html div text == ok), with existing deterministic retry coverage retained
+page_eval_test.go::test::TestPageUpdateJSCtxIDErr	ported	spec/page_eval_runtime_parity_spec.cr	ctx-not-found retry followed by js-context refresh Runtime.evaluate failure propagation parity covered
+page_eval_test.go::test::TestPromiseLeak	ported	spec/page_eval_runtime_parity_spec.cr,spec/live_browser_parity_spec.cr	live interrupted-async-eval context-destroyed error parity covered with concurrent navigate race
+page_test.go::test::TestAlert	ported	spec/page_wait_parity_spec.cr	handle_dialog flow parity covered
+page_test.go::test::TestDisableDomain	ported	spec/page_settings_parity_spec.cr	page load_state/enable_domain/disable_domain parity covered
+page_test.go::test::TestEmulateDevice	ported	spec/page_settings_parity_spec.cr,spec/live_browser_parity_spec.cr	emulate metrics/touch/user-agent call params plus live window.innerWidth/innerHeight runtime assertions parity covered
+page_test.go::test::TestFonts	ported	spec/live_browser_parity_spec.cr	container-gated live parity added: fonts fixture loads and PDF generation executes only when running in container (matching upstream gate)
+page_test.go::test::TestGetPageBrowser	ported	spec/page_settings_parity_spec.cr	owning browser reference parity covered
+page_test.go::test::TestGetPageURL	ported	spec/page_settings_parity_spec.cr	navigate + wait_load + info.url retrieval parity covered
+page_test.go::test::TestLoadState	ported	spec/page_settings_parity_spec.cr	page load_state delegation parity covered
+page_test.go::test::TestMustWaitElementsMoreThan	ported	spec/page_wait_parity_spec.cr	wait_elements_more_than parity covered
+page_test.go::test::TestPageActionAfterClose	ported	spec/live_browser_parity_spec.cr	verified both post-close element query cancellation and long-running eval cancellation via close
+page_test.go::test::TestPageActivate	ported	spec/page_settings_parity_spec.cr	activate target call parity covered
+page_test.go::test::TestPageAddScriptTag	ported	spec/page_settings_parity_spec.cr	add_script_tag helper wiring plus stable idempotency key semantics and dedupe guard behavior parity covered
+page_test.go::test::TestPageAddStyleTag	ported	spec/page_settings_parity_spec.cr	add_style_tag helper wiring plus stable idempotency key semantics and dedupe guard behavior parity covered
+page_test.go::test::TestPageCaptureDOMSnapshot	ported	spec/page_settings_parity_spec.cr	capture_domsnapshot call path plus CDP error and timeout-context propagation parity covered
+page_test.go::test::TestPageCloseCancel	ported	spec/page_settings_parity_spec.cr	close canceled dialog parity covered
+page_test.go::test::TestPageCloseErr	ported	spec/page_settings_parity_spec.cr	page.close error propagation (including generic close failure) and close-not-attached retry behavior parity covered
+page_test.go::test::TestPageCloseWhenNotAttached	ported	spec/page_settings_parity_spec.cr	close retries not-attached-active-page parity covered
+page_test.go::test::TestPageConsoleLog	ported	spec/page_console_parity_spec.cr,spec/live_browser_parity_spec.cr	console argument object/json conversion and live Runtime.consoleAPICalled wait-event integration parity covered
+page_test.go::test::TestPageContext	ported	spec/page_settings_parity_spec.cr	timeout/cancel_timeout and with_cancel context chaining covered
+page_test.go::test::TestPageElementFromObjectErr	ported	spec/page_settings_parity_spec.cr	element_from_object js-context resolution failure propagation parity covered
+page_test.go::test::TestPageEvent	ported	spec/page_settings_parity_spec.cr	page.event session filtering plus detach/destroy/context-cancel close behavior parity covered
+page_test.go::test::TestPageEventSession	ported	spec/page_eachevent_macro_parity_spec.cr	page-scoped session filtering in eachevent parity covered
+page_test.go::test::TestPageHTML	ported	spec/page_misc_parity_spec.cr	html retrieval and error propagation parity covered
+page_test.go::test::TestPageHandleFileDialog	ported	spec/page_wait_parity_spec.cr	file chooser intercept/set-files and intercept enable/disable error paths now covered
+page_test.go::test::TestPageNavigateBlank	ported	spec/page_settings_parity_spec.cr	navigate empty string mapped to about:blank
+page_test.go::test::TestPageNavigateErr	ported	spec/page_navigation_error_parity_spec.cr,spec/live_browser_parity_spec.cr	errorText and live HTTP 404/500 document-response navigation failures map to NavigationError parity
+page_test.go::test::TestPageNavigateNetworkErr	ported	spec/page_navigation_error_parity_spec.cr	network navigation error type/message and same-page recovery navigate parity covered (stub + mandatory real-browser check via ROD_REAL_BROWSER=1)
+page_test.go::test::TestPageNavigation	ported	spec/page_wait_parity_spec.cr,spec/live_browser_parity_spec.cr	wait_navigation wiring and live history back/forward traversal parity covered
+page_test.go::test::TestPagePDF	ported	spec/screenshot_spec.cr	pdf stream path, printToPDF error propagation, and must_pdf explicit+empty-path file-output behavior parity covered
+page_test.go::test::TestPagePool	ported	spec/pool_spec.cr	new_page_pool get/put/must_get/cleanup page-specific integration parity covered
+page_test.go::test::TestPageResetNavigationHistory	ported	spec/page_settings_parity_spec.cr	reset_navigation_history call parity covered
+page_test.go::test::TestPageScreenshot	ported	spec/screenshot_spec.cr	screenshot call path, capture error propagation, explicit+empty-path file output, and screenshot-byte dimension assertions parity covered
+page_test.go::test::TestPageStopEventAfterDetach	ported	spec/page_event_lifecycle_parity_spec.cr	page event stream closes on matching Target.detachedFromTarget / Target.targetDestroyed parity covered
+page_test.go::test::TestPageTriggerFavicon	ported	spec/page_settings_parity_spec.cr,spec/live_browser_parity_spec.cr	headless guard via command-line parity, runtime call error propagation, and live favicon network request event behavior covered
+page_test.go::test::TestPageUseNonExistSession	ported	spec/page_misc_parity_spec.cr	page_from_session missing-session error propagation covered
+page_test.go::test::TestPageWait	ported	spec/page_wait_parity_spec.cr	wait retry and evaluate error parity covered
+page_test.go::test::TestPageWaitDOMStable	ported	spec/wait_conditions_spec.cr	wait_dom_stable convergence, timeout-context cancellation, and capture-snapshot error propagation parity covered
+page_test.go::test::TestPageWaitEvent	ported	spec/page_wait_event_parity_spec.cr	wait_event session forwarding parity covered
+page_test.go::test::TestPageWaitEventParseEventOnlyOnce	ported	spec/page_wait_event_parity_spec.cr	two wait_event listeners complete on one event emission with page-session filtering parity
+page_test.go::test::TestPageWaitIdle	ported	spec/page_settings_parity_spec.cr	wait_idle helper promise parity covered
+page_test.go::test::TestPageWaitLoadErr	ported	spec/page_misc_parity_spec.cr	wait_load runtime error propagation parity covered
+page_test.go::test::TestPageWaitNavigation	ported	spec/page_wait_parity_spec.cr	wait_navigation lifecycle wiring parity covered
+page_test.go::test::TestPageWaitOpen	ported	spec/page_wait_parity_spec.cr	wait_open opener-target parity covered
+page_test.go::test::TestPageWaitRequestIdle	ported	spec/page_wait_parity_spec.cr,spec/live_browser_parity_spec.cr	wait_request_idle wiring plus live timing/list semantics, include/exclude behavior, and single-use wait panic parity covered
+page_test.go::test::TestPageWaitStable	ported	spec/wait_conditions_spec.cr	wait_stable composition and wait_load/wait_dom_stable error propagation parity covered
+page_test.go::test::TestScreenshotFullPage	ported	spec/live_browser_parity_spec.cr	verified full-page screenshot dimensions match document scroll size and viewport restoration
+page_test.go::test::TestScreenshotFullPageInit	ported	spec/live_browser_parity_spec.cr	verified full-page screenshot succeeds with cleared viewport (set_viewport nil)
+page_test.go::test::TestScrollScreenshot	ported	spec/screenshot_spec.cr,spec/live_browser_parity_spec.cr	scroll_screenshot stitched-output behavior parity covered with live dimension/viewport assertions and repeated/no-emulation runs
+page_test.go::test::TestScrollScreenshotErrors	ported	spec/screenshot_spec.cr	layout metrics missing-css branches, scroll dispatch failure, capture failure, wait-dom-stable failure, and unsupported format parity covered
+page_test.go::test::TestSetBlockedURLs	ported	spec/page_settings_parity_spec.cr	set_blocked_urls parity covered
+page_test.go::test::TestSetCookies	ported	spec/page_settings_parity_spec.cr	set_cookies set/clear and default-url cookies path covered
+page_test.go::test::TestSetDocumentContent	ported	spec/page_settings_parity_spec.cr	set_document_content call parity covered
+page_test.go::test::TestSetExtraHeaders	ported	spec/page_settings_parity_spec.cr	set_extra_headers enable/cleanup parity covered
+page_test.go::test::TestSetUserAgent	ported	spec/page_settings_parity_spec.cr	set_user_agent default parity covered
+page_test.go::test::TestSetViewport	ported	spec/page_settings_parity_spec.cr,spec/live_browser_parity_spec.cr	set_viewport clear/set call paths and live viewport size assertions parity covered
+page_test.go::test::TestWindow	ported	spec/page_settings_parity_spec.cr	get_window/set_window, window state transitions (max/normal/fullscreen/min/normal), resize, and error propagation parity covered
+query_test.go::test::TestElementFromElement	ported	spec/element_spec.cr	element child query parity covered
+query_test.go::test::TestElementFromElementX	ported	spec/element_spec.cr	element xpath child query parity covered
+query_test.go::test::TestElementHas	ported	spec/query_has_parity_spec.cr	element has/has_x/has_r parity covered
+query_test.go::test::TestElementParent	ported	spec/element_spec.cr	element.parent parity covered
+query_test.go::test::TestElementParents	ported	spec/element_spec.cr	element.parents selector/no-selector parity covered
+query_test.go::test::TestElementR	ported	spec/element_spec.cr	element_r regex query parity covered
+query_test.go::test::TestElementSiblings	ported	spec/element_spec.cr	element.previous/element.next sibling traversal parity covered
+query_test.go::test::TestElementTracing	ported	spec/dev_helpers_parity_spec.cr,spec/live_browser_parity_spec.cr	element try_trace overlay/log behavior and live traced MustElement chain text parity covered
+query_test.go::test::TestElementsFromElement	ported	spec/element_spec.cr	elements from element parity covered
+query_test.go::test::TestElementsFromElementsX	ported	spec/element_spec.cr	element.elements_x XPath descendant query parity covered
+query_test.go::test::TestElementsOthers	ported	spec/element_spec.cr	elements first/last empty and non-empty list behavior parity covered
+query_test.go::test::TestPageElementByJS	ported	spec/page_search_parity_spec.cr,spec/live_browser_parity_spec.cr	page element_by_js success and ExpectElementError live parity covered
+query_test.go::test::TestPageElementMaxRetry	ported	spec/page_element_timeout_parity_spec.cr	count_sleeper-constrained element polling now surfaces MaxSleepCountError parity
+query_test.go::test::TestPageElementTimeout	ported	spec/page_element_timeout_parity_spec.cr	timeout polling now surfaces Go-style deadline exceeded timeout error parity
+query_test.go::test::TestPageElementX	ported	spec/page_query_api_parity_spec.cr	page.element_x eval helper wiring parity covered
+query_test.go::test::TestPageElements	ported	spec/page_elements_query_parity_spec.cr	page.elements querySelectorAll node-id mapping and zero-node filtering parity covered
+query_test.go::test::TestPageElementsByJS	ported	spec/page_elements_query_parity_spec.cr	elements_by_js success and non-array/non-node/getProperties-error paths parity covered
+query_test.go::test::TestPageElementsX	ported	spec/page_query_api_parity_spec.cr	page.elements_x eval helper wiring parity covered
+query_test.go::test::TestPageHas	ported	spec/query_has_parity_spec.cr	page has/has_x/has_r parity covered
+query_test.go::test::TestPageRace	ported	spec/query_race_parity_spec.cr	race context branch selection and errors parity covered
+query_test.go::test::TestPageRaceRetryInHandle	ported	spec/live_browser_parity_spec.cr	verified race handle callback retry/wait behavior against live selector fixture mutation
+query_test.go::test::TestPageRaceSearchCrossIframe	ported	spec/query_race_parity_spec.cr,spec/live_browser_parity_spec.cr	search branch parity covered including live cross-iframe race scenario
+query_test.go::test::TestPagesOthers	ported	spec/pages_parity_spec.cr	pages.first/pages.last empty/non-empty collection behavior parity covered
+query_test.go::test::TestPagesQuery	ported	spec/pages_parity_spec.cr,spec/live_browser_parity_spec.cr	pages find/find_by_url semantics and live browser query parity covered
+query_test.go::test::TestSearch	ported	spec/page_search_parity_spec.cr	search retry semantics, not-found sleeper behavior, node-id-zero refresh retry, and perform/get/node-resolution error propagation parity covered
+query_test.go::test::TestSearchElements	ported	spec/query_search_result_parity_spec.cr	search result get/all/release and node-resolution error-path parity covered
+query_test.go::test::TestSearchIframes	ported	spec/live_browser_parity_spec.cr	verified with real browser nested-iframe click/match behavior
+query_test.go::test::TestSearchIframesAfterReload	ported	spec/live_browser_parity_spec.cr	verified with real browser nested-iframe reload then click/match behavior
+rod_test.go::test::TestRod	ported	spec/rod_spec.cr	basic rod template parity smoke test
+setup_test.go::test::TestLintIgnore	ported	N/A	upstream Go test is skipped (t.Skip); no Crystal execution target required
+setup_test.go::test::TestMain	ported	spec/spec_helper.cr	upstream TestMain bootstrap parity is mapped to Crystal spec_helper bootstrap and global test setup

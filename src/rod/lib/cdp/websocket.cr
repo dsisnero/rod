@@ -7,6 +7,11 @@ require "socket"
 require "uri"
 
 module Rod::Lib::Cdp
+  module WebSocketable
+    abstract def send(msg : Bytes) : Nil
+    abstract def read : Bytes
+  end
+
   module Dialer
     abstract def dial(uri : URI) : IO
   end
@@ -27,6 +32,12 @@ module Rod::Lib::Cdp
     include Dialer
 
     def dial(uri : URI) : IO
+      dial_context(nil, uri)
+    end
+
+    # Go parity: expose a context-aware dial entrypoint even if Crystal's TLS
+    # socket constructor doesn't consume the context directly.
+    def dial_context(_ctx : HTTP::Client::Context?, uri : URI) : IO
       host = uri.host
       port = uri.port
       raise "invalid websocket url: #{uri}" unless host && port
@@ -48,6 +59,7 @@ module Rod::Lib::Cdp
   # WebSocket client for chromium. It only implements a subset of WebSocket protocol.
   # Both the Read and Write are thread-safe.
   class WebSocket
+    include WebSocketable
     property dialer : Dialer?
 
     @state_lock = Mutex.new

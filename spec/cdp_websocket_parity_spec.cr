@@ -141,6 +141,7 @@ describe "cdp websocket parity" do
 
     tls = Rod::Lib::Cdp::TlsDialer.new
     expect_raises(Exception) { tls.dial(URI.parse("wss://")) }
+    expect_raises(Exception) { tls.dial_context(nil, URI.parse("wss://")) }
   end
 
   it "raises on malformed websocket frames from server" do

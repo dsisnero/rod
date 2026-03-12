@@ -96,7 +96,7 @@ module Rod::Lib::Cdp
     @pending = {} of Int32 => Channel(Result)
     @pending_lock = Mutex.new
     @event_channel = Channel(Event).new(1024)
-    @ws : WebSocket?
+    @ws : WebSocketable?
     @logger : ::Log?
 
     # New creates a cdp connection, all messages from Client.event must be received or they will block the client.
@@ -110,7 +110,7 @@ module Rod::Lib::Cdp
     end
 
     # Start to browser.
-    def start(ws : WebSocket) : self
+    def start(ws : WebSocketable) : self
       @ws = ws
       spawn consume_messages
       self
@@ -152,22 +152,14 @@ module Rod::Lib::Cdp
         when ctx.done.receive?
           @pending_lock.synchronize { @pending.delete(id) }
           raise(ctx.err || Rod::ContextCanceledError.new("context cancelled"))
-        when timeout 30.seconds
-          @pending_lock.synchronize { @pending.delete(id) }
-          raise "CDP call timeout"
         end
       else
-        select
-        when result = done.receive
-          @pending_lock.synchronize { @pending.delete(id) }
-          if result.error
-            raise result.error.to_s
-          else
-            result.msg.to_json.to_slice
-          end
-        when timeout 30.seconds
-          @pending_lock.synchronize { @pending.delete(id) }
-          raise "CDP call timeout"
+        result = done.receive
+        @pending_lock.synchronize { @pending.delete(id) }
+        if result.error
+          raise result.error.to_s
+        else
+          result.msg.to_json.to_slice
         end
       end
     end

@@ -16,6 +16,9 @@ end
 
 # Chrome DevTools Protocol types.
 module Cdp
+  # Version of cdp protocol.
+  Version = "v1.3"
+
   TIME_FIELD_KEYS = {
     "timestamp",
     "wallTime",
