@@ -1,6 +1,6 @@
 ---
 name: rod
-version: 0.6.0
+version: 0.6.1
 authors:
 - Dominic Sisneros <dsisnero@gmail.com>
 crystal: ">= 1.19.1"
@@ -8,8 +8,6 @@ license: MIT
 executables:
 - pdlgen
 dependencies:
-  protobuf:
-    github: jeromegn/protobuf.cr
   similar:
     github: dsisnero/similar.cr
   event_handler:

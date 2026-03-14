@@ -18,7 +18,7 @@ private INDEX_HTML = <<-HTML
 HTML
 
 def test_server : String
-  server = HTTP::Server.new { |ctx| ctx.response.print(INDEX_HTML) }
+  server = HTTP::Server.new(&.response.print(INDEX_HTML))
   addr = server.bind_tcp("127.0.0.1", 0)
   spawn { server.listen }
   "http://127.0.0.1:#{addr.port}"

@@ -4,7 +4,7 @@ require "http/server"
 private TEST_PAGE = %(<html><script>alert("message")</script></html>)
 
 def serve
-  server = HTTP::Server.new { |ctx| ctx.response.print(TEST_PAGE) }
+  server = HTTP::Server.new(&.response.print(TEST_PAGE))
   server.bind_tcp("127.0.0.1", 8080)
   server.listen
 end

@@ -46,7 +46,7 @@ alias Utils = Rod::Lib::Utils
 alias Defaults = Rod::Lib::Defaults
 
 module Rod
-  VERSION = "0.6.0"
+  VERSION = "0.6.1"
 
   # Internal aliases
   alias Utils = Lib::Utils

@@ -34,7 +34,7 @@ def print_nodes(io : IO, nodes : Array(Cdp::DOM::Node)?, padding : String, inden
   end
 end
 
-server = HTTP::Server.new { |ctx| ctx.response.print(HTML) }
+server = HTTP::Server.new(&.response.print(HTML))
 addr = server.bind_tcp("127.0.0.1", 0)
 spawn { server.listen }
 
