@@ -24,32 +24,32 @@ require "./rod/dev_helpers"
 require "./rod/must"
 
 # JavaScript helpers
-require "./rod/lib/js"
+require "./rod/util/js"
 
 # Input system (stubbed for now)
-require "./rod/lib/input/input"
+require "./rod/util/input/input"
 
 # Utilities
-require "./rod/lib/utils"
-require "./rod/lib/defaults"
-require "./rod/lib/check_issue"
-require "./rod/lib/devices"
-require "./rod/lib/launcher"
-require "./rod/lib/proto"
-require "./rod/lib/cdp"
-require "./rod/lib/utils_shell"
-require "./rod/lib/examples/custom_websocket"
-require "./rod/lib/examples/compare_chromedp_proxy"
+require "./rod/util/utils"
+require "./rod/util/defaults"
+require "./rod/util/check_issue"
+require "./rod/util/devices"
+require "./rod/util/launcher"
+require "./rod/util/proto"
+require "./rod/util/cdp"
+require "./rod/util/utils_shell"
+require "./rod/util/examples/custom_websocket"
+require "./rod/util/examples/compare_chromedp_proxy"
 
 # Top-level aliases for convenience
-alias Utils = Rod::Lib::Utils
-alias Defaults = Rod::Lib::Defaults
+alias Utils = Rod::Util::Utils
+alias Defaults = Rod::Util::Defaults
 
 module Rod
   VERSION = "0.6.1"
 
   # Internal aliases
-  alias Utils = Lib::Utils
-  alias Defaults = Lib::Defaults
+  alias Utils = Util::Utils
+  alias Defaults = Util::Defaults
   alias CDPClient = ::Cdp::Client
 end

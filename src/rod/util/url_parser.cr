@@ -1,5 +1,5 @@
 # URL parser for extracting WebSocket URL from browser output
-module Rod::Lib
+module Rod::Util
   class URLParser < IO
     property url : Channel(String)
     property buffer : String

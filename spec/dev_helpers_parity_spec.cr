@@ -129,7 +129,7 @@ describe "Dev helpers parity" do
 
   it "monitor invalid host bubbles through must_connect" do
     browser = Rod::Browser.new
-      .client(Rod::Lib::Cdp::Client.new)
+      .client(Rod::Util::Cdp::Client.new)
       .control_url("")
       .monitor("abc")
 

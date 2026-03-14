@@ -5,7 +5,7 @@ require "crimage"
 require "pluto"
 require "pluto/format/jpeg"
 
-module Rod::Lib::Utils
+module Rod::Util::Utils
   @@pause_ch = Channel(Nil).new
   @@reg_space = /\s/
 
@@ -644,12 +644,12 @@ module Rod::Lib::Utils
     def encode(img : Pluto::ImageRGBA, opt : ImgOption?) : Bytes
       _ = opt
       output = IO::Memory.new
-      CrImage::PNG.write(output, Rod::Lib::Utils.crimage_from_pluto(img))
+      CrImage::PNG.write(output, Rod::Util::Utils.crimage_from_pluto(img))
       output.to_slice
     end
 
     def decode(file : IO) : Pluto::ImageRGBA
-      Rod::Lib::Utils.pluto_from_crimage(CrImage::PNG.read(file))
+      Rod::Util::Utils.pluto_from_crimage(CrImage::PNG.read(file))
     end
   end
 

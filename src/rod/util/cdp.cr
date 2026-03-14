@@ -2,7 +2,7 @@ require "./cdp/websocket"
 require "./cdp/client"
 require "http/headers"
 
-module Rod::Lib::Cdp
+module Rod::Util::Cdp
   # MustConnectWS helper to make a websocket connection.
   def self.must_connect_ws(ws_url : String, headers : HTTP::Headers = HTTP::Headers.new) : WebSocket
     ws = WebSocket.new

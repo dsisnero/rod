@@ -374,10 +374,10 @@ describe Rod::Page do
       page.set_viewport(nil)
       browser.method_calls.should contain("Emulation.clearDeviceMetricsOverride")
 
-      page.set_viewport(Rod::Lib::Devices::IPhone6or7or8.metrics_emulation)
+      page.set_viewport(Rod::Util::Devices::IPhone6or7or8.metrics_emulation)
       browser.method_calls.should contain("Emulation.setDeviceMetricsOverride")
 
-      page.emulate(Rod::Lib::Devices::IPhone6or7or8)
+      page.emulate(Rod::Util::Devices::IPhone6or7or8)
       browser.method_calls.should contain("Emulation.setDeviceMetricsOverride")
       browser.method_calls.should contain("Emulation.setTouchEmulationEnabled")
       browser.method_calls.should contain("Emulation.setUserAgentOverride")
@@ -397,13 +397,13 @@ describe Rod::Page do
       browser.failures["Emulation.setDeviceMetricsOverride"] = [Exception.new("metrics failed")]
       page = SettingsStubPage.new(browser)
 
-      expect_raises(Exception, /metrics failed/) { page.emulate(Rod::Lib::Devices::IPhone6or7or8) }
+      expect_raises(Exception, /metrics failed/) { page.emulate(Rod::Util::Devices::IPhone6or7or8) }
 
       browser2 = SettingsStubBrowser.new
       browser2.failures["Emulation.setTouchEmulationEnabled"] = [Exception.new("touch failed")]
       page2 = SettingsStubPage.new(browser2)
 
-      expect_raises(Exception, /touch failed/) { page2.emulate(Rod::Lib::Devices::IPhone6or7or8) }
+      expect_raises(Exception, /touch failed/) { page2.emulate(Rod::Util::Devices::IPhone6or7or8) }
     end
 
     it "trigger_favicon enforces headless and evaluates helper" do

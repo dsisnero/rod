@@ -3,9 +3,9 @@ require "./context"
 require "./types"
 require "./error"
 require "../cdp/dom/dom"
-require "./lib/quad"
-require "./lib/input/input"
-require "./lib/js"
+require "./util/quad"
+require "./util/input/input"
+require "./util/js"
 require "base64"
 
 module Rod
@@ -268,7 +268,7 @@ module Rod
     def move_mouse_out : Nil
       shape_result = shape
       quads = shape_result.quads
-      box = Rod::Lib::Quad.box(quads)
+      box = Rod::Util::Quad.box(quads)
       raise InvisibleShapeError.new(self) unless box
       x, y, width, _height = box
       @page.mouse.move_to(Point.new(x + width, y))
@@ -330,9 +330,9 @@ module Rod
       bin = @page.screenshot(false, opts)
 
       shape_result = shape
-      if box_tuple = Rod::Lib::Quad.box(shape_result.quads)
+      if box_tuple = Rod::Util::Quad.box(shape_result.quads)
         x, y, width, height = box_tuple
-        Rod::Lib::Utils.crop_image(bin, quality,
+        Rod::Util::Utils.crop_image(bin, quality,
           x.to_i,
           y.to_i,
           width.to_i,
@@ -372,7 +372,7 @@ module Rod
 
       shape_result = shape
       quads = shape_result.quads
-      point = Rod::Lib::Quad.one_point_inside(quads)
+      point = Rod::Util::Quad.one_point_inside(quads)
       if point.nil?
         raise InvisibleShapeError.new(self)
       end
@@ -430,7 +430,7 @@ module Rod
 
       deadline = Time.instant + effective_timeout
       out : Point? = nil
-      err = Rod::Lib::Utils.retry(@ctx, @sleeper.call) do
+      err = Rod::Util::Utils.retry(@ctx, @sleeper.call) do
         begin
           scroll_into_view
           out = interactable
@@ -553,7 +553,7 @@ module Rod
     # SetFiles of the current file input element.
     # ameba:disable Naming/AccessorMethodName
     def set_files(paths : Array(String)) : Nil
-      abs_paths = ::Rod::Lib::Utils.absolute_paths(paths)
+      abs_paths = ::Rod::Util::Utils.absolute_paths(paths)
       object_id = @object.object_id
       raise "Element has no object ID" unless object_id
       ::Cdp::DOM::SetFileInputFiles.new(files: abs_paths, object_id: object_id, node_id: nil, backend_node_id: nil).call(@page)

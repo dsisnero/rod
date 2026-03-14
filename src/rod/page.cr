@@ -5,8 +5,8 @@ require "./query"
 require "./keyboard"
 require "./mouse"
 require "./touch"
-require "./lib/js"
-require "./lib/utils"
+require "./util/js"
+require "./util/utils"
 require "./hijack"
 require "../cdp/cdp"
 require "../cdp/runtime/runtime"
@@ -334,7 +334,7 @@ module Rod
 
       result : T? = nil
       started = Time.instant
-      err = Rod::Lib::Utils.retry(@ctx, @sleeper.call) do
+      err = Rod::Util::Utils.retry(@ctx, @sleeper.call) do
         begin
           result = block.call
           {true, nil}
@@ -620,7 +620,7 @@ module Rod
 
     # Sets user agent override; defaults to LaptopWithMDPIScreen emulation when nil.
     def user_agent=(req : Cdp::Emulation::SetUserAgentOverride?)
-      request = req || Rod::Lib::Devices::LaptopWithMDPIScreen.user_agent_emulation
+      request = req || Rod::Util::Devices::LaptopWithMDPIScreen.user_agent_emulation
       request.try(&.call(self))
     end
 
@@ -672,7 +672,7 @@ module Rod
         raise "file chooser event missing backend node id" unless backend_node_id
 
         Cdp::DOM::SetFileInputFiles.new(
-          files: ::Rod::Lib::Utils.absolute_paths(paths),
+          files: ::Rod::Util::Utils.absolute_paths(paths),
           node_id: nil,
           backend_node_id: backend_node_id,
           object_id: nil
@@ -754,7 +754,7 @@ module Rod
       p, cancel = with_cancel
       match = gen_reg_matcher(includes, excludes)
       wait_list = {} of String => String
-      idle_counter = Rod::Lib::Utils::IdleCounter.new(d)
+      idle_counter = Rod::Util::Utils::IdleCounter.new(d)
       update = try_trace_req(includes, excludes)
       update.call(wait_list)
 
@@ -963,7 +963,7 @@ module Rod
     end
 
     # Emulate applies device viewport/touch/user-agent settings.
-    def emulate(device : Rod::Lib::Devices::Device) : Nil
+    def emulate(device : Rod::Util::Devices::Device) : Nil
       set_viewport(device.metrics_emulation)
       device.touch_emulation.call(self)
       self.user_agent = device.user_agent_emulation
@@ -1058,7 +1058,7 @@ module Rod
 
     # Wait until the js returns true.
     def wait(opts : EvalOptions) : Nil
-      err = Rod::Lib::Utils.retry(@ctx, @sleeper.call) do
+      err = Rod::Util::Utils.retry(@ctx, @sleeper.call) do
         begin
           res = evaluate(opts)
           {res.value.try(&.as_bool?) == true, nil}
@@ -1268,7 +1268,7 @@ module Rod
       content_height = css_content_size.height
 
       scroll_top = 0.0
-      img_boxes = [] of ::Rod::Lib::Utils::ImgWithBox
+      img_boxes = [] of ::Rod::Util::Utils::ImgWithBox
 
       loop do
         clip = Cdp::Page::Viewport.new(
@@ -1297,8 +1297,8 @@ module Rod
           optimize_for_speed: false
         )
         shot = req.call(self)
-        box = ::Rod::Lib::Utils::Rect.new(0, 0, clip.width.round.to_i, clip.height.round.to_i)
-        img_boxes << ::Rod::Lib::Utils::ImgWithBox.new(Base64.decode(shot.data), box)
+        box = ::Rod::Util::Utils::Rect.new(0, 0, clip.width.round.to_i, clip.height.round.to_i)
+        img_boxes << ::Rod::Util::Utils::ImgWithBox.new(Base64.decode(shot.data), box)
 
         scroll_top += scroll_y
         break if scroll_top >= content_height
@@ -1309,16 +1309,16 @@ module Rod
 
       format = opt.format || Cdp::Page::CaptureScreenshotFormatPng
       img_opt = if quality = opt.quality
-                  ::Rod::Lib::Utils::ImgOption.new(quality)
+                  ::Rod::Util::Utils::ImgOption.new(quality)
                 else
                   nil
                 end
 
-      ::Rod::Lib::Utils.splice_png_vertical(img_boxes, format, img_opt)
+      ::Rod::Util::Utils.splice_png_vertical(img_boxes, format, img_opt)
     end
 
     # PDF prints page as PDF.
-    def pdf(req : Cdp::Page::PrintToPDF? = nil) : Rod::Lib::Utils::StreamReader
+    def pdf(req : Cdp::Page::PrintToPDF? = nil) : Rod::Util::Utils::StreamReader
       if req.nil?
         req = Cdp::Page::PrintToPDF.new
       end
@@ -1327,7 +1327,7 @@ module Rod
       unless stream = res.stream
         raise "No stream returned from PrintToPDF"
       end
-      Rod::Lib::Utils::StreamReader.new(self, stream)
+      Rod::Util::Utils::StreamReader.new(self, stream)
     end
 
     # Navigate back in history.
@@ -1617,7 +1617,7 @@ module Rod
     # The fn should return a tuple of [result, error] where error is nil on success.
     def expose(name : String, fn : Proc(::JSON::Any, Tuple(::JSON::Any?, ::JSON::Any?))) : Proc(Nil)
       # Generate random binding name
-      bind = "_" + ::Rod::Lib::Utils.rand_string(8)
+      bind = "_" + ::Rod::Util::Utils.rand_string(8)
 
       # Add runtime binding
       add_binding_req = ::Cdp::Runtime::AddBinding.new(
@@ -1723,7 +1723,7 @@ module Rod
       res : Cdp::Runtime::RemoteObject? = nil
       remove_trace = -> { }
 
-      err = ::Rod::Lib::Utils.retry(@ctx, @sleeper.call) do
+      err = ::Rod::Util::Utils.retry(@ctx, @sleeper.call) do
         remove = try_trace_query(opts)
         remove_trace.call
         remove_trace = remove
@@ -1924,7 +1924,7 @@ module Rod
         restore
       )
 
-      err = ::Rod::Lib::Utils.retry(@ctx, @sleeper.call) do
+      err = ::Rod::Util::Utils.retry(@ctx, @sleeper.call) do
         # Discard previous search results if any
         if sr.cdp_result.search_id != ""
           req = ::Cdp::DOM::DiscardSearchResults.new(search_id: sr.search_id)
@@ -2224,7 +2224,7 @@ module Rod
     end
 
     private def not_attached_to_active_page_error?(error : ::Exception) : Bool
-      if error.is_a?(::Rod::Lib::Cdp::Error)
+      if error.is_a?(::Rod::Util::Cdp::Error)
         return error.code == -32000 && error.message == "Not attached to an active page"
       end
 
@@ -2336,7 +2336,7 @@ module Rod
       end
     rescue ex : NotFoundError
       raise ex
-    rescue ex : Rod::Lib::Utils::MaxSleepCountError
+    rescue ex : Rod::Util::Utils::MaxSleepCountError
       raise ex
     rescue ex : ContextCanceledError
       raise ex
@@ -2439,7 +2439,7 @@ module Rod
       end
     rescue ex : NotFoundError
       raise ex
-    rescue ex : Rod::Lib::Utils::MaxSleepCountError
+    rescue ex : Rod::Util::Utils::MaxSleepCountError
       raise ex
     rescue ex
       raise NotFoundError.new("Element not found via XPath: #{xpath}", cause: ex)
@@ -2464,7 +2464,7 @@ module Rod
       end
     rescue ex : NotFoundError
       raise ex
-    rescue ex : Rod::Lib::Utils::MaxSleepCountError
+    rescue ex : Rod::Util::Utils::MaxSleepCountError
       raise ex
     rescue ex
       raise NotFoundError.new("Element not found via regex: #{selector} / #{regex}", cause: ex)

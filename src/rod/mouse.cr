@@ -1,6 +1,6 @@
 require "mutex"
 require "./types"
-require "./lib/input/input"
+require "./util/input/input"
 require "../cdp/input/input"
 
 module Rod

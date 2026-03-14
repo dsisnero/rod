@@ -48,9 +48,9 @@ describe "page element timeout parity" do
 
   it "surfaces MaxSleepCountError with count_sleeper (Go TestPageElementMaxRetry parity)" do
     page = ElementTimeoutStubPage.new
-    limited = page.sleeper(-> { Rod::Lib::Utils.count_sleeper(2) })
+    limited = page.sleeper(-> { Rod::Util::Utils.count_sleeper(2) })
 
-    expect_raises(Rod::Lib::Utils::MaxSleepCountError) do
+    expect_raises(Rod::Util::Utils::MaxSleepCountError) do
       limited.element("not-exists", Rod::QueryOptions.new(timeout: 30.milliseconds, retry_interval: 5.milliseconds))
     end
   end

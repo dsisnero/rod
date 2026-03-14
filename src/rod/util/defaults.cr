@@ -1,4 +1,4 @@
-module Rod::Lib::Defaults
+module Rod::Util::Defaults
   @@trace = false
   @@slow = 0.seconds
   @@monitor = ""
@@ -10,7 +10,7 @@ module Rod::Lib::Defaults
   @@proxy = ""
   @@lock_port = 2978
   @@url = ""
-  @@cdp = Rod::Lib::Utils.logger_quiet
+  @@cdp = Rod::Util::Utils.logger_quiet
 
   # Default logger
   def self.logger
@@ -61,7 +61,7 @@ module Rod::Lib::Defaults
     @@url
   end
 
-  def self.cdp : Rod::Lib::Utils::Log
+  def self.cdp : Rod::Util::Utils::Log
     @@cdp
   end
 
@@ -78,7 +78,7 @@ module Rod::Lib::Defaults
     @@proxy = ""
     @@lock_port = 2978
     @@url = ""
-    @@cdp = Rod::Lib::Utils.logger_quiet
+    @@cdp = Rod::Util::Utils.logger_quiet
   end
 
   # Reset with options and optional argv list.
@@ -141,7 +141,7 @@ module Rod::Lib::Defaults
       when "url"
         @@url = value
       when "cdp"
-        @@cdp = Rod::Lib::Utils.log { |_msg| }
+        @@cdp = Rod::Util::Utils.log { |_msg| }
       else
         raise "unknown rod env option: #{name}"
       end

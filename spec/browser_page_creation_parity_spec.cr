@@ -73,7 +73,7 @@ describe "browser page creation parity" do
 
   it "applies default device emulation when creating pages" do
     browser = PageCreationBrowser.new
-    browser.default_device(Rod::Lib::Devices::IPhone6or7or8)
+    browser.default_device(Rod::Util::Devices::IPhone6or7or8)
     browser.page("about:blank")
 
     browser.method_calls.should contain("Emulation.setDeviceMetricsOverride")
@@ -83,7 +83,7 @@ describe "browser page creation parity" do
 
   it "no_default_device disables automatic emulation for new pages" do
     browser = PageCreationBrowser.new
-    browser.default_device(Rod::Lib::Devices::IPhone6or7or8)
+    browser.default_device(Rod::Util::Devices::IPhone6or7or8)
     browser.no_default_device
     browser.page("about:blank")
 

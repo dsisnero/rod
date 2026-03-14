@@ -4,7 +4,7 @@ private CHROME_BIN = "/Applications/Google Chrome.app/Contents/MacOS/Google Chro
 private APP_URL    = "https://go-rod.github.io/calculator/"
 
 private def with_live_browser(& : Rod::Browser ->)
-  launcher = Rod::Lib::Launcher::Launcher.new
+  launcher = Rod::Util::Launcher::Launcher.new
     .bin(CHROME_BIN)
     .headless(true)
     .no_sandbox(true)

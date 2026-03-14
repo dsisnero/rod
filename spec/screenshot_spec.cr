@@ -199,10 +199,10 @@ describe Rod::Page do
 
   it "#scroll_screenshot supports PNG format only" do
     expect_raises(Exception, /not support format/) do
-      Rod::Lib::Utils.splice_png_vertical(
+      Rod::Util::Utils.splice_png_vertical(
         [
-          Rod::Lib::Utils::ImgWithBox.new(Bytes[1]),
-          Rod::Lib::Utils::ImgWithBox.new(Bytes[2]),
+          Rod::Util::Utils::ImgWithBox.new(Bytes[1]),
+          Rod::Util::Utils::ImgWithBox.new(Bytes[2]),
         ],
         "webp"
       )
@@ -295,7 +295,7 @@ describe Rod::Page do
     page.set_response("Page.printToPDF", %({"data":"","stream":"stream-handle"}))
 
     reader = page.pdf
-    reader.should be_a(Rod::Lib::Utils::StreamReader)
+    reader.should be_a(Rod::Util::Utils::StreamReader)
   end
 
   it "#pdf propagates print_to_pdf errors" do
@@ -347,10 +347,10 @@ describe Rod::Page do
   end
 end
 
-describe Rod::Lib::Utils::StreamReader do
+describe Rod::Util::Utils::StreamReader do
   it "#read reads stream data and surfaces CDP read errors" do
     client = FakeStreamClient.new
-    reader = Rod::Lib::Utils::StreamReader.new(client, "")
+    reader = Rod::Util::Utils::StreamReader.new(client, "")
 
     client.enqueue_response(%({"data":"test","eof":false}))
     bytes = Bytes.new(4)
@@ -373,7 +373,7 @@ end
 describe "Image utilities" do
   it "#crop_image crops image to specified rectangle" do
     img = make_jpeg(100, 100)
-    result = Rod::Lib::Utils.crop_image(img, 80, 10, 10, 30, 30)
+    result = Rod::Util::Utils.crop_image(img, 80, 10, 10, 30, 30)
     decoded = Pluto::ImageRGBA.from_jpeg(IO::Memory.new(result))
 
     decoded.width.should eq(30)
@@ -383,13 +383,13 @@ describe "Image utilities" do
   it "#splice_png_vertical splices PNGs vertically" do
     a = make_jpeg(1000, 200)
     b = make_jpeg(1000, 300)
-    result = Rod::Lib::Utils.splice_png_vertical(
+    result = Rod::Util::Utils.splice_png_vertical(
       [
-        Rod::Lib::Utils::ImgWithBox.new(a),
-        Rod::Lib::Utils::ImgWithBox.new(b),
+        Rod::Util::Utils::ImgWithBox.new(a),
+        Rod::Util::Utils::ImgWithBox.new(b),
       ],
       "jpeg",
-      Rod::Lib::Utils::ImgOption.new(80)
+      Rod::Util::Utils::ImgOption.new(80)
     )
     decoded = Pluto::ImageRGBA.from_jpeg(IO::Memory.new(result))
 
@@ -400,13 +400,13 @@ describe "Image utilities" do
   it "#splice_png_vertical supports jpeg crop boxes" do
     a = make_jpeg(1000, 200)
     b = make_jpeg(1000, 300)
-    result = Rod::Lib::Utils.splice_png_vertical(
+    result = Rod::Util::Utils.splice_png_vertical(
       [
-        Rod::Lib::Utils::ImgWithBox.new(
+        Rod::Util::Utils::ImgWithBox.new(
           a,
-          Rod::Lib::Utils::Rect.new(0, 0, 1000, 100)
+          Rod::Util::Utils::Rect.new(0, 0, 1000, 100)
         ),
-        Rod::Lib::Utils::ImgWithBox.new(b),
+        Rod::Util::Utils::ImgWithBox.new(b),
       ],
       "jpeg"
     )
@@ -417,13 +417,13 @@ describe "Image utilities" do
   end
 
   it "#splice_png_vertical returns empty bytes when no input files are provided" do
-    Rod::Lib::Utils.splice_png_vertical([] of Rod::Lib::Utils::ImgWithBox, "jpeg").should eq(Bytes.new(0))
+    Rod::Util::Utils.splice_png_vertical([] of Rod::Util::Utils::ImgWithBox, "jpeg").should eq(Bytes.new(0))
   end
 
   it "#splice_png_vertical returns input unchanged for one file" do
     only = Bytes[1, 2, 3]
-    result = Rod::Lib::Utils.splice_png_vertical(
-      [Rod::Lib::Utils::ImgWithBox.new(only)],
+    result = Rod::Util::Utils.splice_png_vertical(
+      [Rod::Util::Utils::ImgWithBox.new(only)],
       "jpeg"
     )
 
@@ -432,10 +432,10 @@ describe "Image utilities" do
 
   it "#splice_png_vertical raises on invalid image payloads" do
     expect_raises(Exception) do
-      Rod::Lib::Utils.splice_png_vertical(
+      Rod::Util::Utils.splice_png_vertical(
         [
-          Rod::Lib::Utils::ImgWithBox.new(Bytes[1]),
-          Rod::Lib::Utils::ImgWithBox.new(Bytes[2]),
+          Rod::Util::Utils::ImgWithBox.new(Bytes[1]),
+          Rod::Util::Utils::ImgWithBox.new(Bytes[2]),
         ],
         "jpeg"
       )
@@ -448,11 +448,11 @@ describe "Image utilities" do
       {"webp", true},
     ].each do |format, want_err|
       if want_err
-        expect_raises(Exception, /not support format/) { Rod::Lib::Utils.new_img_processor(format) }
+        expect_raises(Exception, /not support format/) { Rod::Util::Utils.new_img_processor(format) }
         next
       end
 
-      processor = Rod::Lib::Utils.new_img_processor(format)
+      processor = Rod::Util::Utils.new_img_processor(format)
       input = Pluto::ImageRGBA.from_jpeg(IO::Memory.new(make_jpeg(1000, 200)))
       encoded = processor.encode(input, nil)
       decoded = processor.decode(IO::Memory.new(encoded))
@@ -464,7 +464,7 @@ describe "Image utilities" do
 
   it "#new_img_processor supports png and default format parity" do
     ["", "png"].each do |format|
-      processor = Rod::Lib::Utils.new_img_processor(format)
+      processor = Rod::Util::Utils.new_img_processor(format)
       input = Pluto::ImageRGBA.from_jpeg(IO::Memory.new(make_jpeg(1000, 200)))
       encoded = processor.encode(input, nil)
       width, height = parse_png_size(encoded)

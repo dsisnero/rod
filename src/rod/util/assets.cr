@@ -1,4 +1,4 @@
-module Rod::Lib::Assets
+module Rod::Util::Assets
   MousePointer = <<-'SVG'
 <?xml version="1.0" encoding="UTF-8"?>
 <svg width="277px" height="401px" viewBox="0 0 277 401" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">

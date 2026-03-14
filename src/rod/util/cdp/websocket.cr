@@ -6,7 +6,7 @@ require "openssl"
 require "socket"
 require "uri"
 
-module Rod::Lib::Cdp
+module Rod::Util::Cdp
   module WebSocketable
     abstract def send(msg : Bytes) : Nil
     abstract def read : Bytes

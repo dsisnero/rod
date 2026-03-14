@@ -1,6 +1,6 @@
 require "mutex"
 require "set"
-require "./lib/input/input"
+require "./util/input/input"
 
 module Rod
   # Keyboard represents the keyboard on a page, it's always related the main frame.

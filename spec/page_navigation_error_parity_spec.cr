@@ -16,7 +16,7 @@ private class NavigateErrorStubPage < Rod::Page
 end
 
 private def with_real_browser_for_navigation(&)
-  launcher = Rod::Lib::Launcher.new
+  launcher = Rod::Util::Launcher.new
   browser = Rod::Browser.new
 
   begin

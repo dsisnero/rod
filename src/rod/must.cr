@@ -342,7 +342,7 @@ module Rod
     end
 
     # MustEmulate is similar to emulate.
-    def must_emulate(device : Rod::Lib::Devices::Device) : Page
+    def must_emulate(device : Rod::Util::Devices::Device) : Page
       must_try { emulate(device) }
       self
     end

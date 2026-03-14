@@ -143,7 +143,7 @@ module Rod
     def do : Element
       element : Element? = nil
 
-      err = ::Rod::Lib::Utils.retry(@page.ctx, @page.sleeper.call) do
+      err = ::Rod::Util::Utils.retry(@page.ctx, @page.sleeper.call) do
         stop = false
         stop_error : Exception? = nil
 

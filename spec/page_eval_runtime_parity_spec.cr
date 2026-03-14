@@ -227,7 +227,7 @@ describe "page eval runtime parity" do
     results = Channel(Int32).new(2)
 
     started = Time.instant
-    wait = Rod::Lib::Utils.all(
+    wait = Rod::Util::Utils.all(
       -> do
         value = page.eval(
           "(ms, v) => new Promise(r => setTimeout(r, ms, v))",

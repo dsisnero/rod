@@ -59,11 +59,11 @@ describe Rod::RaceContext do
 
   it "#do retries not-found branches until sleeper errors" do
     page = Rod::Page.new(Rod::Browser.new, Rod::TargetID.new("target-id"))
-    page.sleeper = -> { Rod::Lib::Utils.count_sleeper(1) }
+    page.sleeper = -> { Rod::Util::Utils.count_sleeper(1) }
     race = Rod::RaceContext.new(page)
     race.element_func { |_p| raise Rod::NotFoundError.new("missing") }
 
-    expect_raises(Rod::Lib::Utils::MaxSleepCountError) do
+    expect_raises(Rod::Util::Utils::MaxSleepCountError) do
       race.do
     end
   end
@@ -84,13 +84,13 @@ describe Rod::RaceContext do
 
   it "#search branch treats nil first element as not found" do
     page = SearchRacePage.new
-    page.sleeper = -> { Rod::Lib::Utils.count_sleeper(1) }
+    page.sleeper = -> { Rod::Util::Utils.count_sleeper(1) }
 
     result = Rod::SearchResult.new(Cdp::DOM::PerformSearchResult.new("sid", 0), page, -> { })
     result.first = nil
     page.search_result = result
 
-    expect_raises(Rod::Lib::Utils::MaxSleepCountError) do
+    expect_raises(Rod::Util::Utils::MaxSleepCountError) do
       page.race.search("missing").do
     end
   end

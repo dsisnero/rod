@@ -1,6 +1,6 @@
 require "../types"
 
-module Rod::Lib
+module Rod::Util
   # Quad helpers for working with DOM quad arrays.
   # A DOM quad is represented as JSON::Any containing an array of 8 numbers
   # [x1, y1, x2, y2, x3, y3, x4, y4].

@@ -2,7 +2,7 @@ require "json"
 require "channel"
 require "../../../cdp/cdp"
 
-module Rod::Lib::Cdp
+module Rod::Util::Cdp
   # Request to send to browser.
   struct Request
     include JSON::Serializable

@@ -6,7 +6,7 @@ private def cdp_fixture_url(name : String) : String
   "file://#{File.expand_path("../vendor/rod/lib/cdp/fixtures/#{name}", __DIR__)}"
 end
 
-private class MockCdpWebSocket < Rod::Lib::Cdp::WebSocket
+private class MockCdpWebSocket < Rod::Util::Cdp::WebSocket
   getter sent = [] of String
   property send_error : Exception? = nil
 
@@ -36,7 +36,7 @@ private class MockCdpWebSocket < Rod::Lib::Cdp::WebSocket
 end
 
 private class ProtocolOnlyCdpWebSocket
-  include Rod::Lib::Cdp::WebSocketable
+  include Rod::Util::Cdp::WebSocketable
 
   getter sent = [] of String
 
@@ -57,7 +57,7 @@ private class ProtocolOnlyCdpWebSocket
   end
 end
 
-private class EchoCdpWebSocket < Rod::Lib::Cdp::WebSocket
+private class EchoCdpWebSocket < Rod::Util::Cdp::WebSocket
   def initialize
     @responses = Channel(Bytes).new(2048)
   end
@@ -79,7 +79,7 @@ private class EchoCdpWebSocket < Rod::Lib::Cdp::WebSocket
   end
 end
 
-private class SlowSendCdpWebSocket < Rod::Lib::Cdp::WebSocket
+private class SlowSendCdpWebSocket < Rod::Util::Cdp::WebSocket
   def initialize
     @responses = Channel(Bytes).new(1)
     @send_gate = Channel(Nil).new(1)
@@ -101,7 +101,7 @@ private class SlowSendCdpWebSocket < Rod::Lib::Cdp::WebSocket
   end
 end
 
-private class BlockingCdpWebSocket < Rod::Lib::Cdp::WebSocket
+private class BlockingCdpWebSocket < Rod::Util::Cdp::WebSocket
   def send(data : Bytes) : Nil
   end
 
@@ -111,7 +111,7 @@ private class BlockingCdpWebSocket < Rod::Lib::Cdp::WebSocket
   end
 end
 
-private class ScriptedCdpWebSocket < Rod::Lib::Cdp::WebSocket
+private class ScriptedCdpWebSocket < Rod::Util::Cdp::WebSocket
   getter requests = [] of JSON::Any
 
   def initialize
@@ -144,7 +144,7 @@ private class ScriptedCdpWebSocket < Rod::Lib::Cdp::WebSocket
   end
 end
 
-private class CrashyCdpWebSocket < Rod::Lib::Cdp::WebSocket
+private class CrashyCdpWebSocket < Rod::Util::Cdp::WebSocket
   def initialize
     @reads = Channel(Bytes).new(1)
   end
@@ -158,7 +158,7 @@ private class CrashyCdpWebSocket < Rod::Lib::Cdp::WebSocket
   end
 end
 
-private class CancelLeakCdpWebSocket < Rod::Lib::Cdp::WebSocket
+private class CancelLeakCdpWebSocket < Rod::Util::Cdp::WebSocket
   def initialize
     @id = 0
     @wait = Channel(Nil).new(1)
@@ -191,7 +191,7 @@ end
 
 describe "cdp client parity" do
   it "raises when call is used before start" do
-    client = Rod::Lib::Cdp::Client.new
+    client = Rod::Util::Cdp::Client.new
     expect_raises(Exception, /not started/) do
       client.call(nil, nil, "Test.method", JSON.parse(%({})))
     end
@@ -200,14 +200,14 @@ describe "cdp client parity" do
   it "supports logger chaining like go client logger setter" do
     ws = MockCdpWebSocket.new
     logger = Log.for("cdp-parity")
-    client = Rod::Lib::Cdp::Client.new.logger(logger).start(ws)
-    client.should be_a(Rod::Lib::Cdp::Client)
+    client = Rod::Util::Cdp::Client.new.logger(logger).start(ws)
+    client.should be_a(Rod::Util::Cdp::Client)
     ws.close_reads
   end
 
   it "accepts websocketable implementations without inheriting websocket" do
     ws = ProtocolOnlyCdpWebSocket.new
-    client = Rod::Lib::Cdp::Client.new.start(ws)
+    client = Rod::Util::Cdp::Client.new.start(ws)
 
     done = Channel(String).new(1)
     spawn do
@@ -227,7 +227,7 @@ describe "cdp client parity" do
 
   it "sends request and returns matching response payload" do
     ws = MockCdpWebSocket.new
-    client = Rod::Lib::Cdp::Client.new.start(ws)
+    client = Rod::Util::Cdp::Client.new.start(ws)
 
     done = Channel(String).new(1)
     spawn do
@@ -253,7 +253,7 @@ describe "cdp client parity" do
 
   it "routes incoming events to event channel" do
     ws = MockCdpWebSocket.new
-    client = Rod::Lib::Cdp::Client.new.start(ws)
+    client = Rod::Util::Cdp::Client.new.start(ws)
 
     ws.enqueue_read(%({"method":"Target.attachedToTarget","params":{"x":1},"sessionId":"sid-2"}))
 
@@ -266,7 +266,7 @@ describe "cdp client parity" do
 
   it "raises protocol error responses from call" do
     ws = MockCdpWebSocket.new
-    client = Rod::Lib::Cdp::Client.new.start(ws)
+    client = Rod::Util::Cdp::Client.new.start(ws)
 
     done = Channel(String).new(1)
     spawn do
@@ -289,7 +289,7 @@ describe "cdp client parity" do
   it "propagates send failures" do
     ws = MockCdpWebSocket.new
     ws.send_error = Exception.new("send failed")
-    client = Rod::Lib::Cdp::Client.new.start(ws)
+    client = Rod::Util::Cdp::Client.new.start(ws)
 
     expect_raises(Exception, /send failed/) do
       client.call(nil, nil, "Test.method", JSON.parse(%({})))
@@ -298,27 +298,27 @@ describe "cdp client parity" do
   end
 
   it "formats cdp error as go-style tuple string with data" do
-    err = Rod::Lib::Cdp::Error.new(10, "err", JSON.parse(%("data")))
+    err = Rod::Util::Cdp::Error.new(10, "err", JSON.parse(%("data")))
     err.to_s.should eq("{10 err data}")
     err.is?(err).should be_true
   end
 
   it "must_start_with_url raises on empty url" do
     expect_raises(Exception, /empty websocket url/) do
-      Rod::Lib::Cdp.must_start_with_url("")
+      Rod::Util::Cdp.must_start_with_url("")
     end
   end
 
   it "matches go TestBasic behavior with real browser websocket" do
-    launcher = Rod::Lib::Launcher.new
+    launcher = Rod::Util::Launcher.new
       .bin(CHROME_BIN)
       .headless(true)
       .no_sandbox(true)
       .leakless(false)
-    client = Rod::Lib::Cdp::Client.new
+    client = Rod::Util::Cdp::Client.new
 
     begin
-      client.logger(Log.for("cdp-parity-live")).start(Rod::Lib::Cdp.must_connect_ws(launcher.launch))
+      client.logger(Log.for("cdp-parity-live")).start(Rod::Util::Cdp.must_connect_ws(launcher.launch))
 
       spawn do
         loop { client.event.receive }
@@ -392,7 +392,7 @@ describe "cdp client parity" do
 
   it "supports concurrent call/response routing by request id" do
     ws = EchoCdpWebSocket.new
-    client = Rod::Lib::Cdp::Client.new.start(ws)
+    client = Rod::Util::Cdp::Client.new.start(ws)
 
     total = 200
     done = Channel(Nil).new(total)
@@ -417,7 +417,7 @@ describe "cdp client parity" do
 
   it "handles slow send without losing response routing" do
     ws = SlowSendCdpWebSocket.new
-    client = Rod::Lib::Cdp::Client.new.start(ws)
+    client = Rod::Util::Cdp::Client.new.start(ws)
 
     res = client.call(nil, "sid-1", "Test.slow_send", JSON.parse("1"))
     JSON.parse(String.new(res)).as_i.should eq(1)
@@ -425,7 +425,7 @@ describe "cdp client parity" do
 
   it "returns canceled error when rod context is already canceled" do
     ws = BlockingCdpWebSocket.new
-    client = Rod::Lib::Cdp::Client.new.start(ws)
+    client = Rod::Util::Cdp::Client.new.start(ws)
     ctx = Rod::Context.new
     ctx.cancel
 
@@ -437,7 +437,7 @@ describe "cdp client parity" do
   it "matches go TestCancelCallLeak canceled-call loop behavior" do
     30.times do
       ws = CancelLeakCdpWebSocket.new
-      client = Rod::Lib::Cdp::Client.new.start(ws)
+      client = Rod::Util::Cdp::Client.new.start(ws)
       ctx = Rod::Context.new
       ctx.cancel
 
@@ -453,7 +453,7 @@ describe "cdp client parity" do
 
   it "supports basic multi-step session flow like go TestBasic core path" do
     ws = ScriptedCdpWebSocket.new
-    client = Rod::Lib::Cdp::Client.new.start(ws)
+    client = Rod::Util::Cdp::Client.new.start(ws)
 
     create = JSON.parse(String.new(client.call(nil, nil, "Target.createTarget", JSON.parse(%({"url":"file:///a"})))))
     create["targetId"].as_s.should eq("target-1")
@@ -473,7 +473,7 @@ describe "cdp client parity" do
 
   it "propagates read-side crash errors to queued calls" do
     ws = CrashyCdpWebSocket.new
-    client = Rod::Lib::Cdp::Client.new.start(ws)
+    client = Rod::Util::Cdp::Client.new.start(ws)
 
     expect_raises(Exception, /EOF/) do
       client.call(nil, "sid-1", "Runtime.evaluate", JSON.parse(%({"expression":"new Promise(() => {})"})))
@@ -481,15 +481,15 @@ describe "cdp client parity" do
   end
 
   it "matches go TestCrash behavior with real browser websocket" do
-    launcher = Rod::Lib::Launcher.new
+    launcher = Rod::Util::Launcher.new
       .bin(CHROME_BIN)
       .headless(true)
       .no_sandbox(true)
       .leakless(false)
-    client = Rod::Lib::Cdp::Client.new
+    client = Rod::Util::Cdp::Client.new
 
     begin
-      client.start(Rod::Lib::Cdp.must_connect_ws(launcher.launch))
+      client.start(Rod::Util::Cdp.must_connect_ws(launcher.launch))
 
       spawn do
         loop { client.event.receive }

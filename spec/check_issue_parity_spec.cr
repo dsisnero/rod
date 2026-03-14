@@ -6,7 +6,7 @@ describe "check issue parity" do
 
     invalid = File.read(File.expand_path("../vendor/rod/lib/utils/check-issue/body-invalid.txt", __DIR__))
 
-    Rod::Lib::CheckIssue.check(invalid).should eq(
+    Rod::Util::CheckIssue.check(invalid).should eq(
       "Please add a valid `Rod Version: v0.0.0` to your issue. Current version is <nil>\n" \
       "\n" \
       "Please fix the format of your markdown:\n" \
@@ -26,6 +26,6 @@ describe "check issue parity" do
     )
 
     valid = File.read(File.expand_path("../vendor/rod/lib/utils/check-issue/body.txt", __DIR__))
-    Rod::Lib::CheckIssue.check(valid).should eq("")
+    Rod::Util::CheckIssue.check(valid).should eq("")
   end
 end

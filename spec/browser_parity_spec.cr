@@ -104,7 +104,7 @@ describe Rod::Browser do
 
   it "raises on connect conflict when both client and control_url are set" do
     browser = Rod::Browser.new
-      .client(Rod::Lib::Cdp::Client.new)
+      .client(Rod::Util::Cdp::Client.new)
       .control_url("ws://example.invalid")
 
     expect_raises(Exception, /can't be set at the same time/) do

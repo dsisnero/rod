@@ -1,7 +1,7 @@
 require "./spec_helper"
 
 private def with_real_browser(&)
-  launcher = Rod::Lib::Launcher.new
+  launcher = Rod::Util::Launcher.new
   browser = Rod::Browser.new
 
   begin

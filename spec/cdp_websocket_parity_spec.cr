@@ -72,7 +72,7 @@ describe "cdp websocket parity" do
     spawn { server.listen }
 
     begin
-      ws = Rod::Lib::Cdp::WebSocket.new
+      ws = Rod::Util::Cdp::WebSocket.new
       headers = HTTP::Headers{
         "Host" => "test.com",
         "Test" => "header",
@@ -92,12 +92,12 @@ describe "cdp websocket parity" do
   end
 
   it "raises on invalid websocket URL" do
-    ws = Rod::Lib::Cdp::WebSocket.new
+    ws = Rod::Util::Cdp::WebSocket.new
     expect_raises(Exception) { ws.connect("://") }
   end
 
   it "raises when send/read called before connect" do
-    ws = Rod::Lib::Cdp::WebSocket.new
+    ws = Rod::Util::Cdp::WebSocket.new
 
     expect_raises(Exception, /not connected/) { ws.send("x".to_slice) }
     expect_raises(Exception, /not connected/) { ws.read }
@@ -105,7 +105,7 @@ describe "cdp websocket parity" do
 
   it "connects, roundtrips messages, and rejects duplicated connect" do
     with_ws_echo_server do |url|
-      ws = Rod::Lib::Cdp::WebSocket.new
+      ws = Rod::Util::Cdp::WebSocket.new
       ws.connect(url)
 
       ws.send("ping".to_slice)
@@ -120,7 +120,7 @@ describe "cdp websocket parity" do
 
   it "roundtrips large payloads" do
     with_ws_echo_server do |url|
-      ws = Rod::Lib::Cdp::WebSocket.new
+      ws = Rod::Util::Cdp::WebSocket.new
       ws.connect(url)
 
       size = 2 * 1024 * 1024
@@ -135,24 +135,24 @@ describe "cdp websocket parity" do
   end
 
   it "uses tls dialer for wss URLs and surfaces tls dialer errors" do
-    ws = Rod::Lib::Cdp::WebSocket.new
+    ws = Rod::Util::Cdp::WebSocket.new
     expect_raises(Exception) { ws.connect("wss://no-exist") }
-    ws.dialer.should be_a(Rod::Lib::Cdp::TlsDialer)
+    ws.dialer.should be_a(Rod::Util::Cdp::TlsDialer)
 
-    tls = Rod::Lib::Cdp::TlsDialer.new
+    tls = Rod::Util::Cdp::TlsDialer.new
     expect_raises(Exception) { tls.dial(URI.parse("wss://")) }
     expect_raises(Exception) { tls.dial_context(nil, URI.parse("wss://")) }
   end
 
   it "raises on malformed websocket frames from server" do
     with_raw_ws_frame_server(Bytes[0_u8, 127_u8, 1_u8]) do |url|
-      ws = Rod::Lib::Cdp::WebSocket.new
+      ws = Rod::Util::Cdp::WebSocket.new
       ws.connect(url)
       expect_raises(Exception) { ws.read }
     end
 
     with_raw_ws_frame_server(Bytes[0_u8]) do |url|
-      ws = Rod::Lib::Cdp::WebSocket.new
+      ws = Rod::Util::Cdp::WebSocket.new
       ws.connect(url)
       expect_raises(Exception) { ws.read }
     end

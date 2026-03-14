@@ -1,6 +1,6 @@
 require "../../cdp/emulation/emulation"
 
-module Rod::Lib::Devices
+module Rod::Util::Devices
   # ScreenSize represents the size of a device screen.
   struct ScreenSize
     property width : Int32

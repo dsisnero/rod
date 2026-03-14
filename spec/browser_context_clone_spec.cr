@@ -29,7 +29,7 @@ describe Rod::Browser do
 
   it "allows chaining client and control_url configuration" do
     browser = Rod::Browser.new
-      .client(Rod::Lib::Cdp::Client.new)
+      .client(Rod::Util::Cdp::Client.new)
       .control_url("ws://example.invalid")
 
     browser.should be_a(Rod::Browser)

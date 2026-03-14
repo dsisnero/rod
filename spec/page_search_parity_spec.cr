@@ -58,26 +58,26 @@ describe "page search parity" do
   it "retries when CDP reports context-not-found during search" do
     browser = SearchRetryBrowser.new
     page = SearchRetryPage.new(browser)
-    page.sleeper = -> { Rod::Lib::Utils.count_sleeper(1) }
+    page.sleeper = -> { Rod::Util::Utils.count_sleeper(1) }
 
     page.enqueue_error("DOM.performSearch", Exception.new("Cannot find context with specified id (-32000)"))
     page.enqueue_error("DOM.performSearch", Exception.new("Cannot find context with specified id (-32000)"))
 
-    expect_raises(Rod::Lib::Utils::MaxSleepCountError) { page.search("button") }
+    expect_raises(Rod::Util::Utils::MaxSleepCountError) { page.search("button") }
     page.method_calls.count("DOM.performSearch").should be >= 2
   end
 
   it "retries when CDP reports search-session-not-found during getSearchResults" do
     browser = SearchRetryBrowser.new
     page = SearchRetryPage.new(browser)
-    page.sleeper = -> { Rod::Lib::Utils.count_sleeper(1) }
+    page.sleeper = -> { Rod::Util::Utils.count_sleeper(1) }
 
     2.times do |i|
       page.enqueue("DOM.performSearch", %({"searchId":"sid-#{i}","resultCount":1}))
       page.enqueue_error("DOM.getSearchResults", Exception.new("No search session with given id found (-32000)"))
     end
 
-    expect_raises(Rod::Lib::Utils::MaxSleepCountError) { page.search("button") }
+    expect_raises(Rod::Util::Utils::MaxSleepCountError) { page.search("button") }
     page.method_calls.count("DOM.getSearchResults").should be >= 2
   end
 
@@ -103,19 +103,19 @@ describe "page search parity" do
   it "retries when performSearch returns zero result count" do
     browser = SearchRetryBrowser.new
     page = SearchRetryPage.new(browser)
-    page.sleeper = -> { Rod::Lib::Utils.count_sleeper(1) }
+    page.sleeper = -> { Rod::Util::Utils.count_sleeper(1) }
 
     page.enqueue("DOM.performSearch", %({"searchId":"sid-0","resultCount":0}))
     page.enqueue("DOM.performSearch", %({"searchId":"sid-1","resultCount":0}))
 
-    expect_raises(Rod::Lib::Utils::MaxSleepCountError) { page.search("missing") }
+    expect_raises(Rod::Util::Utils::MaxSleepCountError) { page.search("missing") }
     page.method_calls.count("DOM.performSearch").should be >= 2
   end
 
   it "returns ElementNotFoundError when search uses not_found_sleeper" do
     browser = SearchRetryBrowser.new
     page = SearchRetryPage.new(browser)
-    page.sleeper = -> { Rod::Lib::Utils::Sleeper.new { |_ctx| Rod::ElementNotFoundError.new.as(Exception) } }
+    page.sleeper = -> { Rod::Util::Utils::Sleeper.new { |_ctx| Rod::ElementNotFoundError.new.as(Exception) } }
     page.enqueue("DOM.performSearch", %({"searchId":"sid-0","resultCount":0}))
 
     expect_raises(Rod::ElementNotFoundError) { page.search("missing") }

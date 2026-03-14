@@ -2,7 +2,7 @@ require "./spec_helper"
 
 describe "binary size parity" do
   it "matches TestBinarySize behavior" do
-    if Rod::Lib::Launcher.in_container?
+    if Rod::Util::Launcher.in_container?
       # Upstream gate: skip in containerized environments.
       true.should be_true
       next

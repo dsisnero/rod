@@ -11,7 +11,7 @@ private def fixture_url(name : String) : String
 end
 
 private def with_live_browser(& : Rod::Browser ->)
-  launcher = Rod::Lib::Launcher::Launcher.new
+  launcher = Rod::Util::Launcher::Launcher.new
     .bin(CHROME_BIN)
     .headless(true)
     .no_sandbox(true)
@@ -237,7 +237,7 @@ describe "live browser parity" do
     with_live_browser do |browser|
       page = browser.must_page("about:blank")
       page.must_wait_load
-      page.must_emulate(Rod::Lib::Devices::IPad)
+      page.must_emulate(Rod::Util::Devices::IPad)
       page.must_navigate(fixture_url("touch.html"))
       page.must_wait_load
 
@@ -263,7 +263,7 @@ describe "live browser parity" do
       viewport2 = page2.must_eval("() => [window.innerWidth, window.innerHeight]")
       viewport2[0].as_i.should_not eq(317)
 
-      page.must_emulate(Rod::Lib::Devices::IPhone6or7or8)
+      page.must_emulate(Rod::Util::Devices::IPhone6or7or8)
       emulated = page.must_eval("() => [window.innerWidth, window.innerHeight, navigator.userAgent]")
       (980 - emulated[0].as_i).abs.should be < 10
       (1743 - emulated[1].as_i).abs.should be < 10
@@ -470,7 +470,7 @@ describe "live browser parity" do
       results = Channel(Int32).new(2)
       started = Time.instant
 
-      wait = Rod::Lib::Utils.all(
+      wait = Rod::Util::Utils.all(
         -> do
           value = page.eval("() => new Promise(r => setTimeout(r, 2500, 2))")
           results.send(value.value.not_nil!.as_i)
@@ -575,7 +575,7 @@ describe "live browser parity" do
       page.must_wait_load
       eval_error = Channel(Exception?).new(1)
 
-      wait = Rod::Lib::Utils.all(
+      wait = Rod::Util::Utils.all(
         -> do
           begin
             page.eval("() => new Promise(r => setTimeout(() => r(location.href), 1000))")
@@ -785,7 +785,7 @@ describe "live browser parity" do
       page = browser.must_page(fixture_url("click-iframe.html"))
       page.must_wait_load
 
-      pt = Rod::Lib::Quad.one_point_inside(
+      pt = Rod::Util::Quad.one_point_inside(
         page.must_element("iframe").must_frame.must_element("button").shape.quads
       ).not_nil!
 
@@ -1198,7 +1198,7 @@ describe "live browser parity" do
   end
 
   it "matches TestBrowserLostConnection behavior with real browser" do
-    launcher = Rod::Lib::Launcher::Launcher.new
+    launcher = Rod::Util::Launcher::Launcher.new
       .bin(CHROME_BIN)
       .headless(true)
       .no_sandbox(true)
@@ -1267,7 +1267,7 @@ describe "live browser parity" do
   it "matches TestTrace behavior with real browser" do
     with_live_browser do |browser|
       seen = [] of Array(String)
-      browser.logger(Rod::Lib::Utils.log { |list| seen << list })
+      browser.logger(Rod::Util::Utils.log { |list| seen << list })
       browser.trace(true)
       browser.slow_motion(1.microsecond)
 
@@ -1286,7 +1286,7 @@ describe "live browser parity" do
 
   it "matches TestTraceLogs behavior with real browser" do
     with_live_browser do |browser|
-      browser.logger(Rod::Lib::Utils.logger_quiet)
+      browser.logger(Rod::Util::Utils.logger_quiet)
       browser.trace(true)
 
       page = browser.must_page(fixture_url("click.html"))
@@ -1337,7 +1337,7 @@ describe "live browser parity" do
   end
 
   it "matches TestMonitorErr behavior with real browser launcher url" do
-    launcher = Rod::Lib::Launcher::Launcher.new
+    launcher = Rod::Util::Launcher::Launcher.new
       .bin(CHROME_BIN)
       .headless(true)
       .no_sandbox(true)
@@ -1474,7 +1474,7 @@ describe "live browser parity" do
   end
 
   it "matches TestFonts behavior with real browser" do
-    unless Rod::Lib::Launcher.in_container?
+    unless Rod::Util::Launcher.in_container?
       # Go parity gate: upstream only exercises this in containers.
       true.should be_true
       next

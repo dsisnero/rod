@@ -1,9 +1,9 @@
 require "./spec_helper"
 
-describe Rod::Lib::Utils do
+describe Rod::Util::Utils do
   it "wakes backoff sleeper immediately when max interval is zero" do
     ctx = Rod::Context.new
-    sleeper = Rod::Lib::Utils.backoff_sleeper(0.seconds, 0.seconds)
+    sleeper = Rod::Util::Utils.backoff_sleeper(0.seconds, 0.seconds)
 
     sleeper.call(ctx).should be_nil
   end
@@ -11,9 +11,9 @@ describe Rod::Lib::Utils do
   it "retries until fn signals stop" do
     ctx = Rod::Context.new
     count = 0
-    sleeper = Rod::Lib::Utils.backoff_sleeper(1.millisecond, 5.milliseconds, ->(i : Time::Span) { i })
+    sleeper = Rod::Util::Utils.backoff_sleeper(1.millisecond, 5.milliseconds, ->(i : Time::Span) { i })
 
-    err = Rod::Lib::Utils.retry(ctx, sleeper) do
+    err = Rod::Util::Utils.retry(ctx, sleeper) do
       if count > 5
         {true, IO::Error.new("EOF")}
       else
@@ -32,9 +32,9 @@ describe Rod::Lib::Utils do
       sleep 5.milliseconds
       ctx.cancel
     end
-    sleeper = Rod::Lib::Utils.backoff_sleeper(1.second, 1.second, ->(i : Time::Span) { i })
+    sleeper = Rod::Util::Utils.backoff_sleeper(1.second, 1.second, ->(i : Time::Span) { i })
 
-    err = Rod::Lib::Utils.retry(ctx, sleeper) do
+    err = Rod::Util::Utils.retry(ctx, sleeper) do
       {false, nil}
     end
 
@@ -43,48 +43,48 @@ describe Rod::Lib::Utils do
 
   it "returns max sleep count error" do
     ctx = Rod::Context.new
-    sleeper = Rod::Lib::Utils.count_sleeper(5)
+    sleeper = Rod::Util::Utils.count_sleeper(5)
     5.times { sleeper.call(ctx) }
 
     err = sleeper.call(ctx)
-    err.should be_a(Rod::Lib::Utils::MaxSleepCountError)
+    err.should be_a(Rod::Util::Utils::MaxSleepCountError)
   end
 
   it "returns context cancel error for count sleeper" do
     ctx = Rod::Context.new
     ctx.cancel
 
-    err = Rod::Lib::Utils.count_sleeper(5).call(ctx)
+    err = Rod::Util::Utils.count_sleeper(5).call(ctx)
     err.should be_a(Rod::ContextCanceledError)
   end
 
   it "supports each sleepers" do
     ctx = Rod::Context.new
-    s1 = Rod::Lib::Utils.backoff_sleeper(1.millisecond, 5.milliseconds, ->(i : Time::Span) { i })
-    s2 = Rod::Lib::Utils.count_sleeper(5)
-    sleeper = Rod::Lib::Utils.each_sleepers(s1, s2)
+    s1 = Rod::Util::Utils.backoff_sleeper(1.millisecond, 5.milliseconds, ->(i : Time::Span) { i })
+    s2 = Rod::Util::Utils.count_sleeper(5)
+    sleeper = Rod::Util::Utils.each_sleepers(s1, s2)
 
-    err = Rod::Lib::Utils.retry(ctx, sleeper) { {false, nil} }
+    err = Rod::Util::Utils.retry(ctx, sleeper) { {false, nil} }
 
-    err.should be_a(Rod::Lib::Utils::MaxSleepCountError)
+    err.should be_a(Rod::Util::Utils::MaxSleepCountError)
     err.to_s.should eq("max sleep count 5 exceeded")
   end
 
   it "supports race sleepers" do
     ctx = Rod::Context.new
-    s1 = Rod::Lib::Utils.backoff_sleeper(1.millisecond, 5.milliseconds, ->(i : Time::Span) { i })
-    s2 = Rod::Lib::Utils.count_sleeper(5)
-    sleeper = Rod::Lib::Utils.race_sleepers(s1, s2)
+    s1 = Rod::Util::Utils.backoff_sleeper(1.millisecond, 5.milliseconds, ->(i : Time::Span) { i })
+    s2 = Rod::Util::Utils.count_sleeper(5)
+    sleeper = Rod::Util::Utils.race_sleepers(s1, s2)
 
-    err = Rod::Lib::Utils.retry(ctx, sleeper) { {false, nil} }
+    err = Rod::Util::Utils.retry(ctx, sleeper) { {false, nil} }
 
-    err.should be_a(Rod::Lib::Utils::MaxSleepCountError)
+    err.should be_a(Rod::Util::Utils::MaxSleepCountError)
     err.to_s.should eq("max sleep count 5 exceeded")
   end
 
   it "waits for idle duration after jobs complete" do
     ctx = Rod::Context.new
-    counter = Rod::Lib::Utils::IdleCounter.new(100.milliseconds)
+    counter = Rod::Util::Utils::IdleCounter.new(100.milliseconds)
 
     counter.add
     spawn do
@@ -112,7 +112,7 @@ describe Rod::Lib::Utils do
 
   it "waits from zero jobs state" do
     ctx = Rod::Context.new
-    counter = Rod::Lib::Utils::IdleCounter.new(100.milliseconds)
+    counter = Rod::Util::Utils::IdleCounter.new(100.milliseconds)
     start = Time.instant
     counter.wait(ctx)
     (Time.instant - start).should be < 180.milliseconds
@@ -120,7 +120,7 @@ describe Rod::Lib::Utils do
 
   it "returns immediately for zero idle duration" do
     ctx = Rod::Context.new
-    counter = Rod::Lib::Utils::IdleCounter.new(0.seconds)
+    counter = Rod::Util::Utils::IdleCounter.new(0.seconds)
     start = Time.instant
     counter.wait(ctx)
     (Time.instant - start).should be < 20.milliseconds

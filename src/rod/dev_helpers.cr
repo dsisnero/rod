@@ -5,7 +5,7 @@ require "./browser"
 require "./page"
 require "./element"
 require "./mouse"
-require "./lib/assets"
+require "./util/assets"
 require "../cdp/target/target"
 
 module Rod
@@ -26,7 +26,7 @@ module Rod
       @logger
     end
 
-    def trace_logger : Rod::Lib::Utils::Log?
+    def trace_logger : Rod::Util::Utils::Log?
       @trace_logger
     end
 
@@ -51,7 +51,7 @@ module Rod
     end
 
     # Go parity: allow utils.Log adapters (e.g. logger_quiet/log callbacks).
-    def logger(l : Rod::Lib::Utils::Log) : Browser
+    def logger(l : Rod::Util::Utils::Log) : Browser
       @trace_logger = l
       self
     end
@@ -74,13 +74,13 @@ module Rod
         begin
           path = context.request.path
           if path == "/"
-            Rod.write_html(context.response, ::Rod::Lib::Assets::Monitor)
+            Rod.write_html(context.response, ::Rod::Util::Assets::Monitor)
           elsif path == "/api/pages"
             res = ::Cdp::Target::GetTargets.new(nil).call(self)
             list = res.target_infos.select { |info| info.type == "page" }
             Rod.write_json(context.response, list)
           elsif path.starts_with?("/page/")
-            Rod.write_html(context.response, ::Rod::Lib::Assets::MonitorPage)
+            Rod.write_html(context.response, ::Rod::Util::Assets::MonitorPage)
           elsif path.starts_with?("/api/page/")
             id = path.split('/').last
             res = ::Cdp::Target::GetTargets.new(nil).call(self)
@@ -143,7 +143,7 @@ module Rod
 
   class Page
     def expose_helpers(*list : JS::Function) : Nil
-      rand_name = "_" + ::Rod::Lib::Utils.rand_string(8)
+      rand_name = "_" + ::Rod::Util::Utils.rand_string(8)
       fn = JS::Function.new(
         name: rand_name,
         definition: "() => { window.rod = functions }",
@@ -153,7 +153,7 @@ module Rod
     end
 
     def overlay(left : Float64, top : Float64, width : Float64, height : Float64, msg : String) : Proc(Nil)
-      id = ::Rod::Lib::Utils.rand_string(8)
+      id = ::Rod::Util::Utils.rand_string(8)
       begin
         root_page.evaluate(root_page.eval_helper(JS::OVERLAY, id, left, top, width, height, msg).by_promise)
       rescue
@@ -168,7 +168,7 @@ module Rod
       rendered = [Rod.trace_type_label(typ)] + msg.to_a.map(&.to_s) + [self.to_s]
       trace_logger = @browser.trace_logger
       if trace_logger
-        logger = trace_logger.as(Rod::Lib::Utils::Log)
+        logger = trace_logger.as(Rod::Util::Utils::Log)
         logger.println(rendered)
       else
         @browser.logger.info { rendered.join(" ") }
@@ -182,7 +182,7 @@ module Rod
       rendered = [Rod.trace_type_label(TraceTypeQuery), opts.to_s, self.to_s]
       trace_logger = @browser.trace_logger
       if trace_logger
-        logger = trace_logger.as(Rod::Lib::Utils::Log)
+        logger = trace_logger.as(Rod::Util::Utils::Log)
         logger.println(rendered)
       else
         @browser.logger.info { rendered.join(" ") }
@@ -197,7 +197,7 @@ module Rod
       rendered = [Rod.trace_type_label(TraceTypeWaitRequestsIdle), meta.to_json, self.to_s]
       trace_logger = @browser.trace_logger
       if trace_logger
-        logger = trace_logger.as(Rod::Lib::Utils::Log)
+        logger = trace_logger.as(Rod::Util::Utils::Log)
         logger.println(rendered)
       else
         @browser.logger.info { rendered.join(" ") }
@@ -217,7 +217,7 @@ module Rod
               lines = [Rod.trace_type_label(TraceTypeWaitRequests), self.to_s, wait_list.to_json]
               trace_logger = @browser.trace_logger
               if trace_logger
-                logger = trace_logger.as(Rod::Lib::Utils::Log)
+                logger = trace_logger.as(Rod::Util::Utils::Log)
                 logger.println(lines)
               else
                 @browser.logger.info { lines.join(" ") }
@@ -251,7 +251,7 @@ module Rod
 
   class Element
     def overlay(msg : String) : Proc(Nil)
-      id = ::Rod::Lib::Utils.rand_string(8)
+      id = ::Rod::Util::Utils.rand_string(8)
       begin
         evaluate(@page.eval_helper(JS::ELEMENT_OVERLAY, id, msg).by_promise)
       rescue
@@ -266,7 +266,7 @@ module Rod
       rendered = [Rod.trace_type_label(typ)] + msg.to_a.map(&.to_s) + [self.to_s]
       trace_logger = @page.browser.trace_logger
       if trace_logger
-        logger = trace_logger.as(Rod::Lib::Utils::Log)
+        logger = trace_logger.as(Rod::Util::Utils::Log)
         logger.println(rendered)
       else
         @page.browser.logger.info { rendered.join(" ") }
@@ -277,7 +277,7 @@ module Rod
 
   class Mouse
     def init_mouse_tracer : Nil
-      @page.evaluate(@page.eval_helper(JS::INIT_MOUSE_TRACER, @id, ::Rod::Lib::Assets::MousePointer).by_promise)
+      @page.evaluate(@page.eval_helper(JS::INIT_MOUSE_TRACER, @id, ::Rod::Util::Assets::MousePointer).by_promise)
     rescue
     end
 

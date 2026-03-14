@@ -1,5 +1,5 @@
 require "./types"
-require "./lib/input/input"
+require "./util/input/input"
 
 module Rod
   # Touch presents a touch device, such as a hand with fingers, each finger is a Cdp::Input::TouchPoint.

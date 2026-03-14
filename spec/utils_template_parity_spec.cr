@@ -2,7 +2,7 @@ require "./spec_helper"
 
 describe "utils template parity" do
   it "renders key/value, nested field, and function tokens" do
-    out = Rod::Lib::Utils.s(
+    out = Rod::Util::Utils.s(
       "{{.a}} {{.b}} {{.c.A}} {{d}}",
       "a", "<value>",
       "b", 10,

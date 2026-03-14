@@ -1,9 +1,9 @@
 require "./spec_helper"
 
-describe Rod::Lib::Devices do
+describe Rod::Util::Devices do
   it "ports utils_test.go behavior" do
-    v = Rod::Lib::Devices::IPad.metrics_emulation
-    touch = Rod::Lib::Devices::IPad.touch_emulation
+    v = Rod::Util::Devices::IPad.metrics_emulation
+    touch = Rod::Util::Devices::IPad.touch_emulation
 
     v.should_not be_nil
     v = v.not_nil!
@@ -15,8 +15,8 @@ describe Rod::Lib::Devices do
     v.mobile?.should be_true
     touch.enabled?.should be_true
 
-    v = Rod::Lib::Devices::LaptopWithMDPIScreen.landscape.metrics_emulation
-    touch = Rod::Lib::Devices::LaptopWithMDPIScreen.touch_emulation
+    v = Rod::Util::Devices::LaptopWithMDPIScreen.landscape.metrics_emulation
+    touch = Rod::Util::Devices::LaptopWithMDPIScreen.touch_emulation
 
     v.should_not be_nil
     v = v.not_nil!
@@ -26,12 +26,12 @@ describe Rod::Lib::Devices do
     v.mobile?.should be_false
     touch.enabled?.should be_false
 
-    u = Rod::Lib::Devices::IPad.user_agent_emulation
+    u = Rod::Util::Devices::IPad.user_agent_emulation
     u.should_not be_nil
     u.not_nil!.user_agent.should eq("Mozilla/5.0 (iPad; CPU OS 11_0 like Mac OS X) AppleWebKit/604.1.34 (KHTML, like Gecko) Version/11.0 Mobile/15A5341f Safari/604.1")
 
-    Rod::Lib::Devices::Clear.metrics_emulation.should be_nil
-    Rod::Lib::Devices::Clear.touch_emulation.enabled?.should be_false
-    Rod::Lib::Devices::Clear.user_agent_emulation.should be_nil
+    Rod::Util::Devices::Clear.metrics_emulation.should be_nil
+    Rod::Util::Devices::Clear.touch_emulation.enabled?.should be_false
+    Rod::Util::Devices::Clear.user_agent_emulation.should be_nil
   end
 end

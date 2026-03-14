@@ -10,7 +10,7 @@ require "lib_c"
 require "./leakless"
 require "./url_parser"
 
-module Rod::Lib::Launcher
+module Rod::Util::Launcher
   HEADER_NAME          = "Rod-Launcher"
   ERR_ALREADY_LAUNCHED = "already launched"
   @@look_path_provider = -> { Browser.look_path }
@@ -146,7 +146,7 @@ module Rod::Lib::Launcher
 
   # Resolve URL by requesting the JSON version endpoint
   def self.resolve_url(url : String) : String
-    Rod::Lib::URLParser.resolve_url(url)
+    Rod::Util::URLParser.resolve_url(url)
   end
 
   # MustResolveURL variant that raises on error
@@ -221,18 +221,18 @@ module Rod::Lib::Launcher
     property context : HTTP::Client::Context? = nil
     property hosts : Array(Host) = [] of Host
     property revision : Int32 = REVISION_DEFAULT
-    property root_dir : String = ::Rod::Lib::Launcher.default_browser_dir
+    property root_dir : String = ::Rod::Util::Launcher.default_browser_dir
     property logger : ::Log = ::Log.for("rod.launcher")
-    property lock_port : Int32 = ::Rod::Lib::Defaults.lock_port
+    property lock_port : Int32 = ::Rod::Util::Defaults.lock_port
     property http_client : HTTP::Client? = nil
 
     def initialize(
       @context = nil,
-      @hosts = [->::Rod::Lib::Launcher.host_google(Int32), ->::Rod::Lib::Launcher.host_npm(Int32), ->::Rod::Lib::Launcher.host_playwright(Int32)],
+      @hosts = [->::Rod::Util::Launcher.host_google(Int32), ->::Rod::Util::Launcher.host_npm(Int32), ->::Rod::Util::Launcher.host_playwright(Int32)],
       @revision = REVISION_DEFAULT,
-      @root_dir = ::Rod::Lib::Launcher.default_browser_dir,
+      @root_dir = ::Rod::Util::Launcher.default_browser_dir,
       @logger = ::Log.for("rod.launcher"),
-      @lock_port = ::Rod::Lib::Defaults.lock_port,
+      @lock_port = ::Rod::Util::Defaults.lock_port,
       @http_client = nil,
     )
     end
@@ -244,7 +244,7 @@ module Rod::Lib::Launcher
 
     # Binary path of the downloaded browser.
     def bin_path : String
-      bin = case ::Rod::Lib::Launcher.os_name
+      bin = case ::Rod::Util::Launcher.os_name
             when "darwin"
               "Chromium.app/Contents/MacOS/Chromium"
             when "linux"
@@ -252,7 +252,7 @@ module Rod::Lib::Launcher
             when "windows"
               "chrome.exe"
             else
-              raise "Unsupported OS: #{::Rod::Lib::Launcher.os_name}"
+              raise "Unsupported OS: #{::Rod::Util::Launcher.os_name}"
             end
       File.join(dir, bin)
     end
@@ -381,7 +381,7 @@ module Rod::Lib::Launcher
     # If Browser#bin_path is not valid it will auto download the browser.
     def get : String
       # Use leakless lock port to prevent race downloading
-      cleanup = Rod::Lib::Leakless.lock_port(@lock_port)
+      cleanup = Rod::Util::Leakless.lock_port(@lock_port)
       begin
         validate
         bin_path
@@ -402,7 +402,7 @@ module Rod::Lib::Launcher
 
     # LookPath searches for the browser executable from often used paths on current OS.
     def self.look_path : Tuple(String?, Bool)
-      list = case ::Rod::Lib::Launcher.os_name
+      list = case ::Rod::Util::Launcher.os_name
              when "darwin"
                [
                  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -561,7 +561,7 @@ module Rod::Lib::Launcher
     # UserDataDir will use OS tmp dir by default, this folder will usually be cleaned up by the OS after reboot.
     # It will auto download the browser binary according to the current platform.
     def initialize
-      dir = ::Rod::Lib::Defaults.dir
+      dir = ::Rod::Util::Defaults.dir
       if dir.empty?
         dir = File.join(DEFAULT_USER_DATA_DIR_PREFIX, Random::Secure.hex(4))
       end
@@ -574,11 +574,11 @@ module Rod::Lib::Launcher
       @is_launched = false
 
       # Set default flags (similar to Go's New())
-      set(Flags::BIN, ::Rod::Lib::Defaults.bin)
-      set(Flags::LEAKLESS) if ::Rod::Lib::Defaults.lock_port > 0
+      set(Flags::BIN, ::Rod::Util::Defaults.bin)
+      set(Flags::LEAKLESS) if ::Rod::Util::Defaults.lock_port > 0
       set(Flags::USER_DATA_DIR, dir)
-      set(Flags::REMOTE_DEBUGGING_PORT, ::Rod::Lib::Defaults.port)
-      set(Flags::HEADLESS) unless ::Rod::Lib::Defaults.show
+      set(Flags::REMOTE_DEBUGGING_PORT, ::Rod::Util::Defaults.port)
+      set(Flags::HEADLESS) unless ::Rod::Util::Defaults.show
 
       # Default flags
       set("no-first-run")
@@ -606,9 +606,9 @@ module Rod::Lib::Launcher
       set("use-mock-keychain")
 
       # Conditional defaults
-      set("auto-open-devtools-for-tabs") if ::Rod::Lib::Defaults.devtools
-      set(Flags::NO_SANDBOX) if ::Rod::Lib::Launcher.in_container?
-      set(Flags::PROXY_SERVER, ::Rod::Lib::Defaults.proxy) unless ::Rod::Lib::Defaults.proxy.empty?
+      set("auto-open-devtools-for-tabs") if ::Rod::Util::Defaults.devtools
+      set(Flags::NO_SANDBOX) if ::Rod::Util::Launcher.in_container?
+      set(Flags::PROXY_SERVER, ::Rod::Util::Defaults.proxy) unless ::Rod::Util::Defaults.proxy.empty?
     end
 
     # Set a command line argument when launching the browser.
@@ -813,15 +813,15 @@ module Rod::Lib::Launcher
     end
 
     # Start a managed websocket CDP client.
-    def client : Rod::Lib::Cdp::Client
+    def client : Rod::Util::Cdp::Client
       url, headers = client_header
-      ws = Rod::Lib::Cdp::WebSocket.new
+      ws = Rod::Util::Cdp::WebSocket.new
       ws.connect(url, headers)
-      Rod::Lib::Cdp::Client.new.start(ws)
+      Rod::Util::Cdp::Client.new.start(ws)
     end
 
     # MustClient variant.
-    def must_client : Rod::Lib::Cdp::Client
+    def must_client : Rod::Util::Cdp::Client
       client
     end
 
@@ -880,24 +880,24 @@ module Rod::Lib::Launcher
       @logger.info { "Launching browser: #{bin_path} #{args.join(" ")}" }
 
       # Try to resolve URL first if not using leakless
-      unless has(Flags::LEAKLESS) && Rod::Lib::Leakless.support?
+      unless has(Flags::LEAKLESS) && Rod::Util::Leakless.support?
         port = get(Flags::REMOTE_DEBUGGING_PORT) || "0"
         begin
-          return ::Rod::Lib::Launcher.resolve_url(port)
+          return ::Rod::Util::Launcher.resolve_url(port)
         rescue
           # Browser not running on that port, continue to launch
         end
       end
 
-      ll : Rod::Lib::Leakless::Launcher? = nil
+      ll : Rod::Util::Leakless::Launcher? = nil
       process : Process
-      parser = Rod::Lib::URLParser.new
+      parser = Rod::Util::URLParser.new
       if ctx = @ctx
         parser.context(ctx)
       end
 
-      if has(Flags::LEAKLESS) && Rod::Lib::Leakless.support?
-        ll = Rod::Lib::Leakless.new
+      if has(Flags::LEAKLESS) && Rod::Util::Leakless.support?
+        ll = Rod::Util::Leakless.new
         process = ll.command(bin_path, args, error: parser)
 
         # Wait for PID from leakless channel
@@ -1081,7 +1081,7 @@ module Rod::Lib::Launcher
       working_dir = Dir.current
       @before_launch = ->(launcher : Launcher, ctx : HTTP::Server::Context) {
         {
-          Flags::BIN           => ::Rod::Lib::Launcher.default_browser_dir,
+          Flags::BIN           => ::Rod::Util::Launcher.default_browser_dir,
           Flags::WORKING_DIR   => working_dir,
           Flags::USER_DATA_DIR => Launcher::DEFAULT_USER_DATA_DIR_PREFIX,
         }.each do |flag, allowed|

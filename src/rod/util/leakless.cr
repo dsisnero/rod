@@ -1,7 +1,7 @@
 # Leakless process launcher for Crystal port of Rod
 # Provides similar interface to Go's github.com/ysmood/leakless package
 # Ensures browser processes are killed when parent process exits
-module Rod::Lib::Leakless
+module Rod::Util::Leakless
   class_property? support : Bool = true
   class_property lock_port : Int32 = 2968
 
@@ -45,7 +45,7 @@ module Rod::Lib::Leakless
     # Create a command that will be managed by leakless
     def command(bin : String, args : Array(String) = [] of String, error : IO = Process::Redirect::Pipe) : Process
       # Register cleanup handler if not already done
-      ::Rod::Lib::Leakless.register_cleanup
+      ::Rod::Util::Leakless.register_cleanup
 
       # Create process with pipes for stderr/stdout
       process = Process.new(bin, args, output: Process::Redirect::Pipe, error: error)
@@ -59,7 +59,7 @@ module Rod::Lib::Leakless
           pid = process.pid.to_i32
           @pid = pid
           # Track PID for cleanup
-          ::Rod::Lib::Leakless.tracked_processes << pid
+          ::Rod::Util::Leakless.tracked_processes << pid
           @pid_channel.try &.send(pid)
         rescue ex
           @error = ex.message
@@ -83,7 +83,7 @@ module Rod::Lib::Leakless
     # Cleanup resources
     def cleanup : Nil
       if pid = @pid
-        ::Rod::Lib::Leakless.tracked_processes.delete(pid)
+        ::Rod::Util::Leakless.tracked_processes.delete(pid)
       end
       @process.try &.terminate rescue nil
       @pid_channel.try &.close

@@ -2,12 +2,12 @@ require "./goob"
 require "./gson"
 require "http"
 require "./context"
-require "./lib/cdp"
-require "./lib/proto"
-require "./lib/defaults"
-require "./lib/devices"
-require "./lib/launcher"
-require "./lib/utils"
+require "./util/cdp"
+require "./util/proto"
+require "./util/defaults"
+require "./util/devices"
+require "./util/launcher"
+require "./util/utils"
 require "./hijack"
 require "../cdp/target/target"
 require "../cdp/browser/browser"
@@ -26,13 +26,13 @@ module Rod
     property ctx : Context
     property sleeper : Proc(::Utils::Sleeper)
     @logger : ::Log
-    @trace_logger : Rod::Lib::Utils::Log?
+    @trace_logger : Rod::Util::Utils::Log?
     @slow_motion : Time::Span
     @trace : Bool
     @monitor : String?
-    @default_device : ::Rod::Lib::Devices::Device
+    @default_device : ::Rod::Util::Devices::Device
     @control_url : String
-    @client : Lib::Cdp::Client?
+    @client : Util::Cdp::Client?
     @targets : Hash(String, TargetInfo)
     @targets_lock : Mutex
     @states : Hash(StateKey, JSON::Any)
@@ -56,7 +56,7 @@ module Rod
     def initialize(@ctx : Context = Context.background, @sleeper = -> { ::Utils::Sleeper.new }, @logger = ::Defaults.logger, @slow_motion = ::Defaults.slow, @trace = ::Defaults.trace, @monitor = nil)
       @e = ->(err : Exception?) { raise err if err }
       @trace_logger = nil
-      @default_device = ::Rod::Lib::Devices::LaptopWithMDPIScreen.landscape
+      @default_device = ::Rod::Util::Devices::LaptopWithMDPIScreen.landscape
       @control_url = ::Defaults.url
       @targets = {} of String => TargetInfo
       @targets_lock = Mutex.new
@@ -113,20 +113,20 @@ module Rod
     end
 
     # Client sets the cdp client.
-    def client(c : Lib::Cdp::Client) : Browser
+    def client(c : Util::Cdp::Client) : Browser
       @client = c
       self
     end
 
     # DefaultDevice sets the default emulation for new pages.
-    def default_device(device : ::Rod::Lib::Devices::Device) : Browser
+    def default_device(device : ::Rod::Util::Devices::Device) : Browser
       @default_device = device
       self
     end
 
     # NoDefaultDevice clears default emulation.
     def no_default_device : Browser
-      @default_device = ::Rod::Lib::Devices::Clear
+      @default_device = ::Rod::Util::Devices::Clear
       self
     end
 
@@ -134,13 +134,13 @@ module Rod
     def connect(ws_url : String = "") : Nil
       if @client.nil?
         url = ws_url.empty? ? @control_url : ws_url
-        url = ::Rod::Lib::Launcher::Launcher.new.launch if url.empty?
+        url = ::Rod::Util::Launcher::Launcher.new.launch if url.empty?
 
-        ws = Lib::Cdp::WebSocket.new
+        ws = Util::Cdp::WebSocket.new
         ws.connect(url)
         # Keep CDP transport logging separate from browser logger.
         # Go parity: CDP logging is quiet by default unless explicitly enabled.
-        client = Lib::Cdp::Client.new
+        client = Util::Cdp::Client.new
         client.start(ws)
         @client = client
       elsif !@control_url.empty?
@@ -150,7 +150,7 @@ module Rod
       init_events
 
       if monitor_url = @monitor
-        ::Rod::Lib::Launcher.open(serve_monitor(monitor_url))
+        ::Rod::Util::Launcher.open(serve_monitor(monitor_url))
       end
 
       Cdp::Target::SetDiscoverTargets.new(true, nil).call(self)
