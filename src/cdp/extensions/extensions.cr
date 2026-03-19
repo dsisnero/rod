@@ -66,9 +66,7 @@ module Cdp::Extensions
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : LoadUnpackedResult
-      res = LoadUnpackedResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, LoadUnpackedResult, c)
     end
   end
 
@@ -112,9 +110,7 @@ module Cdp::Extensions
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetStorageItemsResult
-      res = GetStorageItemsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetStorageItemsResult, c)
     end
   end
 

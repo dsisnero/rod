@@ -101,9 +101,7 @@ module Cdp::CacheStorage
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : RequestCacheNamesResult
-      res = RequestCacheNamesResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, RequestCacheNamesResult, c)
     end
   end
 
@@ -127,9 +125,7 @@ module Cdp::CacheStorage
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : RequestCachedResponseResult
-      res = RequestCachedResponseResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, RequestCachedResponseResult, c)
     end
   end
 
@@ -155,9 +151,7 @@ module Cdp::CacheStorage
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : RequestEntriesResult
-      res = RequestEntriesResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, RequestEntriesResult, c)
     end
   end
 end

@@ -100,9 +100,7 @@ module Cdp::Overlay
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetHighlightObjectForTestResult
-      res = GetHighlightObjectForTestResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetHighlightObjectForTestResult, c)
     end
   end
 
@@ -122,9 +120,7 @@ module Cdp::Overlay
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetGridHighlightObjectsForTestResult
-      res = GetGridHighlightObjectsForTestResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetGridHighlightObjectsForTestResult, c)
     end
   end
 
@@ -144,9 +140,7 @@ module Cdp::Overlay
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetSourceOrderHighlightObjectForTestResult
-      res = GetSourceOrderHighlightObjectForTestResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetSourceOrderHighlightObjectForTestResult, c)
     end
   end
 

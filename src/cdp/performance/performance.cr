@@ -69,9 +69,7 @@ module Cdp::Performance
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetMetricsResult
-      res = GetMetricsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetMetricsResult, c)
     end
   end
 end

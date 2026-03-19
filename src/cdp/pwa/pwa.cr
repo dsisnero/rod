@@ -55,9 +55,7 @@ module Cdp::PWA
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetOsAppStateResult
-      res = GetOsAppStateResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetOsAppStateResult, c)
     end
   end
 
@@ -121,9 +119,7 @@ module Cdp::PWA
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : LaunchResult
-      res = LaunchResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, LaunchResult, c)
     end
   end
 
@@ -145,9 +141,7 @@ module Cdp::PWA
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : LaunchFilesInAppResult
-      res = LaunchFilesInAppResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, LaunchFilesInAppResult, c)
     end
   end
 

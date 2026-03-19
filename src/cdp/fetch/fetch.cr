@@ -221,9 +221,7 @@ module Cdp::Fetch
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetResponseBodyResult
-      res = GetResponseBodyResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetResponseBodyResult, c)
     end
   end
 
@@ -243,9 +241,7 @@ module Cdp::Fetch
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : TakeResponseBodyAsStreamResult
-      res = TakeResponseBodyAsStreamResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, TakeResponseBodyAsStreamResult, c)
     end
   end
 end

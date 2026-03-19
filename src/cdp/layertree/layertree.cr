@@ -83,9 +83,7 @@ module Cdp::LayerTree
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : CompositingReasonsResult
-      res = CompositingReasonsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, CompositingReasonsResult, c)
     end
   end
 
@@ -141,9 +139,7 @@ module Cdp::LayerTree
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : LoadSnapshotResult
-      res = LoadSnapshotResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, LoadSnapshotResult, c)
     end
   end
 
@@ -163,9 +159,7 @@ module Cdp::LayerTree
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : MakeSnapshotResult
-      res = MakeSnapshotResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, MakeSnapshotResult, c)
     end
   end
 
@@ -191,9 +185,7 @@ module Cdp::LayerTree
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : ProfileSnapshotResult
-      res = ProfileSnapshotResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, ProfileSnapshotResult, c)
     end
   end
 
@@ -239,9 +231,7 @@ module Cdp::LayerTree
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : ReplaySnapshotResult
-      res = ReplaySnapshotResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, ReplaySnapshotResult, c)
     end
   end
 
@@ -261,9 +251,7 @@ module Cdp::LayerTree
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SnapshotCommandLogResult
-      res = SnapshotCommandLogResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SnapshotCommandLogResult, c)
     end
   end
 end

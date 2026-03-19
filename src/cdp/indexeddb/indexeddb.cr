@@ -203,9 +203,7 @@ module Cdp::IndexedDB
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : RequestDataResult
-      res = RequestDataResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, RequestDataResult, c)
     end
   end
 
@@ -233,9 +231,7 @@ module Cdp::IndexedDB
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetMetadataResult
-      res = GetMetadataResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetMetadataResult, c)
     end
   end
 
@@ -261,9 +257,7 @@ module Cdp::IndexedDB
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : RequestDatabaseResult
-      res = RequestDatabaseResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, RequestDatabaseResult, c)
     end
   end
 
@@ -287,9 +281,7 @@ module Cdp::IndexedDB
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : RequestDatabaseNamesResult
-      res = RequestDatabaseNamesResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, RequestDatabaseNamesResult, c)
     end
   end
 end

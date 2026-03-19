@@ -137,9 +137,7 @@ module Cdp::HeapProfiler
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetHeapObjectIdResult
-      res = GetHeapObjectIdResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetHeapObjectIdResult, c)
     end
   end
 
@@ -161,9 +159,7 @@ module Cdp::HeapProfiler
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetObjectByHeapObjectIdResult
-      res = GetObjectByHeapObjectIdResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetObjectByHeapObjectIdResult, c)
     end
   end
 
@@ -181,9 +177,7 @@ module Cdp::HeapProfiler
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetSamplingProfileResult
-      res = GetSamplingProfileResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetSamplingProfileResult, c)
     end
   end
 
@@ -247,9 +241,7 @@ module Cdp::HeapProfiler
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : StopSamplingResult
-      res = StopSamplingResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, StopSamplingResult, c)
     end
   end
 

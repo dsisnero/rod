@@ -325,9 +325,7 @@ module Cdp::Page
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : CaptureSnapshotResult
-      res = CaptureSnapshotResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, CaptureSnapshotResult, c)
     end
   end
 
@@ -351,9 +349,7 @@ module Cdp::Page
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : CreateIsolatedWorldResult
-      res = CreateIsolatedWorldResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, CreateIsolatedWorldResult, c)
     end
   end
 
@@ -411,9 +407,7 @@ module Cdp::Page
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetAppManifestResult
-      res = GetAppManifestResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetAppManifestResult, c)
     end
   end
 
@@ -432,9 +426,7 @@ module Cdp::Page
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetInstallabilityErrorsResult
-      res = GetInstallabilityErrorsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetInstallabilityErrorsResult, c)
     end
   end
 
@@ -453,9 +445,7 @@ module Cdp::Page
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetAppIdResult
-      res = GetAppIdResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetAppIdResult, c)
     end
   end
 
@@ -476,9 +466,7 @@ module Cdp::Page
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetAdScriptAncestryResult
-      res = GetAdScriptAncestryResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetAdScriptAncestryResult, c)
     end
   end
 
@@ -496,9 +484,7 @@ module Cdp::Page
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetFrameTreeResult
-      res = GetFrameTreeResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetFrameTreeResult, c)
     end
   end
 
@@ -828,9 +814,7 @@ module Cdp::Page
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SearchInResourceResult
-      res = SearchInResourceResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SearchInResourceResult, c)
     end
   end
 
@@ -892,9 +876,7 @@ module Cdp::Page
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetPermissionsPolicyStateResult
-      res = GetPermissionsPolicyStateResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetPermissionsPolicyStateResult, c)
     end
   end
 
@@ -915,9 +897,7 @@ module Cdp::Page
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetOriginTrialsResult
-      res = GetOriginTrialsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetOriginTrialsResult, c)
     end
   end
 
@@ -1362,9 +1342,7 @@ module Cdp::Page
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetAnnotatedPageContentResult
-      res = GetAnnotatedPageContentResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetAnnotatedPageContentResult, c)
     end
   end
 end

@@ -41,9 +41,7 @@ module Cdp::HeadlessExperimental
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : BeginFrameResult
-      res = BeginFrameResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, BeginFrameResult, c)
     end
   end
 end

@@ -341,9 +341,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : AddRuleResult
-      res = AddRuleResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, AddRuleResult, c)
     end
   end
 
@@ -363,9 +361,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : CollectClassNamesResult
-      res = CollectClassNamesResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, CollectClassNamesResult, c)
     end
   end
 
@@ -387,9 +383,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : CreateStyleSheetResult
-      res = CreateStyleSheetResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, CreateStyleSheetResult, c)
     end
   end
 
@@ -489,9 +483,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetBackgroundColorsResult
-      res = GetBackgroundColorsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetBackgroundColorsResult, c)
     end
   end
 
@@ -511,9 +503,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetComputedStyleForNodeResult
-      res = GetComputedStyleForNodeResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetComputedStyleForNodeResult, c)
     end
   end
 
@@ -542,9 +532,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : ResolveValuesResult
-      res = ResolveValuesResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, ResolveValuesResult, c)
     end
   end
 
@@ -567,9 +555,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetLonghandPropertiesResult
-      res = GetLonghandPropertiesResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetLonghandPropertiesResult, c)
     end
   end
 
@@ -589,9 +575,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetInlineStylesForNodeResult
-      res = GetInlineStylesForNodeResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetInlineStylesForNodeResult, c)
     end
   end
 
@@ -612,9 +596,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetAnimatedStylesForNodeResult
-      res = GetAnimatedStylesForNodeResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetAnimatedStylesForNodeResult, c)
     end
   end
 
@@ -634,9 +616,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetMatchedStylesForNodeResult
-      res = GetMatchedStylesForNodeResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetMatchedStylesForNodeResult, c)
     end
   end
 
@@ -655,9 +635,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetEnvironmentVariablesResult
-      res = GetEnvironmentVariablesResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetEnvironmentVariablesResult, c)
     end
   end
 
@@ -675,9 +653,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetMediaQueriesResult
-      res = GetMediaQueriesResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetMediaQueriesResult, c)
     end
   end
 
@@ -697,9 +673,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetPlatformFontsForNodeResult
-      res = GetPlatformFontsForNodeResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetPlatformFontsForNodeResult, c)
     end
   end
 
@@ -719,9 +693,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetStyleSheetTextResult
-      res = GetStyleSheetTextResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetStyleSheetTextResult, c)
     end
   end
 
@@ -742,9 +714,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetLayersForNodeResult
-      res = GetLayersForNodeResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetLayersForNodeResult, c)
     end
   end
 
@@ -767,9 +737,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetLocationForSelectorResult
-      res = GetLocationForSelectorResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetLocationForSelectorResult, c)
     end
   end
 
@@ -830,9 +798,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : TakeComputedStyleUpdatesResult
-      res = TakeComputedStyleUpdatesResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, TakeComputedStyleUpdatesResult, c)
     end
   end
 
@@ -880,9 +846,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SetPropertyRulePropertyNameResult
-      res = SetPropertyRulePropertyNameResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SetPropertyRulePropertyNameResult, c)
     end
   end
 
@@ -906,9 +870,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SetKeyframeKeyResult
-      res = SetKeyframeKeyResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SetKeyframeKeyResult, c)
     end
   end
 
@@ -932,9 +894,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SetMediaTextResult
-      res = SetMediaTextResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SetMediaTextResult, c)
     end
   end
 
@@ -959,9 +919,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SetContainerQueryTextResult
-      res = SetContainerQueryTextResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SetContainerQueryTextResult, c)
     end
   end
 
@@ -986,9 +944,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SetSupportsTextResult
-      res = SetSupportsTextResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SetSupportsTextResult, c)
     end
   end
 
@@ -1013,9 +969,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SetScopeTextResult
-      res = SetScopeTextResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SetScopeTextResult, c)
     end
   end
 
@@ -1039,9 +993,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SetRuleSelectorResult
-      res = SetRuleSelectorResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SetRuleSelectorResult, c)
     end
   end
 
@@ -1063,9 +1015,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SetStyleSheetTextResult
-      res = SetStyleSheetTextResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SetStyleSheetTextResult, c)
     end
   end
 
@@ -1087,9 +1037,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SetStyleTextsResult
-      res = SetStyleTextsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SetStyleTextsResult, c)
     end
   end
 
@@ -1125,9 +1073,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : StopRuleUsageTrackingResult
-      res = StopRuleUsageTrackingResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, StopRuleUsageTrackingResult, c)
     end
   end
 
@@ -1145,9 +1091,7 @@ module Cdp::CSS
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : TakeCoverageDeltaResult
-      res = TakeCoverageDeltaResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, TakeCoverageDeltaResult, c)
     end
   end
 

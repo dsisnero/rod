@@ -512,9 +512,7 @@ module Cdp::Emulation
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetOverriddenSensorInformationResult
-      res = GetOverriddenSensorInformationResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetOverriddenSensorInformationResult, c)
     end
   end
 
@@ -765,9 +763,7 @@ module Cdp::Emulation
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SetVirtualTimePolicyResult
-      res = SetVirtualTimePolicyResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SetVirtualTimePolicyResult, c)
     end
   end
 
@@ -958,9 +954,7 @@ module Cdp::Emulation
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetScreenInfosResult
-      res = GetScreenInfosResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetScreenInfosResult, c)
     end
   end
 
@@ -999,9 +993,7 @@ module Cdp::Emulation
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : AddScreenResult
-      res = AddScreenResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, AddScreenResult, c)
     end
   end
 

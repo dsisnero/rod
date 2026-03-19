@@ -99,9 +99,7 @@ module Cdp::Profiler
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetBestEffortCoverageResult
-      res = GetBestEffortCoverageResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetBestEffortCoverageResult, c)
     end
   end
 
@@ -163,9 +161,7 @@ module Cdp::Profiler
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : StartPreciseCoverageResult
-      res = StartPreciseCoverageResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, StartPreciseCoverageResult, c)
     end
   end
 
@@ -183,9 +179,7 @@ module Cdp::Profiler
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : StopResult
-      res = StopResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, StopResult, c)
     end
   end
 
@@ -221,9 +215,7 @@ module Cdp::Profiler
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : TakePreciseCoverageResult
-      res = TakePreciseCoverageResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, TakePreciseCoverageResult, c)
     end
   end
 end

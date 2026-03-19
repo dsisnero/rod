@@ -55,9 +55,7 @@ module Cdp::SystemInfo
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetInfoResult
-      res = GetInfoResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetInfoResult, c)
     end
   end
 
@@ -77,9 +75,7 @@ module Cdp::SystemInfo
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetFeatureStateResult
-      res = GetFeatureStateResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetFeatureStateResult, c)
     end
   end
 
@@ -97,9 +93,7 @@ module Cdp::SystemInfo
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetProcessInfoResult
-      res = GetProcessInfoResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetProcessInfoResult, c)
     end
   end
 end

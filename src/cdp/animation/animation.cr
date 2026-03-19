@@ -91,9 +91,7 @@ module Cdp::Animation
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetCurrentTimeResult
-      res = GetCurrentTimeResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetCurrentTimeResult, c)
     end
   end
 
@@ -111,9 +109,7 @@ module Cdp::Animation
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetPlaybackRateResult
-      res = GetPlaybackRateResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetPlaybackRateResult, c)
     end
   end
 
@@ -153,9 +149,7 @@ module Cdp::Animation
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : ResolveAnimationResult
-      res = ResolveAnimationResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, ResolveAnimationResult, c)
     end
   end
 

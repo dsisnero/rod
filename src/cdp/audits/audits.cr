@@ -58,9 +58,7 @@ module Cdp::Audits
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetEncodedResponseResult
-      res = GetEncodedResponseResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetEncodedResponseResult, c)
     end
   end
 
@@ -134,9 +132,7 @@ module Cdp::Audits
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : CheckFormsIssuesResult
-      res = CheckFormsIssuesResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, CheckFormsIssuesResult, c)
     end
   end
 end

@@ -91,9 +91,7 @@ module Cdp::WebAuthn
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : AddVirtualAuthenticatorResult
-      res = AddVirtualAuthenticatorResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, AddVirtualAuthenticatorResult, c)
     end
   end
 
@@ -183,9 +181,7 @@ module Cdp::WebAuthn
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetCredentialResult
-      res = GetCredentialResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetCredentialResult, c)
     end
   end
 
@@ -205,9 +201,7 @@ module Cdp::WebAuthn
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetCredentialsResult
-      res = GetCredentialsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetCredentialsResult, c)
     end
   end
 

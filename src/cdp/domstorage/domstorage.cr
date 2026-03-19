@@ -90,9 +90,7 @@ module Cdp::DOMStorage
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetDOMStorageItemsResult
-      res = GetDOMStorageItemsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetDOMStorageItemsResult, c)
     end
   end
 

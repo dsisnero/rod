@@ -404,6 +404,15 @@ module Cdp::Audits
     property loader_id : Cdp::Network::LoaderId
   end
 
+  @[Deprecated]
+  struct NavigatorUserAgentIssueDetails
+    include JSON::Serializable
+    @[JSON::Field(key: "url", emit_null: false)]
+    property url : String
+    @[JSON::Field(key: "location", emit_null: false)]
+    property location : SourceCodeLocation?
+  end
+
   struct SharedDictionaryIssueDetails
     include JSON::Serializable
     @[JSON::Field(key: "sharedDictionaryError", emit_null: false)]

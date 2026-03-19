@@ -155,9 +155,7 @@ module Cdp::Storage
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetStorageKeyResult
-      res = GetStorageKeyResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetStorageKeyResult, c)
     end
   end
 
@@ -221,9 +219,7 @@ module Cdp::Storage
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetCookiesResult
-      res = GetCookiesResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetCookiesResult, c)
     end
   end
 
@@ -285,9 +281,7 @@ module Cdp::Storage
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetUsageAndQuotaResult
-      res = GetUsageAndQuotaResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetUsageAndQuotaResult, c)
     end
   end
 
@@ -489,9 +483,7 @@ module Cdp::Storage
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetTrustTokensResult
-      res = GetTrustTokensResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetTrustTokensResult, c)
     end
   end
 
@@ -512,9 +504,7 @@ module Cdp::Storage
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : ClearTrustTokensResult
-      res = ClearTrustTokensResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, ClearTrustTokensResult, c)
     end
   end
 
@@ -537,9 +527,7 @@ module Cdp::Storage
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetInterestGroupDetailsResult
-      res = GetInterestGroupDetailsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetInterestGroupDetailsResult, c)
     end
   end
 
@@ -602,9 +590,7 @@ module Cdp::Storage
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetSharedStorageMetadataResult
-      res = GetSharedStorageMetadataResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetSharedStorageMetadataResult, c)
     end
   end
 
@@ -625,9 +611,7 @@ module Cdp::Storage
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetSharedStorageEntriesResult
-      res = GetSharedStorageEntriesResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetSharedStorageEntriesResult, c)
     end
   end
 
@@ -803,9 +787,7 @@ module Cdp::Storage
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : RunBounceTrackingMitigationsResult
-      res = RunBounceTrackingMitigationsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, RunBounceTrackingMitigationsResult, c)
     end
   end
 
@@ -866,9 +848,7 @@ module Cdp::Storage
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SendPendingAttributionReportsResult
-      res = SendPendingAttributionReportsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SendPendingAttributionReportsResult, c)
     end
   end
 
@@ -887,9 +867,7 @@ module Cdp::Storage
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetRelatedWebsiteSetsResult
-      res = GetRelatedWebsiteSetsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetRelatedWebsiteSetsResult, c)
     end
   end
 
@@ -912,9 +890,7 @@ module Cdp::Storage
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetAffectedUrlsForThirdPartyCookieMetadataResult
-      res = GetAffectedUrlsForThirdPartyCookieMetadataResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetAffectedUrlsForThirdPartyCookieMetadataResult, c)
     end
   end
 

@@ -286,9 +286,7 @@ module Cdp::Network
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : EmulateNetworkConditionsByRuleResult
-      res = EmulateNetworkConditionsByRuleResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, EmulateNetworkConditionsByRuleResult, c)
     end
   end
 
@@ -389,9 +387,7 @@ module Cdp::Network
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetCertificateResult
-      res = GetCertificateResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetCertificateResult, c)
     end
   end
 
@@ -431,9 +427,7 @@ module Cdp::Network
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetResponseBodyResult
-      res = GetResponseBodyResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetResponseBodyResult, c)
     end
   end
 
@@ -453,9 +447,7 @@ module Cdp::Network
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetRequestPostDataResult
-      res = GetRequestPostDataResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetRequestPostDataResult, c)
     end
   end
 
@@ -476,9 +468,7 @@ module Cdp::Network
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetResponseBodyForInterceptionResult
-      res = GetResponseBodyForInterceptionResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetResponseBodyForInterceptionResult, c)
     end
   end
 
@@ -499,9 +489,7 @@ module Cdp::Network
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : TakeResponseBodyForInterceptionAsStreamResult
-      res = TakeResponseBodyForInterceptionAsStreamResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, TakeResponseBodyForInterceptionAsStreamResult, c)
     end
   end
 
@@ -549,9 +537,7 @@ module Cdp::Network
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SearchInResponseBodyResult
-      res = SearchInResponseBodyResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SearchInResponseBodyResult, c)
     end
   end
 
@@ -658,9 +644,7 @@ module Cdp::Network
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SetCookieResult
-      res = SetCookieResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SetCookieResult, c)
     end
   end
 
@@ -742,9 +726,7 @@ module Cdp::Network
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : StreamResourceContentResult
-      res = StreamResourceContentResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, StreamResourceContentResult, c)
     end
   end
 
@@ -765,9 +747,7 @@ module Cdp::Network
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetSecurityIsolationStatusResult
-      res = GetSecurityIsolationStatusResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetSecurityIsolationStatusResult, c)
     end
   end
 
@@ -830,9 +810,7 @@ module Cdp::Network
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : FetchSchemefulSiteResult
-      res = FetchSchemefulSiteResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, FetchSchemefulSiteResult, c)
     end
   end
 
@@ -857,9 +835,7 @@ module Cdp::Network
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : LoadNetworkResourceResult
-      res = LoadNetworkResourceResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, LoadNetworkResourceResult, c)
     end
   end
 

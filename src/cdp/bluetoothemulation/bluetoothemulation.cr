@@ -237,9 +237,7 @@ module Cdp::BluetoothEmulation
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : AddServiceResult
-      res = AddServiceResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, AddServiceResult, c)
     end
   end
 
@@ -283,9 +281,7 @@ module Cdp::BluetoothEmulation
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : AddCharacteristicResult
-      res = AddCharacteristicResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, AddCharacteristicResult, c)
     end
   end
 
@@ -327,9 +323,7 @@ module Cdp::BluetoothEmulation
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : AddDescriptorResult
-      res = AddDescriptorResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, AddDescriptorResult, c)
     end
   end
 

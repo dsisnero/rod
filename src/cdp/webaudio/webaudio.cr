@@ -73,9 +73,7 @@ module Cdp::WebAudio
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetRealtimeDataResult
-      res = GetRealtimeDataResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetRealtimeDataResult, c)
     end
   end
 end

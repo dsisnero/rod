@@ -75,9 +75,7 @@ module Cdp::Tracing
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetCategoriesResult
-      res = GetCategoriesResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetCategoriesResult, c)
     end
   end
 
@@ -96,9 +94,7 @@ module Cdp::Tracing
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetTrackEventDescriptorResult
-      res = GetTrackEventDescriptorResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetTrackEventDescriptorResult, c)
     end
   end
 
@@ -142,9 +138,7 @@ module Cdp::Tracing
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : RequestMemoryDumpResult
-      res = RequestMemoryDumpResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, RequestMemoryDumpResult, c)
     end
   end
 

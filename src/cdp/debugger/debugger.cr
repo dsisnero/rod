@@ -223,9 +223,7 @@ module Cdp::Debugger
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : EnableResult
-      res = EnableResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, EnableResult, c)
     end
   end
 
@@ -261,9 +259,7 @@ module Cdp::Debugger
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : EvaluateOnCallFrameResult
-      res = EvaluateOnCallFrameResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, EvaluateOnCallFrameResult, c)
     end
   end
 
@@ -287,9 +283,7 @@ module Cdp::Debugger
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetPossibleBreakpointsResult
-      res = GetPossibleBreakpointsResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetPossibleBreakpointsResult, c)
     end
   end
 
@@ -309,9 +303,7 @@ module Cdp::Debugger
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetScriptSourceResult
-      res = GetScriptSourceResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetScriptSourceResult, c)
     end
   end
 
@@ -332,9 +324,7 @@ module Cdp::Debugger
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : DisassembleWasmModuleResult
-      res = DisassembleWasmModuleResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, DisassembleWasmModuleResult, c)
     end
   end
 
@@ -355,9 +345,7 @@ module Cdp::Debugger
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : NextWasmDisassemblyChunkResult
-      res = NextWasmDisassemblyChunkResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, NextWasmDisassemblyChunkResult, c)
     end
   end
 
@@ -378,9 +366,7 @@ module Cdp::Debugger
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetStackTraceResult
-      res = GetStackTraceResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetStackTraceResult, c)
     end
   end
 
@@ -440,9 +426,7 @@ module Cdp::Debugger
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : RestartFrameResult
-      res = RestartFrameResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, RestartFrameResult, c)
     end
   end
 
@@ -488,9 +472,7 @@ module Cdp::Debugger
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SearchInContentResult
-      res = SearchInContentResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SearchInContentResult, c)
     end
   end
 
@@ -599,9 +581,7 @@ module Cdp::Debugger
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SetBreakpointResult
-      res = SetBreakpointResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SetBreakpointResult, c)
     end
   end
 
@@ -621,9 +601,7 @@ module Cdp::Debugger
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SetInstrumentationBreakpointResult
-      res = SetInstrumentationBreakpointResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SetInstrumentationBreakpointResult, c)
     end
   end
 
@@ -653,9 +631,7 @@ module Cdp::Debugger
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SetBreakpointByUrlResult
-      res = SetBreakpointByUrlResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SetBreakpointByUrlResult, c)
     end
   end
 
@@ -678,9 +654,7 @@ module Cdp::Debugger
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SetBreakpointOnFunctionCallResult
-      res = SetBreakpointOnFunctionCallResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SetBreakpointOnFunctionCallResult, c)
     end
   end
 
@@ -767,9 +741,7 @@ module Cdp::Debugger
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SetScriptSourceResult
-      res = SetScriptSourceResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, SetScriptSourceResult, c)
     end
   end
 

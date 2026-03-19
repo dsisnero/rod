@@ -36,9 +36,7 @@ module Cdp::FileSystem
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetDirectoryResult
-      res = GetDirectoryResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetDirectoryResult, c)
     end
   end
 end

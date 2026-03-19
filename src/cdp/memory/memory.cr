@@ -71,9 +71,7 @@ module Cdp::Memory
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetDOMCountersResult
-      res = GetDOMCountersResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetDOMCountersResult, c)
     end
   end
 
@@ -91,9 +89,7 @@ module Cdp::Memory
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetDOMCountersForLeakDetectionResult
-      res = GetDOMCountersForLeakDetectionResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetDOMCountersForLeakDetectionResult, c)
     end
   end
 
@@ -227,9 +223,7 @@ module Cdp::Memory
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetAllTimeSamplingProfileResult
-      res = GetAllTimeSamplingProfileResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetAllTimeSamplingProfileResult, c)
     end
   end
 
@@ -247,9 +241,7 @@ module Cdp::Memory
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetBrowserSamplingProfileResult
-      res = GetBrowserSamplingProfileResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetBrowserSamplingProfileResult, c)
     end
   end
 
@@ -267,9 +259,7 @@ module Cdp::Memory
 
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetSamplingProfileResult
-      res = GetSamplingProfileResult.new
-      Cdp.call(proto_req, self, res, c)
-      res
+      Cdp.call(proto_req, self, GetSamplingProfileResult, c)
     end
   end
 end
