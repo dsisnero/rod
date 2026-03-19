@@ -94,9 +94,7 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
     <%- if !cmd.returns.empty? -%>
     # Call sends the request and returns the result.
     def call(c : <%= base_pkg %>::Client) : <%= command_returns_type(cmd) %>
-      res = <%= command_returns_type(cmd) %>.new
-      <%= base_pkg %>.call(proto_req, self, res, c)
-      res
+      <%= base_pkg %>.call(proto_req, self, <%= command_returns_type(cmd) %>, c)
     end
     <%- else -%>
     # Call sends the request.

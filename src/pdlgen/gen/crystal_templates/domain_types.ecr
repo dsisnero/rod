@@ -11,7 +11,7 @@ require "../<%= ref_domain %>/<%= ref_domain %>"
 
 module <%= base_pkg %>::<%= d.domain.camelcase %>
   <%- d.types.each do |type| -%>
-    <%- next if type.is_circular_dep? || type.deprecated? && !type.always_emit? -%>
+    <%- next if type.is_circular_dep? -%>
     <%- if type.deprecated? -%>
   @[Deprecated]
     <%- end -%>
