@@ -11,6 +11,9 @@ module HTTP
   end
 end
 
+# Load the full generated CDP surface so `Proto = Cdp` matches Go's proto import behavior.
+require "./cdp"
+
 # Core types and browser
 require "./rod/browser"
 require "./rod/types"
