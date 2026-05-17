@@ -36,9 +36,9 @@ module Cdp::Accessibility
   struct GetRootAXNodeResult
     include JSON::Serializable
     @[JSON::Field(key: "node", emit_null: false)]
-    property node : Node
+    property node : Node?
 
-    def initialize(@node : Node)
+    def initialize(@node : Node? = nil)
     end
   end
 
