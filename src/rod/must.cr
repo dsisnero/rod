@@ -1015,6 +1015,167 @@ module Rod
     end
   end
 
+  # Mouse Must wrappers — mirror Go must.go Mouse receiver methods.
+  class Mouse
+    private def must_try(&block : -> T) : T forall T
+      begin
+        block.call
+      rescue ex
+        @page.e(ex)
+        raise ex
+      end
+    end
+
+    # MustMoveTo is similar to move_to.
+    def must_move_to(x : Float64, y : Float64) : Mouse
+      must_try { move_to(Point.new(x, y)) }
+      self
+    end
+
+    # MustScroll is similar to scroll.
+    def must_scroll(x : Float64, y : Float64, steps : Int32 = 1) : Mouse
+      must_try { scroll(x, y, steps) }
+      self
+    end
+
+    # MustDown is similar to down.
+    def must_down(button : String) : Mouse
+      must_try { down(button) }
+      self
+    end
+
+    # MustUp is similar to up.
+    def must_up(button : String) : Mouse
+      must_try { up(button) }
+      self
+    end
+
+    # MustClick is similar to click.
+    def must_click(button : String) : Mouse
+      must_try { click(button) }
+      self
+    end
+  end
+
+  # Touch Must wrappers — mirror Go must.go Touch receiver methods.
+  class Touch
+    private def must_try(&block : -> T) : T forall T
+      begin
+        block.call
+      rescue ex
+        @page.e(ex)
+        raise ex
+      end
+    end
+
+    # MustStart is similar to start.
+    def must_start(*points : Cdp::Input::TouchPoint) : Touch
+      must_try { start(*points) }
+      self
+    end
+
+    # MustMove is similar to move.
+    def must_move(*points : Cdp::Input::TouchPoint) : Touch
+      must_try { move(*points) }
+      self
+    end
+
+    # MustEnd is similar to end.
+    def must_end : Touch
+      must_try { self.end }
+      self
+    end
+
+    # MustCancel is similar to cancel.
+    def must_cancel : Touch
+      must_try { cancel }
+      self
+    end
+
+    # MustTap is similar to tap.
+    def must_tap(x : Float64, y : Float64) : Touch
+      must_try { tap(x, y) }
+      self
+    end
+  end
+
+  # KeyActions Must wrappers — mirror Go must.go KeyActions receiver methods.
+  class Keyboard::KeyActions
+    private def must_try(&)
+      yield
+    rescue ex
+      @keyboard.page.e(ex)
+      raise ex
+    end
+
+    # MustDo is similar to do.
+    def must_do : Nil
+      must_try { self.do }
+    end
+  end
+
+  # RaceContext Must wrappers — mirror Go must.go RaceContext receiver methods.
+  class RaceContext
+    private def must_try(&block : -> T) : T forall T
+      begin
+        block.call
+      rescue ex
+        raise ex
+      end
+    end
+
+    # MustDo is similar to do.
+    def must_do : Element
+      must_try { self.do }
+    end
+
+    # MustHandle is similar to handle.
+    def must_handle(&callback : Element -> Nil) : RaceContext
+      handle(&callback)
+      self
+    end
+  end
+
+  # HijackRouter Must wrappers — mirror Go must.go HijackRouter receiver methods.
+  class HijackRouter
+    private def must_try(&block : -> T) : T forall T
+      begin
+        block.call
+      rescue ex
+        @page.e(ex)
+        raise ex
+      end
+    end
+
+    # MustAdd is similar to add.
+    def must_add(pattern : String, handler : Proc(HijackRequest, Nil)) : HijackRouter
+      must_try { add(pattern, handler) }
+      self
+    end
+
+    # MustRemove is similar to remove.
+    def must_remove(pattern : String) : HijackRouter
+      must_try { remove(pattern) }
+      self
+    end
+
+    # MustStop is similar to stop.
+    def must_stop : Nil
+      must_try { stop }
+    end
+  end
+
+  # Hijack Must wrappers — mirror Go must.go Hijack receiver methods.
+  class HijackRequest
+    # MustLoadResponse is similar to load_response.
+    def must_load_response : Nil
+      load_response
+    rescue ex
+      @router.page.e(ex)
+      raise ex
+    end
+  end
+
   class Pool(T)
     # MustGet gets an element from the pool and raises if creation fails.
     def must_get(&create : -> T) : T

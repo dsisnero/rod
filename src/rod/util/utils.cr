@@ -277,6 +277,10 @@ module Rod::Util::Utils
     def initialize(@max : Int32)
       super("max sleep count #{@max} exceeded")
     end
+
+    def is?(err : Exception.class) : Bool
+      err == MaxSleepCountError
+    end
   end
 
   # Random string generator.
