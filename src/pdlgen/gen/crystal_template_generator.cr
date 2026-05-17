@@ -183,6 +183,24 @@ module Pdlgen
         CrystalUtil.crystal_type(t, d, domains)
       end
 
+      # Returns a Crystal default value expression for a given type.
+      private def crystal_default(t : Pdl::Type, d : Pdl::Domain, domains : Array(Pdl::Domain)) : String
+        type_str = crystal_type(t, d, domains)
+        case type_str
+        when "Bool"           then "false"
+        when "Int64", "Int32" then "0"
+        when "Float64"        then "0.0"
+        when "String"         then %("")
+        when "Time"           then "Time.utc"
+        when "JSON::Any"      then "::JSON::Any.new(nil)"
+        when .starts_with?("Array(")
+          inner = type_str[6..-2]
+          "[] of #{inner}"
+        else
+          "nil"
+        end
+      end
+
       private def command_type(c : Pdl::Type) : String
         CrystalUtil.command_type(c)
       end

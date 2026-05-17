@@ -51,7 +51,7 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
     <%- end -%>
     <%- end -%>
 
-    def initialize(<%= command.returns.compact_map { |return_param| next if return_param.deprecated? && !return_param.always_emit?; "@#{return_param.name.underscore} : #{crystal_type(return_param, d, domains)}#{'?' if return_param.optional?}" }.join(", ") %>)
+    def initialize(<%= command.returns.compact_map { |return_param| next if return_param.deprecated? && !return_param.always_emit?; opt = return_param.optional?; "@#{return_param.name.underscore} : #{crystal_type(return_param, d, domains)}#{"?" if opt} = #{opt ? "nil" : crystal_default(return_param, d, domains)}" }.join(", ") %>)
     end
   end
 
@@ -83,7 +83,7 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
     <%- end -%>
     <%- end -%>
 
-    def initialize(<%= cmd.parameters.compact_map { |param| next if param.deprecated? && !param.always_emit?; next if param.name.empty?; "@#{param.name.underscore} : #{crystal_type(param, d, domains)}#{'?' if param.optional?}" }.join(", ") %>)
+    def initialize(<%= cmd.parameters.compact_map { |param| next if param.deprecated? && !param.always_emit?; next if param.name.empty?; opt = param.optional?; "@#{param.name.underscore} : #{crystal_type(param, d, domains)}#{"?" if opt}#{" = nil" if opt}" }.join(", ") %>)
     end
 
     # ProtoReq returns the protocol method name.
