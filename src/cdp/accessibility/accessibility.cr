@@ -18,7 +18,7 @@ module Cdp::Accessibility
     @[JSON::Field(key: "nodes", emit_null: false)]
     property nodes : Array(Node)
 
-    def initialize(@nodes : Array(Node))
+    def initialize(@nodes : Array(Node) = [] of Node)
     end
   end
 
@@ -28,7 +28,7 @@ module Cdp::Accessibility
     @[JSON::Field(key: "nodes", emit_null: false)]
     property nodes : Array(Node)
 
-    def initialize(@nodes : Array(Node))
+    def initialize(@nodes : Array(Node) = [] of Node)
     end
   end
 
@@ -48,7 +48,7 @@ module Cdp::Accessibility
     @[JSON::Field(key: "nodes", emit_null: false)]
     property nodes : Array(Node)
 
-    def initialize(@nodes : Array(Node))
+    def initialize(@nodes : Array(Node) = [] of Node)
     end
   end
 
@@ -58,7 +58,7 @@ module Cdp::Accessibility
     @[JSON::Field(key: "nodes", emit_null: false)]
     property nodes : Array(Node)
 
-    def initialize(@nodes : Array(Node))
+    def initialize(@nodes : Array(Node) = [] of Node)
     end
   end
 
@@ -68,7 +68,7 @@ module Cdp::Accessibility
     @[JSON::Field(key: "nodes", emit_null: false)]
     property nodes : Array(Node)
 
-    def initialize(@nodes : Array(Node))
+    def initialize(@nodes : Array(Node) = [] of Node)
     end
   end
 
