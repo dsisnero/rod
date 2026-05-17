@@ -124,15 +124,22 @@ module Rod
 
     # Scroll into view
     def scroll_into_view : Nil
-      object_id = @object.object_id
-      raise "Element has no object ID" unless object_id
+      cleanup = try_trace(Rod::TraceTypeInput, "scroll into view")
+      @page.browser.try_slow_motion
 
-      ::Cdp::DOM::ScrollIntoViewIfNeeded.new(
-        node_id: nil,
-        backend_node_id: nil,
-        object_id: object_id,
-        rect: nil
-      ).call(@page)
+      begin
+        object_id = @object.object_id
+        raise "Element has no object ID" unless object_id
+
+        ::Cdp::DOM::ScrollIntoViewIfNeeded.new(
+          node_id: nil,
+          backend_node_id: nil,
+          object_id: object_id,
+          rect: nil
+        ).call(@page)
+      ensure
+        cleanup.call
+      end
     end
 
     # Click will press then release the button just like a human.
@@ -152,10 +159,15 @@ module Rod
     # Tap will scroll to the element and tap it.
     # Before the action, it will try to scroll to the element and wait until it's interactable and enabled.
     def tap : Nil
-      scroll_into_view
-      wait_enabled
-      pt = wait_interactable
-      @page.touch.tap(pt.x, pt.y)
+      cleanup = try_trace(Rod::TraceTypeInput, "tap")
+      begin
+        scroll_into_view
+        wait_enabled
+        pt = wait_interactable
+        @page.touch.tap(pt.x, pt.y)
+      ensure
+        cleanup.call
+      end
     end
 
     # Type is similar with Keyboard.Type.
@@ -175,28 +187,42 @@ module Rod
     # SelectText selects the text that matches the regular expression.
     # Before the action, it will try to scroll to the element and focus on it.
     def select_text(regex : String) : Nil
-      focus
-      evaluate(<<-JS, regex)
-        (regex) => {
-          const match = this.value.match(new RegExp(regex));
-          if (match) {
-            this.setSelectionRange(match.index, match.index + match[0].length);
+      cleanup = try_trace(Rod::TraceTypeInput, "select text: #{regex}")
+      @page.browser.try_slow_motion
+
+      begin
+        focus
+        evaluate(<<-JS, regex)
+          (regex) => {
+            const match = this.value.match(new RegExp(regex));
+            if (match) {
+              this.setSelectionRange(match.index, match.index + match[0].length);
+            }
           }
-        }
-      JS
+        JS
+      ensure
+        cleanup.call
+      end
     end
 
     # SelectAllText selects all text
     # Before the action, it will try to scroll to the element and focus on it.
     def select_all_text : Nil
-      focus
-      evaluate("() => {
-        const sel = window.getSelection();
-        const range = document.createRange();
-        range.selectNodeContents(this);
-        sel.removeAllRanges();
-        sel.addRange(range);
-      }")
+      cleanup = try_trace(Rod::TraceTypeInput, "select all text")
+      @page.browser.try_slow_motion
+
+      begin
+        focus
+        evaluate("() => {
+            const sel = window.getSelection();
+            const range = document.createRange();
+            range.selectNodeContents(this);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }")
+      ensure
+        cleanup.call
+      end
     end
 
     # Blur removes focus from the element.
@@ -207,11 +233,14 @@ module Rod
     # InputTime focuses on the element and inputs time to it.
     # Before the action, it will scroll to the element, wait until it's visible, enabled and writable.
     def input_time(t : Time) : Nil
-      focus
-      wait_enabled
-      wait_writable
-      timestamp_ms = t.to_unix_ms
-      evaluate(<<-JS, timestamp_ms)
+      cleanup = try_trace(Rod::TraceTypeInput, "input #{t}")
+
+      begin
+        focus
+        wait_enabled
+        wait_writable
+        timestamp_ms = t.to_unix_ms
+        evaluate(<<-JS, timestamp_ms)
         (timestampMs) => {
           const time = new Date(timestampMs);
           const pad = (n) => n.toString().padStart(2, "0");
@@ -239,22 +268,31 @@ module Rod
           this.dispatchEvent(new Event("input", { bubbles: true }));
           this.dispatchEvent(new Event("change", { bubbles: true }));
         }
-      JS
+        JS
+      ensure
+        cleanup.call
+      end
     end
 
     # InputColor focuses on the element and inputs color to it.
     # Before the action, it will scroll to the element, wait until it's visible, enabled and writable.
     def input_color(color : String) : Nil
-      focus
-      wait_enabled
-      wait_writable
-      evaluate(<<-JS, color)
-        (newColor) => {
-          this.value = `${newColor}`;
-          this.dispatchEvent(new Event("input", { bubbles: true }));
-          this.dispatchEvent(new Event("change", { bubbles: true }));
-        }
-      JS
+      cleanup = try_trace(Rod::TraceTypeInput, "input #{color}")
+
+      begin
+        focus
+        wait_enabled
+        wait_writable
+        evaluate(<<-JS, color)
+          (newColor) => {
+            this.value = `${newColor}`;
+            this.dispatchEvent(new Event("input", { bubbles: true }));
+            this.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+        JS
+      ensure
+        cleanup.call
+      end
     end
 
     # Hover the mouse over the center of the element.
@@ -419,43 +457,48 @@ module Rod
     # WaitInteractable waits for the element to become interactable.
     # Returns a point inside the element that can be used for interaction.
     def wait_interactable(timeout : Time::Span = 5.seconds) : Point
-      if @ctx.cancelled?
-        raise(@ctx.err || ContextCanceledError.new("context cancelled"))
-      end
-
-      effective_timeout = @ctx.timeout_remaining(timeout)
-      if effective_timeout <= Time::Span::ZERO
-        raise TimeoutError.new("Timeout waiting for interactable (context deadline exceeded)")
-      end
-
-      deadline = Time.instant + effective_timeout
-      out : Point? = nil
-      err = Rod::Util::Utils.retry(@ctx, @sleeper.call) do
-        begin
-          scroll_into_view
-          out = interactable
-          {true, nil}
-        rescue ex : CoveredError
-          if Time.instant >= deadline
-            {true, ex}
-          else
-            {false, nil}
-          end
-        rescue ex : RodError
-          if Time.instant >= deadline
-            {true, ex}
-          else
-            {true, ex}
-          end
-        rescue ex
-          {true, ex}
+      cleanup = try_trace(Rod::TraceTypeWait, "interactable")
+      begin
+        if @ctx.cancelled?
+          raise(@ctx.err || ContextCanceledError.new("context cancelled"))
         end
-      end
 
-      raise err if err
-      result = out
-      raise TimeoutError.new("Timeout waiting for interactable") unless result
-      result
+        effective_timeout = @ctx.timeout_remaining(timeout)
+        if effective_timeout <= Time::Span::ZERO
+          raise TimeoutError.new("Timeout waiting for interactable (context deadline exceeded)")
+        end
+
+        deadline = Time.instant + effective_timeout
+        out : Point? = nil
+        err = Rod::Util::Utils.retry(@ctx, @sleeper.call) do
+          begin
+            scroll_into_view
+            out = interactable
+            {true, nil}
+          rescue ex : CoveredError
+            if Time.instant >= deadline
+              {true, ex}
+            else
+              {false, nil}
+            end
+          rescue ex : RodError
+            if Time.instant >= deadline
+              {true, ex}
+            else
+              {true, ex}
+            end
+          rescue ex
+            {true, ex}
+          end
+        end
+
+        raise err if err
+        result = out
+        raise TimeoutError.new("Timeout waiting for interactable") unless result
+        result
+      ensure
+        cleanup.call
+      end
     end
 
     # Get element text content
@@ -554,18 +597,31 @@ module Rod
     # ameba:disable Naming/AccessorMethodName
     def set_files(paths : Array(String)) : Nil
       abs_paths = ::Rod::Util::Utils.absolute_paths(paths)
-      object_id = @object.object_id
-      raise "Element has no object ID" unless object_id
-      ::Cdp::DOM::SetFileInputFiles.new(files: abs_paths, object_id: object_id, node_id: nil, backend_node_id: nil).call(@page)
+      cleanup = try_trace(Rod::TraceTypeInput, "set files: #{abs_paths}")
+      @page.browser.try_slow_motion
+
+      begin
+        object_id = @object.object_id
+        raise "Element has no object ID" unless object_id
+        ::Cdp::DOM::SetFileInputFiles.new(files: abs_paths, object_id: object_id, node_id: nil, backend_node_id: nil).call(@page)
+      ensure
+        cleanup.call
+      end
     end
 
     # Select selects/deselects options in a <select> element.
     def select(selectors : Array(String), selected : Bool = true, t : String = SelectorType::Text) : Nil
-      focus
-      # TODO: trace and slow motion
-      res = evaluate(@page.eval_helper(Rod::JS::SELECT, selectors, selected, t).by_user)
-      unless res.value.try(&.as_bool?) == true
-        raise NotFoundError.new("Element not found")
+      cleanup = try_trace(Rod::TraceTypeInput, %(select "#{selectors.join("; ")}"))
+      @page.browser.try_slow_motion
+
+      begin
+        focus
+        res = evaluate(@page.eval_helper(Rod::JS::SELECT, selectors, selected, t).by_user)
+        unless res.value.try(&.as_bool?) == true
+          raise NotFoundError.new("Element not found")
+        end
+      ensure
+        cleanup.call
       end
     end
 
@@ -585,68 +641,108 @@ module Rod
 
     # WaitLoad for element like <img>.
     def wait_load : Nil
-      evaluate(@page.eval_helper(Rod::JS::WAIT_LOAD).by_promise)
+      cleanup = try_trace(Rod::TraceTypeWait, "load")
+      begin
+        evaluate(@page.eval_helper(Rod::JS::WAIT_LOAD).by_promise)
+      ensure
+        cleanup.call
+      end
     end
 
     # WaitStableRAF waits for no shape changes across consecutive animation frames.
     def wait_stable_raf : Nil
-      wait_visible
+      cleanup = try_trace(Rod::TraceTypeWait, "stable RAF")
+      begin
+        wait_visible
 
-      shape_json : String? = nil
-      loop do
-        @page.context(@ctx).wait_repaint
-        current = shape.to_json
-        break if shape_json == current
-        shape_json = current
+        shape_json : String? = nil
+        loop do
+          @page.context(@ctx).wait_repaint
+          current = shape.to_json
+          break if shape_json == current
+          shape_json = current
+        end
+      ensure
+        cleanup.call
       end
     end
 
     # WaitStable waits until no shape or position change for d duration.
     def wait_stable(duration : Time::Span = 100.milliseconds) : Nil
-      wait_visible
+      cleanup = try_trace(Rod::TraceTypeWait, "stable")
+      begin
+        wait_visible
 
-      last_shape = shape.to_json
-      loop do
-        if @ctx.cancelled?
-          if err = @ctx.err
-            raise err
+        last_shape = shape.to_json
+        loop do
+          if @ctx.cancelled?
+            if err = @ctx.err
+              raise err
+            end
+            raise ContextCanceledError.new("context cancelled")
           end
-          raise ContextCanceledError.new("context cancelled")
-        end
 
-        sleep(duration) if duration > Time::Span::ZERO
-        current_shape = shape.to_json
-        break if current_shape == last_shape
-        last_shape = current_shape
+          sleep(duration) if duration > Time::Span::ZERO
+          current_shape = shape.to_json
+          break if current_shape == last_shape
+          last_shape = current_shape
+        end
+      ensure
+        cleanup.call
       end
     end
 
     # Wait until the js returns true with this element bound as `this`.
     def wait(opts : EvalOptions) : Nil
-      @page.context(@ctx).sleeper(@sleeper).wait(opts.this(@object))
+      cleanup = try_trace(Rod::TraceTypeWait, opts.to_s)
+      begin
+        @page.context(@ctx).sleeper(@sleeper).wait(opts.this(@object))
+      ensure
+        cleanup.call
+      end
     end
 
     # Wait for element to be visible
     def wait_visible(timeout : Time::Span = 5.seconds) : Nil
-      wait_for(timeout) { visible? }
+      cleanup = try_trace(Rod::TraceTypeWait, "visible")
+      begin
+        wait_for(timeout) { visible? }
+      ensure
+        cleanup.call
+      end
     end
 
     # Wait for element to be enabled
     def wait_enabled(timeout : Time::Span = 5.seconds) : Nil
-      wait_for(timeout) { enabled? }
+      cleanup = try_trace(Rod::TraceTypeWait, "enabled")
+      begin
+        wait_for(timeout) { enabled? }
+      ensure
+        cleanup.call
+      end
     end
 
     # Wait until the element is writable (not readonly).
     def wait_writable(timeout : Time::Span = 5.seconds) : Nil
-      wait_for(timeout) do
-        result = evaluate("() => !this.readonly")
-        result.value.try(&.as_bool?) || false
+      cleanup = try_trace(Rod::TraceTypeWait, "writable")
+      begin
+        wait_for(timeout) do
+          result = evaluate("() => !this.readonly")
+          result.value.try(&.as_bool?) || false
+        end
+      ensure
+        cleanup.call
       end
     end
 
     # Wait for element to be invisible
     def wait_invisible(timeout : Time::Span = 5.seconds) : Nil
-      wait_for(timeout) { !visible? }
+      cleanup = try_trace(Rod::TraceTypeWait, "invisible")
+      begin
+        wait_for(timeout) { !visible? }
+      ensure
+        cleanup.call
+      end
     end
 
     # Release the remote object

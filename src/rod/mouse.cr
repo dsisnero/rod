@@ -98,39 +98,44 @@ module Rod
 
     # Scroll the relative offset with specified steps.
     def scroll(offset_x : Float64, offset_y : Float64, steps : Int32) : Nil
-      @mutex.synchronize do
-        @page.browser.try_slow_motion
+      cleanup = @page.try_trace(Rod::TraceTypeInput, "scroll (#{offset_x}, #{offset_y})")
+      @page.browser.try_slow_motion
 
-        if steps < 1
-          steps = 1
+      begin
+        @mutex.synchronize do
+          if steps < 1
+            steps = 1
+          end
+
+          button, buttons = Input.encode_mouse_button(@buttons)
+
+          step_x = offset_x / steps.to_f
+          step_y = offset_y / steps.to_f
+
+          steps.times do |_i|
+            event = Cdp::Input::DispatchMouseEvent.new(
+              type: "mouseWheel",
+              x: @pos.x,
+              y: @pos.y,
+              modifiers: @page.keyboard.modifiers.to_i64,
+              timestamp: nil,
+              button: button,
+              buttons: buttons.to_i64,
+              click_count: nil,
+              force: nil,
+              tangential_pressure: nil,
+              tilt_x: nil,
+              tilt_y: nil,
+              twist: nil,
+              delta_x: step_x,
+              delta_y: step_y,
+              pointer_type: nil
+            )
+            event.call(@page)
+          end
         end
-
-        button, buttons = Input.encode_mouse_button(@buttons)
-
-        step_x = offset_x / steps.to_f
-        step_y = offset_y / steps.to_f
-
-        steps.times do |_i|
-          event = Cdp::Input::DispatchMouseEvent.new(
-            type: "mouseWheel",
-            x: @pos.x,
-            y: @pos.y,
-            modifiers: @page.keyboard.modifiers.to_i64,
-            timestamp: nil,
-            button: button,
-            buttons: buttons.to_i64,
-            click_count: nil,
-            force: nil,
-            tangential_pressure: nil,
-            tilt_x: nil,
-            tilt_y: nil,
-            twist: nil,
-            delta_x: step_x,
-            delta_y: step_y,
-            pointer_type: nil
-          )
-          event.call(@page)
-        end
+      ensure
+        cleanup.call
       end
     end
 

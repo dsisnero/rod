@@ -62,10 +62,16 @@ module Rod
 
     # Tap dispatches a touchstart and touchend event.
     def tap(x : Float64, y : Float64) : Nil
-      # TODO: tryTrace, trySlowMotion
-      point = Cdp::Input::TouchPoint.new(x: x, y: y)
-      start(point)
-      self.end
+      cleanup = @page.try_trace(Rod::TraceTypeInput, "touch")
+      @page.browser.try_slow_motion
+
+      begin
+        point = Cdp::Input::TouchPoint.new(x: x, y: y)
+        start(point)
+        self.end
+      ensure
+        cleanup.call
+      end
     end
   end
 end

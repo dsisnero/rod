@@ -304,8 +304,15 @@ module Rod
 
     # InsertText is like pasting text into the page.
     def insert_text(text : String) : Nil
-      event = Cdp::Input::InsertText.new(text: text)
-      event.call(self)
+      cleanup = try_trace(Rod::TraceTypeInput, "insert text #{text}")
+      @browser.try_slow_motion
+
+      begin
+        event = Cdp::Input::InsertText.new(text: text)
+        event.call(self)
+      ensure
+        cleanup.call
+      end
     end
 
     # StopLoading stops loading the page.

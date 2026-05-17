@@ -18,22 +18,34 @@ module Rod
     # To input characters that are not on the keyboard, such as Chinese or Japanese, you should
     # use method like Page.InsertText.
     def press(key : Input::Key) : Nil
-      @mutex.synchronize do
-        @pressed.add(key)
-        event = Input.encode(key, "keyDown", modifiers_unlocked)
-        event.call(@page)
+      cleanup = @page.try_trace(Rod::TraceTypeInput, "press key: #{Input.key_info(key).code}")
+      @page.browser.try_slow_motion
+
+      begin
+        @mutex.synchronize do
+          @pressed.add(key)
+          event = Input.encode(key, "keyDown", modifiers_unlocked)
+          event.call(@page)
+        end
+      ensure
+        cleanup.call
       end
     end
 
     # Release the key.
     def release(key : Input::Key) : Nil
-      @mutex.synchronize do
-        unless @pressed.includes?(key)
-          return
+      cleanup = @page.try_trace(Rod::TraceTypeInput, "release key: #{Input.key_info(key).code}")
+      begin
+        @mutex.synchronize do
+          unless @pressed.includes?(key)
+            return
+          end
+          @pressed.delete(key)
+          event = Input.encode(key, "keyUp", modifiers_unlocked)
+          event.call(@page)
         end
-        @pressed.delete(key)
-        event = Input.encode(key, "keyUp", modifiers_unlocked)
-        event.call(@page)
+      ensure
+        cleanup.call
       end
     end
 
