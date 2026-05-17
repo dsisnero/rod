@@ -14,8 +14,8 @@ module Rod
     def start(*points : Cdp::Input::TouchPoint) : Nil
       # TODO: https://crbug.com/613219
       # WaitRepaint called twice
-      # _ = t.page.WaitRepaint()
-      # _ = t.page.WaitRepaint()
+      @page.wait_repaint rescue nil
+      @page.wait_repaint rescue nil
 
       event = Cdp::Input::DispatchTouchEvent.new(
         type: "touchStart",
