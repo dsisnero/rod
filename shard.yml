@@ -14,9 +14,7 @@ dependencies:
     github: crystallabs/event_handler
     version: "~> 1.0"
   goob:
-    path: ../goob
-  gson:
-    path: ../gson
+    github: dsisnero/goob
   pluto:
     github: phenopolis/pluto
   crimage:

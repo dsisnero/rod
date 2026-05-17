@@ -6,19 +6,15 @@ shards:
 
   crimage:
     git: https://github.com/naqvis/crimage.git
-    version: 1.0.4+git.commit.b65f67df27f4cb8807a34d94a90dfd4162acf45a
+    version: 1.0.5+git.commit.2b3abbcdca426a2a13a39b986326f9a2f7f65bc6
 
   event_handler:
     git: https://github.com/crystallabs/event_handler.git
     version: 1.0.3
 
   goob:
-    path: ../goob
+    git: https://github.com/dsisnero/goob.git
     version: 0.6.0
-
-  gson:
-    path: ../gson
-    version: 0.1.0
 
   pluto:
     git: https://github.com/phenopolis/pluto.git
