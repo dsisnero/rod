@@ -231,8 +231,9 @@ module Rod
 
         attach = Cdp::Target::AttachToTarget.new(target_id.value, true).call(self)
         sid = SessionID.new(attach.session_id)
-        page_ctx, _cancel = @ctx.with_cancel
+        page_ctx, cancel = @ctx.with_cancel
         page = Page.new(self, target_id, sid, FrameID.new(target_id.value), page_ctx, @sleeper)
+        page.init_events(cancel)
         # Match Go rod: enable Page domain for newly attached pages to avoid
         # agent-not-enabled behavior for page-scoped commands.
         Cdp::Page::Enable.new(nil).call(page)

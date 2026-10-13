@@ -19,7 +19,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS |
 | Source parity (tree-sitter backend) | 5431 API items, 63 unexported items flagged |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 76 files, ~569 examples, 0 failures |
+| Crystal specs | 76 files, 574 examples, 0 failures |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 The tree-sitter backend (new in the parity skill) additionally discovers Go
@@ -48,7 +48,7 @@ restructured, or inlined); **1 is a genuine minor gap**. Full list:
 | `lib/utils` `IdleCounter.reset` | 1 | False positive — inlined in `done` / `wait` |
 | `lib/docker` release tooling | 5 | Intentional divergence — no Crystal port |
 | `lib/proto/generate` codegen tooling | 5 | Intentional divergence — Crystal `pdlgen` |
-| `page.go` `getWindowID` / `initEvents` | 2 | False positive — `get_window_id` + `Page#event` |
+| `page.go` `getWindowID` / `initEvents` | 2 | `get_window_id`; `initEvents` -> `Page#init_events` (Phase 3) |
 
 ### Genuine missing functionality
 
@@ -108,14 +108,21 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       absent from `go_port_inventory.tsv` (tree-sitter-only discovery); covered
       by the Phase 1 manifest reconciliation.
 
-### Phase 3 — Per-page detach / event lifecycle verification
-- [ ] Confirm `Page#event` (`page.cr:537`) and detach handling match Go
-      `Page.initEvents` semantics (stream ends/aborts on
-      `TargetDetachedFromTarget` for the session and `TargetTargetDestroyed`
-      for the target).
-- [ ] Add/adjust a spec covering pending page ops aborting on detach.
-- [ ] Reconcile the `page.go::method::Page.initEvents` and
-      `page.cr` eval-helper rows.
+### Phase 3 — Per-page detach / event lifecycle verification ✅
+- [x] Ported Go `Page.initEvents` as `Page#init_events` (`src/rod/page.cr:331`),
+      started from `Browser#page_from_target` (`src/rod/browser.cr:236`). It
+      cancels the page session context on `TargetDetachedFromTarget` (session
+      match) or `TargetTargetDestroyed` (target match), so pending page
+      operations fail fast. `Page#event` (`page.cr:565`) still ends the stream
+      on the same events for consumers.
+- [x] `Page#close` now drains the event channel with `receive?` and breaks on
+      close (`src/rod/page.cr:1414`), matching Go's `for msg := range messages`
+      tolerant shutdown when `initEvents` cancels the session first.
+- [x] Specs added in `spec/page_event_lifecycle_parity_spec.cr`: context is
+      canceled on detach and on target destroyed, and is left intact for
+      another session's detach. Red-green TDD. Full suite
+      `574 examples, 0 failures`.
+- [x] Reconciled the `page.go::method::Page.initEvents` row (see category table).
 
 ### Phase 4 — Dev-tooling divergence sign-off
 - [ ] Record `lib/docker/*` and `lib/proto/generate/*` as

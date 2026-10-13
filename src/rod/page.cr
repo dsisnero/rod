@@ -324,6 +324,38 @@ module Rod
       @e = ->(err : Exception?) { @browser.e(err) }
     end
 
+    # InitEvents mirrors Go Page.initEvents: watch browser events and cancel the
+    # page's session context when the target detaches or is destroyed, so pending
+    # operations fail fast. Publishing to per-page consumers is handled by
+    # Page#event.
+    def init_events(session_cancel : ->) : Nil
+      sid = @session_id
+      tid = @target_id
+      src = @browser.event
+
+      spawn do
+        loop do
+          msg = src.receive?
+          break if msg.nil?
+
+          if detached = msg.load(Cdp::Target::DetachedFromTargetEvent)
+            if sid && detached.session_id == sid.value
+              session_cancel.call
+              break
+            end
+          end
+
+          if destroyed = msg.load(Cdp::Target::TargetDestroyedEvent)
+            if destroyed.target_id == tid.value
+              session_cancel.call
+              break
+            end
+          end
+        end
+      rescue Channel::ClosedError
+      end
+    end
+
     # Retry a block that may raise NotFoundError until it succeeds or timeout expires.
     private def retry_finding(timeout : Time::Span, interval : Time::Span, &block : -> T) : T forall T
       _ = interval
@@ -1379,7 +1411,8 @@ module Rod
       end
 
       loop do
-        msg = messages.receive
+        msg = messages.receive?
+        break if msg.nil?
 
         stop = false
         if destroyed = msg.load(Cdp::Target::TargetDestroyedEvent)
