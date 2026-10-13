@@ -157,4 +157,26 @@ describe "cdp websocket parity" do
       expect_raises(Exception) { ws.read }
     end
   end
+
+  it "treats a websocket close frame as EOF (Go TestCrash parity)" do
+    with_raw_ws_frame_server(Bytes[0x88_u8, 0x00_u8]) do |url|
+      ws = Rod::Util::Cdp::WebSocket.new
+      ws.connect(url)
+      expect_raises(Exception, /EOF/i) { ws.read }
+    end
+
+    with_raw_ws_frame_server(Bytes[0x88_u8, 0x02_u8, 0x03_u8, 0xE8_u8]) do |url|
+      ws = Rod::Util::Cdp::WebSocket.new
+      ws.connect(url)
+      expect_raises(Exception, /EOF/i) { ws.read }
+    end
+  end
+
+  it "ignores ping frames and reports EOF when the stream ends" do
+    with_raw_ws_frame_server(Bytes[0x89_u8, 0x00_u8]) do |url|
+      ws = Rod::Util::Cdp::WebSocket.new
+      ws.connect(url)
+      expect_raises(Exception, /EOF|closed/i) { ws.read }
+    end
+  end
 end

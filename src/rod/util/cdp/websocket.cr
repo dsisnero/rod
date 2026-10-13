@@ -203,40 +203,57 @@ module Rod::Util::Cdp
         current_reader = @state_lock.synchronize { @reader }
         raise "not connected" unless current_reader
 
-        reader = current_reader
-        raise "not connected" unless reader
+        # Honor WebSocket control frames: a close frame ends the stream (like
+        # EOF) and ping/pong frames are skipped. Only data frames are returned,
+        # so control frames never reach the JSON decoder.
+        loop do
+          opcode, data = read_one_frame(current_reader)
 
-        reader.read_byte
-
-        second = reader.read_byte
-        raise IO::EOFError.new unless second
-
-        size = 0_i64
-        field_len = 0
-
-        b = second & 0x7f
-        if b <= 125
-          size = b
-        elsif b == 126
-          field_len = 2
-        elsif b == 127
-          field_len = 8
+          case opcode
+          when 0x8 # close
+            raise IO::EOFError.new
+          when 0x9, 0xA # ping / pong
+            next
+          else
+            return data
+          end
         end
-
-        i = 0
-        while i < field_len
-          part = reader.read_byte
-          raise IO::EOFError.new unless part
-          size = (size << 8) + part
-          i += 1
-        end
-
-        raise "invalid websocket frame size: #{size}" if size < 0 || size > Int32::MAX
-
-        data = Bytes.new(size.to_i)
-        reader.read_fully(data)
-        data
       end
+    end
+
+    # Reads a single WebSocket frame, returning its opcode and payload.
+    private def read_one_frame(reader : IO) : Tuple(Int32, Bytes)
+      first = reader.read_byte
+      raise IO::EOFError.new unless first
+
+      second = reader.read_byte
+      raise IO::EOFError.new unless second
+
+      size = 0_i64
+      field_len = 0
+
+      b = second & 0x7f
+      if b <= 125
+        size = b
+      elsif b == 126
+        field_len = 2
+      elsif b == 127
+        field_len = 8
+      end
+
+      i = 0
+      while i < field_len
+        part = reader.read_byte
+        raise IO::EOFError.new unless part
+        size = (size << 8) + part
+        i += 1
+      end
+
+      raise "invalid websocket frame size: #{size}" if size < 0 || size > Int32::MAX
+
+      data = Bytes.new(size.to_i)
+      reader.read_fully(data)
+      {(first & 0x0f).to_i, data}
     end
 
     private def verify_websocket_accept(response_headers : HTTP::Headers, websocket_key : String) : Bool
