@@ -269,15 +269,13 @@ module Rod::Util::Launcher
       # Try to download from each host, first successful wins
       downloaded = false
       urls.each do |url|
-        begin
-          @logger.info { "Trying to download from #{url}" }
-          download_from_url(url, dir)
-          downloaded = true
-          @logger.info { "Successfully downloaded from #{url}" }
-          break
-        rescue ex
-          @logger.error { "Failed to download from #{url}: #{ex.message}" }
-        end
+        @logger.info { "Trying to download from #{url}" }
+        download_from_url(url, dir)
+        downloaded = true
+        @logger.info { "Successfully downloaded from #{url}" }
+        break
+      rescue ex
+        @logger.error { "Failed to download from #{url}: #{ex.message}" }
       end
 
       unless downloaded
@@ -1116,72 +1114,41 @@ module Rod::Util::Launcher
         return if context.response.status_code == 400
 
         handler = HTTP::WebSocketHandler.new do |client_ws, _ws_ctx|
-          begin
-            upstream_url = launcher.launch
-            upstream_ws = HTTP::WebSocket.new(upstream_url)
+          upstream_url = launcher.launch
+          upstream_ws = HTTP::WebSocket.new(upstream_url)
 
-            client_ws.on_message do |message|
-              begin
-                upstream_ws.send(message)
-              rescue
-              end
-            end
-
-            client_ws.on_binary do |message|
-              begin
-                upstream_ws.send(message)
-              rescue
-              end
-            end
-
-            client_ws.on_close do |_code, _reason|
-              begin
-                upstream_ws.close
-              rescue
-              end
-              begin
-                launcher.kill
-              rescue
-              end
-            end
-
-            upstream_ws.on_message do |message|
-              begin
-                client_ws.send(message)
-              rescue
-              end
-            end
-
-            upstream_ws.on_binary do |message|
-              begin
-                client_ws.send(message)
-              rescue
-              end
-            end
-
-            upstream_ws.on_close do |_code, _reason|
-              begin
-                client_ws.close
-              rescue
-              end
-              begin
-                launcher.kill
-              rescue
-              end
-            end
-
-            spawn do
-              begin
-                upstream_ws.run
-              rescue
-              ensure
-                begin
-                  launcher.kill
-                rescue
-                end
-              end
-            end
+          client_ws.on_message do |message|
+            upstream_ws.send(message)
           rescue
+          end
+
+          client_ws.on_binary do |message|
+            upstream_ws.send(message)
+          rescue
+          end
+
+          client_ws.on_close do |_code, _reason|
+            begin
+              upstream_ws.close
+            rescue
+            end
+            begin
+              launcher.kill
+            rescue
+            end
+          end
+
+          upstream_ws.on_message do |message|
+            client_ws.send(message)
+          rescue
+          end
+
+          upstream_ws.on_binary do |message|
+            client_ws.send(message)
+          rescue
+          end
+
+          upstream_ws.on_close do |_code, _reason|
             begin
               client_ws.close
             rescue
@@ -1190,6 +1157,25 @@ module Rod::Util::Launcher
               launcher.kill
             rescue
             end
+          end
+
+          spawn do
+            upstream_ws.run
+          rescue
+          ensure
+            begin
+              launcher.kill
+            rescue
+            end
+          end
+        rescue
+          begin
+            client_ws.close
+          rescue
+          end
+          begin
+            launcher.kill
+          rescue
           end
         end
 

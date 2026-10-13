@@ -71,49 +71,47 @@ module Rod
       host = "127.0.0.1:0" if host.empty?
 
       server = HTTP::Server.new do |context|
-        begin
-          path = context.request.path
-          if path == "/"
-            Rod.write_html(context.response, ::Rod::Util::Assets::Monitor)
-          elsif path == "/api/pages"
-            res = ::Cdp::Target::GetTargets.new(nil).call(self)
-            list = res.target_infos.select { |info| info.type == "page" }
-            Rod.write_json(context.response, list)
-          elsif path.starts_with?("/page/")
-            Rod.write_html(context.response, ::Rod::Util::Assets::MonitorPage)
-          elsif path.starts_with?("/api/page/")
-            id = path.split('/').last
-            res = ::Cdp::Target::GetTargets.new(nil).call(self)
-            if info = res.target_infos.find { |target_info| target_info.target_id.to_s == id }
-              Rod.write_json(context.response, info)
-            else
-              context.response.status_code = 400
-              Rod.write_json(context.response, {"code" => -32602, "message" => "target not found"})
-            end
-          elsif path == "/screenshot" || path.starts_with?("/screenshot/")
-            id = path.split('/').last
-            target_id =
-              if id.empty?
-                res = ::Cdp::Target::GetTargets.new(nil).call(self)
-                info = res.target_infos.find { |target_info| target_info.type == "page" }
-                raise "target not found" unless info
-                info.target_id.to_s
-              else
-                id
-              end
-
-            page = page_from_target(TargetID.new(target_id))
-            context.response.status_code = 200
-            context.response.content_type = "image/png"
-            context.response.write(page.screenshot)
+        path = context.request.path
+        if path == "/"
+          Rod.write_html(context.response, ::Rod::Util::Assets::Monitor)
+        elsif path == "/api/pages"
+          res = ::Cdp::Target::GetTargets.new(nil).call(self)
+          list = res.target_infos.select { |info| info.type == "page" }
+          Rod.write_json(context.response, list)
+        elsif path.starts_with?("/page/")
+          Rod.write_html(context.response, ::Rod::Util::Assets::MonitorPage)
+        elsif path.starts_with?("/api/page/")
+          id = path.split('/').last
+          res = ::Cdp::Target::GetTargets.new(nil).call(self)
+          if info = res.target_infos.find { |target_info| target_info.target_id.to_s == id }
+            Rod.write_json(context.response, info)
           else
-            context.response.status_code = 404
-            Rod.write_json(context.response, {"code" => 404, "message" => "not found"})
+            context.response.status_code = 400
+            Rod.write_json(context.response, {"code" => -32602, "message" => "target not found"})
           end
-        rescue ex
-          context.response.status_code = 400
-          Rod.write_json(context.response, {"code" => -32602, "message" => ex.message || "bad request"})
+        elsif path == "/screenshot" || path.starts_with?("/screenshot/")
+          id = path.split('/').last
+          target_id =
+            if id.empty?
+              res = ::Cdp::Target::GetTargets.new(nil).call(self)
+              info = res.target_infos.find { |target_info| target_info.type == "page" }
+              raise "target not found" unless info
+              info.target_id.to_s
+            else
+              id
+            end
+
+          page = page_from_target(TargetID.new(target_id))
+          context.response.status_code = 200
+          context.response.content_type = "image/png"
+          context.response.write(page.screenshot)
+        else
+          context.response.status_code = 404
+          Rod.write_json(context.response, {"code" => 404, "message" => "not found"})
         end
+      rescue ex
+        context.response.status_code = 400
+        Rod.write_json(context.response, {"code" => -32602, "message" => ex.message || "bad request"})
       end
 
       sep = host.rindex(':')
@@ -122,19 +120,15 @@ module Rod
       bind_port = host[(sep + 1)..].to_i
       address = server.bind_tcp(bind_host, bind_port)
       spawn do
-        begin
-          server.listen
-        rescue IO::Error
-        end
+        server.listen
+      rescue IO::Error
       end
 
       spawn do
-        begin
-          @ctx.done.receive
-        rescue Channel::ClosedError
-        ensure
-          server.close
-        end
+        @ctx.done.receive
+      rescue Channel::ClosedError
+      ensure
+        server.close
       end
 
       "http://#{address}"
@@ -205,28 +199,26 @@ module Rod
       ch = Channel(Hash(String, String)).new
 
       spawn do
-        begin
-          wait_list = {} of String => String
-          loop do
-            break if @ctx.done.closed?
-            select
-            when list = ch.receive?
-              break unless list
-              wait_list = list
-            when timeout(1.second)
-              lines = [Rod.trace_type_label(TraceTypeWaitRequests), self.to_s, wait_list.to_json]
-              trace_logger = @browser.trace_logger
-              if trace_logger
-                logger = trace_logger.as(Rod::Util::Utils::Log)
-                logger.println(lines)
-              else
-                @browser.logger.info { lines.join(" ") }
-              end
+        wait_list = {} of String => String
+        loop do
+          break if @ctx.done.closed?
+          select
+          when list = ch.receive?
+            break unless list
+            wait_list = list
+          when timeout(1.second)
+            lines = [Rod.trace_type_label(TraceTypeWaitRequests), self.to_s, wait_list.to_json]
+            trace_logger = @browser.trace_logger
+            if trace_logger
+              logger = trace_logger.as(Rod::Util::Utils::Log)
+              logger.println(lines)
+            else
+              @browser.logger.info { lines.join(" ") }
             end
           end
-        ensure
-          ch.close
         end
+      ensure
+        ch.close
       end
 
       ->(list : Hash(String, String)) do

@@ -424,17 +424,15 @@ module Rod
       done = @ctx.done
       spawn do
         loop do
-          begin
-            select
-            when msg = src.receive
-              session_id = msg.session_id.try { |sid| SessionID.new(sid) }
-              @event.publish(Message.new(session_id, msg.method, msg.params))
-            when done.receive?
-              break
-            end
-          rescue Channel::ClosedError
+          select
+          when msg = src.receive
+            session_id = msg.session_id.try { |sid| SessionID.new(sid) }
+            @event.publish(Message.new(session_id, msg.method, msg.params))
+          when done.receive?
             break
           end
+        rescue Channel::ClosedError
+          break
         end
       end
     end
@@ -526,11 +524,9 @@ module Rod
         ensure
           cancel.call
           restores.each do |restore|
-            begin
-              restore.call
-            rescue
-              # Best-effort cleanup: domain disable failures should not fail waits.
-            end
+            restore.call
+          rescue
+            # Best-effort cleanup: domain disable failures should not fail waits.
           end
         end
       }

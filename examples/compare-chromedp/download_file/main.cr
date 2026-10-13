@@ -53,4 +53,6 @@ JS
 download.must_click
 
 res = wait.call
-Log.info { "wrote #{File.join(wd, res.not_nil!.guid)}" }
+if res
+  Log.info { "wrote #{File.join(wd, res.guid)}" }
+end

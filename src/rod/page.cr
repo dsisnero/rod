@@ -342,18 +342,16 @@ module Rod
       result : T? = nil
       started = Time.instant
       err = Rod::Util::Utils.retry(@ctx, @sleeper.call) do
-        begin
-          result = block.call
-          {true, nil}
-        rescue ex : NotFoundError | ElementNotFoundError
-          if timeout > Time::Span::ZERO && Time.instant - started >= effective_timeout
-            {true, NotFoundError.new("Element not found within #{timeout}")}
-          else
-            {false, nil}
-          end
-        rescue ex
-          {true, ex}
+        result = block.call
+        {true, nil}
+      rescue ex : NotFoundError | ElementNotFoundError
+        if timeout > Time::Span::ZERO && Time.instant - started >= effective_timeout
+          {true, NotFoundError.new("Element not found within #{timeout}")}
+        else
+          {false, nil}
         end
+      rescue ex
+        {true, ex}
       end
 
       raise err if err
@@ -538,39 +536,37 @@ module Rod
       sid = @session_id
 
       spawn do
-        begin
-          loop do
-            select
-            when msg = src.receive?
-              break unless msg
-              if sid.nil? || msg.session_id == sid
-                dst.send(msg)
-              end
-
-              if sid && msg.method == Cdp::Target::DetachedFromTargetEvent.proto_event
-                if data = msg.data
-                  detached = Cdp::Target::DetachedFromTargetEvent.from_json(data.to_json)
-                  break if detached.session_id == sid.value
-                end
-              end
-
-              if msg.method == Cdp::Target::TargetDestroyedEvent.proto_event
-                if data = msg.data
-                  destroyed = Cdp::Target::TargetDestroyedEvent.from_json(data.to_json)
-                  break if destroyed.target_id == @target_id.value
-                end
-              end
-            when @ctx.done.receive?
-              break
+        loop do
+          select
+          when msg = src.receive?
+            break unless msg
+            if sid.nil? || msg.session_id == sid
+              dst.send(msg)
             end
+
+            if sid && msg.method == Cdp::Target::DetachedFromTargetEvent.proto_event
+              if data = msg.data
+                detached = Cdp::Target::DetachedFromTargetEvent.from_json(data.to_json)
+                break if detached.session_id == sid.value
+              end
+            end
+
+            if msg.method == Cdp::Target::TargetDestroyedEvent.proto_event
+              if data = msg.data
+                destroyed = Cdp::Target::TargetDestroyedEvent.from_json(data.to_json)
+                break if destroyed.target_id == @target_id.value
+              end
+            end
+          when @ctx.done.receive?
+            break
           end
+        end
+      rescue Channel::ClosedError
+      ensure
+        begin
+          dst.close
         rescue Channel::ClosedError
-        ensure
-          begin
-            dst.close
-          rescue Channel::ClosedError
-            nil
-          end
+          nil
         end
       end
 
@@ -868,14 +864,12 @@ module Rod
         })
 
         spawn do
+          wait_response.call
+        rescue
+        ensure
           begin
-            wait_response.call
-          rescue
-          ensure
-            begin
-              wait_response_done.send(nil)
-            rescue Channel::ClosedError
-            end
+            wait_response_done.send(nil)
+          rescue Channel::ClosedError
           end
         end
       end
@@ -1066,12 +1060,10 @@ module Rod
     # Wait until the js returns true.
     def wait(opts : EvalOptions) : Nil
       err = Rod::Util::Utils.retry(@ctx, @sleeper.call) do
-        begin
-          res = evaluate(opts)
-          {res.value.try(&.as_bool?) == true, nil}
-        rescue ex
-          {true, ex}
-        end
+        res = evaluate(opts)
+        {res.value.try(&.as_bool?) == true, nil}
+      rescue ex
+        {true, ex}
       end
 
       raise err if err
@@ -1173,30 +1165,24 @@ module Rod
       error = Channel(Exception?).new(3)
 
       spawn do
-        begin
-          wait_load
-          error.send(nil)
-        rescue ex
-          error.send(ex)
-        end
+        wait_load
+        error.send(nil)
+      rescue ex
+        error.send(ex)
       end
 
       spawn do
-        begin
-          wait_duration(d)
-          error.send(nil)
-        rescue ex
-          error.send(ex)
-        end
+        wait_duration(d)
+        error.send(nil)
+      rescue ex
+        error.send(ex)
       end
 
       spawn do
-        begin
-          wait_dom_stable(d, 0.0)
-          error.send(nil)
-        rescue ex
-          error.send(ex)
-        end
+        wait_dom_stable(d, 0.0)
+        error.send(nil)
+      rescue ex
+        error.send(ex)
       end
 
       first_error : Exception? = nil
@@ -1382,16 +1368,14 @@ module Rod
       success = true
 
       loop do
-        begin
-          Cdp::Page::Close.new.call(self)
-          break
-        rescue ex
-          if not_attached_to_active_page_error?(ex)
-            sleep(100.milliseconds)
-            next
-          end
-          raise ex
+        Cdp::Page::Close.new.call(self)
+        break
+      rescue ex
+        if not_attached_to_active_page_error?(ex)
+          sleep(100.milliseconds)
+          next
         end
+        raise ex
       end
 
       loop do
@@ -2076,42 +2060,40 @@ module Rod
         iframe_el = @element
         raise "iframe page has no backing element" unless iframe_el
         2.times do |attempt|
-          begin
-            node = iframe_el.describe(1, true)
-            content_doc = node.content_document
-            raise "iframe element has no content document" unless content_doc
-            backend_node_id = content_doc.backend_node_id
+          node = iframe_el.describe(1, true)
+          content_doc = node.content_document
+          raise "iframe element has no content document" unless content_doc
+          backend_node_id = content_doc.backend_node_id
 
-            resolved = ::Cdp::DOM::ResolveNode.new(
-              node_id: nil,
-              backend_node_id: backend_node_id,
-              object_group: nil,
-              execution_context_id: nil
-            ).call(self)
+          resolved = ::Cdp::DOM::ResolveNode.new(
+            node_id: nil,
+            backend_node_id: backend_node_id,
+            object_group: nil,
+            execution_context_id: nil
+          ).call(self)
 
-            object_id = resolved.object.object_id
-            raise "Failed to resolve iframe content document object ID" unless object_id
+          object_id = resolved.object.object_id
+          raise "Failed to resolve iframe content document object ID" unless object_id
 
-            old_id = @js_ctx_id
-            @helpers_lock.synchronize do
-              if helpers = @helpers
-                helpers.delete(old_id) if old_id
-              end
+          old_id = @js_ctx_id
+          @helpers_lock.synchronize do
+            if helpers = @helpers
+              helpers.delete(old_id) if old_id
             end
-
-            id = js_ctx_id_by_object_id(object_id)
-            @js_ctx_id = id
-            return id
-          rescue ex
-            if stale_iframe_node_error?(ex) && attempt == 0
-              refreshed = refresh_iframe_element
-              raise ex unless refreshed
-              @element = refreshed
-              iframe_el = refreshed
-              next
-            end
-            raise ex
           end
+
+          id = js_ctx_id_by_object_id(object_id)
+          @js_ctx_id = id
+          return id
+        rescue ex
+          if stale_iframe_node_error?(ex) && attempt == 0
+            refreshed = refresh_iframe_element
+            raise ex unless refreshed
+            @element = refreshed
+            iframe_el = refreshed
+            next
+          end
+          raise ex
         end
 
         raise "Failed to resolve iframe js context"

@@ -14,15 +14,13 @@ module Rod::Util::Leakless
     return if @@cleanup_registered
     at_exit do
       tracked_processes.each do |pid|
-        begin
-          {% if flag?(:unix) %}
-            Process.signal(Signal::KILL, -pid) rescue nil
-          {% else %}
-            Process.signal(Signal::KILL, pid) rescue nil
-          {% end %}
-        rescue
-          # Ignore errors during exit
-        end
+        {% if flag?(:unix) %}
+          Process.signal(Signal::KILL, -pid) rescue nil
+        {% else %}
+          Process.signal(Signal::KILL, pid) rescue nil
+        {% end %}
+      rescue
+        # Ignore errors during exit
       end
     end
     @@cleanup_registered = true
@@ -53,18 +51,16 @@ module Rod::Util::Leakless
 
       # Start monitoring process
       spawn do
-        begin
-          # Wait for process to start and get PID
-          sleep 100.milliseconds # small delay to ensure process started
-          pid = process.pid.to_i32
-          @pid = pid
-          # Track PID for cleanup
-          ::Rod::Util::Leakless.tracked_processes << pid
-          @pid_channel.try &.send(pid)
-        rescue ex
-          @error = ex.message
-          @pid_channel.try &.close
-        end
+        # Wait for process to start and get PID
+        sleep 100.milliseconds # small delay to ensure process started
+        pid = process.pid.to_i32
+        @pid = pid
+        # Track PID for cleanup
+        ::Rod::Util::Leakless.tracked_processes << pid
+        @pid_channel.try &.send(pid)
+      rescue ex
+        @error = ex.message
+        @pid_channel.try &.close
       end
 
       process

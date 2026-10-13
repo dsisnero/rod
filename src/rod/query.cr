@@ -148,27 +148,25 @@ module Rod
         stop_error : Exception? = nil
 
         @branches.each do |branch|
-          begin
-            found = branch.condition.call(@page)
-            element = found
+          found = branch.condition.call(@page)
+          element = found
 
-            # Run callback if exists
-            if callback = branch.callback
-              callback.call(found)
-            end
-
-            # Found element, stop retrying
-            stop = true
-            break
-          rescue ex : NotFoundError
-            # Element not found, try next branch
-            next
-          rescue ex : Exception
-            # Other error, stop retrying
-            stop = true
-            stop_error = ex
-            break
+          # Run callback if exists
+          if callback = branch.callback
+            callback.call(found)
           end
+
+          # Found element, stop retrying
+          stop = true
+          break
+        rescue ex : NotFoundError
+          # Element not found, try next branch
+          next
+        rescue ex : Exception
+          # Other error, stop retrying
+          stop = true
+          stop_error = ex
+          break
         end
 
         {stop, stop_error}

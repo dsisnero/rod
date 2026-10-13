@@ -45,7 +45,7 @@ module Pdlgen
           next if trimmed.empty?
 
           # include
-          if match = line.match(INCLUDE_RE)
+          if line.matches?(INCLUDE_RE)
             next
           end
 

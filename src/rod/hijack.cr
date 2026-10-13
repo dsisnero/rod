@@ -423,15 +423,14 @@ module Rod
     # SetBody of the payload, if obj is Bytes or String, raw body will be used, else it will be encoded as json.
     # ameba:disable Naming/AccessorMethodName
     def set_body(obj) : self
-      text = ""
-      case obj
-      when Bytes
-        text = String.new(obj)
-      when String
-        text = obj
-      else
-        text = obj.to_json
-      end
+      text = case obj
+             when Bytes
+               String.new(obj)
+             when String
+               obj
+             else
+               obj.to_json
+             end
       @body_text = text
       @payload.body = Base64.strict_encode(text.to_slice)
       self

@@ -20,7 +20,7 @@ Metrics/CyclomaticComplexity:
     - src/pdlgen/pdl/parser.cr
     - src/rod/browser.cr
     - src/rod/dev_helpers.cr
-    - src/rod/lib/defaults.cr
-    - src/rod/lib/launcher.cr
-    - src/rod/lib/utils.cr
+    - src/rod/util/defaults.cr
+    - src/rod/util/launcher.cr
+    - src/rod/util/utils.cr
     - src/rod/page.cr

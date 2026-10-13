@@ -471,25 +471,23 @@ module Rod
         deadline = Time.instant + effective_timeout
         out : Point? = nil
         err = Rod::Util::Utils.retry(@ctx, @sleeper.call) do
-          begin
-            scroll_into_view
-            out = interactable
-            {true, nil}
-          rescue ex : CoveredError
-            if Time.instant >= deadline
-              {true, ex}
-            else
-              {false, nil}
-            end
-          rescue ex : RodError
-            if Time.instant >= deadline
-              {true, ex}
-            else
-              {true, ex}
-            end
-          rescue ex
+          scroll_into_view
+          out = interactable
+          {true, nil}
+        rescue ex : CoveredError
+          if Time.instant >= deadline
+            {true, ex}
+          else
+            {false, nil}
+          end
+        rescue ex : RodError
+          if Time.instant >= deadline
+            {true, ex}
+          else
             {true, ex}
           end
+        rescue ex
+          {true, ex}
         end
 
         raise err if err
