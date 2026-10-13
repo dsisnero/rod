@@ -1396,7 +1396,11 @@ module Rod
         break if stop
       end
 
-      raise PageCloseCanceledError.new unless success
+      if success
+        @browser.remove_cached_page(@target_id)
+      else
+        raise PageCloseCanceledError.new
+      end
     ensure
       cancel.try(&.call)
       @ctx.cancel("page closed")

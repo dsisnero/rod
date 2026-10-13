@@ -51,7 +51,10 @@ private class CloseStubBrowser < Rod::Browser
 
   def call(context : HTTP::Client::Context?, session_id : String?, method : String, params : JSON::Any) : Bytes
     @method_calls << method
-    if method == "Page.close"
+    case method
+    when "Target.attachToTarget"
+      return %({"sessionId":"session-1"}).to_slice
+    when "Page.close"
       @page_close_calls += 1
       unless @close_failures.empty?
         if ex = @close_failures.shift
@@ -691,6 +694,44 @@ describe Rod::Page do
       page = SettingsStubPage.new(browser)
 
       expect_raises(Exception, /page close failed/) { page.close }
+    end
+
+    it "evicts cached page from browser targets after successful close (Go Page.cleanupStates parity)" do
+      browser = CloseStubBrowser.new
+      target_id = Rod::TargetID.new("target-id")
+
+      page = browser.page_from_target(target_id)
+      browser.page_from_target(target_id).should be(page)
+
+      browser.event_channel.send(
+        Rod::Message.new(
+          nil,
+          Cdp::Target::TargetDestroyedEvent.proto_event,
+          JSON.parse(%({"targetId":"target-id"}))
+        )
+      )
+
+      page.close
+
+      browser.page_from_target(target_id).should_not be(page)
+    end
+
+    it "keeps cached page when close is canceled (Go cleanupStates only on success)" do
+      browser = CloseStubBrowser.new
+      target_id = Rod::TargetID.new("target-id")
+      page = browser.page_from_target(target_id)
+
+      browser.event_channel.send(
+        Rod::Message.new(
+          Rod::SessionID.new("session-1"),
+          Cdp::Page::JavascriptDialogClosedEvent.proto_event,
+          JSON.parse(%({"frameId":"frame-1","result":false,"userInput":""}))
+        )
+      )
+
+      expect_raises(Rod::PageCloseCanceledError) { page.close }
+
+      browser.page_from_target(target_id).should be(page)
     end
   end
 end

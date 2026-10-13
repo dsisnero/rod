@@ -407,6 +407,13 @@ module Rod
       @states_lock.synchronize { @states.delete(key) }
     end
 
+    # RemoveCachedPage evicts a target's cached page. Go stores cached pages in
+    # the same map as CDP state, so Page.cleanupStates calls RemoveState(TargetID).
+    # The Crystal port keeps pages in @targets instead, so evict from there.
+    def remove_cached_page(target_id : TargetID) : Nil
+      @targets_lock.synchronize { @targets.delete(target_id.value) }
+    end
+
     private def delete_state(session_id : SessionID?, method_name : String) : Nil
       key = StateKey.new(@browser_context_id, session_id, method_name)
       @states_lock.synchronize { @states.delete(key) }
