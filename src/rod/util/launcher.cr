@@ -926,23 +926,20 @@ module Rod::Util::Launcher
         @exit.try(&.close)
       end
 
-      # Get WebSocket URL from parser channel
-      if done = @exit
-        select
-        when ws_url = parser.url.receive
-          ws_url
-        when done.receive?
-          raise parser.error
-        when timeout 10.seconds
-          raise parser.error
-        end
-      else
-        select
-        when ws_url = parser.url.receive
-          ws_url
-        when timeout 10.seconds
-          raise parser.error
-        end
+      # Get the WebSocket URL from the parser channel. go-rod waits for the URL,
+      # the process exit or context cancellation only — it imposes no launch
+      # timeout, because a fixed one turns a slow cold start into a failure.
+      # A fresh channel stands in for a missing exit/context channel so the
+      # select arms stay uniform.
+      exit_ch = @exit || Channel(Nil).new
+      ctx_ch = @ctx || Channel(Nil).new
+      select
+      when ws_url = parser.url.receive
+        ws_url
+      when exit_ch.receive?
+        raise parser.error
+      when ctx_ch.receive?
+        raise parser.error
       end
     end
 

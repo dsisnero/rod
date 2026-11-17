@@ -113,10 +113,11 @@ module Rod::Util
       end
     end
 
-    # Close the parser
+    # Close the parser. Unlike go-rod's URLParser the URL channel keeps its
+    # subscribers waiting; the launcher decides what a silent exit means by
+    # racing the URL channel against the process exit and context channels.
     def close : Nil
       super
-      @url.close
     end
 
     # Get error message from buffer

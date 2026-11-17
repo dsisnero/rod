@@ -7,48 +7,47 @@
 
 ## Where we are
 
-**Current focus:** Phase 8 landed — `src/cdp` is now generated at Chromium
-`160.0.8168.1` / V8 `16.0.61`, and the curation that used to be hand-applied
-after a generation is emitted by `src/pdlgen` (recursive-type classes, value
-type constructors, runtime-only `ignore` fields, integer enum wire format,
-`extra` placement, `DOM.Point`, `Network.Request#post_data`). `make
-generate-crystal` is now byte-for-byte reproducible: it preserves the curated
-root files and formats the tree. Phase 1 (tree-sitter kind normalization) is
-still blocked — the `tree_sitter` Ruby gem is not installed in this environment
-— so `PORT_PARSER=regex` stays the authoritative parity gate.
+**Current focus:** Phase 9 removed the live-browser flakiness that Phase 8's gate
+runs kept hitting: `Page#reload` now waits for `Page.frameNavigated` for its own
+frame (go-rod's `Page.Reload`), and `Launcher#launch` no longer imposes a fixed
+10s timeout — it races the parsed DevTools URL against process exit and context
+cancellation like go-rod. Both have red-green specs and a stress harness. The
+next open work is Phase 1 (still blocked on the `tree_sitter` Ruby gem) plus the
+optional cleanups listed below.
 
-**Last commit:** `port: adopt the Chromium 160.0.8168.1 CDP vintage`
+**Last commit:** `port: make the live-browser specs deterministic`
 
-**Gates (2026-11-17, after Phase 8):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (592 examples, 0 failures) · parity checks pass
-(5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
-protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages
-pass, `go-rod/rod` main package has browser-timing failures (see Next up).
+**Gates (2026-11-17, after Phase 9):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (596 examples, 0 failures, three consecutive full
+runs with the final change) · parity checks pass (5665 inventory rows with 10
+documented divergences and 54 `skipped` legacy protocol rows, 5368 API items,
+297 tests) · upstream Go suite: 8/9 packages pass, `go-rod/rod` main package has
+browser-timing failures (see Next up).
 
 **Next up:**
 
-1. Tame full-suite browser flakiness: `spec/cdp_client_parity_spec.cr:483`
-   (Go `TestCrash`) and `spec/live_browser_parity_spec.cr:747`
-   (`TestSearchIframes*`) fail intermittently under load and pass in isolation
-   (2026-11-17: `TestSearchIframes*` failed once in a full file run, then the
-   same file passed 56/56). A rerun is not an acceptable safety net, so find the
-   shared resource (browser reuse, port binding, timeouts) and make the specs
-   deterministic.
-2. Phase 1 — (blocked) needs the `tree_sitter` Ruby gem plus kind/id
+1. Phase 1 — (blocked) needs the `tree_sitter` Ruby gem plus kind/id
    normalization before the tree-sitter checks can run; it also closes the
    `states.go::method::Page.cleanupStates` ledger row (the only Phase 2 bullet
    still open).
-3. Upstream Go suite flakiness: `github.com/go-rod/rod` failed
+2. Upstream Go suite flakiness: `github.com/go-rod/rod` failed
    `TestPageElements` and `Example_basic` on 2026-11-17 while the other eight
    packages passed. Re-run before reading anything into a failure — these are
    browser-timing issues in the vendored project, not port gaps.
-4. Optional cleanup: the repo tracks built binaries (`rod`, `bin/pdlgen*`,
+3. Optional cleanup: the repo tracks built binaries (`rod`, `bin/pdlgen*`,
    `pdlgen*`), so local builds keep showing up as modified files. Decide whether
    to untrack them.
-5. Optional follow-up: the generator's `root.ecr` template (120 lines) is still a
+4. Optional follow-up: the generator's `root.ecr` template (120 lines) is still a
    stale partial of the curated `src/cdp/cdp.cr` (277 lines, holds `Cdp.call`,
    `Client`, `TIME_FIELD_KEYS`). Teach the template to emit the curated root so
    `make generate-crystal` no longer needs the preserve/restore step.
+5. Optional follow-up: `Page#navigate` still waits on `Network.responseReceived`
+   with a 3s cap instead of go-rod's `WaitNavigation` lifecycle event, so a slow
+   navigation can return early. Same class of bug as the reload race; add a
+   red-green spec before changing it.
+6. Optional follow-up: live specs leave their `user-data-dir` behind
+   (`launcher.kill` without `launcher.cleanup`), so `$TMPDIR/rod/user-data`
+   grows with every run. Have the specs call `cleanup` in their `ensure` block.
 
 **Gotchas:** the 63 tree-sitter "missing" items and the 3422 kind-rename
 "stale" rows are tooling vocabulary drift, not port gaps — see below. Phase 2's
@@ -60,6 +59,9 @@ inventory rows are `skipped` and `spec/cdp_legacy_proto_parity_spec.cr` is gone.
 The upstream Go suite panics in its leak detector unless
 `GODEBUG=tracebackancestors=1000` is exported. The checkout is on exFAT, so a
 generation emits `._*` AppleDouble sidecars — strip them before counting files.
+`Launcher#launch` has no timeout on purpose: a browser that never prints a
+DevTools URL now waits until the process exits or the context cancels, exactly
+like go-rod, so a wedged browser hangs instead of failing fast.
 
 This is a curated feature roadmap, not a generated dump. Generated manifests
 (`go_source_parity.tsv`, `go_test_parity.tsv`) are reference snapshots;
@@ -75,7 +77,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 77 files, 592 examples, 0 failures (2026-11-17, Chromium `160.0.8168.1`) |
+| Crystal specs | 79 files, 596 examples, 0 failures (2026-11-17, Chromium `160.0.8168.1`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -342,6 +344,50 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       0 failures) and `make check-go-*` all pass.
 - [ ] Out of scope (Next up): the `root.ecr` template still does not emit the
       curated root module, so generation keeps preserving those two files.
+
+---
+
+### Phase 9 — Deterministic live-browser specs ✅
+- [x] Red-green `spec/page_reload_parity_spec.cr`: `Page#reload` must subscribe to
+      `Page.frameNavigated` *before* triggering `location.reload()`, must ignore
+      other frames' navigations, and must not return until its own frame
+      navigates. Failed before the change (`reload` returned as soon as the JS
+      call was accepted).
+- [x] Red-green `spec/launcher_launch_parity_spec.cr`: a browser that takes 11s
+      to print its DevTools URL must still launch (the port failed at the 10s
+      timeout), and a browser that exits silently must still raise
+      `Failed to get the debug url`.
+- [x] `src/rod/page.cr`: `Page#reload` now matches go-rod's `Page.Reload` — it
+      registers the frame-navigated wait first, evaluates `location.reload()`,
+      then waits and unsets the JS context. This closed both flake shapes:
+      `Rod::ObjectNotFoundError` on a stale `HTMLButtonElement` handle and
+      `-32000 Cannot find context with specified id` from
+      `DOM.getContentQuads`.
+- [x] `src/rod/util/launcher.cr`: dropped the 10s launch timeout; `launch` races
+      the parsed URL against process exit and context cancellation, as go-rod
+      does. A loaded machine no longer turns a slow Chrome cold start into
+      `[launcher] Failed to get the debug url`.
+- [x] `src/rod/util/url_parser.cr`: `close` no longer closes the URL channel
+      (go-rod's `URLParser` does not either), so the launcher's exit branch
+      reports the parser error instead of `Channel::ClosedError`.
+- [x] `spec/cdp_client_parity_spec.cr`: the `TestCrash` example crashed the
+      browser after a fixed `sleep 1.second`, so on a loaded machine the
+      `Runtime.evaluate` request could still be unsent when the browser died and
+      the failure surfaced as "not connected" (write side) instead of
+      "eof"/"closed" (read side) — the last flake, observed once in a full run
+      with 3:50 wall time. It now wraps the websocket in a `SentFrameSpy` and
+      crashes only after the evaluate frame is on the wire, which is the ordering
+      go-rod's timer approximates. Both call assertions are also bounded
+      (`failure_within`), so a call that stops failing fails the spec instead of
+      hanging the suite.
+- [x] Evidence: `scripts/stress_live_specs.sh` (8 concurrent workers × 5 rounds
+      mixing `TestSearchIframes` and `TestCrash`, documented in
+      `docs/testing.md`) went from 8-9 failures per 40 runs before the fixes to 0
+      after; `TestCrash` alone passed 60/60 at 12-way parallelism; the suite
+      passed three consecutive full runs (596 examples each) with the final
+      change in place.
+- [ ] Out of scope (Next up): `Page#navigate`'s 3s `Network.responseReceived`
+      wait and the leaked `user-data-dir` directories.
 
 ---
 

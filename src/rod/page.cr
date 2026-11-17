@@ -950,8 +950,24 @@ module Rod
 
     # Reload page.
     def reload : Nil
+      # Subscribe before triggering the reload: the navigation event can arrive
+      # before the JS call returns, and a missed subscription means the caller
+      # races the new execution context (stale node handles).
+      wait = browser.context(@ctx).each_event(@session_id, {
+        Cdp::Page::FrameNavigatedEvent.proto_event => Browser::CallbackInfo.new(
+          Cdp::Page::FrameNavigatedEvent,
+          ->(event : Cdp::Event, _session_id : SessionID?) do
+            navigated = event.as(Cdp::Page::FrameNavigatedEvent)
+            frame_id = @frame_id
+            frame_id.nil? || navigated.frame.id == frame_id.value
+          end
+        ),
+      })
+
       # Use JS reload to match rod behavior for iframe compatibility.
       evaluate(EvalOptions.new(js: "() => location.reload()", by_value: true, user_gesture: true))
+
+      wait.call
       unset_js_ctx_id
     end
 

@@ -6,6 +6,51 @@ private def cdp_fixture_url(name : String) : String
   "file://#{File.expand_path("../vendor/rod/lib/cdp/fixtures/#{name}", __DIR__)}"
 end
 
+# Runs the block and returns the exception it raised, or raises its own when the
+# block never fails. The crash spec must not be able to hang the suite: if a
+# call stops failing after the browser dies, that has to surface as a failure.
+private def failure_within(timeout : Time::Span, &block) : Exception
+  result = Channel(Exception).new(1)
+  action = block
+
+  spawn do
+    begin
+      action.call
+      result.send(RuntimeError.new("expected the call to fail"))
+    rescue ex
+      result.send(ex)
+    end
+  end
+
+  select
+  when ex = result.receive
+    ex
+  when timeout(timeout)
+    raise "call did not fail within #{timeout}"
+  end
+end
+
+# Wraps a websocket to observe the frames the client sends. The crash spec uses
+# it to crash the browser only once the in-flight request is on the wire.
+private class SentFrameSpy
+  include Rod::Util::Cdp::WebSocketable
+
+  getter frames : Channel(String)
+
+  def initialize(@inner : Rod::Util::Cdp::WebSocketable)
+    @frames = Channel(String).new(32)
+  end
+
+  def send(msg : Bytes) : Nil
+    @frames.send(String.new(msg)) rescue nil
+    @inner.send(msg)
+  end
+
+  def read : Bytes
+    @inner.read
+  end
+end
+
 private class MockCdpWebSocket < Rod::Util::Cdp::WebSocket
   getter sent = [] of String
   property send_error : Exception? = nil
@@ -489,7 +534,8 @@ describe "cdp client parity" do
     client = Rod::Util::Cdp::Client.new
 
     begin
-      client.start(Rod::Util::Cdp.must_connect_ws(launcher.launch))
+      ws = SentFrameSpy.new(Rod::Util::Cdp.must_connect_ws(launcher.launch))
+      client.start(ws)
 
       spawn do
         loop { client.event.receive }
@@ -504,21 +550,28 @@ describe "cdp client parity" do
 
       client.call(nil, session_id, "Page.enable", JSON.parse(%({})))
 
+      # Crash once the in-flight request is on the wire. go-rod sleeps a second
+      # here instead; with a timer the request can still be unsent when the
+      # browser dies under load, and then the failure comes from the write side
+      # ("not connected") rather than the read side the assertions describe.
       spawn do
-        sleep 1.second
+        while frame = ws.frames.receive?
+          break if frame.includes?("Runtime.evaluate")
+        end
+
         begin
           client.call(nil, session_id, "Browser.crash", JSON.parse(%({})))
         rescue
         end
       end
 
-      first = expect_raises(Exception) do
+      first = failure_within(20.seconds) do
         client.call(nil, session_id, "Runtime.evaluate", JSON.parse(%({"expression":"new Promise(() => {})","awaitPromise":true})))
       end
       first_msg = first.message.to_s.downcase
       (first_msg.includes?("eof") || first_msg.includes?("closed")).should be_true
 
-      second = expect_raises(Exception) do
+      second = failure_within(10.seconds) do
         client.call(nil, session_id, "Runtime.evaluate", JSON.parse(%({"expression":"10"})))
       end
       second_msg = second.message.to_s.downcase

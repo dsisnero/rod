@@ -22,6 +22,21 @@ crystal spec spec/page_event_lifecycle_parity_spec.cr
 
 Some parity specs start a real browser and need a local Chrome/Chromium binary.
 
+## Reproducing browser flakiness
+
+A real-browser spec is only as deterministic as the browser it drives. When one
+fails intermittently, reproduce it under load before touching the assertions:
+
+```bash
+./scripts/stress_live_specs.sh 5 8   # 5 rounds, 8 concurrent workers
+```
+
+The script builds `spec/live_browser_parity_spec.cr` and
+`spec/cdp_client_parity_spec.cr` once, then mixes the heavy examples that used to
+expose the `Page#reload` stale-context race and the launcher timeout (Phase 9 in
+`plans/parity.md`). A flake is only fixed when the harness is clean and the fix
+has a red-green spec of its own; a green rerun in isolation proves nothing.
+
 ## Parity manifests
 
 ```bash
