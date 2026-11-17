@@ -1,24 +1,73 @@
 # Development
 
-Common local workflow:
+## Upstream source of truth
+
+This repository is a Crystal port of
+[go-rod/rod](https://github.com/go-rod/rod). The Go source is vendored at
+`vendor/rod` and pinned at commit `d38c753` (upstream has no release tags).
+
+Rules that follow from that:
+
+- Treat `vendor/rod` as the source of truth; when in doubt, read the Go code.
+- Logic must match Go exactly; only syntax and library choices differ.
+- Use Crystal idioms only after behavioral equivalence is verified.
+- Port tests alongside code: every Go test should have a Crystal spec.
+- `must_*` and `!` aliases map one-to-one (`page!` → `must_page`,
+  `element!` → `must_element`).
+
+For parity tracking and validation, use the curated plan in `plans/parity.md`
+and the manifests under `plans/inventory/` with the helper scripts in
+`scripts/`.
+
+## Project structure
+
+- `src/rod/` — Crystal implementation (browser, page, element, states, input)
+- `src/rod/util/` — launcher, CDP transport, utilities
+- `src/cdp/` — generated Chrome DevTools Protocol bindings
+- `src/pdlgen/` — Crystal code generator for `src/cdp` (see
+  [generation.md](generation.md))
+- `spec/` — Crystal specs, including parity specs mapped from upstream Go tests
+- `vendor/rod/` — upstream Go source (reference only)
+- `plans/` — parity plan and generated/curated inventories
+- `scripts/` — inventory generation and parity check tooling
+- `examples/` — runnable examples, including end-to-end browser checks
+- `temp/` — git-ignored scratch space (`make clean` empties it)
+
+## Local workflow
 
 ```bash
-crystal tool format --check
-ameba --fix
-ameba
-crystal spec
+make install     # shards install
+make update      # shards update
+make format      # crystal tool format --check
+make lint        # ameba --fix, then ameba
+make test        # crystal spec
+make clean       # rm -rf ./temp/*
 ```
 
-Useful live checks while porting/parity testing:
+Parity gates:
 
 ```bash
-CRYSTAL_CACHE_DIR=$PWD/.crystal-cache crystal run examples/compare-chromedp/download_file/main.cr -- -rod "bin=/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+make check-go-port-inventory
+make check-go-source-parity
+make check-go-test-parity
 ```
 
-Behavior parity rules:
+Live browser checks need a local Chrome/Chromium binary:
 
-- Treat `vendor/rod` as source of truth.
-- Keep Crystal API semantics aligned with Go Rod.
-- `must_*` and `!` aliases should map one-to-one (`page!` -> `must_page`).
+```bash
+CRYSTAL_CACHE_DIR=$PWD/.crystal-cache crystal run \
+  examples/compare-chromedp/download_file/main.cr -- \
+  -rod "bin=/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+```
 
-For parity tracking and validation, use manifests in `plans/inventory/` and helper scripts in `scripts/`.
+## Issue tracking
+
+Work is tracked in beads (`bd`), not in markdown TODOs. Start a session with
+`bd ready --json`; see [resuming.md](resuming.md) for the full resume
+checklist and `AGENTS.md` for the definition of done.
+
+## CDP bindings
+
+`src/cdp` is generated from the protocol definitions, not hand-written.
+Run `make generate` (Crystal `pdlgen`) after bumping the vendor tree, and keep
+the CDP parity specs green. Details: [generation.md](generation.md).

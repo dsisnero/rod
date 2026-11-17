@@ -1,18 +1,25 @@
 # Plans and Documentation
 
+> **Historical:** `plans/parity.md` is the current source of truth for parity
+> status and next work. The documents here are the original bootstrap roadmap
+> (pre-parity-tracking) and are kept for issue-history context only.
+
 This directory contains planning documents for the Rod Crystal port project.
 
 ## Documents
 
 ### ROADMAP.md
+
 The main development roadmap showing:
+
 - Current project status (~5-8% complete)
 - All 20 bd issues organized by priority (P0-P3)
 - Phase-by-phase development plan
 - Dependencies between features
 - Success criteria and guidelines
 
-**Each section in ROADMAP.md corresponds to a bd issue** with the format `rod-xxx: Title`
+**Each section in ROADMAP.md corresponds to a bd issue** with the format
+`rod-xxx: Title`
 
 ## Quick Links
 
@@ -23,16 +30,19 @@ The main development roadmap showing:
 ## Using bd with the Roadmap
 
 ### View All Issues
+
 ```bash
 bd list
 ```
 
 ### See Available Work (Not In Progress)
+
 ```bash
 bd ready
 ```
 
 ### View Specific Issue
+
 ```bash
 bd show rod-6o3    # Element type
 bd show rod-42c    # Query system
@@ -40,11 +50,13 @@ bd show rod-e1s    # JS Evaluation
 ```
 
 ### Claim an Issue
+
 ```bash
 bd update rod-6o3 --status in_progress
 ```
 
 ### Complete an Issue
+
 ```bash
 bd close rod-6o3
 ```
@@ -54,14 +66,17 @@ bd close rod-6o3
 Issues are organized by priority in the roadmap:
 
 ### P0 (Critical) - Start Here
+
 These block other work and are core functionality:
+
 - **rod-6o3**: Element type
-- **rod-42c**: Query system  
+- **rod-42c**: Query system
 - **rod-e1s**: JavaScript evaluation
 - **rod-4nr**: Input types (Mouse, Keyboard, Touch)
 - **rod-cqx**: Error types
 
 ### P1 (High) - Essential Features
+
 - **rod-r6m**: Page navigation
 - **rod-kz1**: Context/Timeout system
 - **rod-edo**: Event system
@@ -69,6 +84,7 @@ These block other work and are core functionality:
 - **rod-d50**: Must helpers
 
 ### P2 (Medium) - Advanced Features
+
 - **rod-1p6**: Hijack/Request interception
 - **rod-pit**: Screenshots and PDF
 - **rod-v79**: Device emulation
@@ -79,6 +95,7 @@ These block other work and are core functionality:
 - **rod-q20**: Utils library
 
 ### P3 (Low) - Nice-to-Have
+
 - **rod-5wc**: Browser/Page pools
 - **rod-dz0**: Development helpers
 

@@ -1,7 +1,10 @@
 # Rod Crystal Port - Development Roadmap
 
-**Status**: Alpha / Early Development  
-**Current Completion**: ~5-8%  
+> **Historical:** this was the bootstrap roadmap. Current parity status and next
+> work live in [`plans/parity.md`](../../plans/parity.md).
+
+**Status**: Alpha / Early Development
+**Current Completion**: ~5-8%
 **Last Updated**: 2025-02-21
 
 ## Quick Reference
@@ -10,7 +13,7 @@
 # View available work
 bd ready
 
-# View specific issue  
+# View specific issue
 bd show rod-6o3
 
 # Claim an issue
@@ -42,7 +45,7 @@ This roadmap tracks the porting of the Go Rod library to Crystal. The goal is fu
 ## Phase 2: Core Types (P0 - Critical)
 
 ### rod-6o3: Element Type
-**Priority**: P0 | **Effort**: High | **Dependencies**: None  
+**Priority**: P0 | **Effort**: High | **Dependencies**: None
 **Description**: Implement the Element type with 50+ DOM interaction methods
 
 **Key Methods to Port**:
@@ -59,7 +62,7 @@ This roadmap tracks the porting of the Go Rod library to Crystal. The goal is fu
 ---
 
 ### rod-42c: Query System (Epic)
-**Priority**: P0 | **Effort**: High | **Dependencies**: rod-6o3  
+**Priority**: P0 | **Effort**: High | **Dependencies**: rod-6o3
 **Description**: Implement CSS, XPath, and JavaScript element selection
 
 **Implementation Plan**: See [QUERY_PORTING_PLAN.md](QUERY_PORTING_PLAN.md) for detailed 5-phase plan
@@ -84,7 +87,7 @@ This roadmap tracks the porting of the Go Rod library to Crystal. The goal is fu
 ---
 
 ### rod-e1s: JavaScript Evaluation System
-**Priority**: P0 | **Effort**: High | **Dependencies**: None  
+**Priority**: P0 | **Effort**: High | **Dependencies**: None
 **Description**: Implement JavaScript evaluation with EvalOptions and helper functions
 
 **Features**:
@@ -100,7 +103,7 @@ This roadmap tracks the porting of the Go Rod library to Crystal. The goal is fu
 ---
 
 ### rod-4nr: Input Types (Mouse, Keyboard, Touch)
-**Priority**: P0 | **Effort**: High | **Dependencies**: None  
+**Priority**: P0 | **Effort**: High | **Dependencies**: None
 **Description**: Implement input simulation types
 
 **Mouse**:
@@ -121,7 +124,7 @@ This roadmap tracks the porting of the Go Rod library to Crystal. The goal is fu
 ---
 
 ### rod-cqx: Error Types
-**Priority**: P0 | **Effort**: Medium | **Dependencies**: None  
+**Priority**: P0 | **Effort**: Medium | **Dependencies**: None
 **Description**: Implement all 14 error types with proper hierarchy and wrapping
 
 **Error Types**:
@@ -147,7 +150,7 @@ This roadmap tracks the porting of the Go Rod library to Crystal. The goal is fu
 ## Phase 3: Page & Navigation (P1 - High)
 
 ### rod-r6m: Page Navigation
-**Priority**: P1 | **Effort**: Medium | **Dependencies**: rod-cqx  
+**Priority**: P1 | **Effort**: Medium | **Dependencies**: rod-cqx
 **Description**: Implement page navigation methods
 
 **Methods**:
@@ -163,7 +166,7 @@ This roadmap tracks the porting of the Go Rod library to Crystal. The goal is fu
 ---
 
 ### rod-kz1: Context/Timeout System
-**Priority**: P1 | **Effort**: High | **Dependencies**: None  
+**Priority**: P1 | **Effort**: High | **Dependencies**: None
 **Description**: Implement context/timeout/cancellation support
 
 **Crystal Approach**:
@@ -179,7 +182,7 @@ This roadmap tracks the porting of the Go Rod library to Crystal. The goal is fu
 ---
 
 ### rod-edo: Event System
-**Priority**: P1 | **Effort**: High | **Dependencies**: None  
+**Priority**: P1 | **Effort**: High | **Dependencies**: None
 **Description**: Implement EachEvent and WaitEvent with Crystal patterns
 
 **Features**:
@@ -194,7 +197,7 @@ This roadmap tracks the porting of the Go Rod library to Crystal. The goal is fu
 ---
 
 ### rod-2sl: Full Launcher
-**Priority**: P1 | **Effort**: High | **Dependencies**: None  
+**Priority**: P1 | **Effort**: High | **Dependencies**: None
 **Description**: Implement full browser launcher with auto-download
 
 **Features**:
@@ -210,7 +213,7 @@ This roadmap tracks the porting of the Go Rod library to Crystal. The goal is fu
 ---
 
 ### rod-d50: Must Helpers
-**Priority**: P1 | **Effort**: Medium | **Dependencies**: rod-cqx  
+**Priority**: P1 | **Effort**: Medium | **Dependencies**: rod-cqx
 **Description**: Implement panic-on-error convenience methods
 
 **Pattern**: For every method that returns error, create a `Must` variant:
@@ -227,7 +230,7 @@ This roadmap tracks the porting of the Go Rod library to Crystal. The goal is fu
 ## Phase 4: Advanced Features (P2 - Medium)
 
 ### rod-1p6: Hijack/Request Interception
-**Priority**: P2 | **Effort**: High | **Dependencies**: rod-edo  
+**Priority**: P2 | **Effort**: High | **Dependencies**: rod-edo
 **Description**: Implement request interception and modification
 
 **Features**:
@@ -242,7 +245,7 @@ This roadmap tracks the porting of the Go Rod library to Crystal. The goal is fu
 ---
 
 ### rod-pit: Screenshot and PDF
-**Priority**: P2 | **Effort**: Medium | **Dependencies**: None  
+**Priority**: P2 | **Effort**: Medium | **Dependencies**: None
 **Description**: Implement screenshot and PDF capture
 
 **Features**:
@@ -257,7 +260,7 @@ This roadmap tracks the porting of the Go Rod library to Crystal. The goal is fu
 ---
 
 ### rod-v79: Device Emulation
-**Priority**: P2 | **Effort**: Medium | **Dependencies**: None  
+**Priority**: P2 | **Effort**: Medium | **Dependencies**: None
 **Description**: Implement device emulation with full device list
 
 **Features**:
@@ -272,7 +275,7 @@ This roadmap tracks the porting of the Go Rod library to Crystal. The goal is fu
 ---
 
 ### rod-94o: Wait Conditions
-**Priority**: P2 | **Effort**: Medium | **Dependencies**: rod-6o3  
+**Priority**: P2 | **Effort**: Medium | **Dependencies**: rod-6o3
 **Description**: Implement wait conditions for stable automation
 
 **Conditions**:
@@ -287,7 +290,7 @@ This roadmap tracks the porting of the Go Rod library to Crystal. The goal is fu
 ---
 
 ### rod-9sa: State Management
-**Priority**: P2 | **Effort**: Medium | **Dependencies**: None  
+**Priority**: P2 | **Effort**: Medium | **Dependencies**: None
 **Description**: Implement domain enable/disable state management
 
 **Features**:
@@ -301,7 +304,7 @@ This roadmap tracks the porting of the Go Rod library to Crystal. The goal is fu
 ---
 
 ### rod-bot: JavaScript Helpers
-**Priority**: P2 | **Effort**: Low | **Dependencies**: rod-e1s  
+**Priority**: P2 | **Effort**: Low | **Dependencies**: rod-e1s
 **Description**: Implement JavaScript helper functions library
 
 **Helpers**:
@@ -319,7 +322,7 @@ This roadmap tracks the porting of the Go Rod library to Crystal. The goal is fu
 ---
 
 ### rod-c6w: Input Keymap
-**Priority**: P2 | **Effort**: Low | **Dependencies**: rod-4nr  
+**Priority**: P2 | **Effort**: Low | **Dependencies**: rod-4nr
 **Description**: Implement input system keymap
 
 **Features**:
@@ -333,7 +336,7 @@ This roadmap tracks the porting of the Go Rod library to Crystal. The goal is fu
 ---
 
 ### rod-q20: Utils Library
-**Priority**: P2 | **Effort**: Medium | **Dependencies**: None  
+**Priority**: P2 | **Effort**: Medium | **Dependencies**: None
 **Description**: Port utility functions
 
 **Utilities**:
@@ -350,7 +353,7 @@ This roadmap tracks the porting of the Go Rod library to Crystal. The goal is fu
 ## Phase 5: Advanced & Polish (P3 - Low)
 
 ### rod-5wc: Browser and Page Pools
-**Priority**: P3 | **Effort**: High | **Dependencies**: rod-2sl  
+**Priority**: P3 | **Effort**: High | **Dependencies**: rod-2sl
 **Description**: Implement pools for concurrent browser/page management
 
 **Features**:
@@ -364,7 +367,7 @@ This roadmap tracks the porting of the Go Rod library to Crystal. The goal is fu
 ---
 
 ### rod-dz0: Development Helpers
-**Priority**: P3 | **Effort**: Low | **Dependencies**: None  
+**Priority**: P3 | **Effort**: Low | **Dependencies**: None
 **Description**: Implement development and debugging helpers
 
 **Features**:

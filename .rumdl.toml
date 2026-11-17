@@ -20,16 +20,23 @@ exclude = [
     # Common directories to exclude
     ".git",
     ".github",
+    ".crystal-cache",
     "node_modules",
     "vendor",
     "x",
     "lib",
     "temp",
+    "tmp",
     "build",
+    "bin",
+    "spec",
 
     # Specific files or patterns
     "CHANGELOG.md",
     "LICENSE.md",
+    # Historical bootstrap docs: kept verbatim, superseded by plans/parity.md
+    "docs/plans/ROADMAP.md",
+    "docs/plans/QUERY_PORTING_PLAN.md",
 ]
 
 # Respect .gitignore files when scanning directories (default: true)

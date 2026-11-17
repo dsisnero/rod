@@ -1,8 +1,11 @@
 # Rod Crystal
 
-This is a Crystal port of [go-rod/rod](https://github.com/go-rod/rod), a high-level browser automation library.
+A Crystal port of [go-rod/rod](https://github.com/go-rod/rod), a high-level
+browser automation library for the Chrome DevTools Protocol.
 
-The goal is full parity with Go Rod while maintaining Crystal idioms and best practices. The Go source code is available in the `vendor/rod` submodule and serves as the source of truth for all logic and behavior.
+The goal is full parity with Go Rod while keeping Crystal idioms and best
+practices. The Go source is preserved in the `vendor/rod` submodule and is the
+source of truth for all behavior.
 
 ## Installation
 
@@ -51,7 +54,9 @@ title = page.element!("h1").text!
 
 ### Query Timeout Behavior
 
-`element_r` / `must_element_r` now follow page/query timeout settings the same way as other query helpers. When no match exists, they fail with timeout instead of looping indefinitely.
+`element_r` / `must_element_r` follow page/query timeout settings the same way
+as other query helpers. When no match exists, they fail with timeout instead of
+looping indefinitely.
 
 ### Download Example
 
@@ -59,55 +64,47 @@ The end-to-end download example is available at:
 
 - `examples/compare-chromedp/download_file/main.cr`
 
-It relies on browser download events (enabled through `Browser#wait_download`) and writes the downloaded bytes after the browser reports completion.
+It relies on browser download events (enabled through `Browser#wait_download`)
+and writes the downloaded bytes after the browser reports completion.
 
-For more examples, see the [go-rod documentation](https://go-rod.github.io/) and the Crystal tests.
+For more examples, see the [go-rod documentation](https://go-rod.github.io/)
+and the Crystal specs under `spec/`.
 
 ## Development
 
-### Project Structure
-
-- `src/rod/` - Crystal implementation
-- `vendor/rod/` - Go source code (submodule)
-- `src/cdp/` - Generated Chrome DevTools Protocol bindings
-- `spec/` - Crystal specs
-
-### Development Workflow
-
-1. **Install dependencies**: `make install` or `shards install`
-2. **Run tests**: `make test` or `crystal spec`
-3. **Format code**: `crystal tool format`
-4. **Lint code**: `make lint` or `ameba`
-
-### Porting Guidelines
-
-This is a port, not a rewrite. Follow these principles:
-
-1. **Logic must match Go exactly** - Only syntax should differ
-2. **Use Crystal idioms** - After verifying behavioral equivalence
-3. **Port tests alongside code** - Every Go test should have a Crystal spec
-4. **Verify against Go implementation** - Use the vendor submodule as reference
-
-See [AGENTS.md](AGENTS.md) for detailed agent instructions.
-
-### Generating CDP Bindings
-
-CDP (Chrome DevTools Protocol) bindings are generated from the browser protocol definitions:
-
 ```bash
-make generate
+make install   # shards install
+make format    # crystal tool format --check
+make lint      # ameba
+make test      # crystal spec
 ```
 
-This uses the `pdlgen` tool in `vendor/pdlgen` to generate Crystal types from the JSON protocol definitions.
+Start with [docs/resuming.md](docs/resuming.md) to pick up work, and
+[docs/development.md](docs/development.md) for project layout, upstream pinning,
+and parity gates.
+
+## Documentation
+
+- [Resuming work](docs/resuming.md)
+- [Architecture](docs/architecture.md)
+- [Development](docs/development.md)
+- [Coding Guidelines](docs/coding-guidelines.md)
+- [Testing](docs/testing.md)
+- [CDP generation](docs/generation.md)
+- [PR Workflow](docs/pr-workflow.md)
+- [Porting plan](plans/parity.md)
+- [Plans index](docs/plans/README.md)
+
+Agent instructions live in [AGENTS.md](AGENTS.md) (also reachable as
+`CLAUDE.md`).
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch
-3. Make changes following porting guidelines
-4. Add tests for new functionality
-5. Run quality gates: `make format && make lint && make test`
-6. Submit a pull request
+3. Make behavior-faithful changes and port the matching upstream tests
+4. Run the gates: `make format && make lint && make test`
+5. Submit a pull request — see [docs/pr-workflow.md](docs/pr-workflow.md)
 
 ## License
 
@@ -115,4 +112,5 @@ MIT - see [LICENSE](LICENSE) for details.
 
 ## Attribution
 
-This project ports code from [go-rod/rod](https://github.com/go-rod/rod) (MIT licensed). The original source is preserved in the `vendor/rod` submodule.
+This project ports code from [go-rod/rod](https://github.com/go-rod/rod) (MIT
+licensed). The original source is preserved in the `vendor/rod` submodule.
