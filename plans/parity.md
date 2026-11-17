@@ -5,6 +5,40 @@
 **Language**: `go` · **Manifests**: `plans/inventory/go_*`
 **Last evaluated**: 2026-10-13
 
+## Where we are
+
+**Current focus:** Phase 4 — sign off the dev-tooling divergence by recording
+`lib/docker/*` and `lib/proto/generate/*` as `intentional_divergence`. Phase 1
+(tree-sitter kind normalization) is blocked on tooling outside this repo, so
+`PORT_PARSER=regex` remains the authoritative parity gate.
+
+**Last commit:** `c7fef12 fix(cdp): handle websocket control frames to
+stabilize TestCrash`
+
+**Gates (baseline, 2026-11-17):** `make format` pass · `make lint` pass (233
+files) · `make test` pass (576 examples, 0 failures) · parity checks pass (5665
+inventory rows, 5368 API items, 297 tests).
+
+**Next up:**
+
+1. Phase 4 — record `lib/docker/*` and `lib/proto/generate/*` as
+   `intentional_divergence` (or scope-exclude them), with a note pointing at
+   `src/pdlgen/` and `make generate-crystal`.
+2. Phase 4 — run `make generate-crystal`, confirm `src/cdp` regenerates cleanly
+   and the CDP parity specs still pass.
+3. Phase 5 — refresh the `go_source_parity.tsv` / `go_test_parity.tsv`
+   snapshots with `ensure_parity_plan.sh . vendor/rod go regex 1`; never
+   regenerate `go_port_inventory.tsv` in place.
+4. Phase 5 — adversarial pass:
+   `verify_parity_adversarial.sh . vendor/rod go 'crystal spec' '<go test cmd>'`.
+5. Phase 1 — (blocked) re-run the tree-sitter checks once kinds/ids are
+   normalized.
+
+**Gotchas:** the 63 tree-sitter "missing" items and the 3422 kind-rename
+"stale" rows are tooling vocabulary drift, not port gaps — see below. Phase 2's
+last checklist bullet (`states.go::method::Page.cleanupStates` ledger row) is
+also waiting on that reconciliation.
+
 This is a curated feature roadmap, not a generated dump. Generated manifests
 (`go_source_parity.tsv`, `go_test_parity.tsv`) are reference snapshots;
 `go_port_inventory.tsv` is the day-to-day ledger.
@@ -16,23 +50,40 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Metric | Value |
 |---|---|
 | Port inventory rows | 5665 (all `ported`) |
-| Source parity (regex backend) | 5368 API items, check PASS |
-| Source parity (tree-sitter backend) | 5431 API items, 63 unexported items flagged |
+| Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
+| Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 76 files, 574 examples, 0 failures |
+| Crystal specs | 76 files, 576 examples, 0 failures (2026-11-17) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
-The tree-sitter backend (new in the parity skill) additionally discovers Go
-**unexported** methods, which the older regex backend ignored. That is the
-entire source of the current drift.
+
+The tree-sitter backend (new in the parity skill) discovers Go **unexported**
+methods, but it also uses a **different kind vocabulary** than the regex backend
+that generated the curated manifests:
+
+| regex kind (manifests) | tree-sitter kind | example id change |
+|---|---|---|
+| `func` | `function` | `browser.go::func::New` → `browser.go::function::New` |
+| `struct` | `class` | `browser.go::struct::Browser` → `browser.go::class::Browser` |
+| `const` / `type` | `definition.type`, `field` | `...::const::X` → `...::definition.type::X` |
+| `method` | `method` | matches (only unexported extras differ) |
+
+Consequence with `PORT_PARSER=tree-sitter` on the current curated manifests:
+**63 "missing"** (unexported methods the regex backend never emitted) **plus
+3422 "stale"** (every regex `func`/`struct`/`const`/`type` row, which
+tree-sitter renames). The checker exits on "missing" first, so the 63 masked the
+larger mismatch. The regex backend therefore remains **authoritative** for the
+curated manifests until the tooling normalizes kinds.
 
 ---
 
 ## Evaluation of the 63 tree-sitter findings
 
-All 63 items are unexported implementation details, code-generation tooling, or
-platform shims. **62 map to an existing Crystal equivalent** (renamed,
-restructured, or inlined); **1 is a genuine minor gap**. Full list:
+The 63 items are the tree-sitter `missing` set (the check exits before it would
+report the 3422 `stale` kind-rename rows above). All 63 are unexported
+implementation details, code-generation tooling, or platform shims. **62 map to
+an existing Crystal equivalent** (renamed, restructured, or inlined); **1 is a
+genuine minor gap**. Full list:
 `plans/inventory/go_tree_sitter_drift_notes.txt`.
 
 | Category | Count | Verdict |
@@ -83,15 +134,21 @@ restructured, or inlined); **1 is a genuine minor gap**. Full list:
 
 Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
 
-### Phase 1 — Reconcile tree-sitter discovery drift
-- [ ] Add `plans/inventory/go_source_notes.tsv` entries (or ledger rows) marking
-      the 62 false-positive items with their Crystal refs, so a strict
-      tree-sitter `check_source_parity.sh` / `check_port_inventory.sh` run is
-      green without weakening the gate.
-- [ ] Decide scope handling for Go-only tooling (`lib/docker`, `lib/proto/generate`)
-      via `PORT_SCOPE_EXCLUDE=lib/docker,lib/proto/generate` or an
-      `intentional_divergence` ledger row.
-- [ ] Re-run `check_port_inventory.sh` and `check_source_parity.sh` with
+### Phase 1 — Reconcile tree-sitter discovery drift ⛔ blocked
+- [x] Diagnosed: the drift is not 63 items. Adding the 63 unexported rows to the
+      ledger/source manifest does not turn the check green — it then reports
+      **3422 stale** rows because tree-sitter renames every `func`/`struct`/
+      `const`/`type` id to `function`/`class`/`definition.*`.
+- [ ] **Blocked on tooling**, not the repo: strict `PORT_PARSER=tree-sitter`
+      requires kind/id normalization before the curated regex-vocabulary
+      manifests can match. Options (both outside this repo):
+  1. Normalize tree-sitter kinds/ids to the curated vocabulary in
+     `parity_inventory_lib.rb#discover_with_crystal_discovery`
+     (`function`→`func`, `class`→`struct`, `definition.type`/`field`→`const`/`type`).
+  2. Add a `--kind-map`/normalization mode to the bundled `chiasmus-discover`.
+- [ ] Until then, keep `PORT_PARSER=regex` as the authoritative gate (green:
+      5368 API items). Treat tree-sitter output as an exploratory overlay.
+- [ ] (Blocked) Re-run `check_port_inventory.sh` / `check_source_parity.sh` with
       `PORT_PARSER=tree-sitter` and confirm exit 0.
 
 ### Phase 2 — Page target-cache lifecycle parity ✅
