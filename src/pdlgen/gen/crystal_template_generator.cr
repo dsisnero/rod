@@ -228,6 +228,16 @@ module Pdlgen
         name
       end
 
+      # ordered_parameters returns the parameters that are actually emitted, with
+      # required parameters first. Crystal rejects a parameter without a default
+      # that follows one that has a default, and the protocol declares parameters
+      # in schema order, which puts optional ones first in some commands.
+      private def ordered_parameters(params : Array(Pdl::Type)) : Array(Pdl::Type)
+        emitted = params.reject { |param| (param.deprecated? && !param.always_emit?) || param.name.empty? }
+        required, optional = emitted.partition { |param| !param.optional? }
+        required + optional
+      end
+
       private def enum_member_name(value : String) : String
         # Convert string like "all-screens-capture" or "Render process gone." to "AllScreensCapture" or "RenderProcessGone"
         # Replace any non-alphanumeric characters with space, split by whitespace, camelcase each part, and join

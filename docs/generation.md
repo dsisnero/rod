@@ -167,19 +167,17 @@ criterion:
   (150 `.cr` files); a generation at Chromium `160.0.8168.1` produces 59
   (154 files): it adds `ads`, `crashreportcontext`, `digitalcredentials`,
   `findinpage`, `webmcp`, and drops `console`, `database`, `schema`.
-- The emitter does not yet support every construct in the newer protocol, so
-  today's raw output does not compile:
-  - duplicate + wrongly qualified enum aliases, e.g.
-    `alias Fetch.AuthChallengeSource = String` alongside
-    `alias AuthChallengeSource = String` (`fetch/types.cr`);
-  - required constructor parameters emitted after optional ones
-    (`parameter must have a default value`) for `DOM.SetTextMarker`,
-    `IndexedDB.ClearObjectStore`, `Network.EmulateNetworkConditionsByRule`,
-    `WebMCP.InvokeTool`.
+- The emitter handles the constructs the current protocol needs, so raw output
+  now parses: lifted inline-enum types are named once and without a domain
+  qualifier (no `alias Fetch.AuthChallengeSource`), and command constructors emit
+  required parameters before optional ones. Both are covered by
+  `spec/pdlgen_emitter_parity_spec.cr`; a generation at Chromium `160.0.8168.1`
+  passes `crystal tool format` over the whole tree with zero syntax errors.
 
-Adopting a newer protocol is therefore its own work item: fix the emitter,
-regenerate, re-apply the curation, then run `crystal spec` (the CDP parity
-specs under `spec/cdp_*_parity_spec.cr`) before committing.
+Adopting a newer protocol is still its own work item: pick the vintage, bump
+`CDP_CHROMIUM`/`CDP_V8`, regenerate, re-apply the curation (camelCase keys, typed
+decoding), then run `crystal spec` (the CDP parity specs under
+`spec/cdp_*_parity_spec.cr`) before committing.
 
 ## Protocol Source Files
 

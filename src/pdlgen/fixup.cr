@@ -127,7 +127,6 @@ module Pdlgen
           # Ensure missing enum types exist
           auth_challenge_source_type = domain.types.find { |type| type.name == "AuthChallengeSource" }
           unless auth_challenge_source_type
-            STDOUT.puts "DEBUG: adding AuthChallengeSource type"
             domain.types << Pdl::Type.new(
               raw_name: "Fetch.AuthChallengeSource",
               name: "AuthChallengeSource",
@@ -139,7 +138,6 @@ module Pdlgen
 
           auth_challenge_response_response_type = domain.types.find { |type| type.name == "AuthChallengeResponseResponse" }
           unless auth_challenge_response_response_type
-            STDOUT.puts "DEBUG: adding AuthChallengeResponseResponse type"
             domain.types << Pdl::Type.new(
               raw_name: "Fetch.AuthChallengeResponseResponse",
               name: "AuthChallengeResponseResponse",
@@ -410,7 +408,7 @@ module Pdlgen
         # fix type stuttering
         domain.types.each do |typ|
           if !typ.no_expose? && !typ.no_resolve? && !typ.is_circular_dep?
-            name = typ.raw_name.sub(/^#{Regex.escape(domain.domain)}\\.?/, "")
+            name = strip_domain_prefix(typ.raw_name, domain.domain)
             if typ.raw_name.starts_with?("Accessibility.")
               name = typ.raw_name.sub(/^Accessibility\./, "").gsub(AX_RE, "")
             end
@@ -520,7 +518,7 @@ module Pdlgen
           raw_type: param.raw_type,
           raw_name: n,
           is_circular_dep: param.is_circular_dep?,
-          name: n.sub(/^#{Regex.escape(d.domain)}\\./, ""),
+          name: strip_domain_prefix(n, d.domain),
           type: Pdl::TypeEnum::String,
           description: param.description,
           optional: param.optional?,
@@ -587,7 +585,12 @@ module Pdlgen
       if n = ENUM_REF_MAP[fqname]?
         ref = n
       end
-      raw_name = d.domain + "." + ref
+      # `ref` entries in ENUM_REF_MAP may already be domain qualified (e.g.
+      # `Fetch.AuthChallengeSource`). Normalize before prefixing so the lifted
+      # type merges with the one the domain fixups add, instead of creating a
+      # second type whose name keeps the domain prefix and emits an invalid
+      # `alias Fetch.AuthChallengeSource`.
+      raw_name = d.domain + "." + strip_domain_prefix(ref, d.domain)
 
       # add enum values to type name
       add_enum_values(raw_name, p, parent, d)
@@ -607,6 +610,19 @@ module Pdlgen
     private def self.snaker_force_camel_identifier(s : String) : String
       # TODO: implement proper conversion
       s.split('.').map(&.camelcase).join
+    end
+
+    # stripDomainPrefix removes any number of leading `domain.` qualifiers.
+    #
+    # Go's equivalent is `strings.TrimPrefix`/`regexp` on the fully qualified
+    # name; repeated qualifiers appear because fixups build raw names from
+    # `ENUM_REF_MAP` values that are already domain qualified.
+    private def self.strip_domain_prefix(name : String, domain : String) : String
+      prefix = domain + "."
+      while name.starts_with?(prefix)
+        name = name[prefix.size..]
+      end
+      name
     end
   end
 end

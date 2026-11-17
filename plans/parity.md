@@ -7,30 +7,29 @@
 
 ## Where we are
 
-**Current focus:** the CDP protocol upgrade — the next substantial feature. Phases
-2–5 are complete and Phase 1 (tree-sitter kind normalization) remains blocked on
-tooling outside this repo, so `PORT_PARSER=regex` stays the authoritative parity
-gate. The upgrade work is bounded by two known emitter gaps (duplicate dotted
-enum aliases; required constructor params emitted after optional ones) whose
-file/line evidence lives in [docs/generation.md](generation.md).
+**Current focus:** adopting a newer CDP protocol vintage. Phase 6 closed the two
+emitter gaps that blocked it, so generation at the current protocol now parses
+cleanly; what remains is picking a vintage, regenerating, and re-applying the
+post-generation curation. Phase 1 (tree-sitter kind normalization) is still
+blocked on tooling outside this repo, so `PORT_PARSER=regex` stays the
+authoritative parity gate.
 
-**Last commit:** `port: make the parity manifest refresh non-destructive`
+**Last commit:** `port: teach the CDP emitter the current protocol constructs`
 
 **Gates (baseline, 2026-11-17):** `make format` pass · `make lint` pass (233
-files) · `make test` pass (579 examples, 0 failures) · parity checks pass (5665
+files) · `make test` pass (581 examples, 0 failures) · parity checks pass (5665
 inventory rows with 10 documented divergences, 5368 API items, 297 tests) ·
 upstream Go suite: 8/9 packages pass, `go-rod/rod` main package has two
 browser-timing failures (see Next up).
 
 **Next up:**
 
-1. CDP protocol upgrade: teach the emitter the two constructs the current
-   protocol uses — enum aliases must not be emitted twice with a dotted name
-   (`alias Fetch.AuthChallengeSource`), and required constructor parameters must
-   precede optional ones. Then `make generate-crystal CDP_CHROMIUM=<ver>`,
-   re-apply the post-generation curation (camelCase keys, typed decoding) and
-   run the CDP parity specs (`spec/cdp_*_parity_spec.cr`). Write the specs first
-   (red-green) in a `spec/pdlgen_emitter_parity_spec.cr`.
+1. CDP protocol vintage adoption: pick a vintage, run `make generate-crystal
+   CDP_CHROMIUM=<ver> CDP_V8=<ver>`, re-apply the post-generation curation
+   (camelCase JSON keys, typed result decoding) and run the CDP parity specs
+   (`spec/cdp_*_parity_spec.cr`). The domain set changes: it adds `ads`,
+   `crashreportcontext`, `digitalcredentials`, `findinpage`, `webmcp` and drops
+   `console`, `database`, `schema`, so `src/rod` references need an audit.
 2. Tame full-suite browser flakiness: two consecutive full runs on 2026-11-17
    each had one failure, different specs, both green in isolation —
    `spec/cdp_client_parity_spec.cr:483` (Go `TestCrash`) and
@@ -214,7 +213,7 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       [docs/generation.md](generation.md): 57→59 domain dirs (adds `ads`,
       `crashreportcontext`, `digitalcredentials`, `findinpage`, `webmcp`;
       drops `console`, `database`, `schema`) plus 5 syntax errors from two
-      emitter gaps.
+      emitter gaps (both fixed in Phase 6).
 - [x] Fixed two real `pdlgen` bugs found by that exercise (both diverged from
       Go `cdproto-gen`): `get_dep_version` searched `Bytes` with a `String`
       needle and never matched (Go uses `bytes.Index`), and `get_refs` raised
@@ -227,7 +226,7 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
 - [x] CDP parity specs still pass against the committed tree (`make test`:
       579 examples, 0 failures).
 
-### Phase 5 — Continuous parity gates & adversarial signoff
+### Phase 5 — Continuous parity gates & adversarial signoff ✅
 - [x] Refreshed the generated manifests the safe way: the source/test generators
       now preserve the curated `status`/`crystal_refs`/`notes` columns and row
       order for known ids, drop ids discovery no longer reports, and append new
@@ -253,6 +252,27 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       gaps. The `GODEBUG=tracebackancestors=1000` export is mandatory — rod's
       goroutine-leak detector panics without it.
 - [x] Keep `go_port_inventory.tsv` curated; never regenerate it in place.
+
+---
+
+### Phase 6 — CDP emitter support for current protocol constructs ✅
+- [x] Red-green specs in `spec/pdlgen_emitter_parity_spec.cr`: lifted inline-enum
+      types must emit exactly one alias without a domain qualifier, and command
+      constructors must put required parameters before optional ones. Both failed
+      before the change (dotted `alias Fetch.AuthChallengeSource` emitted
+      alongside the plain alias; `@required` after `@optional = nil`).
+- [x] `fixup.cr`: added `strip_domain_prefix` and used it for lifted enum type
+      names; `fixup_enum_parameter` now normalizes `ENUM_REF_MAP` refs before
+      building raw names, so the lifted type merges with the domain fixup's type
+      instead of creating a second, dotted one. Also removed two leftover
+      `DEBUG:` puts that polluted generator output.
+- [x] `crystal_templates/domain_module.ecr`: command constructors go through
+      `ordered_parameters`, so required parameters precede optional ones.
+- [x] Verified at Chromium `160.0.8168.1` / V8 `16.0.61`: generation succeeds,
+      `crystal tool format` parses all 154 generated files with 0 syntax errors,
+      and no alias carries a domain prefix.
+- [ ] Out of scope (tracked in Next up): adopting that vintage — the domain set
+      changes and the post-generation curation must be re-applied.
 
 ---
 
