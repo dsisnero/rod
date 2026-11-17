@@ -5,7 +5,7 @@
 Run all of these before committing:
 
 ```bash
-make format   # crystal tool format --check
+make format   # crystal tool format --check src spec examples bin
 make lint     # ameba --fix, then ameba
 make test     # crystal spec
 ```

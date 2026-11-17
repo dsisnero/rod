@@ -38,7 +38,7 @@ and the manifests under `plans/inventory/` with the helper scripts in
 ```bash
 make install     # shards install
 make update      # shards update
-make format      # crystal tool format --check
+make format      # crystal tool format --check src spec examples bin
 make lint        # ameba --fix, then ameba
 make test        # crystal spec
 make clean       # rm -rf ./temp/*

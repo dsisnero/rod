@@ -3,46 +3,58 @@
 **Source of truth**: `vendor/rod` (go-rod) at `d38c753`
 **Target**: Crystal port under `src/`, specs under `spec/`
 **Language**: `go` · **Manifests**: `plans/inventory/go_*`
-**Last evaluated**: 2026-10-13
+**Last evaluated**: 2026-11-17
 
 ## Where we are
 
-**Current focus:** Phase 4 — sign off the dev-tooling divergence by recording
-`lib/docker/*` and `lib/proto/generate/*` as `intentional_divergence`. Phase 1
-(tree-sitter kind normalization) is blocked on tooling outside this repo, so
-`PORT_PARSER=regex` remains the authoritative parity gate.
+**Current focus:** Phase 5 — refresh the generated `go_source_parity.tsv` /
+`go_test_parity.tsv` snapshots and run the adversarial signoff pass. Phase 4
+(dev-tooling divergence sign-off) is done: `lib/docker/*` and
+`lib/proto/generate/*` are recorded as `intentional_divergence`, and the CDP
+generation path was exercised end to end. Phase 1 (tree-sitter kind
+normalization) remains blocked on tooling outside this repo, so
+`PORT_PARSER=regex` stays the authoritative parity gate.
 
-**Last commit:** `c7fef12 fix(cdp): handle websocket control frames to
-stabilize TestCrash`
+**Last commit:** `port: sign off dev-tooling divergence and harden CDP generation`
 
 **Gates (baseline, 2026-11-17):** `make format` pass · `make lint` pass (233
-files) · `make test` pass (576 examples, 0 failures) · parity checks pass (5665
-inventory rows, 5368 API items, 297 tests).
+files) · `make test` pass (579 examples, 0 failures) · parity checks pass (5665
+inventory rows with 10 documented divergences, 5368 API items, 297 tests).
 
 **Next up:**
 
-1. Phase 4 — record `lib/docker/*` and `lib/proto/generate/*` as
-   `intentional_divergence` (or scope-exclude them), with a note pointing at
-   `src/pdlgen/` and `make generate-crystal`.
-2. Phase 4 — run `make generate-crystal`, confirm `src/cdp` regenerates cleanly
-   and the CDP parity specs still pass.
-3. Phase 5 — refresh the `go_source_parity.tsv` / `go_test_parity.tsv`
+1. Phase 5 — refresh the `go_source_parity.tsv` / `go_test_parity.tsv`
    snapshots with `ensure_parity_plan.sh . vendor/rod go regex 1`; never
-   regenerate `go_port_inventory.tsv` in place.
-4. Phase 5 — adversarial pass:
+   regenerate `go_port_inventory.tsv` in place. **Careful:** the refresh
+   rewrites source-parity notes from `plans/inventory/go_source_notes.tsv`,
+   which does not exist — a refresh would replace the curated per-row notes
+   with `baseline`. Recreate the notes overrides file first (or teach
+   `generate_source_parity_manifest.rb` to preserve existing notes).
+2. Phase 5 — adversarial pass:
    `verify_parity_adversarial.sh . vendor/rod go 'crystal spec' '<go test cmd>'`.
-5. Phase 1 — (blocked) re-run the tree-sitter checks once kinds/ids are
+3. Phase 1 — (blocked) re-run the tree-sitter checks once kinds/ids are
    normalized.
-6. Tame full-suite browser flakiness: two consecutive full runs on 2026-11-17
+4. Tame full-suite browser flakiness: two consecutive full runs on 2026-11-17
    each had one failure, different specs, both green in isolation —
    `spec/cdp_client_parity_spec.cr:483` (Go `TestCrash`) and
    `spec/live_browser_parity_spec.cr:747` (`TestSearchIframes*`). Likely
    resource/timing under load; a rerun should not be the only safety net.
+5. CDP protocol upgrade (new, from Phase 4): teach the Crystal emitter the two
+   constructs the current protocol uses — enum aliases must not be emitted twice
+   with a dotted name (`alias Fetch.AuthChallengeSource`), and required
+   constructor parameters must precede optional ones. Evidence and file/line
+   references live in [docs/generation.md](generation.md). Then regenerate with
+   `make generate-crystal CDP_CHROMIUM=<ver>`, re-apply the post-generation
+   curation (camelCase keys, typed decoding) and run the CDP parity specs.
+6. Optional cleanup: the repo tracks built binaries (`rod`, `bin/pdlgen*`,
+   `pdlgen*`), so local builds keep showing up as modified files. Decide
+   whether to untrack them.
 
 **Gotchas:** the 63 tree-sitter "missing" items and the 3422 kind-rename
 "stale" rows are tooling vocabulary drift, not port gaps — see below. Phase 2's
 last checklist bullet (`states.go::method::Page.cleanupStates` ledger row) is
-also waiting on that reconciliation.
+also waiting on that reconciliation. `make generate-crystal` is not
+reproducible by default (`--latest`); pin `CDP_CHROMIUM`/`CDP_V8`.
 
 This is a curated feature roadmap, not a generated dump. Generated manifests
 (`go_source_parity.tsv`, `go_test_parity.tsv`) are reference snapshots;
@@ -54,11 +66,11 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 
 | Metric | Value |
 |---|---|
-| Port inventory rows | 5665 (all `ported`) |
+| Port inventory rows | 5665 discovered + 10 documented divergences (5,655 `ported` + 10 `intentional_divergence`) |
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 76 files, 576 examples, 0 failures (2026-11-17) |
+| Crystal specs | 77 files, 579 examples, 0 failures (2026-11-17) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -102,8 +114,8 @@ genuine minor gap**. Full list:
 | `lib/launcher` internals | 10 | False positive — inlined / renamed / platform flags |
 | `lib/cdp` client + websocket internals | 5 | False positive — `util/cdp/*` equivalents |
 | `lib/utils` `IdleCounter.reset` | 1 | False positive — inlined in `done` / `wait` |
-| `lib/docker` release tooling | 5 | Intentional divergence — no Crystal port |
-| `lib/proto/generate` codegen tooling | 5 | Intentional divergence — Crystal `pdlgen` |
+| `lib/docker` release tooling | 5 | Intentional divergence — recorded in the ledger (Phase 4) |
+| `lib/proto/generate` codegen tooling | 5 | Intentional divergence — recorded in the ledger (Phase 4); Crystal `pdlgen` |
 | `page.go` `getWindowID` / `initEvents` | 2 | `get_window_id`; `initEvents` -> `Page#init_events` (Phase 3) |
 
 ### Genuine missing functionality
@@ -131,7 +143,8 @@ genuine minor gap**. Full list:
   `Keyboard.getModifiers` → `modifiers_unlocked` (`keyboard.cr:164`).
 - Go `lib/docker` and `lib/proto/generate` are repo-local tooling; the Crystal
   port has its own generator (`src/pdlgen/`) and no Docker release script.
-  These should be recorded as `intentional_divergence`, not ported.
+  Recorded as `intentional_divergence` in `go_port_inventory.tsv` (Phase 4),
+  not ported.
 
 ---
 
@@ -186,12 +199,34 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       `574 examples, 0 failures`.
 - [x] Reconciled the `page.go::method::Page.initEvents` row (see category table).
 
-### Phase 4 — Dev-tooling divergence sign-off
-- [ ] Record `lib/docker/*` and `lib/proto/generate/*` as
-      `intentional_divergence` (or scope-exclude) with a note pointing at
-      `src/pdlgen/` and `Makefile` `generate-crystal`.
-- [ ] Verify `make generate-crystal` regenerates `src/cdp` cleanly and the CDP
-      parity specs still pass.
+### Phase 4 — Dev-tooling divergence sign-off ✅
+- [x] Recorded `lib/docker/*` and `lib/proto/generate/*` as
+      `intentional_divergence` in `go_port_inventory.tsv` (14 rows: 5
+      `lib/docker` release-tooling helpers, 5 `lib/proto/generate` codegen
+      internals, 4 generator template strings). Notes point at `src/pdlgen/`
+      and `make generate-crystal`.
+- [x] `scripts/check_port_inventory.rb` accepts `intentional_divergence` as a
+      status, requires an explanatory note for it (and for `skipped`), and
+      allows divergence rows that discovery never reports to stay in the ledger
+      instead of failing as stale. Any other undiscovered row still fails.
+- [x] Exercised `make generate-crystal` end to end. Outcome: generation runs,
+      but a clean regeneration is **not expected** — `src/cdp` is a curated
+      snapshot and the protocol vintage has moved. Evidence recorded in
+      [docs/generation.md](generation.md): 57→59 domain dirs (adds `ads`,
+      `crashreportcontext`, `digitalcredentials`, `findinpage`, `webmcp`;
+      drops `console`, `database`, `schema`) plus 5 syntax errors from two
+      emitter gaps.
+- [x] Fixed two real `pdlgen` bugs found by that exercise (both diverged from
+      Go `cdproto-gen`): `get_dep_version` searched `Bytes` with a `String`
+      needle and never matched (Go uses `bytes.Index`), and `get_refs` raised
+      on gitiles entries without a `target` (Go decodes a missing field to the
+      zero value). Covered by `spec/pdlgen_util_parity_spec.cr` (red-green).
+- [x] Made the generation path reproducible: `make generate-crystal` takes
+      `CDP_CHROMIUM`/`CDP_V8` pins (empty = `--latest`), and
+      `make generate-crystal-scratch` runs the same generation into
+      `temp/cdp_generated/` for toolchain checks without touching `src/cdp`.
+- [x] CDP parity specs still pass against the committed tree (`make test`:
+      579 examples, 0 failures).
 
 ### Phase 5 — Continuous parity gates & adversarial signoff
 - [ ] Refresh generated manifests after the vendor bump:
@@ -209,4 +244,9 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
 - Do not weaken Go tests or fixtures to make Crystal green.
 - Do not add ledger rows for Go-only tooling as `ported`; use
   `intentional_divergence` or `skipped` with a note.
+- Ledger statuses accepted by `scripts/check_port_inventory.rb`: `missing`,
+  `in_progress`, `ported`, `partial`, `skipped`, `intentional_divergence`.
+  `skipped` and `intentional_divergence` require a note, and their rows may name
+  Go items that discovery never reports (documented divergences do not fail the
+  stale check); every other undiscovered row still fails.
 - Commit each completed phase as one atomic `port:` change.

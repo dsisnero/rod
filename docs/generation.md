@@ -108,6 +108,10 @@ crystal run src/pdlgen.cr -- --pdl <file.pdl> --out src/cdp
 The `Makefile` wires the two generators together:
 
 ```makefile
+CDP_CHROMIUM ?=   # empty = upstream latest
+CDP_V8 ?=         # empty = derive from Chromium DEPS (pinned Chromium only)
+CDP_PROTOCOL_ARGS = $(if $(CDP_CHROMIUM),--chromium=$(CDP_CHROMIUM),--latest) $(if $(CDP_V8),--v8=$(CDP_V8),)
+
 build-pdlgen-crystal:
 	crystal build src/pdlgen.cr -o bin/pdlgen-crystal
 
@@ -115,7 +119,12 @@ build-pdlgen-go:
 	cd vendor/pdlgen && go build -o ../../bin/pdlgen-go .
 
 generate-crystal: build-pdlgen-crystal
-	./bin/pdlgen-crystal --latest --out src/cdp
+	./bin/pdlgen-crystal $(strip $(CDP_PROTOCOL_ARGS)) --out src/cdp
+
+generate-crystal-scratch: build-pdlgen-crystal
+	rm -rf temp/cdp_generated
+	mkdir -p temp/cdp_generated
+	./bin/pdlgen-crystal $(strip $(CDP_PROTOCOL_ARGS)) --out temp/cdp_generated
 
 generate-go-ref: build-pdlgen-go
 	mkdir -p temp/cdp_go
@@ -128,6 +137,49 @@ So `make generate` writes Crystal code into `src/cdp/`, and
 `make generate-go-ref` writes Go reference output into `temp/cdp_go/`. The
 legacy `generate-legacy` target is deprecated: it runs the Go generator against
 `src/cdp`.
+
+## Reproducing a generation
+
+`--latest` resolves the newest Chromium tag at run time, so the same command
+produces different output on different days. Pin the vintage instead:
+
+```bash
+# Chromium only: pdlgen reads Chromium's DEPS file to derive the V8 version.
+make generate-crystal CDP_CHROMIUM=160.0.8168.1
+
+# Both explicitly (no DEPS lookup).
+make generate-crystal CDP_CHROMIUM=160.0.8168.1 CDP_V8=16.0.61
+```
+
+`make generate-crystal-scratch` runs the same generation into
+`temp/cdp_generated/` so the toolchain can be exercised without touching
+`src/cdp/`.
+
+## `src/cdp` is a curated snapshot
+
+Regenerating is **not** a no-op, and a clean `git diff` is not the success
+criterion:
+
+- The committed tree carries post-generation curation applied on top of raw
+  generator output — JSON `camelCase` keys (`bd31de8`) and typed result
+  decoding (`cc3717f`). Raw output never matches byte-for-byte.
+- The protocol vintage has moved. The committed tree has 57 domain directories
+  (150 `.cr` files); a generation at Chromium `160.0.8168.1` produces 59
+  (154 files): it adds `ads`, `crashreportcontext`, `digitalcredentials`,
+  `findinpage`, `webmcp`, and drops `console`, `database`, `schema`.
+- The emitter does not yet support every construct in the newer protocol, so
+  today's raw output does not compile:
+  - duplicate + wrongly qualified enum aliases, e.g.
+    `alias Fetch.AuthChallengeSource = String` alongside
+    `alias AuthChallengeSource = String` (`fetch/types.cr`);
+  - required constructor parameters emitted after optional ones
+    (`parameter must have a default value`) for `DOM.SetTextMarker`,
+    `IndexedDB.ClearObjectStore`, `Network.EmulateNetworkConditionsByRule`,
+    `WebMCP.InvokeTool`.
+
+Adopting a newer protocol is therefore its own work item: fix the emitter,
+regenerate, re-apply the curation, then run `crystal spec` (the CDP parity
+specs under `spec/cdp_*_parity_spec.cr`) before committing.
 
 ## Protocol Source Files
 
@@ -153,11 +205,23 @@ To verify Crystal pdlgen works correctly:
 3. Compare structure, domain names, type definitions
 4. Ensure Crystal code compiles and passes tests
 
+For a toolchain smoke check that leaves the repository untouched:
+
+```bash
+make generate-crystal-scratch              # writes temp/cdp_generated/
+crystal tool format temp/cdp_generated     # parses every generated file
+crystal spec                               # committed src/cdp still green
+```
+
+`crystal tool format` fails loudly on syntax errors, so a clean run over the
+scratch tree proves the emitter still produces parseable Crystal for the
+selected protocol vintage.
+
 ## Maintenance
 
 When updating protocol definitions:
 
-1. Update cached `.pdl` files from Chromium source
+1. Update cached `.pdl` files from Chromium source (pin `CDP_CHROMIUM`)
 2. Run both generators
 3. Compare outputs for any discrepancies
 4. Update fixups if needed for Crystal-specific issues

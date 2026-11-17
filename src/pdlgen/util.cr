@@ -108,7 +108,7 @@ module Pdlgen
           if attempt < max_retries - 1
             sleep_time = retry_delay * (2 ** attempt) # exponential backoff
             logf("Rate limited (429), waiting %.1f seconds...", sleep_time)
-            sleep(sleep_time)
+            sleep(sleep_time.seconds)
             next
           else
             raise "HTTP request failed: 429 Too Many Requests (after #{max_retries} attempts)"
@@ -183,7 +183,9 @@ module Pdlgen
       hash = Hash(String, JSON::Any).from_json(str)
       refs = Hash(String, Ref).new
       hash.each do |k, v|
-        refs[k] = Ref.new(v["value"].as_s, v["target"].as_s)
+        # Lightweight tags (e.g. `refs/heads/*`) carry no `target`; Go decodes
+        # them into the zero value, so mirror that instead of raising.
+        refs[k] = Ref.new(v["value"].as_s, v["target"]?.try(&.as_s) || "")
       end
       refs
     end
@@ -196,7 +198,9 @@ module Pdlgen
 
       # determine revision
       mark = "'#{typ}_revision':"
-      i = buf.index(mark)
+      # Byte search, matching Go's `bytes.Index(buf, []byte(mark))`; `Bytes#index`
+      # with a String needle never matches, so search the raw bytes explicitly.
+      i = String.new(buf).byte_index(mark)
       if i.nil?
         raise "could not find revision for #{typ} version #{ver}"
       end

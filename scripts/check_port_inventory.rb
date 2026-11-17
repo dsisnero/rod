@@ -6,7 +6,13 @@ require "set"
 require "tempfile"
 require_relative "parity_inventory_lib"
 
-VALID_STATUS = Set.new(%w[missing in_progress ported partial skipped]).freeze
+VALID_STATUS = Set.new(%w[missing in_progress ported partial skipped intentional_divergence]).freeze
+
+# Statuses that record a deliberate decision instead of outstanding work. They
+# must carry an explanatory note, and their rows may name Go items that
+# discovery never reports (e.g. repo-local tooling that has no Crystal port at
+# all), so such rows are documented divergences rather than stale entries.
+DOCUMENTED_STATUS = Set.new(%w[skipped intentional_divergence]).freeze
 
 options = {
   root_dir: Dir.pwd,
@@ -38,10 +44,11 @@ _, items = ParityInventory.discover_items(
 
 discovered_ids = items.map(&:id).to_set
 manifest_ids = Set.new
+documented_ids = Set.new
 errors = []
 
 ParityInventory.load_manifest_rows(manifest, min_cols: 5).each do |cols|
-  id, _kind, status, refs, = cols
+  id, _kind, status, refs, notes = cols.first(5)
 
   errors << "Duplicate source_id: #{id}" if manifest_ids.include?(id)
   manifest_ids << id
@@ -53,6 +60,11 @@ ParityInventory.load_manifest_rows(manifest, min_cols: 5).each do |cols|
   if %w[ported partial].include?(status) && refs.to_s.empty?
     errors << "crystal_refs required when status=#{status} for #{id}"
   end
+
+  next unless DOCUMENTED_STATUS.include?(status)
+
+  documented_ids << id
+  errors << "notes required when status=#{status} for #{id}" if notes.to_s.strip.empty?
 end
 
 unless errors.empty?
@@ -61,7 +73,9 @@ unless errors.empty?
 end
 
 missing = discovered_ids - manifest_ids
-stale = manifest_ids - discovered_ids
+undiscovered = manifest_ids - discovered_ids
+stale = undiscovered - documented_ids
+documented_only = undiscovered & documented_ids
 
 if missing.any?
   warn "Source items missing from inventory:"
@@ -75,4 +89,5 @@ if stale.any?
   exit 1
 end
 
-puts "Port inventory check passed (#{discovered_ids.size} items tracked)."
+puts "Port inventory check passed (#{discovered_ids.size} items tracked, " \
+     "#{documented_only.size} documented divergences not discovered)."

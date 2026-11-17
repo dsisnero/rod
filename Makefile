@@ -1,8 +1,15 @@
-.PHONY: install update format lint test clean generate generate-crystal generate-go-ref build-pdlgen-crystal build-pdlgen-go \
+.PHONY: install update format lint test clean generate generate-crystal generate-crystal-scratch generate-go-ref build-pdlgen-crystal build-pdlgen-go \
 	check-go-port-inventory check-go-source-parity check-go-test-parity \
 	generate-go-port-inventory generate-go-source-parity generate-go-test-parity
 
 GO_PORT_SOURCE_DIR ?= vendor/rod
+
+# CDP protocol vintage for `make generate-crystal`. Empty means "upstream
+# latest" (`--latest`), which is not reproducible; set the versions to pin a
+# generation, e.g. `make generate-crystal CDP_CHROMIUM=160.0.8168.1`.
+CDP_CHROMIUM ?=
+CDP_V8 ?=
+CDP_PROTOCOL_ARGS = $(if $(CDP_CHROMIUM),--chromium=$(CDP_CHROMIUM),--latest) $(if $(CDP_V8),--v8=$(CDP_V8),)
 
 
 install:
@@ -11,8 +18,11 @@ install:
 update:
 	shards update
 
+# Formatter gate runs on explicit roots: generated scratch trees live under
+# temp/ (see docs/generation.md), which `crystal tool format` would otherwise
+# descend into and fail on.
 format:
-	crystal tool format --check
+	crystal tool format --check src spec examples bin
 
 lint:
 	ameba --fix
@@ -53,7 +63,14 @@ build-pdlgen-go:
 
 # Generate Crystal CDP code using Crystal pdlgen
 generate-crystal: build-pdlgen-crystal
-	./bin/pdlgen-crystal --latest --out src/cdp
+	./bin/pdlgen-crystal $(strip $(CDP_PROTOCOL_ARGS)) --out src/cdp
+
+# Generate into scratch space instead of src/cdp. src/cdp is a curated snapshot
+# (see docs/generation.md), so this is the non-destructive toolchain check.
+generate-crystal-scratch: build-pdlgen-crystal
+	rm -rf temp/cdp_generated
+	mkdir -p temp/cdp_generated
+	./bin/pdlgen-crystal $(strip $(CDP_PROTOCOL_ARGS)) --out temp/cdp_generated
 
 # Generate Go CDP code using Go pdlgen (for reference only)
 generate-go-ref: build-pdlgen-go

@@ -5659,8 +5659,18 @@ utils.go::method::StreamReader.Read	method	ported	src/rod/lib/utils.cr,spec/scre
 utils.go::struct::Message	struct	ported	src/rod/browser.cr	message event container parity covered
 utils.go::struct::StreamReader	struct	ported	src/rod/lib/utils.cr	stream reader struct parity covered
 utils.go::type::CDPClient	type	ported	src/rod.cr,src/cdp/cdp.cr	rod CDPClient alias parity covered via abstract Cdp::Client
-lib/proto/generate/main.go::const::Version	const	ported	src/cdp/cdp.cr,src/pdlgen/gen/crystal_templates/root.ecr,spec/cdp_type_parity_spec.cr	protocol version constant exposed in runtime cdp module and generator root template
-lib/proto/generate/main.go::method::{{.name}}.Call	method	ported	src/pdlgen/gen/crystal_templates/domain_module.ecr,src/cdp/page/page.cr	generated command structs implement call(c : Cdp::Client) via Cdp.call
-lib/proto/generate/main.go::method::{{.name}}.ProtoEvent	method	ported	src/pdlgen/gen/crystal_templates/domain_events.ecr,src/cdp/page/events.cr	generated event structs implement proto_event instance/class methods
-lib/proto/generate/main.go::method::{{.name}}.ProtoReq	method	ported	src/pdlgen/gen/crystal_templates/domain_module.ecr,src/cdp/page/page.cr	generated command structs implement proto_req method
+lib/proto/generate/main.go::const::Version	const	intentional_divergence	-	Go generator template string only; the Crystal protocol version constant is generated into src/cdp/cdp.cr by src/pdlgen (make generate-crystal)
+lib/proto/generate/main.go::method::{{.name}}.Call	method	intentional_divergence	-	Go generator template string only; Crystal command structs get call(c : Cdp::Client) from src/pdlgen/gen/crystal_templates/domain_module.ecr
+lib/proto/generate/main.go::method::{{.name}}.ProtoEvent	method	intentional_divergence	-	Go generator template string only; Crystal event structs get proto_event from src/pdlgen/gen/crystal_templates/domain_events.ecr
+lib/proto/generate/main.go::method::{{.name}}.ProtoReq	method	intentional_divergence	-	Go generator template string only; Crystal command structs get proto_req from src/pdlgen/gen/crystal_templates/domain_module.ecr
+lib/proto/generate/main.go::method::definition.comment	method	intentional_divergence	-	Go codegen internals with no Crystal counterpart; Crystal generation lives in src/pdlgen/gen (make generate-crystal)
+lib/proto/generate/main.go::method::definition.format	method	intentional_divergence	-	Go codegen internals with no Crystal counterpart; Crystal ECR templates live in src/pdlgen/gen/crystal_templates
+lib/proto/generate/main.go::method::definition.formatTests	method	intentional_divergence	-	Go codegen internals with no Crystal counterpart; Crystal pdlgen emits the specs under spec/cdp_*_parity_spec.cr
+lib/proto/generate/schema.go::method::domain.find	method	intentional_divergence	-	Go JSON-schema lookup internals with no Crystal counterpart; schema handling lives in src/pdlgen/gen
+lib/proto/generate/schema.go::method::domain.ref	method	intentional_divergence	-	Go JSON-schema lookup internals with no Crystal counterpart; schema handling lives in src/pdlgen/gen
+lib/docker/main.go::method::archType.golang	method	intentional_divergence	-	Go release-tooling only (builds the ghcr.io/go-rod/rod images); the Crystal port ships no Docker release script
+lib/docker/main.go::method::archType.nodejs	method	intentional_divergence	-	Go release-tooling only; no Crystal equivalent by design
+lib/docker/main.go::method::archType.platform	method	intentional_divergence	-	Go release-tooling only; no Crystal equivalent by design
+lib/docker/main.go::method::archType.tag	method	intentional_divergence	-	Go release-tooling only; no Crystal equivalent by design
+lib/docker/main.go::method::archType.tagDev	method	intentional_divergence	-	Go release-tooling only; no Crystal equivalent by design
 utils.go::type::Pool	type	ported	src/rod/types.cr	pool type parity covered
