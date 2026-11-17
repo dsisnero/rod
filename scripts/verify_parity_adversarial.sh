@@ -39,10 +39,14 @@ ruby -e '
   end
 ' "${ROOT_DIR}/plans/inventory/${LANGUAGE}_port_inventory.tsv"
 
-# Detect placeholder tests in Crystal side when applicable.
+# Detect placeholder tests on the Crystal side. Only spec files can carry spec
+# placeholders; scanning `src/` matched ordinary identifiers such as the CDP
+# client's `@pending` request map. The patterns are anchored to the DSL calls so
+# the check stays strict without flagging prose or variable names.
 if [[ -d "${ROOT_DIR}/spec" ]]; then
-  if rg -n "\bpending\b|\bxit\(|\bxdescribe\(|\bxcontext\(" "${ROOT_DIR}/spec" "${ROOT_DIR}/src" >/dev/null 2>&1; then
-    echo "Found placeholder specs in src/spec. Resolve before parity signoff." >&2
+  if placeholders=$(rg -n --glob '*.cr' '^\s*(pending|xit|xdescribe|xcontext)\b' "${ROOT_DIR}/spec" 2>/dev/null); then
+    echo "Found placeholder specs in spec/. Resolve before parity signoff:" >&2
+    echo "${placeholders}" >&2
     exit 1
   fi
 fi

@@ -9,7 +9,8 @@ options = {
   out: nil,
   source_path: ENV["PORT_SOURCE_DIR"],
   language: ENV["PORT_LANGUAGE"] || "go",
-  parser: ENV["PORT_PARSER"] || "auto"
+  parser: ENV["PORT_PARSER"] || "auto",
+  reset: false
 }
 
 OptionParser.new do |opts|
@@ -19,6 +20,7 @@ OptionParser.new do |opts|
   opts.on("--source PATH", "Source path (absolute or relative to root)") { |v| options[:source_path] = v }
   opts.on("--language LANG", "Language: go|rust|crystal|java|ruby") { |v| options[:language] = v }
   opts.on("--parser MODE", "Parser: auto|regex|tree-sitter") { |v| options[:parser] = v }
+  opts.on("--reset", "Rewrite curated status/refs/notes as baseline instead of preserving them") { options[:reset] = true }
 end.parse!
 
 language = options[:language]
@@ -37,5 +39,12 @@ if test_items.empty?
   exit 1
 end
 
-ParityInventory.write_scope_manifest(out, test_items, scope: "test", header_id: "source_test_id")
+preserve = options[:reset] ? {} : ParityInventory.load_curated_state(out)
+ParityInventory.write_scope_manifest(
+  out,
+  test_items,
+  scope: "test",
+  header_id: "source_test_id",
+  preserve: preserve
+)
 puts "Generated #{out} (#{test_items.length} tests) from #{base}."

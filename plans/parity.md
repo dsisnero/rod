@@ -7,54 +7,53 @@
 
 ## Where we are
 
-**Current focus:** Phase 5 — refresh the generated `go_source_parity.tsv` /
-`go_test_parity.tsv` snapshots and run the adversarial signoff pass. Phase 4
-(dev-tooling divergence sign-off) is done: `lib/docker/*` and
-`lib/proto/generate/*` are recorded as `intentional_divergence`, and the CDP
-generation path was exercised end to end. Phase 1 (tree-sitter kind
-normalization) remains blocked on tooling outside this repo, so
-`PORT_PARSER=regex` stays the authoritative parity gate.
+**Current focus:** the CDP protocol upgrade — the next substantial feature. Phases
+2–5 are complete and Phase 1 (tree-sitter kind normalization) remains blocked on
+tooling outside this repo, so `PORT_PARSER=regex` stays the authoritative parity
+gate. The upgrade work is bounded by two known emitter gaps (duplicate dotted
+enum aliases; required constructor params emitted after optional ones) whose
+file/line evidence lives in [docs/generation.md](generation.md).
 
-**Last commit:** `port: sign off dev-tooling divergence and harden CDP generation`
+**Last commit:** `port: make the parity manifest refresh non-destructive`
 
 **Gates (baseline, 2026-11-17):** `make format` pass · `make lint` pass (233
 files) · `make test` pass (579 examples, 0 failures) · parity checks pass (5665
-inventory rows with 10 documented divergences, 5368 API items, 297 tests).
+inventory rows with 10 documented divergences, 5368 API items, 297 tests) ·
+upstream Go suite: 8/9 packages pass, `go-rod/rod` main package has two
+browser-timing failures (see Next up).
 
 **Next up:**
 
-1. Phase 5 — refresh the `go_source_parity.tsv` / `go_test_parity.tsv`
-   snapshots with `ensure_parity_plan.sh . vendor/rod go regex 1`; never
-   regenerate `go_port_inventory.tsv` in place. **Careful:** the refresh
-   rewrites source-parity notes from `plans/inventory/go_source_notes.tsv`,
-   which does not exist — a refresh would replace the curated per-row notes
-   with `baseline`. Recreate the notes overrides file first (or teach
-   `generate_source_parity_manifest.rb` to preserve existing notes).
-2. Phase 5 — adversarial pass:
-   `verify_parity_adversarial.sh . vendor/rod go 'crystal spec' '<go test cmd>'`.
-3. Phase 1 — (blocked) re-run the tree-sitter checks once kinds/ids are
-   normalized.
-4. Tame full-suite browser flakiness: two consecutive full runs on 2026-11-17
+1. CDP protocol upgrade: teach the emitter the two constructs the current
+   protocol uses — enum aliases must not be emitted twice with a dotted name
+   (`alias Fetch.AuthChallengeSource`), and required constructor parameters must
+   precede optional ones. Then `make generate-crystal CDP_CHROMIUM=<ver>`,
+   re-apply the post-generation curation (camelCase keys, typed decoding) and
+   run the CDP parity specs (`spec/cdp_*_parity_spec.cr`). Write the specs first
+   (red-green) in a `spec/pdlgen_emitter_parity_spec.cr`.
+2. Tame full-suite browser flakiness: two consecutive full runs on 2026-11-17
    each had one failure, different specs, both green in isolation —
    `spec/cdp_client_parity_spec.cr:483` (Go `TestCrash`) and
    `spec/live_browser_parity_spec.cr:747` (`TestSearchIframes*`). Likely
    resource/timing under load; a rerun should not be the only safety net.
-5. CDP protocol upgrade (new, from Phase 4): teach the Crystal emitter the two
-   constructs the current protocol uses — enum aliases must not be emitted twice
-   with a dotted name (`alias Fetch.AuthChallengeSource`), and required
-   constructor parameters must precede optional ones. Evidence and file/line
-   references live in [docs/generation.md](generation.md). Then regenerate with
-   `make generate-crystal CDP_CHROMIUM=<ver>`, re-apply the post-generation
-   curation (camelCase keys, typed decoding) and run the CDP parity specs.
-6. Optional cleanup: the repo tracks built binaries (`rod`, `bin/pdlgen*`,
-   `pdlgen*`), so local builds keep showing up as modified files. Decide
-   whether to untrack them.
+3. Phase 1 — (blocked) re-run the tree-sitter checks once kinds/ids are
+   normalized, then close the `states.go::method::Page.cleanupStates` ledger row
+   (the only Phase 2 bullet still open).
+4. Upstream Go suite flakiness: `github.com/go-rod/rod` failed
+   `TestPageElements` and `Example_basic` on 2026-11-17 while the other eight
+   packages passed. Re-run before reading anything into a failure — these are
+   browser-timing issues in the vendored project, not port gaps.
+5. Optional cleanup: the repo tracks built binaries (`rod`, `bin/pdlgen*`,
+   `pdlgen*`), so local builds keep showing up as modified files. Decide whether
+   to untrack them.
 
 **Gotchas:** the 63 tree-sitter "missing" items and the 3422 kind-rename
 "stale" rows are tooling vocabulary drift, not port gaps — see below. Phase 2's
 last checklist bullet (`states.go::method::Page.cleanupStates` ledger row) is
 also waiting on that reconciliation. `make generate-crystal` is not
-reproducible by default (`--latest`); pin `CDP_CHROMIUM`/`CDP_V8`.
+reproducible by default (`--latest`); pin `CDP_CHROMIUM`/`CDP_V8`. The upstream
+Go suite panics in its leak detector unless `GODEBUG=tracebackancestors=1000` is
+exported.
 
 This is a curated feature roadmap, not a generated dump. Generated manifests
 (`go_source_parity.tsv`, `go_test_parity.tsv`) are reference snapshots;
@@ -229,11 +228,31 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       579 examples, 0 failures).
 
 ### Phase 5 — Continuous parity gates & adversarial signoff
-- [ ] Refresh generated manifests after the vendor bump:
-      `ensure_parity_plan.sh . vendor/rod go tree-sitter 1`.
-- [ ] Run the adversarial pass:
-      `verify_parity_adversarial.sh . vendor/rod go 'crystal spec' '<go test cmd>'`.
-- [ ] Keep `go_port_inventory.tsv` curated; never regenerate it in place.
+- [x] Refreshed the generated manifests the safe way: the source/test generators
+      now preserve the curated `status`/`crystal_refs`/`notes` columns and row
+      order for known ids, drop ids discovery no longer reports, and append new
+      ids as `missing` baseline rows (`--reset` still rebuilds from scratch).
+      Red-green evidence: before the change a refresh rewrote all 5368 source +
+      297 test rows to `missing\t-\tbaseline`; after it, regenerating an in-sync
+      tree produces a byte-identical file. `ensure_parity_plan.sh . vendor/rod
+      go regex 1` then passed with zero churn, so the snapshots are in sync with
+      discovery at `vendor/rod` commit `d38c753`.
+- [x] Adversarial pass — `scripts/verify_parity_adversarial.sh . vendor/rod go
+      'crystal spec'`: manifest empty-field and row-quality checks pass, no
+      placeholder specs in `spec/`, and the full Crystal suite is green. Fixed a
+      false positive in that gate along the way: it scanned `src/` for the bare
+      word `pending`, which matches the CDP client's `@pending` request map, so
+      it now anchors the spec-DSL patterns (`pending`/`xit`/`xdescribe`/`xcontext`
+      at line start) and scans `spec/` only. A planted `pending "..."` is still
+      caught. The upstream side was executed directly rather than through the
+      script: `GODEBUG=tracebackancestors=1000 go test -count=1 ./...` in
+      `vendor/rod` passes 8 of 9 packages; `github.com/go-rod/rod` fails
+      `TestPageElements` (fixture assertion) and `Example_basic` (page-init hang).
+      Both live in the unmodified vendor tree and are environment/browser-timing
+      issues, so they are recorded as upstream flakiness in Next up, not as port
+      gaps. The `GODEBUG=tracebackancestors=1000` export is mandatory — rod's
+      goroutine-leak detector panics without it.
+- [x] Keep `go_port_inventory.tsv` curated; never regenerate it in place.
 
 ---
 

@@ -403,16 +403,59 @@ module ParityInventory
     end
   end
 
-  def write_scope_manifest(path, items, scope:, header_id:, notes_overrides: {})
+  # Loads the curated `status`, `crystal_refs` and `notes` columns of an
+  # existing parity manifest, keyed by id and kept in file order.
+  def load_curated_state(path)
+    return {} unless path && File.file?(path)
+
+    state = {}
+    load_manifest_rows(path, min_cols: 4).each do |cols|
+      id, status, refs, notes = cols
+      state[id] = [status, refs, notes]
+    end
+    state
+  end
+
+  # Writes a scope manifest. When `preserve` holds curated state (see
+  # `load_curated_state`), every discovered id keeps its existing status, refs,
+  # note and row position, so re-running a generator is a no-op instead of
+  # resetting thousands of curated rows to `missing`. Ids that discovery no
+  # longer reports are dropped; new ids are appended as `missing` baseline rows
+  # so they surface as outstanding work.
+  def write_scope_manifest(path, items, scope:, header_id:, notes_overrides: {}, preserve: {})
     FileUtils.mkdir_p(File.dirname(path))
+    scoped = items.select { |item| item.scope == scope }
+
+    if preserve.empty?
+      File.open(path, "w") do |f|
+        f.puts "# #{header_id}\tstatus\tcrystal_refs\tnotes"
+        scoped.sort_by(&:id).each do |item|
+          notes = notes_overrides[item.id] || "baseline"
+          f.puts "#{item.id}\tmissing\t-\t#{notes}"
+        end
+      end
+      return
+    end
+
+    discovered = scoped.each_with_object({}) { |item, acc| acc[item.id] = item }
+    rows = []
+    preserved = Set.new
+
+    preserve.each do |id, (status, refs, notes)|
+      next unless discovered.key?(id)
+
+      rows << [id, status, refs, notes].join("\t")
+      preserved << id
+    end
+
+    (discovered.keys - preserved.to_a).sort.each do |id|
+      notes = notes_overrides[id] || "baseline"
+      rows << [id, "missing", "-", notes].join("\t")
+    end
+
     File.open(path, "w") do |f|
       f.puts "# #{header_id}\tstatus\tcrystal_refs\tnotes"
-      items.select { |item| item.scope == scope }
-           .sort_by(&:id)
-           .each do |item|
-        notes = notes_overrides[item.id] || "baseline"
-        f.puts "#{item.id}\tmissing\t-\t#{notes}"
-      end
+      rows.each { |row| f.puts row }
     end
   end
 

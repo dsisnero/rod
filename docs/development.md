@@ -52,6 +52,21 @@ make check-go-source-parity
 make check-go-test-parity
 ```
 
+Refreshing the generated snapshots (`go_source_parity.tsv`, `go_test_parity.tsv`)
+is safe: the generators preserve the curated `status`/`crystal_refs`/`notes`
+columns and row order for ids they already know, drop ids discovery no longer
+reports, and append genuinely new ids as `missing` baseline rows. Re-running
+them on an in-sync tree produces no diff. Use `--reset` only to rebuild a
+manifest from scratch:
+
+```bash
+make generate-go-source-parity
+make generate-go-test-parity
+./scripts/generate_go_source_parity_manifest.sh . plans/inventory/go_source_parity.tsv vendor/rod --reset
+```
+
+Never regenerate `go_port_inventory.tsv` in place: it is the hand-curated ledger.
+
 Live browser checks need a local Chrome/Chromium binary:
 
 ```bash

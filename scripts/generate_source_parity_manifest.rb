@@ -10,7 +10,8 @@ options = {
   source_path: ENV["PORT_SOURCE_DIR"],
   language: ENV["PORT_LANGUAGE"] || "go",
   parser: ENV["PORT_PARSER"] || "auto",
-  notes_overrides: nil
+  notes_overrides: nil,
+  reset: false
 }
 
 OptionParser.new do |opts|
@@ -21,6 +22,7 @@ OptionParser.new do |opts|
   opts.on("--language LANG", "Language: go|rust|crystal|java|ruby") { |v| options[:language] = v }
   opts.on("--parser MODE", "Parser: auto|regex|tree-sitter") { |v| options[:parser] = v }
   opts.on("--notes-overrides FILE", "Optional TSV file: source_api_id<TAB>notes") { |v| options[:notes_overrides] = v }
+  opts.on("--reset", "Rewrite curated status/refs/notes as baseline instead of preserving them") { options[:reset] = true }
 end.parse!
 
 language = options[:language]
@@ -41,11 +43,13 @@ if source_items.empty?
 end
 
 notes_overrides = ParityInventory.load_notes_overrides(notes_overrides_path)
+preserve = options[:reset] ? {} : ParityInventory.load_curated_state(out)
 ParityInventory.write_scope_manifest(
   out,
   source_items,
   scope: "source",
   header_id: "source_api_id",
-  notes_overrides: notes_overrides
+  notes_overrides: notes_overrides,
+  preserve: preserve
 )
 puts "Generated #{out} (#{source_items.length} source API items) from #{base}."
