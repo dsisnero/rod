@@ -7,17 +7,19 @@
 
 ## Where we are
 
-**Current focus:** adopting a newer CDP protocol vintage. Phase 6 closed the two
-emitter gaps that blocked it, so generation at the current protocol now parses
-cleanly; what remains is picking a vintage, regenerating, and re-applying the
-post-generation curation. Phase 1 (tree-sitter kind normalization) is still
-blocked on tooling outside this repo, so `PORT_PARSER=regex` stays the
+**Current focus:** adopting a newer CDP protocol vintage. Phases 6 and 7 turned
+the last two hand-curation steps into generator behaviour (valid constructors +
+enum aliases, and CDP JSON wire keys), so a regeneration now parses and decodes;
+what remains is picking a vintage, regenerating, re-applying the typed-result
+decoding curation (`cc3717f`), and auditing `src/rod` for the domain changes.
+Phase 1 (tree-sitter kind normalization) is still blocked — the `tree_sitter`
+Ruby gem is not installed in this environment — so `PORT_PARSER=regex` stays the
 authoritative parity gate.
 
-**Last commit:** `port: teach the CDP emitter the current protocol constructs`
+**Last commit:** `port: generate the CDP JSON wire keys`
 
 **Gates (baseline, 2026-11-17):** `make format` pass · `make lint` pass (233
-files) · `make test` pass (581 examples, 0 failures) · parity checks pass (5665
+files) · `make test` pass (584 examples, 0 failures) · parity checks pass (5665
 inventory rows with 10 documented divergences, 5368 API items, 297 tests) ·
 upstream Go suite: 8/9 packages pass, `go-rod/rod` main package has two
 browser-timing failures (see Next up).
@@ -25,19 +27,21 @@ browser-timing failures (see Next up).
 **Next up:**
 
 1. CDP protocol vintage adoption: pick a vintage, run `make generate-crystal
-   CDP_CHROMIUM=<ver> CDP_V8=<ver>`, re-apply the post-generation curation
-   (camelCase JSON keys, typed result decoding) and run the CDP parity specs
+   CDP_CHROMIUM=<ver> CDP_V8=<ver>`, re-apply the remaining curation (typed
+   result decoding, `cc3717f`) and run the CDP parity specs
    (`spec/cdp_*_parity_spec.cr`). The domain set changes: it adds `ads`,
    `crashreportcontext`, `digitalcredentials`, `findinpage`, `webmcp` and drops
-   `console`, `database`, `schema`, so `src/rod` references need an audit.
+   `console`, `database`, `schema`, so `src/rod` references need an audit; wire
+   renames such as `remoteIpAddress` → `remoteIPAddress` need a decoding audit.
 2. Tame full-suite browser flakiness: two consecutive full runs on 2026-11-17
    each had one failure, different specs, both green in isolation —
    `spec/cdp_client_parity_spec.cr:483` (Go `TestCrash`) and
    `spec/live_browser_parity_spec.cr:747` (`TestSearchIframes*`). Likely
    resource/timing under load; a rerun should not be the only safety net.
-3. Phase 1 — (blocked) re-run the tree-sitter checks once kinds/ids are
-   normalized, then close the `states.go::method::Page.cleanupStates` ledger row
-   (the only Phase 2 bullet still open).
+3. Phase 1 — (blocked) needs the `tree_sitter` Ruby gem plus kind/id
+   normalization before the tree-sitter checks can run; it also closes the
+   `states.go::method::Page.cleanupStates` ledger row (the only Phase 2 bullet
+   still open).
 4. Upstream Go suite flakiness: `github.com/go-rod/rod` failed
    `TestPageElements` and `Example_basic` on 2026-11-17 while the other eight
    packages passed. Re-run before reading anything into a failure — these are
@@ -273,6 +277,25 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       and no alias carries a domain prefix.
 - [ ] Out of scope (tracked in Next up): adopting that vintage — the domain set
       changes and the post-generation curation must be re-applied.
+
+---
+
+### Phase 7 — Generated JSON wire keys ✅
+- [x] Red-green specs in `spec/pdlgen_json_key_parity_spec.cr`: every emitted
+      field must carry `@[JSON::Field(key: "<protocol name>", emit_null: false)]`,
+      and the key must be the camelCase protocol name rather than the underscored
+      Crystal property. All three examples failed before the change (bare
+      `emit_null: false` annotations everywhere) and pass after.
+- [x] `crystal_template_generator.cr`: added `json_field_annotation(name)` and
+      used it in the four emission sites — domain types, event parameters,
+      command parameters and command returns — so the camelCase-key curation
+      (`bd31de8`) is generator behaviour instead of a manual post-step.
+- [x] Verified at Chromium `160.0.8168.1` / V8 `16.0.61`: 4005 keyed annotations,
+      zero bare ones, the generated tree still parses with 0 syntax errors, and
+      stable types match the committed style exactly (e.g.
+      `Network.ResourceTiming`). Remaining diffs are vintage drift such as
+      `remoteIpAddress` → `remoteIPAddress`.
+- [ ] Still curated by hand: typed result decoding (`cc3717f`).
 
 ---
 

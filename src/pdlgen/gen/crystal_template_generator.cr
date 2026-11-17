@@ -238,6 +238,15 @@ module Pdlgen
         required + optional
       end
 
+      # json_field_annotation pins the CDP wire name for a field. CDP always
+      # serializes protocol (camelCase) names while the emitter exposes
+      # snake_case properties, so without the explicit key every multi-word field
+      # decodes as nil. Single-word names get the same annotation to match the
+      # committed bindings instead of relying on name inference.
+      private def json_field_annotation(name : String) : String
+        %(@[JSON::Field(key: "#{name}", emit_null: false)])
+      end
+
       private def enum_member_name(value : String) : String
         # Convert string like "all-screens-capture" or "Render process gone." to "AllScreensCapture" or "RenderProcessGone"
         # Replace any non-alphanumeric characters with space, split by whitespace, camelcase each part, and join

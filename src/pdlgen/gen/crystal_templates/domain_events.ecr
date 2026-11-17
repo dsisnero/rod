@@ -25,7 +25,7 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
       <%- next if param.deprecated? && !param.always_emit? -%>
       <%- next if param.name.empty? -%>
       <%- type_str = crystal_type(param, d, domains) -%>
-    @[JSON::Field(emit_null: false)]
+    <%= json_field_annotation(param.name) %>
     <%- if bool_type?(type_str) -%>
     property? <%= param.name.underscore %> : <%= type_str %><%= "?" if param.optional? %>
     <%- else -%>

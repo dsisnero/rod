@@ -167,16 +167,23 @@ criterion:
   (150 `.cr` files); a generation at Chromium `160.0.8168.1` produces 59
   (154 files): it adds `ads`, `crashreportcontext`, `digitalcredentials`,
   `findinpage`, `webmcp`, and drops `console`, `database`, `schema`.
-- The emitter handles the constructs the current protocol needs, so raw output
-  now parses: lifted inline-enum types are named once and without a domain
-  qualifier (no `alias Fetch.AuthChallengeSource`), and command constructors emit
-  required parameters before optional ones. Both are covered by
-  `spec/pdlgen_emitter_parity_spec.cr`; a generation at Chromium `160.0.8168.1`
-  passes `crystal tool format` over the whole tree with zero syntax errors.
+- The emitter handles the constructs the protocol needs, so raw output parses
+  and decodes: lifted inline-enum types are named once and without a domain
+  qualifier (no `alias Fetch.AuthChallengeSource`), command constructors emit
+  required parameters before optional ones, and every field carries its CDP wire
+  key (`@[JSON::Field(key: "requestTime", emit_null: false)]`), which used to be
+  a post-generation curation step (`bd31de8`). Covered by
+  `spec/pdlgen_emitter_parity_spec.cr` and `spec/pdlgen_json_key_parity_spec.cr`;
+  a generation at Chromium `160.0.8168.1` passes `crystal tool format` over the
+  whole tree with zero syntax errors.
+- Regenerating surfaces wire-name drift between vintages, not generator bugs:
+  e.g. `Network.Response.remoteIpAddress` in the committed tree is
+  `remoteIPAddress` in the current protocol. Audit such renames when adopting a
+  vintage.
 
 Adopting a newer protocol is still its own work item: pick the vintage, bump
-`CDP_CHROMIUM`/`CDP_V8`, regenerate, re-apply the curation (camelCase keys, typed
-decoding), then run `crystal spec` (the CDP parity specs under
+`CDP_CHROMIUM`/`CDP_V8`, regenerate, re-apply the remaining curation (typed
+result decoding, `cc3717f`), then run `crystal spec` (the CDP parity specs under
 `spec/cdp_*_parity_spec.cr`) before committing.
 
 ## Protocol Source Files

@@ -36,7 +36,7 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
             <%- next if prop.deprecated? && !prop.always_emit? -%>
             <%- next if prop.name.empty? -%>
             <%- type_str = crystal_type(prop, d, domains) -%>
-    @[JSON::Field(emit_null: false)]
+    <%= json_field_annotation(prop.name) %>
     <%- if bool_type?(type_str) -%>
     property? <%= prop.name.underscore %> : <%= type_str %><%= "?" if prop.optional? %>
     <%- else -%>
