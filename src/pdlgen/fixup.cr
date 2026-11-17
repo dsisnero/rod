@@ -19,8 +19,16 @@ module Pdlgen
     # Please see package-level documentation for the list of changes made to the
     # various domains.
     def self.fix_domains(domains : Array(Pdl::Domain))
+      # Fixups mutate the domain (added types, extras, renamed members), so a
+      # second pass would duplicate them. Both the CLI and the emitter call
+      # this, so skip domains that are already fixed.
+      pending = domains.reject(&.fixed?)
+      return if pending.empty?
+
+      pending.each(&.fixed = true)
+
       # process domains
-      domains.each do |domain|
+      pending.each do |domain|
         case domain.domain
         when "CSS"
           domain.types.each do |typ|
@@ -41,6 +49,27 @@ module Pdlgen
               "Element", "Attribute", "Text", "CDATA", "EntityReference",
               "Entity", "ProcessingInstruction", "Comment", "Document",
               "DocumentType", "DocumentFragment", "Notation",
+            ]
+          )
+
+          # Go declares Point in its hand-written patch file (proto.Point); the
+          # protocol itself only exposes DOM.Rect and DOM.Quad.
+          domain.types << Pdl::Type.new(
+            raw_name: "DOM.Point",
+            name: "Point",
+            type: Pdl::TypeEnum::Object,
+            description: "Point from the origin (0, 0).",
+            properties: [
+              Pdl::Type.new(
+                name: "x",
+                type: Pdl::TypeEnum::Number,
+                description: "X coordinate."
+              ),
+              Pdl::Type.new(
+                name: "y",
+                type: Pdl::TypeEnum::Number,
+                description: "Y coordinate."
+              ),
             ]
           )
 
@@ -65,21 +94,24 @@ module Pdlgen
                   ref: "Channel(Nil)",
                   description: "Invalidated channel.",
                   no_resolve: true,
-                  no_expose: true
+                  no_expose: true,
+                  default_value: "Channel(Nil).new(1)"
                 ),
                 Pdl::Type.new(
                   name: "State",
                   ref: "NodeState",
                   description: "Node state.",
                   no_resolve: true,
-                  no_expose: true
+                  no_expose: true,
+                  default_value: "NodeState.new(0u8)"
                 ),
                 Pdl::Type.new(
                   name: "mutex",
                   ref: "Mutex",
                   description: "Read write mutex.",
                   no_resolve: true,
-                  no_expose: true
+                  no_expose: true,
+                  default_value: "Mutex.new"
                 ),
               ])
               # TODO: add extra node template
@@ -91,6 +123,15 @@ module Pdlgen
                   prop.always_emit = true
                 end
               end
+            end
+          end
+
+          # go-rod dom package extras: quad geometry helpers live on the module,
+          # box/one_point_inside live on the GetContentQuads result.
+          domain.extra += Gen::CrystalExtras.dom_module_helpers
+          domain.commands.each do |cmd|
+            if cmd.name == "getContentQuads" && !cmd.returns.empty?
+              cmd.extra += Gen::CrystalExtras.dom_content_quads_helpers
             end
           end
         when "Fetch"
@@ -211,6 +252,9 @@ module Pdlgen
               typ.timestamp_type = Pdl::TimestampType::Second
               # TODO: add extra timestamp template
               # typ.extra += gotpl.ExtraTimestampTemplate(typ, domain)
+            when "TouchPoint"
+              typ.extra += Gen::CrystalExtras.touch_point_helpers
+              typ.extra_in_type = true
             end
           end
 
@@ -255,6 +299,9 @@ module Pdlgen
             if typ.name == "TimeSinceEpoch"
               typ.type = Pdl::TypeEnum::Timestamp
               typ.timestamp_type = Pdl::TimestampType::Second
+              # Go models these as float64 seconds; accept both a Time and the
+              # raw protocol value so the module helpers can normalize.
+              typ.target_type = "Time | Float64"
               # TODO: add extra timestamp template
               typ.extra += Gen::CrystalExtras.extra_timestamp_template(typ, domain)
             end
@@ -263,8 +310,29 @@ module Pdlgen
             if typ.name == "MonotonicTime"
               typ.type = Pdl::TypeEnum::Timestamp
               typ.timestamp_type = Pdl::TimestampType::Second
+              typ.target_type = "Time | Float64"
               # TODO: add extra timestamp template
               typ.extra += Gen::CrystalExtras.extra_timestamp_template(typ, domain)
+            end
+
+            # Cookie params are built by `cookies_to_params`, which serializes a
+            # formatted timestamp, so keep `expires` a Time instead of the raw
+            # protocol seconds.
+            if typ.name == "CookieParam"
+              typ.properties.each do |prop|
+                if prop.name == "expires"
+                  prop.type = Pdl::TypeEnum::Timestamp
+                  prop.timestamp_type = Pdl::TimestampType::Second
+                  prop.ref = ""
+                end
+              end
+            end
+
+            # Chrome replaced Network.Request.postData with base64
+            # postDataEntries; expose go-rod's string accessor again.
+            if typ.name == "Request"
+              typ.extra += Gen::CrystalExtras.network_request_helpers
+              typ.extra_in_type = true
             end
 
             # change Headers to be a Hash(String, JSON::Any)
@@ -273,6 +341,9 @@ module Pdlgen
               typ.ref = "Hash(String, JSON::Any)"
             end
           end
+
+          # go-rod network package extras: cookie and timestamp helpers on the module.
+          domain.extra += Gen::CrystalExtras.network_module_helpers
         when "Page"
           domain.types.each do |typ|
             case typ.name
@@ -287,7 +358,8 @@ module Pdlgen
                   ref: "FrameState",
                   description: "Frame state.",
                   no_resolve: true,
-                  no_expose: true
+                  no_expose: true,
+                  default_value: "FrameState.new(0u16)"
                 ),
                 Pdl::Type.new(
                   name: "Root",
@@ -301,14 +373,16 @@ module Pdlgen
                   ref: "Hash(#{DOM_NODE_ID_REF}, #{DOM_NODE_REF})",
                   description: "Frame nodes.",
                   no_resolve: true,
-                  no_expose: true
+                  no_expose: true,
+                  default_value: "Hash(DOM::NodeId, DOM::Node?).new"
                 ),
                 Pdl::Type.new(
                   name: "mutex",
                   ref: "Mutex",
                   description: "Read write mutex.",
                   no_resolve: true,
-                  no_expose: true
+                  no_expose: true,
+                  default_value: "Mutex.new"
                 ),
               ])
               # TODO: add extra frame template
@@ -319,6 +393,17 @@ module Pdlgen
                 if prop.name == "id" || prop.name == "parentId"
                   prop.ref = "FrameId"
                   prop.type = Pdl::TypeEnum::Any
+                end
+              end
+            when "Viewport"
+              # rod's screenshot clip leaves height to the caller and assumes a
+              # 1:1 scale; keep those conveniences in the generated constructor.
+              typ.properties.each do |prop|
+                case prop.name
+                when "height"
+                  prop.default_value = "0.0"
+                when "scale"
+                  prop.default_value = "1.0"
                 end
               end
             end
@@ -333,6 +418,16 @@ module Pdlgen
                   param.always_emit = true
                 end
               end
+            when "getLayoutMetrics"
+              # go-rod treats the CSS metrics as pointers and reports a missing
+              # one as an error; keep them nilable so the ported checks stay
+              # live (Chrome always sends them on current builds).
+              cmd.returns.each do |ret|
+                case ret.name
+                when "cssLayoutViewport", "cssVisualViewport", "cssContentSize"
+                  ret.optional = true
+                end
+              end
             end
           end
         when "Runtime"
@@ -342,6 +437,10 @@ module Pdlgen
             when "Timestamp"
               typ.type = Pdl::TypeEnum::Timestamp
               typ.timestamp_type = Pdl::TimestampType::Millisecond
+              # Go keeps Runtime.Timestamp as float64 milliseconds, and events
+              # are decoded without the TimestampFieldKeys normalization that
+              # Cdp.call applies, so keep the raw protocol value.
+              typ.target_type = "Float64"
               # TODO: add extra timestamp template
               typ.extra += Gen::CrystalExtras.extra_timestamp_template(typ, domain)
             when "ExceptionDetails"

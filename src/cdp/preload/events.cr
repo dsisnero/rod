@@ -116,6 +116,8 @@ module Cdp::Preload
     property pipeline_id : PreloadPipelineId
     @[JSON::Field(key: "status", emit_null: false)]
     property status : PreloadingStatus
+    @[JSON::Field(key: "effectiveAction", emit_null: false)]
+    property effective_action : SpeculationAction?
     @[JSON::Field(key: "prerenderStatus", emit_null: false)]
     property prerender_status : PrerenderFinalStatus?
     @[JSON::Field(key: "disallowedMojoInterface", emit_null: false)]
@@ -123,7 +125,7 @@ module Cdp::Preload
     @[JSON::Field(key: "mismatchedHeaders", emit_null: false)]
     property mismatched_headers : Array(PrerenderMismatchedHeaders)?
 
-    def initialize(@key : PreloadingAttemptKey, @pipeline_id : PreloadPipelineId, @status : PreloadingStatus, @prerender_status : PrerenderFinalStatus?, @disallowed_mojo_interface : String?, @mismatched_headers : Array(PrerenderMismatchedHeaders)?)
+    def initialize(@key : PreloadingAttemptKey, @pipeline_id : PreloadPipelineId, @status : PreloadingStatus, @effective_action : SpeculationAction?, @prerender_status : PrerenderFinalStatus?, @disallowed_mojo_interface : String?, @mismatched_headers : Array(PrerenderMismatchedHeaders)?)
     end
 
     # ProtoEvent returns the protocol event name.

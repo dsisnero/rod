@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../runtime/runtime"
@@ -38,5 +39,8 @@ module Cdp::DOMDebugger
     property original_handler : Cdp::Runtime::RemoteObject?
     @[JSON::Field(key: "backendNodeId", emit_null: false)]
     property backend_node_id : Cdp::DOM::BackendNodeId?
+
+    def initialize(@type : String, @use_capture : Bool, @passive : Bool, @once : Bool, @script_id : Cdp::Runtime::ScriptId, @line_number : Int64, @column_number : Int64, @handler : Cdp::Runtime::RemoteObject? = nil, @original_handler : Cdp::Runtime::RemoteObject? = nil, @backend_node_id : Cdp::DOM::BackendNodeId? = nil)
+    end
   end
 end

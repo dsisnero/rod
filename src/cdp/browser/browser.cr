@@ -79,6 +79,26 @@ module Cdp::Browser
     end
   end
 
+  @[Experimental]
+  struct GetGlobalPrivacyControlResult
+    include JSON::Serializable
+    @[JSON::Field(key: "gpc", emit_null: false)]
+    property? gpc : Bool
+
+    def initialize(@gpc : Bool)
+    end
+  end
+
+  @[Experimental]
+  struct SetGlobalPrivacyControlResult
+    include JSON::Serializable
+    @[JSON::Field(key: "gpc", emit_null: false)]
+    property? gpc : Bool
+
+    def initialize(@gpc : Bool)
+    end
+  end
+
   # Commands
   @[Experimental]
   struct SetPermission
@@ -95,7 +115,7 @@ module Cdp::Browser
     @[JSON::Field(key: "browserContextId", emit_null: false)]
     property browser_context_id : BrowserContextID?
 
-    def initialize(@permission : PermissionDescriptor, @setting : PermissionSetting, @origin : String?, @embedded_origin : String?, @browser_context_id : BrowserContextID?)
+    def initialize(@permission : PermissionDescriptor, @setting : PermissionSetting, @origin : String? = nil, @embedded_origin : String? = nil, @browser_context_id : BrowserContextID? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -115,7 +135,7 @@ module Cdp::Browser
     @[JSON::Field(key: "browserContextId", emit_null: false)]
     property browser_context_id : BrowserContextID?
 
-    def initialize(@browser_context_id : BrowserContextID?)
+    def initialize(@browser_context_id : BrowserContextID? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -142,7 +162,7 @@ module Cdp::Browser
     @[JSON::Field(key: "eventsEnabled", emit_null: false)]
     property? events_enabled : Bool?
 
-    def initialize(@behavior : SetDownloadBehaviorBehavior, @browser_context_id : BrowserContextID?, @download_path : String?, @events_enabled : Bool?)
+    def initialize(@behavior : SetDownloadBehaviorBehavior, @browser_context_id : BrowserContextID? = nil, @download_path : String? = nil, @events_enabled : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -165,7 +185,7 @@ module Cdp::Browser
     @[JSON::Field(key: "browserContextId", emit_null: false)]
     property browser_context_id : BrowserContextID?
 
-    def initialize(@guid : String, @browser_context_id : BrowserContextID?)
+    def initialize(@guid : String, @browser_context_id : BrowserContextID? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -273,6 +293,27 @@ module Cdp::Browser
   end
 
   @[Experimental]
+  struct AddMockCamera
+    include JSON::Serializable
+    include Cdp::Request
+    @[JSON::Field(key: "deviceId", emit_null: false)]
+    property device_id : String
+
+    def initialize(@device_id : String)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Browser.addMockCamera"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
   struct GetHistograms
     include JSON::Serializable
     include Cdp::Request
@@ -281,7 +322,7 @@ module Cdp::Browser
     @[JSON::Field(key: "delta", emit_null: false)]
     property? delta : Bool?
 
-    def initialize(@query : String?, @delta : Bool?)
+    def initialize(@query : String? = nil, @delta : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -304,7 +345,7 @@ module Cdp::Browser
     @[JSON::Field(key: "delta", emit_null: false)]
     property? delta : Bool?
 
-    def initialize(@name : String, @delta : Bool?)
+    def initialize(@name : String, @delta : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -346,7 +387,7 @@ module Cdp::Browser
     @[JSON::Field(key: "targetId", emit_null: false)]
     property target_id : Cdp::Target::TargetID?
 
-    def initialize(@target_id : Cdp::Target::TargetID?)
+    def initialize(@target_id : Cdp::Target::TargetID? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -394,7 +435,7 @@ module Cdp::Browser
     @[JSON::Field(key: "height", emit_null: false)]
     property height : Int64?
 
-    def initialize(@window_id : WindowID, @width : Int64?, @height : Int64?)
+    def initialize(@window_id : WindowID, @width : Int64? = nil, @height : Int64? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -417,7 +458,7 @@ module Cdp::Browser
     @[JSON::Field(key: "image", emit_null: false)]
     property image : String?
 
-    def initialize(@badge_label : String?, @image : String?)
+    def initialize(@badge_label : String? = nil, @image : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -452,49 +493,43 @@ module Cdp::Browser
     end
   end
 
-  struct AddPrivacySandboxEnrollmentOverride
+  @[Experimental]
+  struct GetGlobalPrivacyControl
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(key: "url", emit_null: false)]
-    property url : String
 
-    def initialize(@url : String)
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
     def proto_req : String
-      "Browser.addPrivacySandboxEnrollmentOverride"
+      "Browser.getGlobalPrivacyControl"
     end
 
-    # Call sends the request.
-    def call(c : Cdp::Client) : Nil
-      Cdp.call(proto_req, self, nil, c)
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : GetGlobalPrivacyControlResult
+      Cdp.call(proto_req, self, GetGlobalPrivacyControlResult, c)
     end
   end
 
-  struct AddPrivacySandboxCoordinatorKeyConfig
+  @[Experimental]
+  struct SetGlobalPrivacyControl
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(key: "api", emit_null: false)]
-    property api : PrivacySandboxAPI
-    @[JSON::Field(key: "coordinatorOrigin", emit_null: false)]
-    property coordinator_origin : String
-    @[JSON::Field(key: "keyConfig", emit_null: false)]
-    property key_config : String
-    @[JSON::Field(key: "browserContextId", emit_null: false)]
-    property browser_context_id : BrowserContextID?
+    @[JSON::Field(key: "gpc", emit_null: false)]
+    property? gpc : Bool
 
-    def initialize(@api : PrivacySandboxAPI, @coordinator_origin : String, @key_config : String, @browser_context_id : BrowserContextID?)
+    def initialize(@gpc : Bool)
     end
 
     # ProtoReq returns the protocol method name.
     def proto_req : String
-      "Browser.addPrivacySandboxCoordinatorKeyConfig"
+      "Browser.setGlobalPrivacyControl"
     end
 
-    # Call sends the request.
-    def call(c : Cdp::Client) : Nil
-      Cdp.call(proto_req, self, nil, c)
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : SetGlobalPrivacyControlResult
+      Cdp.call(proto_req, self, SetGlobalPrivacyControlResult, c)
     end
   end
 end

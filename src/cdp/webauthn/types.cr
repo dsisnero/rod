@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 module Cdp::WebAuthn
@@ -12,13 +13,16 @@ module Cdp::WebAuthn
   alias Ctap2Version = String
   Ctap2VersionCtap20 = "ctap2_0"
   Ctap2VersionCtap21 = "ctap2_1"
+  Ctap2VersionCtap22 = "ctap2_2"
 
   alias AuthenticatorTransport = String
-  AuthenticatorTransportUsb      = "usb"
-  AuthenticatorTransportNfc      = "nfc"
-  AuthenticatorTransportBle      = "ble"
-  AuthenticatorTransportCable    = "cable"
-  AuthenticatorTransportInternal = "internal"
+  AuthenticatorTransportUsb       = "usb"
+  AuthenticatorTransportNfc       = "nfc"
+  AuthenticatorTransportBle       = "ble"
+  AuthenticatorTransportCable     = "cable"
+  AuthenticatorTransportHybrid    = "hybrid"
+  AuthenticatorTransportSmartCard = "smart-card"
+  AuthenticatorTransportInternal  = "internal"
 
   struct VirtualAuthenticatorOptions
     include JSON::Serializable
@@ -40,6 +44,12 @@ module Cdp::WebAuthn
     property? has_min_pin_length : Bool?
     @[JSON::Field(key: "hasPrf", emit_null: false)]
     property? has_prf : Bool?
+    @[JSON::Field(key: "hasHmacSecret", emit_null: false)]
+    property? has_hmac_secret : Bool?
+    @[JSON::Field(key: "hasHmacSecretMc", emit_null: false)]
+    property? has_hmac_secret_mc : Bool?
+    @[JSON::Field(key: "hasCmtgKey", emit_null: false)]
+    property? has_cmtg_key : Bool?
     @[JSON::Field(key: "automaticPresenceSimulation", emit_null: false)]
     property? automatic_presence_simulation : Bool?
     @[JSON::Field(key: "isUserVerified", emit_null: false)]
@@ -48,6 +58,9 @@ module Cdp::WebAuthn
     property? default_backup_eligibility : Bool?
     @[JSON::Field(key: "defaultBackupState", emit_null: false)]
     property? default_backup_state : Bool?
+
+    def initialize(@protocol : AuthenticatorProtocol, @transport : AuthenticatorTransport, @ctap2_version : Ctap2Version? = nil, @has_resident_key : Bool? = nil, @has_user_verification : Bool? = nil, @has_large_blob : Bool? = nil, @has_cred_blob : Bool? = nil, @has_min_pin_length : Bool? = nil, @has_prf : Bool? = nil, @has_hmac_secret : Bool? = nil, @has_hmac_secret_mc : Bool? = nil, @has_cmtg_key : Bool? = nil, @automatic_presence_simulation : Bool? = nil, @is_user_verified : Bool? = nil, @default_backup_eligibility : Bool? = nil, @default_backup_state : Bool? = nil)
+    end
   end
 
   struct Credential
@@ -63,7 +76,7 @@ module Cdp::WebAuthn
     @[JSON::Field(key: "userHandle", emit_null: false)]
     property user_handle : String?
     @[JSON::Field(key: "signCount", emit_null: false)]
-    property sign_count : Int64
+    property sign_count : Float64
     @[JSON::Field(key: "largeBlob", emit_null: false)]
     property large_blob : String?
     @[JSON::Field(key: "backupEligibility", emit_null: false)]
@@ -74,5 +87,14 @@ module Cdp::WebAuthn
     property user_name : String?
     @[JSON::Field(key: "userDisplayName", emit_null: false)]
     property user_display_name : String?
+    @[JSON::Field(key: "cmtgKeys", emit_null: false)]
+    property cmtg_keys : Array(String)?
+    @[JSON::Field(key: "activeCmtgKeyIndex", emit_null: false)]
+    property active_cmtg_key_index : Int64?
+    @[JSON::Field(key: "generateCmtgKeyOnNextOperation", emit_null: false)]
+    property? generate_cmtg_key_on_next_operation : Bool?
+
+    def initialize(@credential_id : String, @is_resident_credential : Bool, @private_key : String, @sign_count : Float64, @rp_id : String? = nil, @user_handle : String? = nil, @large_blob : String? = nil, @backup_eligibility : Bool? = nil, @backup_state : Bool? = nil, @user_name : String? = nil, @user_display_name : String? = nil, @cmtg_keys : Array(String)? = nil, @active_cmtg_key_index : Int64? = nil, @generate_cmtg_key_on_next_operation : Bool? = nil)
+    end
   end
 end

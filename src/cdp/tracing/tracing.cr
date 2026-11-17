@@ -128,7 +128,7 @@ module Cdp::Tracing
     @[JSON::Field(key: "levelOfDetail", emit_null: false)]
     property level_of_detail : MemoryDumpLevelOfDetail?
 
-    def initialize(@deterministic : Bool?, @level_of_detail : MemoryDumpLevelOfDetail?)
+    def initialize(@deterministic : Bool? = nil, @level_of_detail : MemoryDumpLevelOfDetail? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -159,8 +159,12 @@ module Cdp::Tracing
     property perfetto_config : String?
     @[JSON::Field(key: "tracingBackend", emit_null: false)]
     property tracing_backend : TracingBackend?
+    @[JSON::Field(key: "screenshotMaxSize", emit_null: false)]
+    property screenshot_max_size : Int64?
+    @[JSON::Field(key: "screenshotMaxCount", emit_null: false)]
+    property screenshot_max_count : Int64?
 
-    def initialize(@buffer_usage_reporting_interval : Float64?, @transfer_mode : TransferMode?, @stream_format : StreamFormat?, @stream_compression : StreamCompression?, @trace_config : TraceConfig?, @perfetto_config : String?, @tracing_backend : TracingBackend?)
+    def initialize(@buffer_usage_reporting_interval : Float64? = nil, @transfer_mode : TransferMode? = nil, @stream_format : StreamFormat? = nil, @stream_compression : StreamCompression? = nil, @trace_config : TraceConfig? = nil, @perfetto_config : String? = nil, @tracing_backend : TracingBackend? = nil, @screenshot_max_size : Int64? = nil, @screenshot_max_count : Int64? = nil)
     end
 
     # ProtoReq returns the protocol method name.

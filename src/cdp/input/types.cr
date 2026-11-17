@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 module Cdp::Input
@@ -28,19 +29,7 @@ module Cdp::Input
     @[JSON::Field(key: "id", emit_null: false)]
     property id : Float64?
 
-    def initialize(
-      @x : Float64,
-      @y : Float64,
-      @radius_x : Float64? = nil,
-      @radius_y : Float64? = nil,
-      @rotation_angle : Float64? = nil,
-      @force : Float64? = nil,
-      @tangential_pressure : Float64? = nil,
-      @tilt_x : Float64? = nil,
-      @tilt_y : Float64? = nil,
-      @twist : Int64? = nil,
-      @id : Float64? = nil,
-    )
+    def initialize(@x : Float64, @y : Float64, @radius_x : Float64? = nil, @radius_y : Float64? = nil, @rotation_angle : Float64? = nil, @force : Float64? = nil, @tangential_pressure : Float64? = nil, @tilt_x : Float64? = nil, @tilt_y : Float64? = nil, @twist : Int64? = nil, @id : Float64? = nil)
     end
 
     # MoveTo updates X and Y coordinates.
@@ -52,9 +41,9 @@ module Cdp::Input
 
   @[Experimental]
   alias GestureSourceType = String
-  Default = "default"
-  Touch   = "touch"
-  Mouse   = "mouse"
+  GestureDefault = "default"
+  GestureTouch   = "touch"
+  GestureMouse   = "mouse"
 
   alias MouseButton = String
   None    = "none"
@@ -75,8 +64,11 @@ module Cdp::Input
     property data : String
     @[JSON::Field(key: "title", emit_null: false)]
     property title : String?
-    @[JSON::Field(key: "baseUrl", emit_null: false)]
+    @[JSON::Field(key: "baseURL", emit_null: false)]
     property base_url : String?
+
+    def initialize(@mime_type : String, @data : String, @title : String? = nil, @base_url : String? = nil)
+    end
   end
 
   @[Experimental]
@@ -88,6 +80,9 @@ module Cdp::Input
     property files : Array(String)?
     @[JSON::Field(key: "dragOperationsMask", emit_null: false)]
     property drag_operations_mask : Int64
+
+    def initialize(@items : Array(DragDataItem), @drag_operations_mask : Int64, @files : Array(String)? = nil)
+    end
   end
 
   @[Flags]
@@ -96,6 +91,17 @@ module Cdp::Input
     Ctrl
     Meta
     Shift
+
+    # CDP enums travel as their integer value, not their Crystal name.
+    def to_json(json : JSON::Builder)
+      json.number(value)
+    end
+
+    # `@[Flags]` enums otherwise decode from an array of member names, but CDP
+    # sends the integer bitmask.
+    def self.new(pull : JSON::PullParser)
+      new(pull.read_int)
+    end
   end
   # ModifierCommand is an alias for ModifierMeta.
   ModifierCommand = Modifier::Meta
@@ -109,8 +115,8 @@ module Cdp::Input
   alias KeyType = String
   KeyDown    = "keyDown"
   KeyUp      = "keyUp"
-  RawKeyDown = "rawKeyDown"
-  Char       = "char"
+  KeyRawDown = "rawKeyDown"
+  KeyChar    = "char"
 
   alias MouseType = String
   MousePressed  = "mousePressed"
@@ -119,8 +125,8 @@ module Cdp::Input
   MouseWheel    = "mouseWheel"
 
   alias DispatchMouseEventPointerType = String
-  DispatchMouseEventPointerTypeMouse = "mouse"
-  DispatchMouseEventPointerTypePen   = "pen"
+  Mouse = "mouse"
+  Pen   = "pen"
 
   alias TouchType = String
   TouchStart  = "touchStart"

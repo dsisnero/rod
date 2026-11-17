@@ -52,7 +52,7 @@ module Cdp::Target
     @[JSON::Field(key: "defaultBrowserContextId", emit_null: false)]
     property default_browser_context_id : Cdp::Browser::BrowserContextID?
 
-    def initialize(@browser_context_ids : Array(Cdp::Browser::BrowserContextID), @default_browser_context_id : Cdp::Browser::BrowserContextID?)
+    def initialize(@browser_context_ids : Array(Cdp::Browser::BrowserContextID), @default_browser_context_id : Cdp::Browser::BrowserContextID? = nil)
     end
   end
 
@@ -73,12 +73,6 @@ module Cdp::Target
 
     def initialize(@target_info : TargetInfo)
     end
-
-    # Support generated request wrappers that instantiate an empty result and
-    # then populate it via JSON::Serializable#from_json.
-    def initialize
-      @target_info = uninitialized TargetInfo
-    end
   end
 
   struct GetTargetsResult
@@ -88,12 +82,6 @@ module Cdp::Target
 
     def initialize(@target_infos : Array(TargetInfo))
     end
-
-    # Support generated request wrappers that instantiate an empty result and
-    # then populate it via JSON::Serializable#from_json.
-    def initialize
-      @target_infos = [] of TargetInfo
-    end
   end
 
   @[Experimental]
@@ -102,7 +90,7 @@ module Cdp::Target
     @[JSON::Field(key: "targetId", emit_null: false)]
     property target_id : TargetID?
 
-    def initialize(@target_id : TargetID?)
+    def initialize(@target_id : TargetID? = nil)
     end
   end
 
@@ -145,7 +133,7 @@ module Cdp::Target
     @[JSON::Field(key: "flatten", emit_null: false)]
     property? flatten : Bool?
 
-    def initialize(@target_id : TargetID, @flatten : Bool?)
+    def initialize(@target_id : TargetID, @flatten : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -209,7 +197,7 @@ module Cdp::Target
     @[JSON::Field(key: "inheritPermissions", emit_null: false)]
     property? inherit_permissions : Bool?
 
-    def initialize(@target_id : TargetID, @binding_name : String?, @inherit_permissions : Bool?)
+    def initialize(@target_id : TargetID, @binding_name : String? = nil, @inherit_permissions : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -235,7 +223,7 @@ module Cdp::Target
     @[JSON::Field(key: "originsWithUniversalNetworkAccess", emit_null: false)]
     property origins_with_universal_network_access : Array(String)?
 
-    def initialize(@dispose_on_detach : Bool?, @proxy_server : String?, @proxy_bypass_list : String?, @origins_with_universal_network_access : Array(String)?)
+    def initialize(@dispose_on_detach : Bool? = nil, @proxy_server : String? = nil, @proxy_bypass_list : String? = nil, @origins_with_universal_network_access : Array(String)? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -297,7 +285,7 @@ module Cdp::Target
     @[JSON::Field(key: "focus", emit_null: false)]
     property? focus : Bool?
 
-    def initialize(@url : String, @left : Int64?, @top : Int64?, @width : Int64?, @height : Int64?, @window_state : WindowState?, @browser_context_id : Cdp::Browser::BrowserContextID?, @enable_begin_frame_control : Bool?, @new_window : Bool?, @background : Bool?, @for_tab : Bool?, @hidden : Bool?, @focus : Bool?)
+    def initialize(@url : String, @left : Int64? = nil, @top : Int64? = nil, @width : Int64? = nil, @height : Int64? = nil, @window_state : WindowState? = nil, @browser_context_id : Cdp::Browser::BrowserContextID? = nil, @enable_begin_frame_control : Bool? = nil, @new_window : Bool? = nil, @background : Bool? = nil, @for_tab : Bool? = nil, @hidden : Bool? = nil, @focus : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -319,7 +307,7 @@ module Cdp::Target
     @[JSON::Field(key: "targetId", emit_null: false)]
     property target_id : TargetID?
 
-    def initialize(@session_id : SessionID?, @target_id : TargetID?)
+    def initialize(@session_id : SessionID? = nil, @target_id : TargetID? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -360,7 +348,7 @@ module Cdp::Target
     @[JSON::Field(key: "targetId", emit_null: false)]
     property target_id : TargetID?
 
-    def initialize(@target_id : TargetID?)
+    def initialize(@target_id : TargetID? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -380,7 +368,7 @@ module Cdp::Target
     @[JSON::Field(key: "filter", emit_null: false)]
     property filter : TargetFilter?
 
-    def initialize(@filter : TargetFilter?)
+    def initialize(@filter : TargetFilter? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -406,7 +394,7 @@ module Cdp::Target
     @[JSON::Field(key: "filter", emit_null: false)]
     property filter : TargetFilter?
 
-    def initialize(@auto_attach : Bool, @wait_for_debugger_on_start : Bool, @flatten : Bool?, @filter : TargetFilter?)
+    def initialize(@auto_attach : Bool, @wait_for_debugger_on_start : Bool, @flatten : Bool? = nil, @filter : TargetFilter? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -431,7 +419,7 @@ module Cdp::Target
     @[JSON::Field(key: "filter", emit_null: false)]
     property filter : TargetFilter?
 
-    def initialize(@target_id : TargetID, @wait_for_debugger_on_start : Bool, @filter : TargetFilter?)
+    def initialize(@target_id : TargetID, @wait_for_debugger_on_start : Bool, @filter : TargetFilter? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -453,7 +441,7 @@ module Cdp::Target
     @[JSON::Field(key: "filter", emit_null: false)]
     property filter : TargetFilter?
 
-    def initialize(@discover : Bool, @filter : TargetFilter?)
+    def initialize(@discover : Bool, @filter : TargetFilter? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -518,7 +506,7 @@ module Cdp::Target
     @[JSON::Field(key: "panelId", emit_null: false)]
     property panel_id : String?
 
-    def initialize(@target_id : TargetID, @panel_id : String?)
+    def initialize(@target_id : TargetID, @panel_id : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.

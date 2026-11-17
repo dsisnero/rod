@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../network/network"
@@ -27,6 +28,9 @@ module Cdp::Preload
     property error_type : RuleSetErrorType?
     @[JSON::Field(key: "tag", emit_null: false)]
     property tag : String?
+
+    def initialize(@id : RuleSetId, @loader_id : Cdp::Network::LoaderId, @source_text : String, @backend_node_id : Cdp::DOM::BackendNodeId? = nil, @url : String? = nil, @request_id : Cdp::Network::RequestId? = nil, @error_type : RuleSetErrorType? = nil, @tag : String? = nil)
+    end
   end
 
   alias RuleSetErrorType = String
@@ -51,8 +55,13 @@ module Cdp::Preload
     property action : SpeculationAction
     @[JSON::Field(key: "url", emit_null: false)]
     property url : String
+    @[JSON::Field(key: "formSubmission", emit_null: false)]
+    property? form_submission : Bool?
     @[JSON::Field(key: "targetHint", emit_null: false)]
     property target_hint : SpeculationTargetHint?
+
+    def initialize(@loader_id : Cdp::Network::LoaderId, @action : SpeculationAction, @url : String, @form_submission : Bool? = nil, @target_hint : SpeculationTargetHint? = nil)
+    end
   end
 
   struct PreloadingAttemptSource
@@ -63,6 +72,9 @@ module Cdp::Preload
     property rule_set_ids : Array(RuleSetId)
     @[JSON::Field(key: "nodeIds", emit_null: false)]
     property node_ids : Array(Cdp::DOM::BackendNodeId)
+
+    def initialize(@key : PreloadingAttemptKey, @rule_set_ids : Array(RuleSetId), @node_ids : Array(Cdp::DOM::BackendNodeId))
+    end
   end
 
   alias PreloadPipelineId = String
@@ -142,6 +154,10 @@ module Cdp::Preload
   PrerenderFinalStatusPrerenderFailedDuringPrefetch                              = "PrerenderFailedDuringPrefetch"
   PrerenderFinalStatusBrowsingDataRemoved                                        = "BrowsingDataRemoved"
   PrerenderFinalStatusPrerenderHostReused                                        = "PrerenderHostReused"
+  PrerenderFinalStatusFormSubmitWhenPrerendering                                 = "FormSubmitWhenPrerendering"
+  PrerenderFinalStatusCrossDocumentRestart                                       = "CrossDocumentRestart"
+  PrerenderFinalStatusPrefetchFailedCrossOriginSubframe                          = "PrefetchFailedCrossOriginSubframe"
+  PrerenderFinalStatusUnexpectedMainFrameNavigation                              = "UnexpectedMainFrameNavigation"
 
   alias PreloadingStatus = String
   PreloadingStatusPending      = "Pending"
@@ -165,7 +181,9 @@ module Cdp::Preload
   PrefetchStatusPrefetchIneligibleRetryAfter                                = "PrefetchIneligibleRetryAfter"
   PrefetchStatusPrefetchIsPrivacyDecoy                                      = "PrefetchIsPrivacyDecoy"
   PrefetchStatusPrefetchIsStale                                             = "PrefetchIsStale"
+  PrefetchStatusPrefetchNotEligibleBlockedByConnectionAllowlist             = "PrefetchNotEligibleBlockedByConnectionAllowlist"
   PrefetchStatusPrefetchNotEligibleBrowserContextOffTheRecord               = "PrefetchNotEligibleBrowserContextOffTheRecord"
+  PrefetchStatusPrefetchNotEligibleCrossOrigin                              = "PrefetchNotEligibleCrossOrigin"
   PrefetchStatusPrefetchNotEligibleDataSaverEnabled                         = "PrefetchNotEligibleDataSaverEnabled"
   PrefetchStatusPrefetchNotEligibleExistingProxy                            = "PrefetchNotEligibleExistingProxy"
   PrefetchStatusPrefetchNotEligibleHostIsNonUnique                          = "PrefetchNotEligibleHostIsNonUnique"
@@ -186,6 +204,7 @@ module Cdp::Preload
   PrefetchStatusPrefetchResponseUsed                                        = "PrefetchResponseUsed"
   PrefetchStatusPrefetchSuccessfulButNotUsed                                = "PrefetchSuccessfulButNotUsed"
   PrefetchStatusPrefetchNotUsedProbeFailed                                  = "PrefetchNotUsedProbeFailed"
+  PrefetchStatusPrefetchCancelledOnUserNavigation                           = "PrefetchCancelledOnUserNavigation"
 
   struct PrerenderMismatchedHeaders
     include JSON::Serializable
@@ -195,5 +214,8 @@ module Cdp::Preload
     property initial_value : String?
     @[JSON::Field(key: "activationValue", emit_null: false)]
     property activation_value : String?
+
+    def initialize(@header_name : String, @initial_value : String? = nil, @activation_value : String? = nil)
+    end
   end
 end

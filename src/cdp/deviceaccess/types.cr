@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 module Cdp::DeviceAccess
@@ -13,5 +14,8 @@ module Cdp::DeviceAccess
     property id : DeviceId
     @[JSON::Field(key: "name", emit_null: false)]
     property name : String
+
+    def initialize(@id : DeviceId, @name : String)
+    end
   end
 end

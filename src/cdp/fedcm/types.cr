@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 module Cdp::FedCm
@@ -44,5 +45,8 @@ module Cdp::FedCm
     property terms_of_service_url : String?
     @[JSON::Field(key: "privacyPolicyUrl", emit_null: false)]
     property privacy_policy_url : String?
+
+    def initialize(@account_id : String, @email : String, @name : String, @given_name : String, @picture_url : String, @idp_config_url : String, @idp_login_url : String, @login_state : LoginState, @terms_of_service_url : String? = nil, @privacy_policy_url : String? = nil)
+    end
   end
 end

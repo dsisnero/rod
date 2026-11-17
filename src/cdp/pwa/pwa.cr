@@ -67,7 +67,7 @@ module Cdp::PWA
     @[JSON::Field(key: "installUrlOrBundleUrl", emit_null: false)]
     property install_url_or_bundle_url : String?
 
-    def initialize(@manifest_id : String, @install_url_or_bundle_url : String?)
+    def initialize(@manifest_id : String, @install_url_or_bundle_url : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -109,7 +109,7 @@ module Cdp::PWA
     @[JSON::Field(key: "url", emit_null: false)]
     property url : String?
 
-    def initialize(@manifest_id : String, @url : String?)
+    def initialize(@manifest_id : String, @url : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -175,7 +175,7 @@ module Cdp::PWA
     @[JSON::Field(key: "displayMode", emit_null: false)]
     property display_mode : DisplayMode?
 
-    def initialize(@manifest_id : String, @link_capturing : Bool?, @display_mode : DisplayMode?)
+    def initialize(@manifest_id : String, @link_capturing : Bool? = nil, @display_mode : DisplayMode? = nil)
     end
 
     # ProtoReq returns the protocol method name.

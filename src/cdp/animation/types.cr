@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../dom/dom"
@@ -30,6 +31,9 @@ module Cdp::Animation
     property css_id : String?
     @[JSON::Field(key: "viewOrScrollTimeline", emit_null: false)]
     property view_or_scroll_timeline : ViewOrScrollTimeline?
+
+    def initialize(@id : String, @name : String, @paused_state : Bool, @play_state : String, @playback_rate : Float64, @start_time : Float64, @current_time : Float64, @type : Type, @source : AnimationEffect? = nil, @css_id : String? = nil, @view_or_scroll_timeline : ViewOrScrollTimeline? = nil)
+    end
   end
 
   struct ViewOrScrollTimeline
@@ -44,6 +48,9 @@ module Cdp::Animation
     property subject_node_id : Cdp::DOM::BackendNodeId?
     @[JSON::Field(key: "axis", emit_null: false)]
     property axis : Cdp::DOM::ScrollOrientation
+
+    def initialize(@axis : Cdp::DOM::ScrollOrientation, @source_node_id : Cdp::DOM::BackendNodeId? = nil, @start_offset : Float64? = nil, @end_offset : Float64? = nil, @subject_node_id : Cdp::DOM::BackendNodeId? = nil)
+    end
   end
 
   struct AnimationEffect
@@ -68,6 +75,9 @@ module Cdp::Animation
     property keyframes_rule : KeyframesRule?
     @[JSON::Field(key: "easing", emit_null: false)]
     property easing : String
+
+    def initialize(@delay : Float64, @end_delay : Float64, @iteration_start : Float64, @duration : Float64, @direction : String, @fill : String, @easing : String, @iterations : Float64? = nil, @backend_node_id : Cdp::DOM::BackendNodeId? = nil, @keyframes_rule : KeyframesRule? = nil)
+    end
   end
 
   struct KeyframesRule
@@ -76,6 +86,9 @@ module Cdp::Animation
     property name : String?
     @[JSON::Field(key: "keyframes", emit_null: false)]
     property keyframes : Array(KeyframeStyle)
+
+    def initialize(@keyframes : Array(KeyframeStyle), @name : String? = nil)
+    end
   end
 
   struct KeyframeStyle
@@ -84,6 +97,9 @@ module Cdp::Animation
     property offset : String
     @[JSON::Field(key: "easing", emit_null: false)]
     property easing : String
+
+    def initialize(@offset : String, @easing : String)
+    end
   end
 
   alias Type = String

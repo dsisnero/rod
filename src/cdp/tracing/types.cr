@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../io/io"
@@ -30,6 +31,9 @@ module Cdp::Tracing
     property synthetic_delays : Array(String)?
     @[JSON::Field(key: "memoryDumpConfig", emit_null: false)]
     property memory_dump_config : MemoryDumpConfig?
+
+    def initialize(@record_mode : RecordMode? = nil, @trace_buffer_size_in_kb : Float64? = nil, @enable_sampling : Bool? = nil, @enable_systrace : Bool? = nil, @enable_argument_filter : Bool? = nil, @included_categories : Array(String)? = nil, @excluded_categories : Array(String)? = nil, @synthetic_delays : Array(String)? = nil, @memory_dump_config : MemoryDumpConfig? = nil)
+    end
   end
 
   @[Experimental]

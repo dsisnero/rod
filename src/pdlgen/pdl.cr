@@ -210,9 +210,18 @@ module Pdlgen
       property commands : Array(Type)
       property events : Array(Type)
 
+      # Emitted verbatim at the end of the generated domain module. Carries
+      # hand-written helpers that the protocol description cannot express.
+      property extra : String
+
+      # Set once `Fixup.fix_domains` has run for this domain so a second pass
+      # (the CLI and the generator both apply fixups) cannot duplicate types
+      # or extras.
+      property? fixed : Bool
+
       def initialize(@domain, @description = "", @experimental = false, @deprecated = false,
                      @dependencies = [] of String, @types = [] of Type, @commands = [] of Type,
-                     @events = [] of Type)
+                     @events = [] of Type, @extra = "", @fixed = false)
       end
     end
 
@@ -259,6 +268,24 @@ module Pdlgen
       property? enum_bit_mask : Bool
       property extra : String
 
+      # Set when the type participates in a reference cycle. Crystal structs are
+      # inline values, so a type that contains itself has no finite size; the
+      # emitter must use a class instead.
+      property? recursive : Bool
+
+      # Crystal initializer expression for a field the protocol does not carry
+      # (used with `no_expose`). Empty means "no explicit default".
+      property default_value : String
+
+      # When set, `extra` is emitted inside the type body instead of at domain
+      # module scope. Member helpers (e.g. `Input.TouchPoint#move_to`) need this;
+      # module-level constants stay at module scope.
+      property? extra_in_type : Bool
+
+      # Crystal type to use for this type's alias instead of the protocol
+      # default (e.g. Network timestamps accept `Time | Float64`).
+      property target_type : String
+
       def initialize(@type = TypeEnum::Any, @name = "", @description = "", @experimental = false,
                      @deprecated = false, @optional = false, @ref = "", @items = nil,
                      @parameters = [] of Type, @returns = [] of Type, @properties = [] of Type,
@@ -266,7 +293,8 @@ module Pdlgen
                      @raw_see = "", @timestamp_type = TimestampType::Millisecond,
                      @is_circular_dep = false, @no_expose = false, @no_resolve = false,
                      @always_emit = false, @enum_value_name_map = Hash(String, String).new,
-                     @enum_bit_mask = false, @extra = "")
+                     @enum_bit_mask = false, @extra = "", @recursive = false,
+                     @default_value = "", @extra_in_type = false, @target_type = "")
       end
     end
 

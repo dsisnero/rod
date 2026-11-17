@@ -66,14 +66,14 @@ module Cdp::DOMSnapshot
     property computed_styles : Array(String)
     @[JSON::Field(key: "includePaintOrder", emit_null: false)]
     property? include_paint_order : Bool?
-    @[JSON::Field(key: "includeDomRects", emit_null: false)]
+    @[JSON::Field(key: "includeDOMRects", emit_null: false)]
     property? include_dom_rects : Bool?
     @[JSON::Field(key: "includeBlendedBackgroundColors", emit_null: false)]
     property? include_blended_background_colors : Bool?
     @[JSON::Field(key: "includeTextColorOpacities", emit_null: false)]
     property? include_text_color_opacities : Bool?
 
-    def initialize(@computed_styles : Array(String), @include_paint_order : Bool?, @include_dom_rects : Bool?, @include_blended_background_colors : Bool?, @include_text_color_opacities : Bool?)
+    def initialize(@computed_styles : Array(String), @include_paint_order : Bool? = nil, @include_dom_rects : Bool? = nil, @include_blended_background_colors : Bool? = nil, @include_text_color_opacities : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.

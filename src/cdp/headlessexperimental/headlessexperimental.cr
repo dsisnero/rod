@@ -14,7 +14,7 @@ module Cdp::HeadlessExperimental
     @[JSON::Field(key: "screenshotData", emit_null: false)]
     property screenshot_data : String?
 
-    def initialize(@has_damage : Bool, @screenshot_data : String?)
+    def initialize(@has_damage : Bool, @screenshot_data : String? = nil)
     end
   end
 
@@ -31,7 +31,7 @@ module Cdp::HeadlessExperimental
     @[JSON::Field(key: "screenshot", emit_null: false)]
     property screenshot : ScreenshotParams?
 
-    def initialize(@frame_time_ticks : Float64?, @interval : Float64?, @no_display_updates : Bool?, @screenshot : ScreenshotParams?)
+    def initialize(@frame_time_ticks : Float64? = nil, @interval : Float64? = nil, @no_display_updates : Bool? = nil, @screenshot : ScreenshotParams? = nil)
     end
 
     # ProtoReq returns the protocol method name.

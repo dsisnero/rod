@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 module Cdp::BluetoothEmulation
@@ -33,6 +34,9 @@ module Cdp::BluetoothEmulation
     property key : Int64
     @[JSON::Field(key: "data", emit_null: false)]
     property data : String
+
+    def initialize(@key : Int64, @data : String)
+    end
   end
 
   struct ScanRecord
@@ -47,6 +51,9 @@ module Cdp::BluetoothEmulation
     property tx_power : Int64?
     @[JSON::Field(key: "manufacturerData", emit_null: false)]
     property manufacturer_data : Array(ManufacturerData)?
+
+    def initialize(@name : String? = nil, @uuids : Array(String)? = nil, @appearance : Int64? = nil, @tx_power : Int64? = nil, @manufacturer_data : Array(ManufacturerData)? = nil)
+    end
   end
 
   struct ScanEntry
@@ -57,6 +64,9 @@ module Cdp::BluetoothEmulation
     property rssi : Int64
     @[JSON::Field(key: "scanRecord", emit_null: false)]
     property scan_record : ScanRecord
+
+    def initialize(@device_address : String, @rssi : Int64, @scan_record : ScanRecord)
+    end
   end
 
   struct CharacteristicProperties
@@ -77,5 +87,8 @@ module Cdp::BluetoothEmulation
     property? authenticated_signed_writes : Bool?
     @[JSON::Field(key: "extendedProperties", emit_null: false)]
     property? extended_properties : Bool?
+
+    def initialize(@broadcast : Bool? = nil, @read : Bool? = nil, @write_without_response : Bool? = nil, @write : Bool? = nil, @notify : Bool? = nil, @indicate : Bool? = nil, @authenticated_signed_writes : Bool? = nil, @extended_properties : Bool? = nil)
+    end
   end
 end

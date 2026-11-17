@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../network/network"
@@ -20,6 +21,9 @@ module Cdp::BackgroundService
     property key : String
     @[JSON::Field(key: "value", emit_null: false)]
     property value : String
+
+    def initialize(@key : String, @value : String)
+    end
   end
 
   struct BackgroundServiceEvent
@@ -40,5 +44,8 @@ module Cdp::BackgroundService
     property event_metadata : Array(EventMetadata)
     @[JSON::Field(key: "storageKey", emit_null: false)]
     property storage_key : String
+
+    def initialize(@timestamp : Cdp::Network::TimeSinceEpoch, @origin : String, @service_worker_registration_id : Cdp::ServiceWorker::RegistrationID, @service : ServiceName, @event_name : String, @instance_id : String, @event_metadata : Array(EventMetadata), @storage_key : String)
+    end
   end
 end

@@ -66,28 +66,6 @@ module Cdp::Network
   end
 
   @[Experimental]
-  struct GetResponseBodyForInterceptionResult
-    include JSON::Serializable
-    @[JSON::Field(key: "body", emit_null: false)]
-    property body : String
-    @[JSON::Field(key: "base64Encoded", emit_null: false)]
-    property? base64_encoded : Bool
-
-    def initialize(@body : String, @base64_encoded : Bool)
-    end
-  end
-
-  @[Experimental]
-  struct TakeResponseBodyForInterceptionAsStreamResult
-    include JSON::Serializable
-    @[JSON::Field(key: "stream", emit_null: false)]
-    property stream : Cdp::IO::StreamHandle
-
-    def initialize(@stream : Cdp::IO::StreamHandle)
-    end
-  end
-
-  @[Experimental]
   struct SearchInResponseBodyResult
     include JSON::Serializable
     @[JSON::Field(key: "result", emit_null: false)]
@@ -145,46 +123,6 @@ module Cdp::Network
   end
 
   # Commands
-  @[Experimental]
-  struct SetAcceptedEncodings
-    include JSON::Serializable
-    include Cdp::Request
-    @[JSON::Field(key: "encodings", emit_null: false)]
-    property encodings : Array(ContentEncoding)
-
-    def initialize(@encodings : Array(ContentEncoding))
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Network.setAcceptedEncodings"
-    end
-
-    # Call sends the request.
-    def call(c : Cdp::Client) : Nil
-      Cdp.call(proto_req, self, nil, c)
-    end
-  end
-
-  @[Experimental]
-  struct ClearAcceptedEncodingsOverride
-    include JSON::Serializable
-    include Cdp::Request
-
-    def initialize
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Network.clearAcceptedEncodingsOverride"
-    end
-
-    # Call sends the request.
-    def call(c : Cdp::Client) : Nil
-      Cdp.call(proto_req, self, nil, c)
-    end
-  end
-
   struct ClearBrowserCache
     include JSON::Serializable
     include Cdp::Request
@@ -235,7 +173,7 @@ module Cdp::Network
     @[JSON::Field(key: "partitionKey", emit_null: false)]
     property partition_key : CookiePartitionKey?
 
-    def initialize(@name : String, @url : String?, @domain : String?, @path : String?, @partition_key : CookiePartitionKey?)
+    def initialize(@name : String, @url : String? = nil, @domain : String? = nil, @path : String? = nil, @partition_key : CookiePartitionKey? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -271,12 +209,12 @@ module Cdp::Network
   struct EmulateNetworkConditionsByRule
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(key: "offline", emit_null: false)]
-    property? offline : Bool
+    @[JSON::Field(key: "emulateOfflineServiceWorker", emit_null: false)]
+    property? emulate_offline_service_worker : Bool?
     @[JSON::Field(key: "matchedNetworkConditions", emit_null: false)]
     property matched_network_conditions : Array(NetworkConditions)
 
-    def initialize(@offline : Bool, @matched_network_conditions : Array(NetworkConditions))
+    def initialize(@matched_network_conditions : Array(NetworkConditions), @emulate_offline_service_worker : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -305,7 +243,7 @@ module Cdp::Network
     @[JSON::Field(key: "connectionType", emit_null: false)]
     property connection_type : ConnectionType?
 
-    def initialize(@offline : Bool, @latency : Float64, @download_throughput : Float64, @upload_throughput : Float64, @connection_type : ConnectionType?)
+    def initialize(@offline : Bool, @latency : Float64, @download_throughput : Float64, @upload_throughput : Float64, @connection_type : ConnectionType? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -333,7 +271,7 @@ module Cdp::Network
     @[JSON::Field(key: "enableDurableMessages", emit_null: false)]
     property? enable_durable_messages : Bool?
 
-    def initialize(@max_total_buffer_size : Int64?, @max_resource_buffer_size : Int64?, @max_post_data_size : Int64?, @report_direct_socket_traffic : Bool?, @enable_durable_messages : Bool?)
+    def initialize(@max_total_buffer_size : Int64? = nil, @max_resource_buffer_size : Int64? = nil, @max_post_data_size : Int64? = nil, @report_direct_socket_traffic : Bool? = nil, @enable_durable_messages : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -356,7 +294,7 @@ module Cdp::Network
     @[JSON::Field(key: "maxResourceBufferSize", emit_null: false)]
     property max_resource_buffer_size : Int64?
 
-    def initialize(@max_total_buffer_size : Int64?, @max_resource_buffer_size : Int64?)
+    def initialize(@max_total_buffer_size : Int64? = nil, @max_resource_buffer_size : Int64? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -397,7 +335,7 @@ module Cdp::Network
     @[JSON::Field(key: "urls", emit_null: false)]
     property urls : Array(String)?
 
-    def initialize(@urls : Array(String)?)
+    def initialize(@urls : Array(String)? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -452,48 +390,6 @@ module Cdp::Network
   end
 
   @[Experimental]
-  struct GetResponseBodyForInterception
-    include JSON::Serializable
-    include Cdp::Request
-    @[JSON::Field(key: "interceptionId", emit_null: false)]
-    property interception_id : InterceptionId
-
-    def initialize(@interception_id : InterceptionId)
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Network.getResponseBodyForInterception"
-    end
-
-    # Call sends the request and returns the result.
-    def call(c : Cdp::Client) : GetResponseBodyForInterceptionResult
-      Cdp.call(proto_req, self, GetResponseBodyForInterceptionResult, c)
-    end
-  end
-
-  @[Experimental]
-  struct TakeResponseBodyForInterceptionAsStream
-    include JSON::Serializable
-    include Cdp::Request
-    @[JSON::Field(key: "interceptionId", emit_null: false)]
-    property interception_id : InterceptionId
-
-    def initialize(@interception_id : InterceptionId)
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Network.takeResponseBodyForInterceptionAsStream"
-    end
-
-    # Call sends the request and returns the result.
-    def call(c : Cdp::Client) : TakeResponseBodyForInterceptionAsStreamResult
-      Cdp.call(proto_req, self, TakeResponseBodyForInterceptionAsStreamResult, c)
-    end
-  end
-
-  @[Experimental]
   struct ReplayXHR
     include JSON::Serializable
     include Cdp::Request
@@ -527,7 +423,7 @@ module Cdp::Network
     @[JSON::Field(key: "isRegex", emit_null: false)]
     property? is_regex : Bool?
 
-    def initialize(@request_id : RequestId, @query : String, @case_sensitive : Bool?, @is_regex : Bool?)
+    def initialize(@request_id : RequestId, @query : String, @case_sensitive : Bool? = nil, @is_regex : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -550,7 +446,7 @@ module Cdp::Network
     @[JSON::Field(key: "urls", emit_null: false)]
     property urls : Array(String)?
 
-    def initialize(@url_patterns : Array(BlockPattern)?, @urls : Array(String)?)
+    def initialize(@url_patterns : Array(BlockPattern)? = nil, @urls : Array(String)? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -634,7 +530,7 @@ module Cdp::Network
     @[JSON::Field(key: "partitionKey", emit_null: false)]
     property partition_key : CookiePartitionKey?
 
-    def initialize(@name : String, @value : String, @url : String?, @domain : String?, @path : String?, @secure : Bool?, @http_only : Bool?, @same_site : CookieSameSite?, @expires : TimeSinceEpoch?, @priority : CookiePriority?, @source_scheme : CookieSourceScheme?, @source_port : Int64?, @partition_key : CookiePartitionKey?)
+    def initialize(@name : String, @value : String, @url : String? = nil, @domain : String? = nil, @path : String? = nil, @secure : Bool? = nil, @http_only : Bool? = nil, @same_site : CookieSameSite? = nil, @expires : TimeSinceEpoch? = nil, @priority : CookiePriority? = nil, @source_scheme : CookieSourceScheme? = nil, @source_port : Int64? = nil, @partition_key : CookiePartitionKey? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -737,7 +633,7 @@ module Cdp::Network
     @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
 
-    def initialize(@frame_id : Cdp::Page::FrameId?)
+    def initialize(@frame_id : Cdp::Page::FrameId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -794,6 +690,27 @@ module Cdp::Network
   end
 
   @[Experimental]
+  struct DeleteDeviceBoundSession
+    include JSON::Serializable
+    include Cdp::Request
+    @[JSON::Field(key: "key", emit_null: false)]
+    property key : DeviceBoundSessionKey
+
+    def initialize(@key : DeviceBoundSessionKey)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Network.deleteDeviceBoundSession"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
   struct FetchSchemefulSite
     include JSON::Serializable
     include Cdp::Request
@@ -825,7 +742,7 @@ module Cdp::Network
     @[JSON::Field(key: "options", emit_null: false)]
     property options : LoadNetworkResourceOptions
 
-    def initialize(@frame_id : Cdp::Page::FrameId?, @url : String, @options : LoadNetworkResourceOptions)
+    def initialize(@url : String, @options : LoadNetworkResourceOptions, @frame_id : Cdp::Page::FrameId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -845,12 +762,8 @@ module Cdp::Network
     include Cdp::Request
     @[JSON::Field(key: "enableThirdPartyCookieRestriction", emit_null: false)]
     property? enable_third_party_cookie_restriction : Bool
-    @[JSON::Field(key: "disableThirdPartyCookieMetadata", emit_null: false)]
-    property? disable_third_party_cookie_metadata : Bool
-    @[JSON::Field(key: "disableThirdPartyCookieHeuristics", emit_null: false)]
-    property? disable_third_party_cookie_heuristics : Bool
 
-    def initialize(@enable_third_party_cookie_restriction : Bool, @disable_third_party_cookie_metadata : Bool, @disable_third_party_cookie_heuristics : Bool)
+    def initialize(@enable_third_party_cookie_restriction : Bool)
     end
 
     # ProtoReq returns the protocol method name.
@@ -862,5 +775,74 @@ module Cdp::Network
     def call(c : Cdp::Client) : Nil
       Cdp.call(proto_req, self, nil, c)
     end
+  end
+
+  # CookiesToParams converts Cookie list to CookieParam list.
+  def self.cookies_to_params(cookies : Array(Cookie)) : Array(CookieParam)
+    cookies.map do |cookie|
+      expires = Time.unix_ms((cookie.expires * 1000).round.to_i64).to_s("%Y-%m-%dT%H:%M:%S.%3N%:z")
+      CookieParam.from_json({
+        "name"         => cookie.name,
+        "value"        => cookie.value,
+        "url"          => nil,
+        "domain"       => cookie.domain,
+        "path"         => cookie.path,
+        "secure"       => cookie.secure?,
+        "httpOnly"     => cookie.http_only?,
+        "sameSite"     => cookie.same_site,
+        "expires"      => expires,
+        "priority"     => cookie.priority,
+        "sourceScheme" => cookie.source_scheme,
+        "sourcePort"   => cookie.source_port,
+        "partitionKey" => cookie.partition_key,
+      }.to_json)
+    end
+  end
+
+  # TimeSinceEpochToTime mirrors go proto TimeSinceEpoch.Time helper semantics.
+  def self.time_since_epoch_time(t : TimeSinceEpoch) : Time
+    if t.is_a?(Time)
+      return t
+    end
+
+    f = t.as(Float64)
+    return Time.unix(0) if f == -1.0
+    Time.unix_ms((f * 1000).round.to_i64)
+  end
+
+  # TimeSinceEpochToString mirrors go proto TimeSinceEpoch.String helper semantics.
+  def self.time_since_epoch_string(t : TimeSinceEpoch) : String
+    time_since_epoch_time(t).to_s
+  end
+
+  # TimeSinceEpoch helper from a Time value.
+  def self.time_since_epoch(value : Time) : TimeSinceEpoch
+    value
+  end
+
+  # TimeSinceEpoch helper from seconds since unix epoch.
+  def self.time_since_epoch(value : Float64) : TimeSinceEpoch
+    value
+  end
+
+  # TimeSinceEpoch helper from seconds since unix epoch.
+  def self.time_since_epoch(value : Int) : TimeSinceEpoch
+    value.to_f64
+  end
+
+  # TimeSinceEpoch helper relative to current UTC time.
+  def self.time_since_epoch_from_now(delta : Time::Span) : TimeSinceEpoch
+    (Time.utc + delta).to_unix.to_f64
+  end
+
+  # MonotonicTimeToDuration mirrors go proto MonotonicTime.Duration semantics.
+  def self.monotonic_time_duration(t : MonotonicTime) : Time::Span
+    seconds = t.is_a?(Time) ? (t.to_unix_ms / 1000.0) : t.as(Float64)
+    seconds.seconds
+  end
+
+  # MonotonicTimeToString mirrors go proto MonotonicTime.String semantics.
+  def self.monotonic_time_string(t : MonotonicTime) : String
+    monotonic_time_duration(t).to_s
   end
 end

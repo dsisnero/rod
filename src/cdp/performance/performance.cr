@@ -41,7 +41,7 @@ module Cdp::Performance
     @[JSON::Field(key: "timeDomain", emit_null: false)]
     property time_domain : EnableTimeDomain?
 
-    def initialize(@time_domain : EnableTimeDomain?)
+    def initialize(@time_domain : EnableTimeDomain? = nil)
     end
 
     # ProtoReq returns the protocol method name.

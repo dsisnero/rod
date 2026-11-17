@@ -40,10 +40,10 @@ module Cdp::WebAuthn
   struct Enable
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(key: "enableUi", emit_null: false)]
+    @[JSON::Field(key: "enableUI", emit_null: false)]
     property? enable_ui : Bool?
 
-    def initialize(@enable_ui : Bool?)
+    def initialize(@enable_ui : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -102,12 +102,12 @@ module Cdp::WebAuthn
     property authenticator_id : AuthenticatorId
     @[JSON::Field(key: "isBogusSignature", emit_null: false)]
     property? is_bogus_signature : Bool?
-    @[JSON::Field(key: "isBadUv", emit_null: false)]
+    @[JSON::Field(key: "isBadUV", emit_null: false)]
     property? is_bad_uv : Bool?
-    @[JSON::Field(key: "isBadUp", emit_null: false)]
+    @[JSON::Field(key: "isBadUP", emit_null: false)]
     property? is_bad_up : Bool?
 
-    def initialize(@authenticator_id : AuthenticatorId, @is_bogus_signature : Bool?, @is_bad_uv : Bool?, @is_bad_up : Bool?)
+    def initialize(@authenticator_id : AuthenticatorId, @is_bogus_signature : Bool? = nil, @is_bad_uv : Bool? = nil, @is_bad_up : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -302,8 +302,14 @@ module Cdp::WebAuthn
     property? backup_eligibility : Bool?
     @[JSON::Field(key: "backupState", emit_null: false)]
     property? backup_state : Bool?
+    @[JSON::Field(key: "activeCmtgKeyIndex", emit_null: false)]
+    property active_cmtg_key_index : Int64?
+    @[JSON::Field(key: "generateCmtgKeyOnNextOperation", emit_null: false)]
+    property? generate_cmtg_key_on_next_operation : Bool?
+    @[JSON::Field(key: "signCount", emit_null: false)]
+    property sign_count : Float64?
 
-    def initialize(@authenticator_id : AuthenticatorId, @credential_id : String, @backup_eligibility : Bool?, @backup_state : Bool?)
+    def initialize(@authenticator_id : AuthenticatorId, @credential_id : String, @backup_eligibility : Bool? = nil, @backup_state : Bool? = nil, @active_cmtg_key_index : Int64? = nil, @generate_cmtg_key_on_next_operation : Bool? = nil, @sign_count : Float64? = nil)
     end
 
     # ProtoReq returns the protocol method name.

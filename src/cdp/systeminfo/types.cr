@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 module Cdp::SystemInfo
@@ -21,6 +22,9 @@ module Cdp::SystemInfo
     property driver_vendor : String
     @[JSON::Field(key: "driverVersion", emit_null: false)]
     property driver_version : String
+
+    def initialize(@vendor_id : Float64, @device_id : Float64, @vendor_string : String, @device_string : String, @driver_vendor : String, @driver_version : String, @sub_sys_id : Float64? = nil, @revision : Float64? = nil)
+    end
   end
 
   struct Size
@@ -29,6 +33,9 @@ module Cdp::SystemInfo
     property width : Int64
     @[JSON::Field(key: "height", emit_null: false)]
     property height : Int64
+
+    def initialize(@width : Int64, @height : Int64)
+    end
   end
 
   struct VideoDecodeAcceleratorCapability
@@ -39,6 +46,9 @@ module Cdp::SystemInfo
     property max_resolution : Size
     @[JSON::Field(key: "minResolution", emit_null: false)]
     property min_resolution : Size
+
+    def initialize(@profile : String, @max_resolution : Size, @min_resolution : Size)
+    end
   end
 
   struct VideoEncodeAcceleratorCapability
@@ -51,6 +61,9 @@ module Cdp::SystemInfo
     property max_framerate_numerator : Int64
     @[JSON::Field(key: "maxFramerateDenominator", emit_null: false)]
     property max_framerate_denominator : Int64
+
+    def initialize(@profile : String, @max_resolution : Size, @max_framerate_numerator : Int64, @max_framerate_denominator : Int64)
+    end
   end
 
   alias SubsamplingFormat = String
@@ -77,6 +90,9 @@ module Cdp::SystemInfo
     property video_decoding : Array(VideoDecodeAcceleratorCapability)
     @[JSON::Field(key: "videoEncoding", emit_null: false)]
     property video_encoding : Array(VideoEncodeAcceleratorCapability)
+
+    def initialize(@devices : Array(GPUDevice), @driver_bug_workarounds : Array(String), @video_decoding : Array(VideoDecodeAcceleratorCapability), @video_encoding : Array(VideoEncodeAcceleratorCapability), @aux_attributes : JSON::Any? = nil, @feature_status : JSON::Any? = nil)
+    end
   end
 
   struct ProcessInfo
@@ -87,5 +103,8 @@ module Cdp::SystemInfo
     property id : Int64
     @[JSON::Field(key: "cpuTime", emit_null: false)]
     property cpu_time : Float64
+
+    def initialize(@type : String, @id : Int64, @cpu_time : Float64)
+    end
   end
 end

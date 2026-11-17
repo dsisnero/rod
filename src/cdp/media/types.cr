@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../dom/dom"
@@ -15,6 +16,9 @@ module Cdp::Media
     property level : PlayerMessageLevel
     @[JSON::Field(key: "message", emit_null: false)]
     property message : String
+
+    def initialize(@level : PlayerMessageLevel, @message : String)
+    end
   end
 
   struct PlayerProperty
@@ -23,6 +27,9 @@ module Cdp::Media
     property name : String
     @[JSON::Field(key: "value", emit_null: false)]
     property value : String
+
+    def initialize(@name : String, @value : String)
+    end
   end
 
   struct PlayerEvent
@@ -31,6 +38,9 @@ module Cdp::Media
     property timestamp : Timestamp
     @[JSON::Field(key: "value", emit_null: false)]
     property value : String
+
+    def initialize(@timestamp : Timestamp, @value : String)
+    end
   end
 
   struct PlayerErrorSourceLocation
@@ -39,9 +49,12 @@ module Cdp::Media
     property file : String
     @[JSON::Field(key: "line", emit_null: false)]
     property line : Int64
+
+    def initialize(@file : String, @line : Int64)
+    end
   end
 
-  struct PlayerError
+  class PlayerError
     include JSON::Serializable
     @[JSON::Field(key: "errorType", emit_null: false)]
     property error_type : String
@@ -53,6 +66,9 @@ module Cdp::Media
     property cause : Array(PlayerError)
     @[JSON::Field(key: "data", emit_null: false)]
     property data : JSON::Any
+
+    def initialize(@error_type : String, @code : Int64, @stack : Array(PlayerErrorSourceLocation), @cause : Array(PlayerError), @data : JSON::Any)
+    end
   end
 
   struct Player
@@ -61,6 +77,9 @@ module Cdp::Media
     property player_id : PlayerId
     @[JSON::Field(key: "domNodeId", emit_null: false)]
     property dom_node_id : Cdp::DOM::BackendNodeId?
+
+    def initialize(@player_id : PlayerId, @dom_node_id : Cdp::DOM::BackendNodeId? = nil)
+    end
   end
 
   alias PlayerMessageLevel = String

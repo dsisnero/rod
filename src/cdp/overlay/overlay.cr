@@ -90,7 +90,7 @@ module Cdp::Overlay
     @[JSON::Field(key: "showAccessibilityInfo", emit_null: false)]
     property? show_accessibility_info : Bool?
 
-    def initialize(@node_id : Cdp::DOM::NodeId, @include_distance : Bool?, @include_style : Bool?, @color_format : ColorFormat?, @show_accessibility_info : Bool?)
+    def initialize(@node_id : Cdp::DOM::NodeId, @include_distance : Bool? = nil, @include_style : Bool? = nil, @color_format : ColorFormat? = nil, @show_accessibility_info : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -176,7 +176,7 @@ module Cdp::Overlay
     @[JSON::Field(key: "selector", emit_null: false)]
     property selector : String?
 
-    def initialize(@highlight_config : HighlightConfig, @node_id : Cdp::DOM::NodeId?, @backend_node_id : Cdp::DOM::BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?, @selector : String?)
+    def initialize(@highlight_config : HighlightConfig, @node_id : Cdp::DOM::NodeId? = nil, @backend_node_id : Cdp::DOM::BackendNodeId? = nil, @object_id : Cdp::Runtime::RemoteObjectId? = nil, @selector : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -200,7 +200,7 @@ module Cdp::Overlay
     @[JSON::Field(key: "outlineColor", emit_null: false)]
     property outline_color : Cdp::DOM::RGBA?
 
-    def initialize(@quad : Cdp::DOM::Quad, @color : Cdp::DOM::RGBA?, @outline_color : Cdp::DOM::RGBA?)
+    def initialize(@quad : Cdp::DOM::Quad, @color : Cdp::DOM::RGBA? = nil, @outline_color : Cdp::DOM::RGBA? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -230,7 +230,7 @@ module Cdp::Overlay
     @[JSON::Field(key: "outlineColor", emit_null: false)]
     property outline_color : Cdp::DOM::RGBA?
 
-    def initialize(@x : Int64, @y : Int64, @width : Int64, @height : Int64, @color : Cdp::DOM::RGBA?, @outline_color : Cdp::DOM::RGBA?)
+    def initialize(@x : Int64, @y : Int64, @width : Int64, @height : Int64, @color : Cdp::DOM::RGBA? = nil, @outline_color : Cdp::DOM::RGBA? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -256,7 +256,7 @@ module Cdp::Overlay
     @[JSON::Field(key: "objectId", emit_null: false)]
     property object_id : Cdp::Runtime::RemoteObjectId?
 
-    def initialize(@source_order_config : SourceOrderConfig, @node_id : Cdp::DOM::NodeId?, @backend_node_id : Cdp::DOM::BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?)
+    def initialize(@source_order_config : SourceOrderConfig, @node_id : Cdp::DOM::NodeId? = nil, @backend_node_id : Cdp::DOM::BackendNodeId? = nil, @object_id : Cdp::Runtime::RemoteObjectId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -278,7 +278,7 @@ module Cdp::Overlay
     @[JSON::Field(key: "highlightConfig", emit_null: false)]
     property highlight_config : HighlightConfig?
 
-    def initialize(@mode : InspectMode, @highlight_config : HighlightConfig?)
+    def initialize(@mode : InspectMode, @highlight_config : HighlightConfig? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -318,7 +318,7 @@ module Cdp::Overlay
     @[JSON::Field(key: "message", emit_null: false)]
     property message : String?
 
-    def initialize(@message : String?)
+    def initialize(@message : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -558,12 +558,32 @@ module Cdp::Overlay
     @[JSON::Field(key: "hingeConfig", emit_null: false)]
     property hinge_config : HingeConfig?
 
-    def initialize(@hinge_config : HingeConfig?)
+    def initialize(@hinge_config : HingeConfig? = nil)
     end
 
     # ProtoReq returns the protocol method name.
     def proto_req : String
       "Overlay.setShowHinge"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct SetShowDisplayCutout
+    include JSON::Serializable
+    include Cdp::Request
+    @[JSON::Field(key: "displayCutoutConfig", emit_null: false)]
+    property display_cutout_config : DisplayCutoutConfig?
+
+    def initialize(@display_cutout_config : DisplayCutoutConfig? = nil)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Overlay.setShowDisplayCutout"
     end
 
     # Call sends the request.
@@ -598,7 +618,7 @@ module Cdp::Overlay
     @[JSON::Field(key: "windowControlsOverlayConfig", emit_null: false)]
     property window_controls_overlay_config : WindowControlsOverlayConfig?
 
-    def initialize(@window_controls_overlay_config : WindowControlsOverlayConfig?)
+    def initialize(@window_controls_overlay_config : WindowControlsOverlayConfig? = nil)
     end
 
     # ProtoReq returns the protocol method name.

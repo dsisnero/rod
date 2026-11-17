@@ -151,7 +151,7 @@ module Cdp::Profiler
     @[JSON::Field(key: "allowTriggeredUpdates", emit_null: false)]
     property? allow_triggered_updates : Bool?
 
-    def initialize(@call_count : Bool?, @detailed : Bool?, @allow_triggered_updates : Bool?)
+    def initialize(@call_count : Bool? = nil, @detailed : Bool? = nil, @allow_triggered_updates : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.

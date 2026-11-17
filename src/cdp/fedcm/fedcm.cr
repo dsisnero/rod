@@ -15,7 +15,7 @@ module Cdp::FedCm
     @[JSON::Field(key: "disableRejectionDelay", emit_null: false)]
     property? disable_rejection_delay : Bool?
 
-    def initialize(@disable_rejection_delay : Bool?)
+    def initialize(@disable_rejection_delay : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -123,7 +123,7 @@ module Cdp::FedCm
     @[JSON::Field(key: "triggerCooldown", emit_null: false)]
     property? trigger_cooldown : Bool?
 
-    def initialize(@dialog_id : String, @trigger_cooldown : Bool?)
+    def initialize(@dialog_id : String, @trigger_cooldown : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.

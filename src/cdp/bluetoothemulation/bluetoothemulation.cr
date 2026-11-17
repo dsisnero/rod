@@ -179,7 +179,7 @@ module Cdp::BluetoothEmulation
     @[JSON::Field(key: "data", emit_null: false)]
     property data : String?
 
-    def initialize(@characteristic_id : String, @type : CharacteristicOperationType, @code : Int64, @data : String?)
+    def initialize(@characteristic_id : String, @type : CharacteristicOperationType, @code : Int64, @data : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -205,7 +205,7 @@ module Cdp::BluetoothEmulation
     @[JSON::Field(key: "data", emit_null: false)]
     property data : String?
 
-    def initialize(@descriptor_id : String, @type : DescriptorOperationType, @code : Int64, @data : String?)
+    def initialize(@descriptor_id : String, @type : DescriptorOperationType, @code : Int64, @data : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -359,6 +359,28 @@ module Cdp::BluetoothEmulation
     # ProtoReq returns the protocol method name.
     def proto_req : String
       "BluetoothEmulation.simulateGATTDisconnection"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  struct SimulateGATTMtuChange
+    include JSON::Serializable
+    include Cdp::Request
+    @[JSON::Field(key: "address", emit_null: false)]
+    property address : String
+    @[JSON::Field(key: "mtu", emit_null: false)]
+    property mtu : Int64
+
+    def initialize(@address : String, @mtu : Int64)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "BluetoothEmulation.simulateGATTMtuChange"
     end
 
     # Call sends the request.

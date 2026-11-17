@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../runtime/runtime"
@@ -20,6 +21,9 @@ module Cdp::Profiler
     property deopt_reason : String?
     @[JSON::Field(key: "positionTicks", emit_null: false)]
     property position_ticks : Array(PositionTickInfo)?
+
+    def initialize(@id : Int64, @call_frame : Cdp::Runtime::CallFrame, @hit_count : Int64? = nil, @children : Array(Int64)? = nil, @deopt_reason : String? = nil, @position_ticks : Array(PositionTickInfo)? = nil)
+    end
   end
 
   struct Profile
@@ -34,6 +38,9 @@ module Cdp::Profiler
     property samples : Array(Int64)?
     @[JSON::Field(key: "timeDeltas", emit_null: false)]
     property time_deltas : Array(Int64)?
+
+    def initialize(@nodes : Array(ProfileNode), @start_time : Float64, @end_time : Float64, @samples : Array(Int64)? = nil, @time_deltas : Array(Int64)? = nil)
+    end
   end
 
   struct PositionTickInfo
@@ -42,6 +49,9 @@ module Cdp::Profiler
     property line : Int64
     @[JSON::Field(key: "ticks", emit_null: false)]
     property ticks : Int64
+
+    def initialize(@line : Int64, @ticks : Int64)
+    end
   end
 
   struct CoverageRange
@@ -52,6 +62,9 @@ module Cdp::Profiler
     property end_offset : Int64
     @[JSON::Field(key: "count", emit_null: false)]
     property count : Int64
+
+    def initialize(@start_offset : Int64, @end_offset : Int64, @count : Int64)
+    end
   end
 
   struct FunctionCoverage
@@ -62,6 +75,9 @@ module Cdp::Profiler
     property ranges : Array(CoverageRange)
     @[JSON::Field(key: "isBlockCoverage", emit_null: false)]
     property? is_block_coverage : Bool
+
+    def initialize(@function_name : String, @ranges : Array(CoverageRange), @is_block_coverage : Bool)
+    end
   end
 
   struct ScriptCoverage
@@ -72,5 +88,8 @@ module Cdp::Profiler
     property url : String
     @[JSON::Field(key: "functions", emit_null: false)]
     property functions : Array(FunctionCoverage)
+
+    def initialize(@script_id : Cdp::Runtime::ScriptId, @url : String, @functions : Array(FunctionCoverage))
+    end
   end
 end

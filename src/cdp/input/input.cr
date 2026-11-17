@@ -21,9 +21,9 @@ module Cdp::Input
     @[JSON::Field(key: "data", emit_null: false)]
     property data : DragData
     @[JSON::Field(key: "modifiers", emit_null: false)]
-    property modifiers : Int64?
+    property modifiers : Modifier?
 
-    def initialize(@type : DispatchDragEventType, @x : Float64, @y : Float64, @data : DragData, @modifiers : Int64?)
+    def initialize(@type : DispatchDragEventType, @x : Float64, @y : Float64, @data : DragData, @modifiers : Modifier? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -43,7 +43,7 @@ module Cdp::Input
     @[JSON::Field(key: "type", emit_null: false)]
     property type : KeyType
     @[JSON::Field(key: "modifiers", emit_null: false)]
-    property modifiers : Int64?
+    property modifiers : Modifier?
     @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : TimeSinceEpoch?
     @[JSON::Field(key: "text", emit_null: false)]
@@ -71,7 +71,7 @@ module Cdp::Input
     @[JSON::Field(key: "commands", emit_null: false)]
     property commands : Array(String)?
 
-    def initialize(@type : KeyType, @modifiers : Int64?, @timestamp : TimeSinceEpoch?, @text : String?, @unmodified_text : String?, @key_identifier : String?, @code : String?, @key : String?, @windows_virtual_key_code : Int64?, @native_virtual_key_code : Int64?, @auto_repeat : Bool?, @is_keypad : Bool?, @is_system_key : Bool?, @location : Int64?, @commands : Array(String)?)
+    def initialize(@type : KeyType, @modifiers : Modifier? = nil, @timestamp : TimeSinceEpoch? = nil, @text : String? = nil, @unmodified_text : String? = nil, @key_identifier : String? = nil, @code : String? = nil, @key : String? = nil, @windows_virtual_key_code : Int64? = nil, @native_virtual_key_code : Int64? = nil, @auto_repeat : Bool? = nil, @is_keypad : Bool? = nil, @is_system_key : Bool? = nil, @location : Int64? = nil, @commands : Array(String)? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -121,7 +121,7 @@ module Cdp::Input
     @[JSON::Field(key: "replacementEnd", emit_null: false)]
     property replacement_end : Int64?
 
-    def initialize(@text : String, @selection_start : Int64, @selection_end : Int64, @replacement_start : Int64?, @replacement_end : Int64?)
+    def initialize(@text : String, @selection_start : Int64, @selection_end : Int64, @replacement_start : Int64? = nil, @replacement_end : Int64? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -145,7 +145,7 @@ module Cdp::Input
     @[JSON::Field(key: "y", emit_null: false)]
     property y : Float64
     @[JSON::Field(key: "modifiers", emit_null: false)]
-    property modifiers : Int64?
+    property modifiers : Modifier?
     @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : TimeSinceEpoch?
     @[JSON::Field(key: "button", emit_null: false)]
@@ -171,7 +171,7 @@ module Cdp::Input
     @[JSON::Field(key: "pointerType", emit_null: false)]
     property pointer_type : DispatchMouseEventPointerType?
 
-    def initialize(@type : MouseType, @x : Float64, @y : Float64, @modifiers : Int64?, @timestamp : TimeSinceEpoch?, @button : MouseButton?, @buttons : Int64?, @click_count : Int64?, @force : Float64?, @tangential_pressure : Float64?, @tilt_x : Float64?, @tilt_y : Float64?, @twist : Int64?, @delta_x : Float64?, @delta_y : Float64?, @pointer_type : DispatchMouseEventPointerType?)
+    def initialize(@type : MouseType, @x : Float64, @y : Float64, @modifiers : Modifier? = nil, @timestamp : TimeSinceEpoch? = nil, @button : MouseButton? = nil, @buttons : Int64? = nil, @click_count : Int64? = nil, @force : Float64? = nil, @tangential_pressure : Float64? = nil, @tilt_x : Float64? = nil, @tilt_y : Float64? = nil, @twist : Int64? = nil, @delta_x : Float64? = nil, @delta_y : Float64? = nil, @pointer_type : DispatchMouseEventPointerType? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -193,11 +193,11 @@ module Cdp::Input
     @[JSON::Field(key: "touchPoints", emit_null: false)]
     property touch_points : Array(TouchPoint)
     @[JSON::Field(key: "modifiers", emit_null: false)]
-    property modifiers : Int64?
+    property modifiers : Modifier?
     @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : TimeSinceEpoch?
 
-    def initialize(@type : TouchType, @touch_points : Array(TouchPoint), @modifiers : Int64?, @timestamp : TimeSinceEpoch?)
+    def initialize(@type : TouchType, @touch_points : Array(TouchPoint), @modifiers : Modifier? = nil, @timestamp : TimeSinceEpoch? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -248,11 +248,11 @@ module Cdp::Input
     @[JSON::Field(key: "deltaY", emit_null: false)]
     property delta_y : Float64?
     @[JSON::Field(key: "modifiers", emit_null: false)]
-    property modifiers : Int64?
+    property modifiers : Modifier?
     @[JSON::Field(key: "clickCount", emit_null: false)]
     property click_count : Int64?
 
-    def initialize(@type : MouseType, @x : Int64, @y : Int64, @button : MouseButton, @timestamp : TimeSinceEpoch?, @delta_x : Float64?, @delta_y : Float64?, @modifiers : Int64?, @click_count : Int64?)
+    def initialize(@type : MouseType, @x : Int64, @y : Int64, @button : MouseButton, @timestamp : TimeSinceEpoch? = nil, @delta_x : Float64? = nil, @delta_y : Float64? = nil, @modifiers : Modifier? = nil, @click_count : Int64? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -322,7 +322,7 @@ module Cdp::Input
     @[JSON::Field(key: "gestureSourceType", emit_null: false)]
     property gesture_source_type : GestureSourceType?
 
-    def initialize(@x : Float64, @y : Float64, @scale_factor : Float64, @relative_speed : Int64?, @gesture_source_type : GestureSourceType?)
+    def initialize(@x : Float64, @y : Float64, @scale_factor : Float64, @relative_speed : Int64? = nil, @gesture_source_type : GestureSourceType? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -365,7 +365,7 @@ module Cdp::Input
     @[JSON::Field(key: "interactionMarkerName", emit_null: false)]
     property interaction_marker_name : String?
 
-    def initialize(@x : Float64, @y : Float64, @x_distance : Float64?, @y_distance : Float64?, @x_overscroll : Float64?, @y_overscroll : Float64?, @prevent_fling : Bool?, @speed : Int64?, @gesture_source_type : GestureSourceType?, @repeat_count : Int64?, @repeat_delay_ms : Int64?, @interaction_marker_name : String?)
+    def initialize(@x : Float64, @y : Float64, @x_distance : Float64? = nil, @y_distance : Float64? = nil, @x_overscroll : Float64? = nil, @y_overscroll : Float64? = nil, @prevent_fling : Bool? = nil, @speed : Int64? = nil, @gesture_source_type : GestureSourceType? = nil, @repeat_count : Int64? = nil, @repeat_delay_ms : Int64? = nil, @interaction_marker_name : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -394,7 +394,7 @@ module Cdp::Input
     @[JSON::Field(key: "gestureSourceType", emit_null: false)]
     property gesture_source_type : GestureSourceType?
 
-    def initialize(@x : Float64, @y : Float64, @duration : Int64?, @tap_count : Int64?, @gesture_source_type : GestureSourceType?)
+    def initialize(@x : Float64, @y : Float64, @duration : Int64? = nil, @tap_count : Int64? = nil, @gesture_source_type : GestureSourceType? = nil)
     end
 
     # ProtoReq returns the protocol method name.

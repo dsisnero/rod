@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../dom/dom"
@@ -48,7 +49,7 @@ module Cdp::Accessibility
   ValueNativeSourceTypeTitle          = "title"
   ValueNativeSourceTypeOther          = "other"
 
-  struct ValueSource
+  class ValueSource
     include JSON::Serializable
     @[JSON::Field(key: "type", emit_null: false)]
     property type : ValueSourceType
@@ -68,16 +69,22 @@ module Cdp::Accessibility
     property? invalid : Bool?
     @[JSON::Field(key: "invalidReason", emit_null: false)]
     property invalid_reason : String?
+
+    def initialize(@type : ValueSourceType, @value : Value? = nil, @attribute : String? = nil, @attribute_value : Value? = nil, @superseded : Bool? = nil, @native_source : ValueNativeSourceType? = nil, @native_source_value : Value? = nil, @invalid : Bool? = nil, @invalid_reason : String? = nil)
+    end
   end
 
   struct RelatedNode
     include JSON::Serializable
-    @[JSON::Field(key: "backendDomNodeId", emit_null: false)]
+    @[JSON::Field(key: "backendDOMNodeId", emit_null: false)]
     property backend_dom_node_id : Cdp::DOM::BackendNodeId
     @[JSON::Field(key: "idref", emit_null: false)]
     property idref : String?
     @[JSON::Field(key: "text", emit_null: false)]
     property text : String?
+
+    def initialize(@backend_dom_node_id : Cdp::DOM::BackendNodeId, @idref : String? = nil, @text : String? = nil)
+    end
   end
 
   struct Property
@@ -86,9 +93,12 @@ module Cdp::Accessibility
     property name : PropertyName
     @[JSON::Field(key: "value", emit_null: false)]
     property value : Value
+
+    def initialize(@name : PropertyName, @value : Value)
+    end
   end
 
-  struct Value
+  class Value
     include JSON::Serializable
     @[JSON::Field(key: "type", emit_null: false)]
     property type : ValueType
@@ -98,6 +108,9 @@ module Cdp::Accessibility
     property related_nodes : Array(RelatedNode)?
     @[JSON::Field(key: "sources", emit_null: false)]
     property sources : Array(ValueSource)?
+
+    def initialize(@type : ValueType, @value : JSON::Any? = nil, @related_nodes : Array(RelatedNode)? = nil, @sources : Array(ValueSource)? = nil)
+    end
   end
 
   alias PropertyName = String
@@ -184,9 +197,12 @@ module Cdp::Accessibility
     property parent_id : NodeId?
     @[JSON::Field(key: "childIds", emit_null: false)]
     property child_ids : Array(NodeId)?
-    @[JSON::Field(key: "backendDomNodeId", emit_null: false)]
+    @[JSON::Field(key: "backendDOMNodeId", emit_null: false)]
     property backend_dom_node_id : Cdp::DOM::BackendNodeId?
     @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
+
+    def initialize(@node_id : NodeId, @ignored : Bool, @ignored_reasons : Array(Property)? = nil, @role : Value? = nil, @chrome_role : Value? = nil, @name : Value? = nil, @description : Value? = nil, @value : Value? = nil, @properties : Array(Property)? = nil, @parent_id : NodeId? = nil, @child_ids : Array(NodeId)? = nil, @backend_dom_node_id : Cdp::DOM::BackendNodeId? = nil, @frame_id : Cdp::Page::FrameId? = nil)
+    end
   end
 end

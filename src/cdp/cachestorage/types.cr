@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../storage/storage"
@@ -17,7 +18,7 @@ module Cdp::CacheStorage
 
   struct DataEntry
     include JSON::Serializable
-    @[JSON::Field(key: "requestUrl", emit_null: false)]
+    @[JSON::Field(key: "requestURL", emit_null: false)]
     property request_url : String
     @[JSON::Field(key: "requestMethod", emit_null: false)]
     property request_method : String
@@ -33,6 +34,9 @@ module Cdp::CacheStorage
     property response_type : CachedResponseType
     @[JSON::Field(key: "responseHeaders", emit_null: false)]
     property response_headers : Array(Header)
+
+    def initialize(@request_url : String, @request_method : String, @request_headers : Array(Header), @response_time : Float64, @response_status : Int64, @response_status_text : String, @response_type : CachedResponseType, @response_headers : Array(Header))
+    end
   end
 
   struct Cache
@@ -47,6 +51,9 @@ module Cdp::CacheStorage
     property storage_bucket : Cdp::Storage::StorageBucket?
     @[JSON::Field(key: "cacheName", emit_null: false)]
     property cache_name : String
+
+    def initialize(@cache_id : CacheId, @security_origin : String, @storage_key : String, @cache_name : String, @storage_bucket : Cdp::Storage::StorageBucket? = nil)
+    end
   end
 
   struct Header
@@ -55,11 +62,17 @@ module Cdp::CacheStorage
     property name : String
     @[JSON::Field(key: "value", emit_null: false)]
     property value : String
+
+    def initialize(@name : String, @value : String)
+    end
   end
 
   struct CachedResponse
     include JSON::Serializable
     @[JSON::Field(key: "body", emit_null: false)]
     property body : String
+
+    def initialize(@body : String)
+    end
   end
 end

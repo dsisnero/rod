@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../network/network"
@@ -22,11 +23,7 @@ module Cdp::Fetch
     @[JSON::Field(key: "requestStage", emit_null: false)]
     property request_stage : RequestStage?
 
-    def initialize(
-      @url_pattern : String? = nil,
-      @resource_type : Cdp::Network::ResourceType? = nil,
-      @request_stage : RequestStage? = nil,
-    )
+    def initialize(@url_pattern : String? = nil, @resource_type : Cdp::Network::ResourceType? = nil, @request_stage : RequestStage? = nil)
     end
   end
 
@@ -51,6 +48,9 @@ module Cdp::Fetch
     property scheme : String
     @[JSON::Field(key: "realm", emit_null: false)]
     property realm : String
+
+    def initialize(@origin : String, @scheme : String, @realm : String, @source : AuthChallengeSource? = nil)
+    end
   end
 
   struct AuthChallengeResponse

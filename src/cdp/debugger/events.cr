@@ -78,9 +78,9 @@ module Cdp::Debugger
     property build_id : String
     @[JSON::Field(key: "executionContextAuxData", emit_null: false)]
     property execution_context_aux_data : JSON::Any?
-    @[JSON::Field(key: "sourceMapUrl", emit_null: false)]
+    @[JSON::Field(key: "sourceMapURL", emit_null: false)]
     property source_map_url : String?
-    @[JSON::Field(key: "hasSourceUrl", emit_null: false)]
+    @[JSON::Field(key: "hasSourceURL", emit_null: false)]
     property? has_source_url : Bool?
     @[JSON::Field(key: "isModule", emit_null: false)]
     property? is_module : Bool?
@@ -134,9 +134,9 @@ module Cdp::Debugger
     property execution_context_aux_data : JSON::Any?
     @[JSON::Field(key: "isLiveEdit", emit_null: false)]
     property? is_live_edit : Bool?
-    @[JSON::Field(key: "sourceMapUrl", emit_null: false)]
+    @[JSON::Field(key: "sourceMapURL", emit_null: false)]
     property source_map_url : String?
-    @[JSON::Field(key: "hasSourceUrl", emit_null: false)]
+    @[JSON::Field(key: "hasSourceURL", emit_null: false)]
     property? has_source_url : Bool?
     @[JSON::Field(key: "isModule", emit_null: false)]
     property? is_module : Bool?

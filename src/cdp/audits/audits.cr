@@ -22,7 +22,7 @@ module Cdp::Audits
     @[JSON::Field(key: "encodedSize", emit_null: false)]
     property encoded_size : Int64
 
-    def initialize(@body : String?, @original_size : Int64, @encoded_size : Int64)
+    def initialize(@original_size : Int64, @encoded_size : Int64, @body : String? = nil)
     end
   end
 
@@ -48,7 +48,7 @@ module Cdp::Audits
     @[JSON::Field(key: "sizeOnly", emit_null: false)]
     property? size_only : Bool?
 
-    def initialize(@request_id : Cdp::Network::RequestId, @encoding : GetEncodedResponseEncoding, @quality : Float64?, @size_only : Bool?)
+    def initialize(@request_id : Cdp::Network::RequestId, @encoding : GetEncodedResponseEncoding, @quality : Float64? = nil, @size_only : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -90,26 +90,6 @@ module Cdp::Audits
     # ProtoReq returns the protocol method name.
     def proto_req : String
       "Audits.enable"
-    end
-
-    # Call sends the request.
-    def call(c : Cdp::Client) : Nil
-      Cdp.call(proto_req, self, nil, c)
-    end
-  end
-
-  struct CheckContrast
-    include JSON::Serializable
-    include Cdp::Request
-    @[JSON::Field(key: "reportAaa", emit_null: false)]
-    property? report_aaa : Bool?
-
-    def initialize(@report_aaa : Bool?)
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Audits.checkContrast"
     end
 
     # Call sends the request.

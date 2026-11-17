@@ -157,34 +157,55 @@ make generate-crystal CDP_CHROMIUM=160.0.8168.1 CDP_V8=16.0.61
 
 ## `src/cdp` is a curated snapshot
 
-Regenerating is **not** a no-op, and a clean `git diff` is not the success
-criterion:
+The committed tree is generated at Chromium `160.0.8168.1` / V8 `16.0.61`: 59
+domain directories (306 `.cr` files). The generator owns the domain directories;
+two files stay curated by hand and `make generate-crystal` preserves them:
 
-- The committed tree carries post-generation curation applied on top of raw
-  generator output — JSON `camelCase` keys (`bd31de8`) and typed result
-  decoding (`cc3717f`). Raw output never matches byte-for-byte.
-- The protocol vintage has moved. The committed tree has 57 domain directories
-  (150 `.cr` files); a generation at Chromium `160.0.8168.1` produces 59
-  (154 files): it adds `ads`, `crashreportcontext`, `digitalcredentials`,
-  `findinpage`, `webmcp`, and drops `console`, `database`, `schema`.
-- The emitter handles the constructs the protocol needs, so raw output parses
-  and decodes: lifted inline-enum types are named once and without a domain
-  qualifier (no `alias Fetch.AuthChallengeSource`), command constructors emit
-  required parameters before optional ones, and every field carries its CDP wire
-  key (`@[JSON::Field(key: "requestTime", emit_null: false)]`), which used to be
-  a post-generation curation step (`bd31de8`). Covered by
-  `spec/pdlgen_emitter_parity_spec.cr` and `spec/pdlgen_json_key_parity_spec.cr`;
-  a generation at Chromium `160.0.8168.1` passes `crystal tool format` over the
-  whole tree with zero syntax errors.
-- Regenerating surfaces wire-name drift between vintages, not generator bugs:
-  e.g. `Network.Response.remoteIpAddress` in the committed tree is
-  `remoteIPAddress` in the current protocol. Audit such renames when adopting a
-  vintage.
+- `src/cdp/cdp.cr` — `Cdp.call` (typed result decoding), the `Client` interface,
+  `TIME_FIELD_KEYS` and the timestamp normalization applied on the wire.
+- `src/cdp/cdp/types.cr` — the shared `NodeType` alias used across domains.
 
-Adopting a newer protocol is still its own work item: pick the vintage, bump
-`CDP_CHROMIUM`/`CDP_V8`, regenerate, re-apply the remaining curation (typed
-result decoding, `cc3717f`), then run `crystal spec` (the CDP parity specs under
-`spec/cdp_*_parity_spec.cr`) before committing.
+Curation that used to be applied by hand after a generation is now emitted by
+the generator itself, so a regeneration is byte-for-byte reproducible
+(`make generate-crystal CDP_CHROMIUM=160.0.8168.1 CDP_V8=16.0.61` twice leaves an
+identical tree):
+
+- JSON `camelCase` keys on every field (`bd31de8`) and typed result decoding
+  through `Cdp.call` (`cc3717f`).
+- Lifted inline-enum types are named once and without a domain qualifier (no
+  `alias Fetch.AuthChallengeSource`).
+- Value types get a constructor with required parameters first; `JSON::Serializable`
+  alone does not provide one.
+- CDP enums serialize as their integer value and `@[Flags]` enums also *decode*
+  from an integer; Crystal's defaults emit/expect member names.
+- go-rod's struct-only fields (channels, mutexes, state flags added by the
+  `Fixup` step, e.g. `DOM.Node#invalidated`) are `@[JSON::Field(ignore: true)]`
+  with an initializer default instead of being decoded from the wire.
+- Types that reference themselves (directly or through another type) are emitted
+  as `class`, not `struct`: a Crystal struct has no finite size when it contains
+  itself, while go-rod models those fields as pointers. `Runtime.StackTrace`,
+  `DOM.Node`, `Page.FrameTree` and friends are covered by
+  `spec/pdlgen_emitter_parity_spec.cr`.
+- go-rod's hand-written extras are emitted verbatim: `DOM` quad geometry
+  (`center`/`area`/`each_point`, `GetContentQuadsResult#box`/`#one_point_inside`),
+  `DOM.Point`, `Input.TouchPoint#move_to`, `Network` timestamp/cookie helpers and
+  `Network.Request#post_data` (decoded from `postDataEntries`, since Chrome
+  removed the plain `postData` field).
+- Wire-name drift between vintages is real, not a generator bug: e.g.
+  `Network.Response.remoteIpAddress` became `remoteIPAddress`, and
+  `Input.Modifier` became a `$ref` bitmask instead of a plain integer.
+
+The protocol itself changed shape for the pinned vintage: it adds `ads`,
+`crashreportcontext`, `digitalcredentials`, `findinpage` and `webmcp`, and drops
+`console`, `database` and `schema`. Those three domains are gone from Chromium
+(go-rod's own generator drops them when run against a current browser), so they
+are recorded as `skipped` in the inventory and
+`spec/cdp_legacy_proto_parity_spec.cr` was removed with them.
+
+Adopting a newer protocol is its own work item: pick the vintage, bump
+`CDP_CHROMIUM`/`CDP_V8`, run `make generate-crystal`, then `make format` and
+`crystal spec` (the CDP parity specs under `spec/cdp_*_parity_spec.cr` plus
+`spec/cdp_protocol_vintage_parity_spec.cr`) before committing.
 
 ## Protocol Source Files
 

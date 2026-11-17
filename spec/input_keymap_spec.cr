@@ -71,7 +71,7 @@ describe Rod::Input do
     a_up.location.should eq(0)
 
     alt_down = Rod::Input.encode(Rod::Input::ALT_LEFT, Cdp::Input::KeyDown, 0)
-    alt_down.type.should eq(Cdp::Input::RawKeyDown)
+    alt_down.type.should eq(Cdp::Input::KeyRawDown)
     alt_down.code.should eq("AltLeft")
     alt_down.key.should eq("Alt")
     alt_down.windows_virtual_key_code.should eq(18)
@@ -93,7 +93,7 @@ describe Rod::Input do
     begin
       Rod::Input.mac = true
       encoded = Rod::Input.encode(Rod::Input::ARROW_DOWN, Cdp::Input::KeyDown, 0)
-      encoded.type.should eq(Cdp::Input::RawKeyDown)
+      encoded.type.should eq(Cdp::Input::KeyRawDown)
       encoded.code.should eq("ArrowDown")
       encoded.key.should eq("ArrowDown")
       encoded.windows_virtual_key_code.should eq(40)

@@ -50,7 +50,7 @@ module Cdp::LayerTree
 
   struct ReplaySnapshotResult
     include JSON::Serializable
-    @[JSON::Field(key: "dataUrl", emit_null: false)]
+    @[JSON::Field(key: "dataURL", emit_null: false)]
     property data_url : String
 
     def initialize(@data_url : String)
@@ -175,7 +175,7 @@ module Cdp::LayerTree
     @[JSON::Field(key: "clipRect", emit_null: false)]
     property clip_rect : Cdp::DOM::Rect?
 
-    def initialize(@snapshot_id : SnapshotId, @min_repeat_count : Int64?, @min_duration : Float64?, @clip_rect : Cdp::DOM::Rect?)
+    def initialize(@snapshot_id : SnapshotId, @min_repeat_count : Int64? = nil, @min_duration : Float64? = nil, @clip_rect : Cdp::DOM::Rect? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -221,7 +221,7 @@ module Cdp::LayerTree
     @[JSON::Field(key: "scale", emit_null: false)]
     property scale : Float64?
 
-    def initialize(@snapshot_id : SnapshotId, @from_step : Int64?, @to_step : Int64?, @scale : Float64?)
+    def initialize(@snapshot_id : SnapshotId, @from_step : Int64? = nil, @to_step : Int64? = nil, @scale : Float64? = nil)
     end
 
     # ProtoReq returns the protocol method name.

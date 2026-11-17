@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../dom/dom"
@@ -33,9 +34,9 @@ module Cdp::DOMSnapshot
     property pseudo_element_indexes : Array(Int64)?
     @[JSON::Field(key: "layoutNodeIndex", emit_null: false)]
     property layout_node_index : Int64?
-    @[JSON::Field(key: "documentUrl", emit_null: false)]
+    @[JSON::Field(key: "documentURL", emit_null: false)]
     property document_url : String?
-    @[JSON::Field(key: "baseUrl", emit_null: false)]
+    @[JSON::Field(key: "baseURL", emit_null: false)]
     property base_url : String?
     @[JSON::Field(key: "contentLanguage", emit_null: false)]
     property content_language : String?
@@ -57,14 +58,17 @@ module Cdp::DOMSnapshot
     property? is_clickable : Bool?
     @[JSON::Field(key: "eventListeners", emit_null: false)]
     property event_listeners : Array(Cdp::DOMDebugger::EventListener)?
-    @[JSON::Field(key: "currentSourceUrl", emit_null: false)]
+    @[JSON::Field(key: "currentSourceURL", emit_null: false)]
     property current_source_url : String?
-    @[JSON::Field(key: "originUrl", emit_null: false)]
+    @[JSON::Field(key: "originURL", emit_null: false)]
     property origin_url : String?
     @[JSON::Field(key: "scrollOffsetX", emit_null: false)]
     property scroll_offset_x : Float64?
     @[JSON::Field(key: "scrollOffsetY", emit_null: false)]
     property scroll_offset_y : Float64?
+
+    def initialize(@node_type : Cdp::NodeType, @node_name : String, @node_value : String, @backend_node_id : Cdp::DOM::BackendNodeId, @text_value : String? = nil, @input_value : String? = nil, @input_checked : Bool? = nil, @option_selected : Bool? = nil, @child_node_indexes : Array(Int64)? = nil, @attributes : Array(NameValue)? = nil, @pseudo_element_indexes : Array(Int64)? = nil, @layout_node_index : Int64? = nil, @document_url : String? = nil, @base_url : String? = nil, @content_language : String? = nil, @document_encoding : String? = nil, @public_id : String? = nil, @system_id : String? = nil, @frame_id : Cdp::Page::FrameId? = nil, @content_document_index : Int64? = nil, @pseudo_type : Cdp::DOM::PseudoType? = nil, @shadow_root_type : Cdp::DOM::ShadowRootType? = nil, @is_clickable : Bool? = nil, @event_listeners : Array(Cdp::DOMDebugger::EventListener)? = nil, @current_source_url : String? = nil, @origin_url : String? = nil, @scroll_offset_x : Float64? = nil, @scroll_offset_y : Float64? = nil)
+    end
   end
 
   struct InlineTextBox
@@ -75,6 +79,9 @@ module Cdp::DOMSnapshot
     property start_character_index : Int64
     @[JSON::Field(key: "numCharacters", emit_null: false)]
     property num_characters : Int64
+
+    def initialize(@bounding_box : Cdp::DOM::Rect, @start_character_index : Int64, @num_characters : Int64)
+    end
   end
 
   struct LayoutTreeNode
@@ -93,12 +100,18 @@ module Cdp::DOMSnapshot
     property paint_order : Int64?
     @[JSON::Field(key: "isStackingContext", emit_null: false)]
     property? is_stacking_context : Bool?
+
+    def initialize(@dom_node_index : Int64, @bounding_box : Cdp::DOM::Rect, @layout_text : String? = nil, @inline_text_nodes : Array(InlineTextBox)? = nil, @style_index : Int64? = nil, @paint_order : Int64? = nil, @is_stacking_context : Bool? = nil)
+    end
   end
 
   struct ComputedStyle
     include JSON::Serializable
     @[JSON::Field(key: "properties", emit_null: false)]
     property properties : Array(NameValue)
+
+    def initialize(@properties : Array(NameValue))
+    end
   end
 
   struct NameValue
@@ -107,11 +120,14 @@ module Cdp::DOMSnapshot
     property name : String
     @[JSON::Field(key: "value", emit_null: false)]
     property value : String
+
+    def initialize(@name : String, @value : String)
+    end
   end
 
   alias StringIndex = Int64
 
-  # TODO: Implement type array for DOMSnapshot.ArrayOfStrings
+  # TODO: Implement type array for ArrayOfStrings
   alias ArrayOfStrings = JSON::Any
 
   struct RareStringData
@@ -120,12 +136,18 @@ module Cdp::DOMSnapshot
     property index : Array(Int64)
     @[JSON::Field(key: "value", emit_null: false)]
     property value : Array(StringIndex)
+
+    def initialize(@index : Array(Int64), @value : Array(StringIndex))
+    end
   end
 
   struct RareBooleanData
     include JSON::Serializable
     @[JSON::Field(key: "index", emit_null: false)]
     property index : Array(Int64)
+
+    def initialize(@index : Array(Int64))
+    end
   end
 
   struct RareIntegerData
@@ -134,19 +156,22 @@ module Cdp::DOMSnapshot
     property index : Array(Int64)
     @[JSON::Field(key: "value", emit_null: false)]
     property value : Array(Int64)
+
+    def initialize(@index : Array(Int64), @value : Array(Int64))
+    end
   end
 
-  # TODO: Implement type array for DOMSnapshot.Rectangle
+  # TODO: Implement type array for Rectangle
   alias Rectangle = JSON::Any
 
   struct DocumentSnapshot
     include JSON::Serializable
-    @[JSON::Field(key: "documentUrl", emit_null: false)]
-    property document_url : StringIndex?
+    @[JSON::Field(key: "documentURL", emit_null: false)]
+    property document_url : StringIndex
     @[JSON::Field(key: "title", emit_null: false)]
     property title : StringIndex
-    @[JSON::Field(key: "baseUrl", emit_null: false)]
-    property base_url : StringIndex?
+    @[JSON::Field(key: "baseURL", emit_null: false)]
+    property base_url : StringIndex
     @[JSON::Field(key: "contentLanguage", emit_null: false)]
     property content_language : StringIndex
     @[JSON::Field(key: "encodingName", emit_null: false)]
@@ -171,6 +196,9 @@ module Cdp::DOMSnapshot
     property content_width : Float64?
     @[JSON::Field(key: "contentHeight", emit_null: false)]
     property content_height : Float64?
+
+    def initialize(@document_url : StringIndex, @title : StringIndex, @base_url : StringIndex, @content_language : StringIndex, @encoding_name : StringIndex, @public_id : StringIndex, @system_id : StringIndex, @frame_id : StringIndex, @nodes : NodeTreeSnapshot, @layout : LayoutTreeSnapshot, @text_boxes : TextBoxSnapshot, @scroll_offset_x : Float64? = nil, @scroll_offset_y : Float64? = nil, @content_width : Float64? = nil, @content_height : Float64? = nil)
+    end
   end
 
   struct NodeTreeSnapshot
@@ -205,10 +233,13 @@ module Cdp::DOMSnapshot
     property pseudo_identifier : RareStringData?
     @[JSON::Field(key: "isClickable", emit_null: false)]
     property is_clickable : RareBooleanData?
-    @[JSON::Field(key: "currentSourceUrl", emit_null: false)]
+    @[JSON::Field(key: "currentSourceURL", emit_null: false)]
     property current_source_url : RareStringData?
-    @[JSON::Field(key: "originUrl", emit_null: false)]
+    @[JSON::Field(key: "originURL", emit_null: false)]
     property origin_url : RareStringData?
+
+    def initialize(@parent_index : Array(Int64)? = nil, @node_type : Array(Int64)? = nil, @shadow_root_type : RareStringData? = nil, @node_name : Array(StringIndex)? = nil, @node_value : Array(StringIndex)? = nil, @backend_node_id : Array(Cdp::DOM::BackendNodeId)? = nil, @attributes : Array(ArrayOfStrings)? = nil, @text_value : RareStringData? = nil, @input_value : RareStringData? = nil, @input_checked : RareBooleanData? = nil, @option_selected : RareBooleanData? = nil, @content_document_index : RareIntegerData? = nil, @pseudo_type : RareStringData? = nil, @pseudo_identifier : RareStringData? = nil, @is_clickable : RareBooleanData? = nil, @current_source_url : RareStringData? = nil, @origin_url : RareStringData? = nil)
+    end
   end
 
   struct LayoutTreeSnapshot
@@ -235,6 +266,9 @@ module Cdp::DOMSnapshot
     property blended_background_colors : Array(StringIndex)?
     @[JSON::Field(key: "textColorOpacities", emit_null: false)]
     property text_color_opacities : Array(Float64)?
+
+    def initialize(@node_index : Array(Int64), @styles : Array(ArrayOfStrings), @bounds : Array(Rectangle), @text : Array(StringIndex), @stacking_contexts : RareBooleanData, @paint_orders : Array(Int64)? = nil, @offset_rects : Array(Rectangle)? = nil, @scroll_rects : Array(Rectangle)? = nil, @client_rects : Array(Rectangle)? = nil, @blended_background_colors : Array(StringIndex)? = nil, @text_color_opacities : Array(Float64)? = nil)
+    end
   end
 
   struct TextBoxSnapshot
@@ -247,5 +281,8 @@ module Cdp::DOMSnapshot
     property start : Array(Int64)
     @[JSON::Field(key: "length", emit_null: false)]
     property length : Array(Int64)
+
+    def initialize(@layout_index : Array(Int64), @bounds : Array(Rectangle), @start : Array(Int64), @length : Array(Int64))
+    end
   end
 end

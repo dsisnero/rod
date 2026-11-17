@@ -18,7 +18,7 @@ module Cdp::Runtime
     @[JSON::Field(key: "exceptionDetails", emit_null: false)]
     property exception_details : ExceptionDetails?
 
-    def initialize(@result : RemoteObject, @exception_details : ExceptionDetails?)
+    def initialize(@result : RemoteObject, @exception_details : ExceptionDetails? = nil)
     end
   end
 
@@ -29,7 +29,7 @@ module Cdp::Runtime
     @[JSON::Field(key: "exceptionDetails", emit_null: false)]
     property exception_details : ExceptionDetails?
 
-    def initialize(@result : RemoteObject, @exception_details : ExceptionDetails?)
+    def initialize(@result : RemoteObject, @exception_details : ExceptionDetails? = nil)
     end
   end
 
@@ -40,7 +40,7 @@ module Cdp::Runtime
     @[JSON::Field(key: "exceptionDetails", emit_null: false)]
     property exception_details : ExceptionDetails?
 
-    def initialize(@script_id : ScriptId?, @exception_details : ExceptionDetails?)
+    def initialize(@script_id : ScriptId? = nil, @exception_details : ExceptionDetails? = nil)
     end
   end
 
@@ -51,7 +51,7 @@ module Cdp::Runtime
     @[JSON::Field(key: "exceptionDetails", emit_null: false)]
     property exception_details : ExceptionDetails?
 
-    def initialize(@result : RemoteObject, @exception_details : ExceptionDetails?)
+    def initialize(@result : RemoteObject, @exception_details : ExceptionDetails? = nil)
     end
   end
 
@@ -92,7 +92,7 @@ module Cdp::Runtime
     @[JSON::Field(key: "exceptionDetails", emit_null: false)]
     property exception_details : ExceptionDetails?
 
-    def initialize(@result : Array(PropertyDescriptor), @internal_properties : Array(InternalPropertyDescriptor)?, @private_properties : Array(PrivatePropertyDescriptor)?, @exception_details : ExceptionDetails?)
+    def initialize(@result : Array(PropertyDescriptor), @internal_properties : Array(InternalPropertyDescriptor)? = nil, @private_properties : Array(PrivatePropertyDescriptor)? = nil, @exception_details : ExceptionDetails? = nil)
     end
   end
 
@@ -121,7 +121,7 @@ module Cdp::Runtime
     @[JSON::Field(key: "exceptionDetails", emit_null: false)]
     property exception_details : ExceptionDetails?
 
-    def initialize(@result : RemoteObject, @exception_details : ExceptionDetails?)
+    def initialize(@result : RemoteObject, @exception_details : ExceptionDetails? = nil)
     end
   end
 
@@ -131,7 +131,7 @@ module Cdp::Runtime
     @[JSON::Field(key: "exceptionDetails", emit_null: false)]
     property exception_details : ExceptionDetails?
 
-    def initialize(@exception_details : ExceptionDetails?)
+    def initialize(@exception_details : ExceptionDetails? = nil)
     end
   end
 
@@ -146,7 +146,7 @@ module Cdp::Runtime
     @[JSON::Field(key: "generatePreview", emit_null: false)]
     property? generate_preview : Bool?
 
-    def initialize(@promise_object_id : RemoteObjectId, @return_by_value : Bool?, @generate_preview : Bool?)
+    def initialize(@promise_object_id : RemoteObjectId, @return_by_value : Bool? = nil, @generate_preview : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -190,21 +190,7 @@ module Cdp::Runtime
     @[JSON::Field(key: "serializationOptions", emit_null: false)]
     property serialization_options : SerializationOptions?
 
-    def initialize(
-      @function_declaration : String,
-      @object_id : RemoteObjectId? = nil,
-      @arguments : Array(CallArgument)? = nil,
-      @silent : Bool? = nil,
-      @return_by_value : Bool? = nil,
-      @generate_preview : Bool? = nil,
-      @user_gesture : Bool? = nil,
-      @await_promise : Bool? = nil,
-      @execution_context_id : ExecutionContextId? = nil,
-      @object_group : String? = nil,
-      @throw_on_side_effect : Bool? = nil,
-      @unique_context_id : String? = nil,
-      @serialization_options : SerializationOptions? = nil,
-    )
+    def initialize(@function_declaration : String, @object_id : RemoteObjectId? = nil, @arguments : Array(CallArgument)? = nil, @silent : Bool? = nil, @return_by_value : Bool? = nil, @generate_preview : Bool? = nil, @user_gesture : Bool? = nil, @await_promise : Bool? = nil, @execution_context_id : ExecutionContextId? = nil, @object_group : String? = nil, @throw_on_side_effect : Bool? = nil, @unique_context_id : String? = nil, @serialization_options : SerializationOptions? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -223,14 +209,14 @@ module Cdp::Runtime
     include Cdp::Request
     @[JSON::Field(key: "expression", emit_null: false)]
     property expression : String
-    @[JSON::Field(key: "sourceUrl", emit_null: false)]
+    @[JSON::Field(key: "sourceURL", emit_null: false)]
     property source_url : String
     @[JSON::Field(key: "persistScript", emit_null: false)]
     property? persist_script : Bool
     @[JSON::Field(key: "executionContextId", emit_null: false)]
     property execution_context_id : ExecutionContextId?
 
-    def initialize(@expression : String, @source_url : String, @persist_script : Bool, @execution_context_id : ExecutionContextId?)
+    def initialize(@expression : String, @source_url : String, @persist_script : Bool, @execution_context_id : ExecutionContextId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -305,7 +291,7 @@ module Cdp::Runtime
     property expression : String
     @[JSON::Field(key: "objectGroup", emit_null: false)]
     property object_group : String?
-    @[JSON::Field(key: "includeCommandLineApi", emit_null: false)]
+    @[JSON::Field(key: "includeCommandLineAPI", emit_null: false)]
     property? include_command_line_api : Bool?
     @[JSON::Field(key: "silent", emit_null: false)]
     property? silent : Bool?
@@ -327,31 +313,14 @@ module Cdp::Runtime
     property? disable_breaks : Bool?
     @[JSON::Field(key: "replMode", emit_null: false)]
     property? repl_mode : Bool?
-    @[JSON::Field(key: "allowUnsafeEvalBlockedByCsp", emit_null: false)]
+    @[JSON::Field(key: "allowUnsafeEvalBlockedByCSP", emit_null: false)]
     property? allow_unsafe_eval_blocked_by_csp : Bool?
     @[JSON::Field(key: "uniqueContextId", emit_null: false)]
     property unique_context_id : String?
     @[JSON::Field(key: "serializationOptions", emit_null: false)]
     property serialization_options : SerializationOptions?
 
-    def initialize(
-      @expression : String,
-      @object_group : String? = nil,
-      @include_command_line_api : Bool? = nil,
-      @silent : Bool? = nil,
-      @context_id : ExecutionContextId? = nil,
-      @return_by_value : Bool? = nil,
-      @generate_preview : Bool? = nil,
-      @user_gesture : Bool? = nil,
-      @await_promise : Bool? = nil,
-      @throw_on_side_effect : Bool? = nil,
-      @timeout : TimeDelta? = nil,
-      @disable_breaks : Bool? = nil,
-      @repl_mode : Bool? = nil,
-      @allow_unsafe_eval_blocked_by_csp : Bool? = nil,
-      @unique_context_id : String? = nil,
-      @serialization_options : SerializationOptions? = nil,
-    )
+    def initialize(@expression : String, @object_group : String? = nil, @include_command_line_api : Bool? = nil, @silent : Bool? = nil, @context_id : ExecutionContextId? = nil, @return_by_value : Bool? = nil, @generate_preview : Bool? = nil, @user_gesture : Bool? = nil, @await_promise : Bool? = nil, @throw_on_side_effect : Bool? = nil, @timeout : TimeDelta? = nil, @disable_breaks : Bool? = nil, @repl_mode : Bool? = nil, @allow_unsafe_eval_blocked_by_csp : Bool? = nil, @unique_context_id : String? = nil, @serialization_options : SerializationOptions? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -417,7 +386,7 @@ module Cdp::Runtime
     @[JSON::Field(key: "nonIndexedPropertiesOnly", emit_null: false)]
     property? non_indexed_properties_only : Bool?
 
-    def initialize(@object_id : RemoteObjectId, @own_properties : Bool?, @accessor_properties_only : Bool?, @generate_preview : Bool?, @non_indexed_properties_only : Bool?)
+    def initialize(@object_id : RemoteObjectId, @own_properties : Bool? = nil, @accessor_properties_only : Bool? = nil, @generate_preview : Bool? = nil, @non_indexed_properties_only : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -437,7 +406,7 @@ module Cdp::Runtime
     @[JSON::Field(key: "executionContextId", emit_null: false)]
     property execution_context_id : ExecutionContextId?
 
-    def initialize(@execution_context_id : ExecutionContextId?)
+    def initialize(@execution_context_id : ExecutionContextId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -459,7 +428,7 @@ module Cdp::Runtime
     @[JSON::Field(key: "objectGroup", emit_null: false)]
     property object_group : String?
 
-    def initialize(@prototype_object_id : RemoteObjectId, @object_group : String?)
+    def initialize(@prototype_object_id : RemoteObjectId, @object_group : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -542,7 +511,7 @@ module Cdp::Runtime
     property object_group : String?
     @[JSON::Field(key: "silent", emit_null: false)]
     property? silent : Bool?
-    @[JSON::Field(key: "includeCommandLineApi", emit_null: false)]
+    @[JSON::Field(key: "includeCommandLineAPI", emit_null: false)]
     property? include_command_line_api : Bool?
     @[JSON::Field(key: "returnByValue", emit_null: false)]
     property? return_by_value : Bool?
@@ -551,7 +520,7 @@ module Cdp::Runtime
     @[JSON::Field(key: "awaitPromise", emit_null: false)]
     property? await_promise : Bool?
 
-    def initialize(@script_id : ScriptId, @execution_context_id : ExecutionContextId?, @object_group : String?, @silent : Bool?, @include_command_line_api : Bool?, @return_by_value : Bool?, @generate_preview : Bool?, @await_promise : Bool?)
+    def initialize(@script_id : ScriptId, @execution_context_id : ExecutionContextId? = nil, @object_group : String? = nil, @silent : Bool? = nil, @include_command_line_api : Bool? = nil, @return_by_value : Bool? = nil, @generate_preview : Bool? = nil, @await_promise : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -636,7 +605,7 @@ module Cdp::Runtime
     @[JSON::Field(key: "executionContextName", emit_null: false)]
     property execution_context_name : String?
 
-    def initialize(@name : String, @execution_context_id : ExecutionContextId?, @execution_context_name : String?)
+    def initialize(@name : String, @execution_context_id : ExecutionContextId? = nil, @execution_context_name : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.

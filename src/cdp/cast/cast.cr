@@ -16,7 +16,7 @@ module Cdp::Cast
     @[JSON::Field(key: "presentationUrl", emit_null: false)]
     property presentation_url : String?
 
-    def initialize(@presentation_url : String?)
+    def initialize(@presentation_url : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.

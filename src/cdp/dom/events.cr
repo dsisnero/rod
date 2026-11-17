@@ -3,6 +3,7 @@ require "json"
 require "time"
 
 require "../page/page"
+require "../network/network"
 require "../runtime/runtime"
 
 module Cdp::DOM
@@ -298,10 +299,10 @@ module Cdp::DOM
     include Cdp::Event
     @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : NodeId
-    @[JSON::Field(key: "isAdRelated", emit_null: false)]
-    property? is_ad_related : Bool
+    @[JSON::Field(key: "adProvenance", emit_null: false)]
+    property ad_provenance : Cdp::Network::AdProvenance?
 
-    def initialize(@node_id : NodeId, @is_ad_related : Bool)
+    def initialize(@node_id : NodeId, @ad_provenance : Cdp::Network::AdProvenance?)
     end
 
     # ProtoEvent returns the protocol event name.

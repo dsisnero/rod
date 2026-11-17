@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../network/network"
@@ -16,6 +17,9 @@ module Cdp::FileSystem
     property size : Float64
     @[JSON::Field(key: "type", emit_null: false)]
     property type : String
+
+    def initialize(@name : String, @last_modified : Cdp::Network::TimeSinceEpoch, @size : Float64, @type : String)
+    end
   end
 
   struct Directory
@@ -26,6 +30,9 @@ module Cdp::FileSystem
     property nested_directories : Array(String)
     @[JSON::Field(key: "nestedFiles", emit_null: false)]
     property nested_files : Array(File)
+
+    def initialize(@name : String, @nested_directories : Array(String), @nested_files : Array(File))
+    end
   end
 
   struct BucketFileSystemLocator
@@ -36,5 +43,8 @@ module Cdp::FileSystem
     property bucket_name : String?
     @[JSON::Field(key: "pathComponents", emit_null: false)]
     property path_components : Array(String)
+
+    def initialize(@storage_key : Cdp::Storage::SerializedStorageKey, @path_components : Array(String), @bucket_name : String? = nil)
+    end
   end
 end

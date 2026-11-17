@@ -3,7 +3,6 @@ require "json"
 require "time"
 
 require "../network/network"
-require "../target/target"
 require "../page/page"
 require "../browser/browser"
 
@@ -68,32 +67,22 @@ module Cdp::Storage
   end
 
   @[Experimental]
-  struct GetInterestGroupDetailsResult
+  struct GetPrivateVerificationTokensResult
     include JSON::Serializable
-    @[JSON::Field(key: "details", emit_null: false)]
-    property details : JSON::Any
+    @[JSON::Field(key: "tokens", emit_null: false)]
+    property tokens : Array(PrivateVerificationToken)
 
-    def initialize(@details : JSON::Any)
+    def initialize(@tokens : Array(PrivateVerificationToken))
     end
   end
 
   @[Experimental]
-  struct GetSharedStorageMetadataResult
+  struct GetPrivateVerificationTokensIssuerConfigsResult
     include JSON::Serializable
-    @[JSON::Field(key: "metadata", emit_null: false)]
-    property metadata : SharedStorageMetadata
+    @[JSON::Field(key: "configs", emit_null: false)]
+    property configs : Array(PrivateVerificationTokensIssuerConfig)
 
-    def initialize(@metadata : SharedStorageMetadata)
-    end
-  end
-
-  @[Experimental]
-  struct GetSharedStorageEntriesResult
-    include JSON::Serializable
-    @[JSON::Field(key: "entries", emit_null: false)]
-    property entries : Array(SharedStorageEntry)
-
-    def initialize(@entries : Array(SharedStorageEntry))
+    def initialize(@configs : Array(PrivateVerificationTokensIssuerConfig))
     end
   end
 
@@ -107,36 +96,6 @@ module Cdp::Storage
     end
   end
 
-  @[Experimental]
-  struct SendPendingAttributionReportsResult
-    include JSON::Serializable
-    @[JSON::Field(key: "numSent", emit_null: false)]
-    property num_sent : Int64
-
-    def initialize(@num_sent : Int64)
-    end
-  end
-
-  @[Experimental]
-  struct GetRelatedWebsiteSetsResult
-    include JSON::Serializable
-    @[JSON::Field(key: "sets", emit_null: false)]
-    property sets : Array(RelatedWebsiteSet)
-
-    def initialize(@sets : Array(RelatedWebsiteSet))
-    end
-  end
-
-  @[Experimental]
-  struct GetAffectedUrlsForThirdPartyCookieMetadataResult
-    include JSON::Serializable
-    @[JSON::Field(key: "matchedUrls", emit_null: false)]
-    property matched_urls : Array(String)
-
-    def initialize(@matched_urls : Array(String))
-    end
-  end
-
   # Commands
   @[Experimental]
   struct GetStorageKey
@@ -145,7 +104,7 @@ module Cdp::Storage
     @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
 
-    def initialize(@frame_id : Cdp::Page::FrameId?)
+    def initialize(@frame_id : Cdp::Page::FrameId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -209,7 +168,7 @@ module Cdp::Storage
     @[JSON::Field(key: "browserContextId", emit_null: false)]
     property browser_context_id : Cdp::Browser::BrowserContextID?
 
-    def initialize(@browser_context_id : Cdp::Browser::BrowserContextID?)
+    def initialize(@browser_context_id : Cdp::Browser::BrowserContextID? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -231,7 +190,7 @@ module Cdp::Storage
     @[JSON::Field(key: "browserContextId", emit_null: false)]
     property browser_context_id : Cdp::Browser::BrowserContextID?
 
-    def initialize(@cookies : Array(Cdp::Network::CookieParam), @browser_context_id : Cdp::Browser::BrowserContextID?)
+    def initialize(@cookies : Array(Cdp::Network::CookieParam), @browser_context_id : Cdp::Browser::BrowserContextID? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -251,7 +210,7 @@ module Cdp::Storage
     @[JSON::Field(key: "browserContextId", emit_null: false)]
     property browser_context_id : Cdp::Browser::BrowserContextID?
 
-    def initialize(@browser_context_id : Cdp::Browser::BrowserContextID?)
+    def initialize(@browser_context_id : Cdp::Browser::BrowserContextID? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -294,7 +253,7 @@ module Cdp::Storage
     @[JSON::Field(key: "quotaSize", emit_null: false)]
     property quota_size : Float64?
 
-    def initialize(@origin : String, @quota_size : Float64?)
+    def initialize(@origin : String, @quota_size : Float64? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -509,30 +468,87 @@ module Cdp::Storage
   end
 
   @[Experimental]
-  struct GetInterestGroupDetails
+  struct GetPrivateVerificationTokens
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(key: "ownerOrigin", emit_null: false)]
-    property owner_origin : String
-    @[JSON::Field(key: "name", emit_null: false)]
-    property name : String
 
-    def initialize(@owner_origin : String, @name : String)
+    def initialize
     end
 
     # ProtoReq returns the protocol method name.
     def proto_req : String
-      "Storage.getInterestGroupDetails"
+      "Storage.getPrivateVerificationTokens"
     end
 
     # Call sends the request and returns the result.
-    def call(c : Cdp::Client) : GetInterestGroupDetailsResult
-      Cdp.call(proto_req, self, GetInterestGroupDetailsResult, c)
+    def call(c : Cdp::Client) : GetPrivateVerificationTokensResult
+      Cdp.call(proto_req, self, GetPrivateVerificationTokensResult, c)
     end
   end
 
   @[Experimental]
-  struct SetInterestGroupTracking
+  struct GetPrivateVerificationTokensIssuerConfigs
+    include JSON::Serializable
+    include Cdp::Request
+
+    def initialize
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Storage.getPrivateVerificationTokensIssuerConfigs"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : GetPrivateVerificationTokensIssuerConfigsResult
+      Cdp.call(proto_req, self, GetPrivateVerificationTokensIssuerConfigsResult, c)
+    end
+  end
+
+  @[Experimental]
+  struct ClearPrivateVerificationTokens
+    include JSON::Serializable
+    include Cdp::Request
+    @[JSON::Field(key: "issuerOrigin", emit_null: false)]
+    property issuer_origin : String
+
+    def initialize(@issuer_origin : String)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Storage.clearPrivateVerificationTokens"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
+  struct DeletePrivateVerificationToken
+    include JSON::Serializable
+    include Cdp::Request
+    @[JSON::Field(key: "tokenId", emit_null: false)]
+    property token_id : String
+
+    def initialize(@token_id : String)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Storage.deletePrivateVerificationToken"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
+  struct SetPrivateVerificationTokensTracking
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(key: "enable", emit_null: false)]
@@ -543,183 +559,7 @@ module Cdp::Storage
 
     # ProtoReq returns the protocol method name.
     def proto_req : String
-      "Storage.setInterestGroupTracking"
-    end
-
-    # Call sends the request.
-    def call(c : Cdp::Client) : Nil
-      Cdp.call(proto_req, self, nil, c)
-    end
-  end
-
-  @[Experimental]
-  struct SetInterestGroupAuctionTracking
-    include JSON::Serializable
-    include Cdp::Request
-    @[JSON::Field(key: "enable", emit_null: false)]
-    property? enable : Bool
-
-    def initialize(@enable : Bool)
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Storage.setInterestGroupAuctionTracking"
-    end
-
-    # Call sends the request.
-    def call(c : Cdp::Client) : Nil
-      Cdp.call(proto_req, self, nil, c)
-    end
-  end
-
-  @[Experimental]
-  struct GetSharedStorageMetadata
-    include JSON::Serializable
-    include Cdp::Request
-    @[JSON::Field(key: "ownerOrigin", emit_null: false)]
-    property owner_origin : String
-
-    def initialize(@owner_origin : String)
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Storage.getSharedStorageMetadata"
-    end
-
-    # Call sends the request and returns the result.
-    def call(c : Cdp::Client) : GetSharedStorageMetadataResult
-      Cdp.call(proto_req, self, GetSharedStorageMetadataResult, c)
-    end
-  end
-
-  @[Experimental]
-  struct GetSharedStorageEntries
-    include JSON::Serializable
-    include Cdp::Request
-    @[JSON::Field(key: "ownerOrigin", emit_null: false)]
-    property owner_origin : String
-
-    def initialize(@owner_origin : String)
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Storage.getSharedStorageEntries"
-    end
-
-    # Call sends the request and returns the result.
-    def call(c : Cdp::Client) : GetSharedStorageEntriesResult
-      Cdp.call(proto_req, self, GetSharedStorageEntriesResult, c)
-    end
-  end
-
-  @[Experimental]
-  struct SetSharedStorageEntry
-    include JSON::Serializable
-    include Cdp::Request
-    @[JSON::Field(key: "ownerOrigin", emit_null: false)]
-    property owner_origin : String
-    @[JSON::Field(key: "key", emit_null: false)]
-    property key : String
-    @[JSON::Field(key: "value", emit_null: false)]
-    property value : String
-    @[JSON::Field(key: "ignoreIfPresent", emit_null: false)]
-    property? ignore_if_present : Bool?
-
-    def initialize(@owner_origin : String, @key : String, @value : String, @ignore_if_present : Bool?)
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Storage.setSharedStorageEntry"
-    end
-
-    # Call sends the request.
-    def call(c : Cdp::Client) : Nil
-      Cdp.call(proto_req, self, nil, c)
-    end
-  end
-
-  @[Experimental]
-  struct DeleteSharedStorageEntry
-    include JSON::Serializable
-    include Cdp::Request
-    @[JSON::Field(key: "ownerOrigin", emit_null: false)]
-    property owner_origin : String
-    @[JSON::Field(key: "key", emit_null: false)]
-    property key : String
-
-    def initialize(@owner_origin : String, @key : String)
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Storage.deleteSharedStorageEntry"
-    end
-
-    # Call sends the request.
-    def call(c : Cdp::Client) : Nil
-      Cdp.call(proto_req, self, nil, c)
-    end
-  end
-
-  @[Experimental]
-  struct ClearSharedStorageEntries
-    include JSON::Serializable
-    include Cdp::Request
-    @[JSON::Field(key: "ownerOrigin", emit_null: false)]
-    property owner_origin : String
-
-    def initialize(@owner_origin : String)
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Storage.clearSharedStorageEntries"
-    end
-
-    # Call sends the request.
-    def call(c : Cdp::Client) : Nil
-      Cdp.call(proto_req, self, nil, c)
-    end
-  end
-
-  @[Experimental]
-  struct ResetSharedStorageBudget
-    include JSON::Serializable
-    include Cdp::Request
-    @[JSON::Field(key: "ownerOrigin", emit_null: false)]
-    property owner_origin : String
-
-    def initialize(@owner_origin : String)
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Storage.resetSharedStorageBudget"
-    end
-
-    # Call sends the request.
-    def call(c : Cdp::Client) : Nil
-      Cdp.call(proto_req, self, nil, c)
-    end
-  end
-
-  @[Experimental]
-  struct SetSharedStorageTracking
-    include JSON::Serializable
-    include Cdp::Request
-    @[JSON::Field(key: "enable", emit_null: false)]
-    property? enable : Bool
-
-    def initialize(@enable : Bool)
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Storage.setSharedStorageTracking"
+      "Storage.setPrivateVerificationTokensTracking"
     end
 
     # Call sends the request.
@@ -788,133 +628,6 @@ module Cdp::Storage
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : RunBounceTrackingMitigationsResult
       Cdp.call(proto_req, self, RunBounceTrackingMitigationsResult, c)
-    end
-  end
-
-  @[Experimental]
-  struct SetAttributionReportingLocalTestingMode
-    include JSON::Serializable
-    include Cdp::Request
-    @[JSON::Field(key: "enabled", emit_null: false)]
-    property? enabled : Bool
-
-    def initialize(@enabled : Bool)
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Storage.setAttributionReportingLocalTestingMode"
-    end
-
-    # Call sends the request.
-    def call(c : Cdp::Client) : Nil
-      Cdp.call(proto_req, self, nil, c)
-    end
-  end
-
-  @[Experimental]
-  struct SetAttributionReportingTracking
-    include JSON::Serializable
-    include Cdp::Request
-    @[JSON::Field(key: "enable", emit_null: false)]
-    property? enable : Bool
-
-    def initialize(@enable : Bool)
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Storage.setAttributionReportingTracking"
-    end
-
-    # Call sends the request.
-    def call(c : Cdp::Client) : Nil
-      Cdp.call(proto_req, self, nil, c)
-    end
-  end
-
-  @[Experimental]
-  struct SendPendingAttributionReports
-    include JSON::Serializable
-    include Cdp::Request
-
-    def initialize
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Storage.sendPendingAttributionReports"
-    end
-
-    # Call sends the request and returns the result.
-    def call(c : Cdp::Client) : SendPendingAttributionReportsResult
-      Cdp.call(proto_req, self, SendPendingAttributionReportsResult, c)
-    end
-  end
-
-  @[Experimental]
-  struct GetRelatedWebsiteSets
-    include JSON::Serializable
-    include Cdp::Request
-
-    def initialize
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Storage.getRelatedWebsiteSets"
-    end
-
-    # Call sends the request and returns the result.
-    def call(c : Cdp::Client) : GetRelatedWebsiteSetsResult
-      Cdp.call(proto_req, self, GetRelatedWebsiteSetsResult, c)
-    end
-  end
-
-  @[Experimental]
-  struct GetAffectedUrlsForThirdPartyCookieMetadata
-    include JSON::Serializable
-    include Cdp::Request
-    @[JSON::Field(key: "firstPartyUrl", emit_null: false)]
-    property first_party_url : String
-    @[JSON::Field(key: "thirdPartyUrls", emit_null: false)]
-    property third_party_urls : Array(String)
-
-    def initialize(@first_party_url : String, @third_party_urls : Array(String))
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Storage.getAffectedUrlsForThirdPartyCookieMetadata"
-    end
-
-    # Call sends the request and returns the result.
-    def call(c : Cdp::Client) : GetAffectedUrlsForThirdPartyCookieMetadataResult
-      Cdp.call(proto_req, self, GetAffectedUrlsForThirdPartyCookieMetadataResult, c)
-    end
-  end
-
-  struct SetProtectedAudienceKAnonymity
-    include JSON::Serializable
-    include Cdp::Request
-    @[JSON::Field(key: "owner", emit_null: false)]
-    property owner : String
-    @[JSON::Field(key: "name", emit_null: false)]
-    property name : String
-    @[JSON::Field(key: "hashes", emit_null: false)]
-    property hashes : Array(String)
-
-    def initialize(@owner : String, @name : String, @hashes : Array(String))
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Storage.setProtectedAudienceKAnonymity"
-    end
-
-    # Call sends the request.
-    def call(c : Cdp::Client) : Nil
-      Cdp.call(proto_req, self, nil, c)
     end
   end
 end

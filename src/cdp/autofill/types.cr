@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../page/page"
@@ -18,6 +19,9 @@ module Cdp::Autofill
     property expiry_year : String
     @[JSON::Field(key: "cvc", emit_null: false)]
     property cvc : String
+
+    def initialize(@number : String, @name : String, @expiry_month : String, @expiry_year : String, @cvc : String)
+    end
   end
 
   struct AddressField
@@ -26,24 +30,36 @@ module Cdp::Autofill
     property name : String
     @[JSON::Field(key: "value", emit_null: false)]
     property value : String
+
+    def initialize(@name : String, @value : String)
+    end
   end
 
   struct AddressFields
     include JSON::Serializable
     @[JSON::Field(key: "fields", emit_null: false)]
     property fields : Array(AddressField)
+
+    def initialize(@fields : Array(AddressField))
+    end
   end
 
   struct Address
     include JSON::Serializable
     @[JSON::Field(key: "fields", emit_null: false)]
     property fields : Array(AddressField)
+
+    def initialize(@fields : Array(AddressField))
+    end
   end
 
   struct AddressUI
     include JSON::Serializable
     @[JSON::Field(key: "addressFields", emit_null: false)]
     property address_fields : Array(AddressFields)
+
+    def initialize(@address_fields : Array(AddressFields))
+    end
   end
 
   alias FillingStrategy = String
@@ -68,5 +84,8 @@ module Cdp::Autofill
     property frame_id : Cdp::Page::FrameId
     @[JSON::Field(key: "fieldId", emit_null: false)]
     property field_id : Cdp::DOM::BackendNodeId
+
+    def initialize(@html_type : String, @id : String, @name : String, @value : String, @autofill_type : String, @filling_strategy : FillingStrategy, @frame_id : Cdp::Page::FrameId, @field_id : Cdp::DOM::BackendNodeId)
+    end
   end
 end

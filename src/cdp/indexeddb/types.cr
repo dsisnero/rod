@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../runtime/runtime"
@@ -14,6 +15,9 @@ module Cdp::IndexedDB
     property version : Float64
     @[JSON::Field(key: "objectStores", emit_null: false)]
     property object_stores : Array(ObjectStore)
+
+    def initialize(@name : String, @version : Float64, @object_stores : Array(ObjectStore))
+    end
   end
 
   struct ObjectStore
@@ -26,6 +30,9 @@ module Cdp::IndexedDB
     property? auto_increment : Bool
     @[JSON::Field(key: "indexes", emit_null: false)]
     property indexes : Array(ObjectStoreIndex)
+
+    def initialize(@name : String, @key_path : KeyPath, @auto_increment : Bool, @indexes : Array(ObjectStoreIndex))
+    end
   end
 
   struct ObjectStoreIndex
@@ -38,9 +45,12 @@ module Cdp::IndexedDB
     property? unique : Bool
     @[JSON::Field(key: "multiEntry", emit_null: false)]
     property? multi_entry : Bool
+
+    def initialize(@name : String, @key_path : KeyPath, @unique : Bool, @multi_entry : Bool)
+    end
   end
 
-  struct Key
+  class Key
     include JSON::Serializable
     @[JSON::Field(key: "type", emit_null: false)]
     property type : KeyType
@@ -52,6 +62,9 @@ module Cdp::IndexedDB
     property date : Float64?
     @[JSON::Field(key: "array", emit_null: false)]
     property array : Array(Key)?
+
+    def initialize(@type : KeyType, @number : Float64? = nil, @string : String? = nil, @date : Float64? = nil, @array : Array(Key)? = nil)
+    end
   end
 
   struct KeyRange
@@ -64,6 +77,9 @@ module Cdp::IndexedDB
     property? lower_open : Bool
     @[JSON::Field(key: "upperOpen", emit_null: false)]
     property? upper_open : Bool
+
+    def initialize(@lower_open : Bool, @upper_open : Bool, @lower : Key? = nil, @upper : Key? = nil)
+    end
   end
 
   struct DataEntry
@@ -74,6 +90,9 @@ module Cdp::IndexedDB
     property primary_key : Cdp::Runtime::RemoteObject
     @[JSON::Field(key: "value", emit_null: false)]
     property value : Cdp::Runtime::RemoteObject
+
+    def initialize(@key : Cdp::Runtime::RemoteObject, @primary_key : Cdp::Runtime::RemoteObject, @value : Cdp::Runtime::RemoteObject)
+    end
   end
 
   struct KeyPath
@@ -84,6 +103,9 @@ module Cdp::IndexedDB
     property string : String?
     @[JSON::Field(key: "array", emit_null: false)]
     property array : Array(String)?
+
+    def initialize(@type : KeyPathType, @string : String? = nil, @array : Array(String)? = nil)
+    end
   end
 
   alias KeyType = String

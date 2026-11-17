@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../dom/dom"
@@ -26,6 +27,9 @@ module Cdp::Emulation
     property right : Int64?
     @[JSON::Field(key: "rightMax", emit_null: false)]
     property right_max : Int64?
+
+    def initialize(@top : Int64? = nil, @top_max : Int64? = nil, @left : Int64? = nil, @left_max : Int64? = nil, @bottom : Int64? = nil, @bottom_max : Int64? = nil, @right : Int64? = nil, @right_max : Int64? = nil)
+    end
   end
 
   struct ScreenOrientation
@@ -34,6 +38,9 @@ module Cdp::Emulation
     property type : OrientationType
     @[JSON::Field(key: "angle", emit_null: false)]
     property angle : Int64
+
+    def initialize(@type : OrientationType, @angle : Int64)
+    end
   end
 
   struct DisplayFeature
@@ -44,12 +51,18 @@ module Cdp::Emulation
     property offset : Int64
     @[JSON::Field(key: "maskLength", emit_null: false)]
     property mask_length : Int64
+
+    def initialize(@orientation : DisplayFeatureOrientation, @offset : Int64, @mask_length : Int64)
+    end
   end
 
   struct DevicePosture
     include JSON::Serializable
     @[JSON::Field(key: "type", emit_null: false)]
     property type : DevicePostureType
+
+    def initialize(@type : DevicePostureType)
+    end
   end
 
   struct MediaFeature
@@ -58,6 +71,9 @@ module Cdp::Emulation
     property name : String
     @[JSON::Field(key: "value", emit_null: false)]
     property value : String
+
+    def initialize(@name : String, @value : String)
+    end
   end
 
   @[Experimental]
@@ -73,6 +89,9 @@ module Cdp::Emulation
     property brand : String
     @[JSON::Field(key: "version", emit_null: false)]
     property version : String
+
+    def initialize(@brand : String, @version : String)
+    end
   end
 
   @[Experimental]
@@ -98,6 +117,9 @@ module Cdp::Emulation
     property? wow64 : Bool?
     @[JSON::Field(key: "formFactors", emit_null: false)]
     property form_factors : Array(String)?
+
+    def initialize(@platform : String, @platform_version : String, @architecture : String, @model : String, @mobile : Bool, @brands : Array(UserAgentBrandVersion)? = nil, @full_version_list : Array(UserAgentBrandVersion)? = nil, @bitness : String? = nil, @wow64 : Bool? = nil, @form_factors : Array(String)? = nil)
+    end
   end
 
   @[Experimental]
@@ -120,6 +142,9 @@ module Cdp::Emulation
     property minimum_frequency : Float64?
     @[JSON::Field(key: "maximumFrequency", emit_null: false)]
     property maximum_frequency : Float64?
+
+    def initialize(@available : Bool? = nil, @minimum_frequency : Float64? = nil, @maximum_frequency : Float64? = nil)
+    end
   end
 
   @[Experimental]
@@ -127,6 +152,9 @@ module Cdp::Emulation
     include JSON::Serializable
     @[JSON::Field(key: "value", emit_null: false)]
     property value : Float64
+
+    def initialize(@value : Float64)
+    end
   end
 
   @[Experimental]
@@ -138,6 +166,9 @@ module Cdp::Emulation
     property y : Float64
     @[JSON::Field(key: "z", emit_null: false)]
     property z : Float64
+
+    def initialize(@x : Float64, @y : Float64, @z : Float64)
+    end
   end
 
   @[Experimental]
@@ -151,6 +182,9 @@ module Cdp::Emulation
     property z : Float64
     @[JSON::Field(key: "w", emit_null: false)]
     property w : Float64
+
+    def initialize(@x : Float64, @y : Float64, @z : Float64, @w : Float64)
+    end
   end
 
   @[Experimental]
@@ -162,6 +196,9 @@ module Cdp::Emulation
     property xyz : SensorReadingXYZ?
     @[JSON::Field(key: "quaternion", emit_null: false)]
     property quaternion : SensorReadingQuaternion?
+
+    def initialize(@single : SensorReadingSingle? = nil, @xyz : SensorReadingXYZ? = nil, @quaternion : SensorReadingQuaternion? = nil)
+    end
   end
 
   @[Experimental]
@@ -180,6 +217,9 @@ module Cdp::Emulation
     include JSON::Serializable
     @[JSON::Field(key: "available", emit_null: false)]
     property? available : Bool?
+
+    def initialize(@available : Bool? = nil)
+    end
   end
 
   @[Experimental]
@@ -193,6 +233,9 @@ module Cdp::Emulation
     property bottom : Int64?
     @[JSON::Field(key: "right", emit_null: false)]
     property right : Int64?
+
+    def initialize(@top : Int64? = nil, @left : Int64? = nil, @bottom : Int64? = nil, @right : Int64? = nil)
+    end
   end
 
   @[Experimental]
@@ -233,6 +276,9 @@ module Cdp::Emulation
     property label : String
     @[JSON::Field(key: "id", emit_null: false)]
     property id : ScreenId
+
+    def initialize(@left : Int64, @top : Int64, @width : Int64, @height : Int64, @avail_left : Int64, @avail_top : Int64, @avail_width : Int64, @avail_height : Int64, @device_pixel_ratio : Float64, @orientation : ScreenOrientation, @color_depth : Int64, @is_extended : Bool, @is_internal : Bool, @is_primary : Bool, @label : String, @id : ScreenId)
+    end
   end
 
   @[Experimental]
@@ -255,6 +301,18 @@ module Cdp::Emulation
   DevicePostureTypeContinuous = "continuous"
   DevicePostureTypeFolded     = "folded"
 
+  alias SetDeviceMetricsOverrideScrollbarType = String
+  SetDeviceMetricsOverrideScrollbarTypeOverlay = "overlay"
+  SetDeviceMetricsOverrideScrollbarTypeDefault = "default"
+
+  alias SetDeviceMetricsOverrideViewportMeta = String
+  SetDeviceMetricsOverrideViewportMetaEnable  = "enable"
+  SetDeviceMetricsOverrideViewportMetaDefault = "default"
+
+  alias SetDeviceMetricsOverrideTextLayoutMode = String
+  SetDeviceMetricsOverrideTextLayoutModeMobile  = "mobile"
+  SetDeviceMetricsOverrideTextLayoutModeDefault = "default"
+
   alias SetEmitTouchEventsForMouseConfiguration = String
   SetEmitTouchEventsForMouseConfigurationMobile  = "mobile"
   SetEmitTouchEventsForMouseConfigurationDesktop = "desktop"
@@ -267,4 +325,11 @@ module Cdp::Emulation
   SetEmulatedVisionDeficiencyTypeDeuteranopia    = "deuteranopia"
   SetEmulatedVisionDeficiencyTypeProtanopia      = "protanopia"
   SetEmulatedVisionDeficiencyTypeTritanopia      = "tritanopia"
+
+  alias SetCPUPerformanceOverridePerformanceTier = String
+  SetCPUPerformanceOverridePerformanceTierUnknown = "unknown"
+  SetCPUPerformanceOverridePerformanceTierLow     = "low"
+  SetCPUPerformanceOverridePerformanceTierMid     = "mid"
+  SetCPUPerformanceOverridePerformanceTierHigh    = "high"
+  SetCPUPerformanceOverridePerformanceTierUltra   = "ultra"
 end

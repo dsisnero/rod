@@ -1,8 +1,10 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../page/page"
+require "../network/network"
 require "../runtime/runtime"
 
 module Cdp::DOM
@@ -20,6 +22,9 @@ module Cdp::DOM
     property node_name : String
     @[JSON::Field(key: "backendNodeId", emit_null: false)]
     property backend_node_id : BackendNodeId
+
+    def initialize(@node_type : Cdp::NodeType, @node_name : String, @backend_node_id : BackendNodeId)
+    end
   end
 
   alias PseudoType = String
@@ -28,8 +33,9 @@ module Cdp::DOM
   PseudoTypeCheckmark                   = "checkmark"
   PseudoTypeBefore                      = "before"
   PseudoTypeAfter                       = "after"
+  PseudoTypeExpandIcon                  = "expand-icon"
   PseudoTypePickerIcon                  = "picker-icon"
-  PseudoTypeInterestHint                = "interest-hint"
+  PseudoTypeInterestButton              = "interest-button"
   PseudoTypeMarker                      = "marker"
   PseudoTypeBackdrop                    = "backdrop"
   PseudoTypeColumn                      = "column"
@@ -61,8 +67,10 @@ module Cdp::DOM
   PseudoTypeFileSelectorButton          = "file-selector-button"
   PseudoTypeDetailsContent              = "details-content"
   PseudoTypePicker                      = "picker"
+  PseudoTypeSelectListbox               = "select-listbox"
   PseudoTypePermissionIcon              = "permission-icon"
   PseudoTypeOverscrollAreaParent        = "overscroll-area-parent"
+  PseudoTypeSkeleton                    = "skeleton"
 
   alias ShadowRootType = String
   ShadowRootTypeUserAgent = "user-agent"
@@ -110,9 +118,9 @@ module Cdp::DOM
     property children : Array(Node)?
     @[JSON::Field(key: "attributes", emit_null: false)]
     property attributes : Array(String)?
-    @[JSON::Field(key: "documentUrl", emit_null: false)]
+    @[JSON::Field(key: "documentURL", emit_null: false)]
     property document_url : String?
-    @[JSON::Field(key: "baseUrl", emit_null: false)]
+    @[JSON::Field(key: "baseURL", emit_null: false)]
     property base_url : String?
     @[JSON::Field(key: "publicId", emit_null: false)]
     property public_id : String?
@@ -146,7 +154,7 @@ module Cdp::DOM
     property imported_document : Node?
     @[JSON::Field(key: "distributedNodes", emit_null: false)]
     property distributed_nodes : Array(BackendNode)?
-    @[JSON::Field(key: "isSvg", emit_null: false)]
+    @[JSON::Field(key: "isSVG", emit_null: false)]
     property? is_svg : Bool?
     @[JSON::Field(key: "compatibilityMode", emit_null: false)]
     property compatibility_mode : CompatibilityMode?
@@ -158,16 +166,23 @@ module Cdp::DOM
     property? affected_by_starting_styles : Bool?
     @[JSON::Field(key: "adoptedStyleSheets", emit_null: false)]
     property adopted_style_sheets : Array(StyleSheetId)?
-    @[JSON::Field(key: "isAdRelated", emit_null: false)]
-    property? is_ad_related : Bool?
-    @[JSON::Field(key: "parent", emit_null: false)]
+    @[JSON::Field(key: "adProvenance", emit_null: false)]
+    property ad_provenance : Cdp::Network::AdProvenance?
+    # Runtime-only state: not part of the protocol wire format.
+    @[JSON::Field(ignore: true)]
     property parent : DOM::Node?
+    # Runtime-only state: not part of the protocol wire format.
     @[JSON::Field(ignore: true)]
     property invalidated : Channel(Nil) = Channel(Nil).new(1)
+    # Runtime-only state: not part of the protocol wire format.
     @[JSON::Field(ignore: true)]
     property state : NodeState = NodeState.new(0u8)
+    # Runtime-only state: not part of the protocol wire format.
     @[JSON::Field(ignore: true)]
     property mutex : Mutex = Mutex.new
+
+    def initialize(@node_id : NodeId, @backend_node_id : BackendNodeId, @node_type : Cdp::NodeType, @node_name : String, @local_name : String, @node_value : String, @parent_id : NodeId? = nil, @child_node_count : Int64? = nil, @children : Array(Node)? = nil, @attributes : Array(String)? = nil, @document_url : String? = nil, @base_url : String? = nil, @public_id : String? = nil, @system_id : String? = nil, @internal_subset : String? = nil, @xml_version : String? = nil, @name : String? = nil, @value : String? = nil, @pseudo_type : PseudoType? = nil, @pseudo_identifier : String? = nil, @shadow_root_type : ShadowRootType? = nil, @frame_id : Cdp::Page::FrameId? = nil, @content_document : Node? = nil, @shadow_roots : Array(Node)? = nil, @template_content : Node? = nil, @pseudo_elements : Array(Node)? = nil, @imported_document : Node? = nil, @distributed_nodes : Array(BackendNode)? = nil, @is_svg : Bool? = nil, @compatibility_mode : CompatibilityMode? = nil, @assigned_slot : BackendNode? = nil, @is_scrollable : Bool? = nil, @affected_by_starting_styles : Bool? = nil, @adopted_style_sheets : Array(StyleSheetId)? = nil, @ad_provenance : Cdp::Network::AdProvenance? = nil)
+    end
 
     # AttributeValue returns the named attribute for the node.
     def attribute_value(name : String) : String
@@ -206,6 +221,9 @@ module Cdp::DOM
     property tree_node : Node
     @[JSON::Field(key: "retainedNodeIds", emit_null: false)]
     property retained_node_ids : Array(NodeId)
+
+    def initialize(@tree_node : Node, @retained_node_ids : Array(NodeId))
+    end
   end
 
   struct RGBA
@@ -218,21 +236,13 @@ module Cdp::DOM
     property b : Int64
     @[JSON::Field(key: "a", emit_null: false)]
     property a : Float64?
-  end
 
-  # TODO: Implement type array for DOM.Quad
-  alias Quad = JSON::Any
-
-  struct Point
-    include JSON::Serializable
-    @[JSON::Field(key: "x", emit_null: false)]
-    property x : Float64
-    @[JSON::Field(key: "y", emit_null: false)]
-    property y : Float64
-
-    def initialize(@x : Float64, @y : Float64)
+    def initialize(@r : Int64, @g : Int64, @b : Int64, @a : Float64? = nil)
     end
   end
+
+  # TODO: Implement type array for Quad
+  alias Quad = JSON::Any
 
   struct BoxModel
     include JSON::Serializable
@@ -250,6 +260,9 @@ module Cdp::DOM
     property height : Int64
     @[JSON::Field(key: "shapeOutside", emit_null: false)]
     property shape_outside : ShapeOutsideInfo?
+
+    def initialize(@content : Quad, @padding : Quad, @border : Quad, @margin : Quad, @width : Int64, @height : Int64, @shape_outside : ShapeOutsideInfo? = nil)
+    end
   end
 
   struct ShapeOutsideInfo
@@ -260,6 +273,9 @@ module Cdp::DOM
     property shape : Array(JSON::Any)
     @[JSON::Field(key: "marginShape", emit_null: false)]
     property margin_shape : Array(JSON::Any)
+
+    def initialize(@bounds : Quad, @shape : Array(JSON::Any), @margin_shape : Array(JSON::Any))
+    end
   end
 
   struct Rect
@@ -272,6 +288,9 @@ module Cdp::DOM
     property width : Float64
     @[JSON::Field(key: "height", emit_null: false)]
     property height : Float64
+
+    def initialize(@x : Float64, @y : Float64, @width : Float64, @height : Float64)
+    end
   end
 
   struct CSSComputedStyleProperty
@@ -280,6 +299,20 @@ module Cdp::DOM
     property name : String
     @[JSON::Field(key: "value", emit_null: false)]
     property value : String
+
+    def initialize(@name : String, @value : String)
+    end
+  end
+
+  struct Point
+    include JSON::Serializable
+    @[JSON::Field(key: "x", emit_null: false)]
+    property x : Float64
+    @[JSON::Field(key: "y", emit_null: false)]
+    property y : Float64
+
+    def initialize(@x : Float64, @y : Float64)
+    end
   end
 
   alias EnableIncludeWhitespace = String
@@ -290,4 +323,8 @@ module Cdp::DOM
   GetElementByRelationRelationPopoverTarget  = "PopoverTarget"
   GetElementByRelationRelationInterestTarget = "InterestTarget"
   GetElementByRelationRelationCommandFor     = "CommandFor"
+
+  alias SetTextMarkerType = String
+  SetTextMarkerTypeSpelling = "spelling"
+  SetTextMarkerTypeGrammar  = "grammar"
 end

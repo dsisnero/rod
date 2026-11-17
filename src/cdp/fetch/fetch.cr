@@ -58,7 +58,7 @@ module Cdp::Fetch
     @[JSON::Field(key: "handleAuthRequests", emit_null: false)]
     property? handle_auth_requests : Bool?
 
-    def initialize(@patterns : Array(RequestPattern)?, @handle_auth_requests : Bool?)
+    def initialize(@patterns : Array(RequestPattern)? = nil, @handle_auth_requests : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -110,7 +110,7 @@ module Cdp::Fetch
     @[JSON::Field(key: "responsePhrase", emit_null: false)]
     property response_phrase : String?
 
-    def initialize(@request_id : RequestId, @response_code : Int64, @response_headers : Array(HeaderEntry)?, @binary_response_headers : String?, @body : String?, @response_phrase : String?)
+    def initialize(@request_id : RequestId, @response_code : Int64, @response_headers : Array(HeaderEntry)? = nil, @binary_response_headers : String? = nil, @body : String? = nil, @response_phrase : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -140,7 +140,7 @@ module Cdp::Fetch
     @[JSON::Field(key: "interceptResponse", emit_null: false)]
     property? intercept_response : Bool?
 
-    def initialize(@request_id : RequestId, @url : String?, @method : String?, @post_data : String?, @headers : Array(HeaderEntry)?, @intercept_response : Bool?)
+    def initialize(@request_id : RequestId, @url : String? = nil, @method : String? = nil, @post_data : String? = nil, @headers : Array(HeaderEntry)? = nil, @intercept_response : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -191,7 +191,7 @@ module Cdp::Fetch
     @[JSON::Field(key: "binaryResponseHeaders", emit_null: false)]
     property binary_response_headers : String?
 
-    def initialize(@request_id : RequestId, @response_code : Int64?, @response_phrase : String?, @response_headers : Array(HeaderEntry)?, @binary_response_headers : String?)
+    def initialize(@request_id : RequestId, @response_code : Int64? = nil, @response_phrase : String? = nil, @response_headers : Array(HeaderEntry)? = nil, @binary_response_headers : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.

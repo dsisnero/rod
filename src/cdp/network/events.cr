@@ -106,8 +106,10 @@ module Cdp::Network
     property timestamp : MonotonicTime
     @[JSON::Field(key: "encodedDataLength", emit_null: false)]
     property encoded_data_length : Float64
+    @[JSON::Field(key: "encodedBodyLength", emit_null: false)]
+    property encoded_body_length : Float64?
 
-    def initialize(@request_id : RequestId, @timestamp : MonotonicTime, @encoded_data_length : Float64)
+    def initialize(@request_id : RequestId, @timestamp : MonotonicTime, @encoded_data_length : Float64, @encoded_body_length : Float64?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -572,11 +574,11 @@ module Cdp::Network
     @[JSON::Field(key: "identifier", emit_null: false)]
     property identifier : RequestId
     @[JSON::Field(key: "errorMessage", emit_null: false)]
-    property error_message : String
+    property error_message : ErrorReason
     @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
 
-    def initialize(@identifier : RequestId, @error_message : String, @timestamp : MonotonicTime)
+    def initialize(@identifier : RequestId, @error_message : ErrorReason, @timestamp : MonotonicTime)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -669,10 +671,12 @@ module Cdp::Network
     include Cdp::Event
     @[JSON::Field(key: "identifier", emit_null: false)]
     property identifier : RequestId
-    @[JSON::Field(key: "ipAddress", emit_null: false)]
+    @[JSON::Field(key: "IPAddress", emit_null: false)]
     property ip_address : String
+    @[JSON::Field(key: "sourceAddress", emit_null: false)]
+    property source_address : String?
 
-    def initialize(@identifier : RequestId, @ip_address : String)
+    def initialize(@identifier : RequestId, @ip_address : String, @source_address : String?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -692,10 +696,12 @@ module Cdp::Network
     include Cdp::Event
     @[JSON::Field(key: "identifier", emit_null: false)]
     property identifier : RequestId
-    @[JSON::Field(key: "ipAddress", emit_null: false)]
+    @[JSON::Field(key: "IPAddress", emit_null: false)]
     property ip_address : String
+    @[JSON::Field(key: "sourceAddress", emit_null: false)]
+    property source_address : String?
 
-    def initialize(@identifier : RequestId, @ip_address : String)
+    def initialize(@identifier : RequestId, @ip_address : String, @source_address : String?)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -774,11 +780,11 @@ module Cdp::Network
     @[JSON::Field(key: "identifier", emit_null: false)]
     property identifier : RequestId
     @[JSON::Field(key: "errorMessage", emit_null: false)]
-    property error_message : String
+    property error_message : ErrorReason
     @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : MonotonicTime
 
-    def initialize(@identifier : RequestId, @error_message : String, @timestamp : MonotonicTime)
+    def initialize(@identifier : RequestId, @error_message : ErrorReason, @timestamp : MonotonicTime)
     end
 
     # ProtoEvent returns the protocol event name.
@@ -910,7 +916,7 @@ module Cdp::Network
     property blocked_cookies : Array(BlockedSetCookieWithReason)
     @[JSON::Field(key: "headers", emit_null: false)]
     property headers : Headers
-    @[JSON::Field(key: "resourceIpAddressSpace", emit_null: false)]
+    @[JSON::Field(key: "resourceIPAddressSpace", emit_null: false)]
     property resource_ip_address_space : IPAddressSpace
     @[JSON::Field(key: "statusCode", emit_null: false)]
     property status_code : Int64

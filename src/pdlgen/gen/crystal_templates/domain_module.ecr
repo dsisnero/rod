@@ -51,8 +51,11 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
     <%- end -%>
     <%- end -%>
 
-    def initialize(<%= command.returns.compact_map { |return_param| next if return_param.deprecated? && !return_param.always_emit?; opt = return_param.optional?; "@#{return_param.name.underscore} : #{crystal_type(return_param, d, domains)}#{"?" if opt} = #{opt ? "nil" : crystal_default(return_param, d, domains)}" }.join(", ") %>)
+    def initialize(<%= initializer_parameters(command.returns.reject { |return_param| return_param.deprecated? && !return_param.always_emit? }, d, domains) %>)
     end
+    <%- if !command.extra.empty? -%>
+    <%= command.extra %>
+    <%- end -%>
   end
 
     <%- end -%>
@@ -105,5 +108,10 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
   end
 
     <%- end -%>
+  <%- end -%>
+
+  <%- if !d.extra.empty? -%>
+
+  <%= d.extra %>
   <%- end -%>
 end

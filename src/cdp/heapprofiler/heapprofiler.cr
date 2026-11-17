@@ -149,7 +149,7 @@ module Cdp::HeapProfiler
     @[JSON::Field(key: "objectGroup", emit_null: false)]
     property object_group : String?
 
-    def initialize(@object_id : HeapSnapshotObjectId, @object_group : String?)
+    def initialize(@object_id : HeapSnapshotObjectId, @object_group : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -188,12 +188,12 @@ module Cdp::HeapProfiler
     property sampling_interval : Float64?
     @[JSON::Field(key: "stackDepth", emit_null: false)]
     property stack_depth : Float64?
-    @[JSON::Field(key: "includeObjectsCollectedByMajorGc", emit_null: false)]
+    @[JSON::Field(key: "includeObjectsCollectedByMajorGC", emit_null: false)]
     property? include_objects_collected_by_major_gc : Bool?
-    @[JSON::Field(key: "includeObjectsCollectedByMinorGc", emit_null: false)]
+    @[JSON::Field(key: "includeObjectsCollectedByMinorGC", emit_null: false)]
     property? include_objects_collected_by_minor_gc : Bool?
 
-    def initialize(@sampling_interval : Float64?, @stack_depth : Float64?, @include_objects_collected_by_major_gc : Bool?, @include_objects_collected_by_minor_gc : Bool?)
+    def initialize(@sampling_interval : Float64? = nil, @stack_depth : Float64? = nil, @include_objects_collected_by_major_gc : Bool? = nil, @include_objects_collected_by_minor_gc : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -213,7 +213,7 @@ module Cdp::HeapProfiler
     @[JSON::Field(key: "trackAllocations", emit_null: false)]
     property? track_allocations : Bool?
 
-    def initialize(@track_allocations : Bool?)
+    def initialize(@track_allocations : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -255,7 +255,7 @@ module Cdp::HeapProfiler
     @[JSON::Field(key: "exposeInternals", emit_null: false)]
     property? expose_internals : Bool?
 
-    def initialize(@report_progress : Bool?, @capture_numeric_value : Bool?, @expose_internals : Bool?)
+    def initialize(@report_progress : Bool? = nil, @capture_numeric_value : Bool? = nil, @expose_internals : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -279,7 +279,7 @@ module Cdp::HeapProfiler
     @[JSON::Field(key: "exposeInternals", emit_null: false)]
     property? expose_internals : Bool?
 
-    def initialize(@report_progress : Bool?, @capture_numeric_value : Bool?, @expose_internals : Bool?)
+    def initialize(@report_progress : Bool? = nil, @capture_numeric_value : Bool? = nil, @expose_internals : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.

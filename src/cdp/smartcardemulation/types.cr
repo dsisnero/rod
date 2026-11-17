@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 module Cdp::SmartCardEmulation
@@ -80,6 +81,9 @@ module Cdp::SmartCardEmulation
     property? mute : Bool?
     @[JSON::Field(key: "unpowered", emit_null: false)]
     property? unpowered : Bool?
+
+    def initialize(@unaware : Bool? = nil, @ignore : Bool? = nil, @changed : Bool? = nil, @unknown : Bool? = nil, @unavailable : Bool? = nil, @empty : Bool? = nil, @present : Bool? = nil, @exclusive : Bool? = nil, @inuse : Bool? = nil, @mute : Bool? = nil, @unpowered : Bool? = nil)
+    end
   end
 
   struct ProtocolSet
@@ -90,6 +94,9 @@ module Cdp::SmartCardEmulation
     property? t1 : Bool?
     @[JSON::Field(key: "raw", emit_null: false)]
     property? raw : Bool?
+
+    def initialize(@t0 : Bool? = nil, @t1 : Bool? = nil, @raw : Bool? = nil)
+    end
   end
 
   alias Protocol = String
@@ -105,6 +112,9 @@ module Cdp::SmartCardEmulation
     property current_state : ReaderStateFlags
     @[JSON::Field(key: "currentInsertionCount", emit_null: false)]
     property current_insertion_count : Int64
+
+    def initialize(@reader : String, @current_state : ReaderStateFlags, @current_insertion_count : Int64)
+    end
   end
 
   struct ReaderStateOut
@@ -117,5 +127,8 @@ module Cdp::SmartCardEmulation
     property event_count : Int64
     @[JSON::Field(key: "atr", emit_null: false)]
     property atr : String
+
+    def initialize(@reader : String, @event_state : ReaderStateFlags, @event_count : Int64, @atr : String)
+    end
   end
 end

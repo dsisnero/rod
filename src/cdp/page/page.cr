@@ -2,8 +2,8 @@ require "../cdp"
 require "json"
 require "time"
 
-require "../runtime/runtime"
 require "../network/network"
+require "../runtime/runtime"
 require "../dom/dom"
 require "../io/io"
 require "../debugger/debugger"
@@ -63,7 +63,7 @@ module Cdp::Page
     @[JSON::Field(key: "manifest", emit_null: false)]
     property manifest : WebAppManifest
 
-    def initialize(@url : String, @errors : Array(AppManifestError), @data : String?, @parsed : AppManifestParsedProperties?, @manifest : WebAppManifest)
+    def initialize(@url : String, @errors : Array(AppManifestError), @manifest : WebAppManifest, @data : String? = nil, @parsed : AppManifestParsedProperties? = nil)
     end
   end
 
@@ -84,8 +84,32 @@ module Cdp::Page
     property app_id : String?
     @[JSON::Field(key: "recommendedId", emit_null: false)]
     property recommended_id : String?
+    @[JSON::Field(key: "bundleId", emit_null: false)]
+    property bundle_id : String?
+    @[JSON::Field(key: "parentAppName", emit_null: false)]
+    property parent_app_name : String?
 
-    def initialize(@app_id : String?, @recommended_id : String?)
+    def initialize(@app_id : String? = nil, @recommended_id : String? = nil, @bundle_id : String? = nil, @parent_app_name : String? = nil)
+    end
+  end
+
+  @[Experimental]
+  struct GetSubAppsResult
+    include JSON::Serializable
+    @[JSON::Field(key: "subApps", emit_null: false)]
+    property sub_apps : Array(SubApp)
+
+    def initialize(@sub_apps : Array(SubApp))
+    end
+  end
+
+  @[Experimental]
+  struct GetSiblingSubAppsResult
+    include JSON::Serializable
+    @[JSON::Field(key: "subApps", emit_null: false)]
+    property sub_apps : Array(SubApp)
+
+    def initialize(@sub_apps : Array(SubApp))
     end
   end
 
@@ -93,9 +117,19 @@ module Cdp::Page
   struct GetAdScriptAncestryResult
     include JSON::Serializable
     @[JSON::Field(key: "adScriptAncestry", emit_null: false)]
-    property ad_script_ancestry : AdScriptAncestry?
+    property ad_script_ancestry : Cdp::Network::AdAncestry?
 
-    def initialize(@ad_script_ancestry : AdScriptAncestry?)
+    def initialize(@ad_script_ancestry : Cdp::Network::AdAncestry? = nil)
+    end
+  end
+
+  @[Experimental]
+  struct GetSpellCheckCustomDictionaryResult
+    include JSON::Serializable
+    @[JSON::Field(key: "words", emit_null: false)]
+    property words : Array(String)
+
+    def initialize(@words : Array(String))
     end
   end
 
@@ -123,7 +157,7 @@ module Cdp::Page
     @[JSON::Field(key: "cssContentSize", emit_null: false)]
     property css_content_size : Cdp::DOM::Rect?
 
-    def initialize(@layout_viewport : LayoutViewport, @visual_viewport : VisualViewport, @content_size : Cdp::DOM::Rect, @css_layout_viewport : LayoutViewport?, @css_visual_viewport : VisualViewport?, @css_content_size : Cdp::DOM::Rect?)
+    def initialize(@layout_viewport : LayoutViewport, @visual_viewport : VisualViewport, @content_size : Cdp::DOM::Rect, @css_layout_viewport : LayoutViewport? = nil, @css_visual_viewport : VisualViewport? = nil, @css_content_size : Cdp::DOM::Rect? = nil)
     end
   end
 
@@ -171,7 +205,7 @@ module Cdp::Page
     @[JSON::Field(key: "isDownload", emit_null: false)]
     property? is_download : Bool?
 
-    def initialize(@frame_id : FrameId, @loader_id : Cdp::Network::LoaderId?, @error_text : String?, @is_download : Bool?)
+    def initialize(@frame_id : FrameId, @loader_id : Cdp::Network::LoaderId? = nil, @error_text : String? = nil, @is_download : Bool? = nil)
     end
   end
 
@@ -182,7 +216,7 @@ module Cdp::Page
     @[JSON::Field(key: "stream", emit_null: false)]
     property stream : Cdp::IO::StreamHandle?
 
-    def initialize(@data : String, @stream : Cdp::IO::StreamHandle?)
+    def initialize(@data : String, @stream : Cdp::IO::StreamHandle? = nil)
     end
   end
 
@@ -217,6 +251,26 @@ module Cdp::Page
   end
 
   @[Experimental]
+  struct StartScreenRecordingResult
+    include JSON::Serializable
+    @[JSON::Field(key: "stream", emit_null: false)]
+    property stream : Cdp::IO::StreamHandle
+
+    def initialize(@stream : Cdp::IO::StreamHandle)
+    end
+  end
+
+  @[Experimental]
+  struct StopScreenRecordingResult
+    include JSON::Serializable
+    @[JSON::Field(key: "stream", emit_null: false)]
+    property stream : Cdp::IO::StreamHandle
+
+    def initialize(@stream : Cdp::IO::StreamHandle)
+    end
+  end
+
+  @[Experimental]
   struct GetAnnotatedPageContentResult
     include JSON::Serializable
     @[JSON::Field(key: "content", emit_null: false)]
@@ -234,12 +288,12 @@ module Cdp::Page
     property source : String
     @[JSON::Field(key: "worldName", emit_null: false)]
     property world_name : String?
-    @[JSON::Field(key: "includeCommandLineApi", emit_null: false)]
+    @[JSON::Field(key: "includeCommandLineAPI", emit_null: false)]
     property? include_command_line_api : Bool?
     @[JSON::Field(key: "runImmediately", emit_null: false)]
     property? run_immediately : Bool?
 
-    def initialize(@source : String, @world_name : String?, @include_command_line_api : Bool?, @run_immediately : Bool?)
+    def initialize(@source : String, @world_name : String? = nil, @include_command_line_api : Bool? = nil, @run_immediately : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -287,14 +341,7 @@ module Cdp::Page
     @[JSON::Field(key: "optimizeForSpeed", emit_null: false)]
     property? optimize_for_speed : Bool?
 
-    def initialize(
-      @format : CaptureScreenshotFormat? = nil,
-      @quality : Int64? = nil,
-      @clip : Viewport? = nil,
-      @from_surface : Bool? = nil,
-      @capture_beyond_viewport : Bool? = nil,
-      @optimize_for_speed : Bool? = nil,
-    )
+    def initialize(@format : CaptureScreenshotFormat? = nil, @quality : Int64? = nil, @clip : Viewport? = nil, @from_surface : Bool? = nil, @capture_beyond_viewport : Bool? = nil, @optimize_for_speed : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -315,7 +362,7 @@ module Cdp::Page
     @[JSON::Field(key: "format", emit_null: false)]
     property format : CaptureSnapshotFormat?
 
-    def initialize(@format : CaptureSnapshotFormat?)
+    def initialize(@format : CaptureSnapshotFormat? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -338,8 +385,10 @@ module Cdp::Page
     property world_name : String?
     @[JSON::Field(key: "grantUniveralAccess", emit_null: false)]
     property? grant_univeral_access : Bool?
+    @[JSON::Field(key: "contentSecurityPolicy", emit_null: false)]
+    property content_security_policy : String?
 
-    def initialize(@frame_id : FrameId, @world_name : String?, @grant_univeral_access : Bool?)
+    def initialize(@frame_id : FrameId, @world_name : String? = nil, @grant_univeral_access : Bool? = nil, @content_security_policy : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -377,7 +426,7 @@ module Cdp::Page
     @[JSON::Field(key: "enableFileChooserOpenedEvent", emit_null: false)]
     property? enable_file_chooser_opened_event : Bool?
 
-    def initialize(@enable_file_chooser_opened_event : Bool?)
+    def initialize(@enable_file_chooser_opened_event : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -397,7 +446,7 @@ module Cdp::Page
     @[JSON::Field(key: "manifestId", emit_null: false)]
     property manifest_id : String?
 
-    def initialize(@manifest_id : String?)
+    def initialize(@manifest_id : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -450,6 +499,44 @@ module Cdp::Page
   end
 
   @[Experimental]
+  struct GetSubApps
+    include JSON::Serializable
+    include Cdp::Request
+
+    def initialize
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Page.getSubApps"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : GetSubAppsResult
+      Cdp.call(proto_req, self, GetSubAppsResult, c)
+    end
+  end
+
+  @[Experimental]
+  struct GetSiblingSubApps
+    include JSON::Serializable
+    include Cdp::Request
+
+    def initialize
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Page.getSiblingSubApps"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : GetSiblingSubAppsResult
+      Cdp.call(proto_req, self, GetSiblingSubAppsResult, c)
+    end
+  end
+
+  @[Experimental]
   struct GetAdScriptAncestry
     include JSON::Serializable
     include Cdp::Request
@@ -467,6 +554,27 @@ module Cdp::Page
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetAdScriptAncestryResult
       Cdp.call(proto_req, self, GetAdScriptAncestryResult, c)
+    end
+  end
+
+  @[Experimental]
+  struct GetSpellCheckCustomDictionary
+    include JSON::Serializable
+    include Cdp::Request
+    @[JSON::Field(key: "frameId", emit_null: false)]
+    property frame_id : FrameId
+
+    def initialize(@frame_id : FrameId)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Page.getSpellCheckCustomDictionary"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : GetSpellCheckCustomDictionaryResult
+      Cdp.call(proto_req, self, GetSpellCheckCustomDictionaryResult, c)
     end
   end
 
@@ -592,7 +700,7 @@ module Cdp::Page
     @[JSON::Field(key: "promptText", emit_null: false)]
     property prompt_text : String?
 
-    def initialize(@accept : Bool, @prompt_text : String?)
+    def initialize(@accept : Bool, @prompt_text : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -620,7 +728,7 @@ module Cdp::Page
     @[JSON::Field(key: "referrerPolicy", emit_null: false)]
     property referrer_policy : ReferrerPolicy?
 
-    def initialize(@url : String, @referrer : String?, @transition_type : TransitionType?, @frame_id : FrameId?, @referrer_policy : ReferrerPolicy?)
+    def initialize(@url : String, @referrer : String? = nil, @transition_type : TransitionType? = nil, @frame_id : FrameId? = nil, @referrer_policy : ReferrerPolicy? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -683,34 +791,16 @@ module Cdp::Page
     property header_template : String?
     @[JSON::Field(key: "footerTemplate", emit_null: false)]
     property footer_template : String?
-    @[JSON::Field(key: "preferCssPageSize", emit_null: false)]
+    @[JSON::Field(key: "preferCSSPageSize", emit_null: false)]
     property? prefer_css_page_size : Bool?
     @[JSON::Field(key: "transferMode", emit_null: false)]
     property transfer_mode : PrintToPDFTransferMode?
-    @[JSON::Field(key: "generateTaggedPdf", emit_null: false)]
+    @[JSON::Field(key: "generateTaggedPDF", emit_null: false)]
     property? generate_tagged_pdf : Bool?
     @[JSON::Field(key: "generateDocumentOutline", emit_null: false)]
     property? generate_document_outline : Bool?
 
-    def initialize(
-      @landscape : Bool? = nil,
-      @display_header_footer : Bool? = nil,
-      @print_background : Bool? = nil,
-      @scale : Float64? = nil,
-      @paper_width : Float64? = nil,
-      @paper_height : Float64? = nil,
-      @margin_top : Float64? = nil,
-      @margin_bottom : Float64? = nil,
-      @margin_left : Float64? = nil,
-      @margin_right : Float64? = nil,
-      @page_ranges : String? = nil,
-      @header_template : String? = nil,
-      @footer_template : String? = nil,
-      @prefer_css_page_size : Bool? = nil,
-      @transfer_mode : PrintToPDFTransferMode? = nil,
-      @generate_tagged_pdf : Bool? = nil,
-      @generate_document_outline : Bool? = nil,
-    )
+    def initialize(@landscape : Bool? = nil, @display_header_footer : Bool? = nil, @print_background : Bool? = nil, @scale : Float64? = nil, @paper_width : Float64? = nil, @paper_height : Float64? = nil, @margin_top : Float64? = nil, @margin_bottom : Float64? = nil, @margin_left : Float64? = nil, @margin_right : Float64? = nil, @page_ranges : String? = nil, @header_template : String? = nil, @footer_template : String? = nil, @prefer_css_page_size : Bool? = nil, @transfer_mode : PrintToPDFTransferMode? = nil, @generate_tagged_pdf : Bool? = nil, @generate_document_outline : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -734,7 +824,7 @@ module Cdp::Page
     @[JSON::Field(key: "loaderId", emit_null: false)]
     property loader_id : Cdp::Network::LoaderId?
 
-    def initialize(@ignore_cache : Bool?, @script_to_evaluate_on_load : String?, @loader_id : Cdp::Network::LoaderId?)
+    def initialize(@ignore_cache : Bool? = nil, @script_to_evaluate_on_load : String? = nil, @loader_id : Cdp::Network::LoaderId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -804,7 +894,7 @@ module Cdp::Page
     @[JSON::Field(key: "isRegex", emit_null: false)]
     property? is_regex : Bool?
 
-    def initialize(@frame_id : FrameId, @url : String, @query : String, @case_sensitive : Bool?, @is_regex : Bool?)
+    def initialize(@frame_id : FrameId, @url : String, @query : String, @case_sensitive : Bool? = nil, @is_regex : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -910,7 +1000,7 @@ module Cdp::Page
     @[JSON::Field(key: "forScripts", emit_null: false)]
     property for_scripts : Array(ScriptFontFamilies)?
 
-    def initialize(@font_families : FontFamilies, @for_scripts : Array(ScriptFontFamilies)?)
+    def initialize(@font_families : FontFamilies, @for_scripts : Array(ScriptFontFamilies)? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -977,7 +1067,7 @@ module Cdp::Page
     @[JSON::Field(key: "downloadPath", emit_null: false)]
     property download_path : String?
 
-    def initialize(@behavior : SetDownloadBehaviorBehavior, @download_path : String?)
+    def initialize(@behavior : SetDownloadBehaviorBehavior, @download_path : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -1025,8 +1115,12 @@ module Cdp::Page
     property max_height : Int64?
     @[JSON::Field(key: "everyNthFrame", emit_null: false)]
     property every_nth_frame : Int64?
+    @[JSON::Field(key: "maxFramesInFlight", emit_null: false)]
+    property max_frames_in_flight : Int64?
+    @[JSON::Field(key: "sendLastFrame", emit_null: false)]
+    property? send_last_frame : Bool?
 
-    def initialize(@format : ScreencastFormat?, @quality : Int64?, @max_width : Int64?, @max_height : Int64?, @every_nth_frame : Int64?)
+    def initialize(@format : ScreencastFormat? = nil, @quality : Int64? = nil, @max_width : Int64? = nil, @max_height : Int64? = nil, @every_nth_frame : Int64? = nil, @max_frames_in_flight : Int64? = nil, @send_last_frame : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -1037,6 +1131,54 @@ module Cdp::Page
     # Call sends the request.
     def call(c : Cdp::Client) : Nil
       Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
+  struct StartScreenRecording
+    include JSON::Serializable
+    include Cdp::Request
+    @[JSON::Field(key: "audio", emit_null: false)]
+    property? audio : Bool?
+    @[JSON::Field(key: "maxWidth", emit_null: false)]
+    property max_width : Int64?
+    @[JSON::Field(key: "maxHeight", emit_null: false)]
+    property max_height : Int64?
+    @[JSON::Field(key: "frameRate", emit_null: false)]
+    property frame_rate : Int64?
+    @[JSON::Field(key: "captureArea", emit_null: false)]
+    property capture_area : StartScreenRecordingCaptureArea?
+
+    def initialize(@audio : Bool? = nil, @max_width : Int64? = nil, @max_height : Int64? = nil, @frame_rate : Int64? = nil, @capture_area : StartScreenRecordingCaptureArea? = nil)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Page.startScreenRecording"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : StartScreenRecordingResult
+      Cdp.call(proto_req, self, StartScreenRecordingResult, c)
+    end
+  end
+
+  @[Experimental]
+  struct StopScreenRecording
+    include JSON::Serializable
+    include Cdp::Request
+
+    def initialize
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Page.stopScreenRecording"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : StopScreenRecordingResult
+      Cdp.call(proto_req, self, StopScreenRecordingResult, c)
     end
   end
 
@@ -1249,7 +1391,7 @@ module Cdp::Page
     @[JSON::Field(key: "group", emit_null: false)]
     property group : String?
 
-    def initialize(@message : String, @group : String?)
+    def initialize(@message : String, @group : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -1290,7 +1432,7 @@ module Cdp::Page
     @[JSON::Field(key: "cancel", emit_null: false)]
     property? cancel : Bool?
 
-    def initialize(@enabled : Bool, @cancel : Bool?)
+    def initialize(@enabled : Bool, @cancel : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -1332,7 +1474,7 @@ module Cdp::Page
     @[JSON::Field(key: "includeActionableInformation", emit_null: false)]
     property? include_actionable_information : Bool?
 
-    def initialize(@include_actionable_information : Bool?)
+    def initialize(@include_actionable_information : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -1343,6 +1485,27 @@ module Cdp::Page
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetAnnotatedPageContentResult
       Cdp.call(proto_req, self, GetAnnotatedPageContentResult, c)
+    end
+  end
+
+  @[Experimental]
+  struct SetInputVisualization
+    include JSON::Serializable
+    include Cdp::Request
+    @[JSON::Field(key: "clicks", emit_null: false)]
+    property? clicks : Bool?
+
+    def initialize(@clicks : Bool? = nil)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Page.setInputVisualization"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
     end
   end
 end

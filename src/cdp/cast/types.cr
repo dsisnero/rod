@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 module Cdp::Cast
@@ -11,5 +12,8 @@ module Cdp::Cast
     property id : String
     @[JSON::Field(key: "session", emit_null: false)]
     property session : String?
+
+    def initialize(@name : String, @id : String, @session : String? = nil)
+    end
   end
 end

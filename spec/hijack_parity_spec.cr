@@ -1,3 +1,4 @@
+require "base64"
 require "spec"
 require "../src/rod"
 
@@ -7,12 +8,15 @@ private def make_hijack_request(
   body : String? = %({"k":"v"}),
   resource_type : Cdp::Network::ResourceType = Cdp::Network::ResourceTypeXHR,
 ) : Rod::HijackRequest
+  # Chrome replaced the plain `postData` field with base64 `postDataEntries`.
+  post_data_entries = body.nil? ? nil : [{"bytes" => Base64.strict_encode(body)}]
+
   net_req = Cdp::Network::Request.from_json(
     {
       "url"             => url,
       "method"          => method,
       "headers"         => {"Origin" => "https://example.com", "Content-Type" => "application/json"},
-      "postData"        => body,
+      "postDataEntries" => post_data_entries,
       "initialPriority" => Cdp::Network::ResourcePriorityHigh,
       "referrerPolicy"  => Cdp::Network::ReferrerPolicyStrictOriginWhenCrossOrigin,
     }.to_json

@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../target/target"
@@ -33,13 +34,7 @@ module Cdp::Browser
     @[JSON::Field(key: "windowState", emit_null: false)]
     property window_state : WindowState?
 
-    def initialize(
-      @left : Int64? = nil,
-      @top : Int64? = nil,
-      @width : Int64? = nil,
-      @height : Int64? = nil,
-      @window_state : WindowState? = nil,
-    )
+    def initialize(@left : Int64? = nil, @top : Int64? = nil, @width : Int64? = nil, @height : Int64? = nil, @window_state : WindowState? = nil)
     end
   end
 
@@ -76,7 +71,6 @@ module Cdp::Browser
   PermissionTypeSmartCard                = "smartCard"
   PermissionTypeSpeakerSelection         = "speakerSelection"
   PermissionTypeStorageAccess            = "storageAccess"
-  PermissionTypeTopLevelStorageAccess    = "topLevelStorageAccess"
   PermissionTypeVideoCapture             = "videoCapture"
   PermissionTypeVr                       = "vr"
   PermissionTypeWakeLockScreen           = "wakeLockScreen"
@@ -106,6 +100,9 @@ module Cdp::Browser
     property? allow_without_gesture : Bool?
     @[JSON::Field(key: "panTiltZoom", emit_null: false)]
     property? pan_tilt_zoom : Bool?
+
+    def initialize(@name : String, @sysex : Bool? = nil, @user_visible_only : Bool? = nil, @allow_without_sanitization : Bool? = nil, @allow_without_gesture : Bool? = nil, @pan_tilt_zoom : Bool? = nil)
+    end
   end
 
   @[Experimental]
@@ -123,6 +120,9 @@ module Cdp::Browser
     property high : Int64
     @[JSON::Field(key: "count", emit_null: false)]
     property count : Int64
+
+    def initialize(@low : Int64, @high : Int64, @count : Int64)
+    end
   end
 
   @[Experimental]
@@ -136,12 +136,10 @@ module Cdp::Browser
     property count : Int64
     @[JSON::Field(key: "buckets", emit_null: false)]
     property buckets : Array(Bucket)
-  end
 
-  @[Experimental]
-  alias PrivacySandboxAPI = String
-  PrivacySandboxAPIBiddingAndAuctionServices = "BiddingAndAuctionServices"
-  PrivacySandboxAPITrustedKeyValue           = "TrustedKeyValue"
+    def initialize(@name : String, @sum : Int64, @count : Int64, @buckets : Array(Bucket))
+    end
+  end
 
   alias DownloadProgressState = String
   DownloadProgressStateInProgress = "inProgress"

@@ -3,6 +3,7 @@ require "json"
 require "time"
 
 require "../page/page"
+require "../network/network"
 require "../runtime/runtime"
 
 require "./types"
@@ -137,13 +138,13 @@ module Cdp::DOM
     @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : NodeId?
 
-    def initialize(@backend_node_id : BackendNodeId, @frame_id : Cdp::Page::FrameId, @node_id : NodeId?)
+    def initialize(@backend_node_id : BackendNodeId, @frame_id : Cdp::Page::FrameId, @node_id : NodeId? = nil)
     end
   end
 
   struct GetOuterHTMLResult
     include JSON::Serializable
-    @[JSON::Field(key: "outerHtml", emit_null: false)]
+    @[JSON::Field(key: "outerHTML", emit_null: false)]
     property outer_html : String
 
     def initialize(@outer_html : String)
@@ -273,7 +274,7 @@ module Cdp::DOM
     @[JSON::Field(key: "creation", emit_null: false)]
     property creation : Cdp::Runtime::StackTrace?
 
-    def initialize(@creation : Cdp::Runtime::StackTrace?)
+    def initialize(@creation : Cdp::Runtime::StackTrace? = nil)
     end
   end
 
@@ -314,7 +315,7 @@ module Cdp::DOM
     @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : NodeId?
 
-    def initialize(@backend_node_id : BackendNodeId, @node_id : NodeId?)
+    def initialize(@backend_node_id : BackendNodeId, @node_id : NodeId? = nil)
     end
   end
 
@@ -324,7 +325,7 @@ module Cdp::DOM
     @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : NodeId?
 
-    def initialize(@node_id : NodeId?)
+    def initialize(@node_id : NodeId? = nil)
     end
   end
 
@@ -355,6 +356,16 @@ module Cdp::DOM
     property node_ids : Array(NodeId)
 
     def initialize(@node_ids : Array(NodeId))
+    end
+  end
+
+  @[Experimental]
+  struct GetImplicitAnchorCandidatesResult
+    include JSON::Serializable
+    @[JSON::Field(key: "backendNodeIds", emit_null: false)]
+    property backend_node_ids : Array(BackendNodeId)
+
+    def initialize(@backend_node_ids : Array(BackendNodeId))
     end
   end
 
@@ -391,7 +402,7 @@ module Cdp::DOM
     @[JSON::Field(key: "insertBeforeNodeId", emit_null: false)]
     property insert_before_node_id : NodeId?
 
-    def initialize(@node_id : NodeId, @target_node_id : NodeId, @insert_before_node_id : NodeId?)
+    def initialize(@node_id : NodeId, @target_node_id : NodeId, @insert_before_node_id : NodeId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -419,7 +430,7 @@ module Cdp::DOM
     @[JSON::Field(key: "pierce", emit_null: false)]
     property? pierce : Bool?
 
-    def initialize(@node_id : NodeId?, @backend_node_id : BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?, @depth : Int64?, @pierce : Bool?)
+    def initialize(@node_id : NodeId? = nil, @backend_node_id : BackendNodeId? = nil, @object_id : Cdp::Runtime::RemoteObjectId? = nil, @depth : Int64? = nil, @pierce : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -445,7 +456,7 @@ module Cdp::DOM
     @[JSON::Field(key: "rect", emit_null: false)]
     property rect : Rect?
 
-    def initialize(@node_id : NodeId?, @backend_node_id : BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?, @rect : Rect?)
+    def initialize(@node_id : NodeId? = nil, @backend_node_id : BackendNodeId? = nil, @object_id : Cdp::Runtime::RemoteObjectId? = nil, @rect : Rect? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -504,7 +515,7 @@ module Cdp::DOM
     @[JSON::Field(key: "includeWhitespace", emit_null: false)]
     property include_whitespace : EnableIncludeWhitespace?
 
-    def initialize(@include_whitespace : EnableIncludeWhitespace?)
+    def initialize(@include_whitespace : EnableIncludeWhitespace? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -528,7 +539,7 @@ module Cdp::DOM
     @[JSON::Field(key: "objectId", emit_null: false)]
     property object_id : Cdp::Runtime::RemoteObjectId?
 
-    def initialize(@node_id : NodeId?, @backend_node_id : BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?)
+    def initialize(@node_id : NodeId? = nil, @backend_node_id : BackendNodeId? = nil, @object_id : Cdp::Runtime::RemoteObjectId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -572,7 +583,7 @@ module Cdp::DOM
     @[JSON::Field(key: "objectId", emit_null: false)]
     property object_id : Cdp::Runtime::RemoteObjectId?
 
-    def initialize(@node_id : NodeId?, @backend_node_id : BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?)
+    def initialize(@node_id : NodeId? = nil, @backend_node_id : BackendNodeId? = nil, @object_id : Cdp::Runtime::RemoteObjectId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -597,7 +608,7 @@ module Cdp::DOM
     @[JSON::Field(key: "objectId", emit_null: false)]
     property object_id : Cdp::Runtime::RemoteObjectId?
 
-    def initialize(@node_id : NodeId?, @backend_node_id : BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?)
+    def initialize(@node_id : NodeId? = nil, @backend_node_id : BackendNodeId? = nil, @object_id : Cdp::Runtime::RemoteObjectId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -619,7 +630,7 @@ module Cdp::DOM
     @[JSON::Field(key: "pierce", emit_null: false)]
     property? pierce : Bool?
 
-    def initialize(@depth : Int64?, @pierce : Bool?)
+    def initialize(@depth : Int64? = nil, @pierce : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -644,7 +655,7 @@ module Cdp::DOM
     @[JSON::Field(key: "pierce", emit_null: false)]
     property? pierce : Bool?
 
-    def initialize(@node_id : NodeId, @computed_styles : Array(CSSComputedStyleProperty), @pierce : Bool?)
+    def initialize(@node_id : NodeId, @computed_styles : Array(CSSComputedStyleProperty), @pierce : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -665,12 +676,12 @@ module Cdp::DOM
     property x : Int64
     @[JSON::Field(key: "y", emit_null: false)]
     property y : Int64
-    @[JSON::Field(key: "includeUserAgentShadowDom", emit_null: false)]
+    @[JSON::Field(key: "includeUserAgentShadowDOM", emit_null: false)]
     property? include_user_agent_shadow_dom : Bool?
     @[JSON::Field(key: "ignorePointerEventsNone", emit_null: false)]
     property? ignore_pointer_events_none : Bool?
 
-    def initialize(@x : Int64, @y : Int64, @include_user_agent_shadow_dom : Bool?, @ignore_pointer_events_none : Bool?)
+    def initialize(@x : Int64, @y : Int64, @include_user_agent_shadow_dom : Bool? = nil, @ignore_pointer_events_none : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -693,10 +704,10 @@ module Cdp::DOM
     property backend_node_id : BackendNodeId?
     @[JSON::Field(key: "objectId", emit_null: false)]
     property object_id : Cdp::Runtime::RemoteObjectId?
-    @[JSON::Field(key: "includeShadowDom", emit_null: false)]
+    @[JSON::Field(key: "includeShadowDOM", emit_null: false)]
     property? include_shadow_dom : Bool?
 
-    def initialize(@node_id : NodeId?, @backend_node_id : BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?, @include_shadow_dom : Bool?)
+    def initialize(@node_id : NodeId? = nil, @backend_node_id : BackendNodeId? = nil, @object_id : Cdp::Runtime::RemoteObjectId? = nil, @include_shadow_dom : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -785,7 +796,7 @@ module Cdp::DOM
     @[JSON::Field(key: "insertBeforeNodeId", emit_null: false)]
     property insert_before_node_id : NodeId?
 
-    def initialize(@node_id : NodeId, @target_node_id : NodeId, @insert_before_node_id : NodeId?)
+    def initialize(@node_id : NodeId, @target_node_id : NodeId, @insert_before_node_id : NodeId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -805,10 +816,10 @@ module Cdp::DOM
     include Cdp::Request
     @[JSON::Field(key: "query", emit_null: false)]
     property query : String
-    @[JSON::Field(key: "includeUserAgentShadowDom", emit_null: false)]
+    @[JSON::Field(key: "includeUserAgentShadowDOM", emit_null: false)]
     property? include_user_agent_shadow_dom : Bool?
 
-    def initialize(@query : String, @include_user_agent_shadow_dom : Bool?)
+    def initialize(@query : String, @include_user_agent_shadow_dom : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -1021,7 +1032,7 @@ module Cdp::DOM
     @[JSON::Field(key: "pierce", emit_null: false)]
     property? pierce : Bool?
 
-    def initialize(@node_id : NodeId, @depth : Int64?, @pierce : Bool?)
+    def initialize(@node_id : NodeId, @depth : Int64? = nil, @pierce : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -1067,7 +1078,7 @@ module Cdp::DOM
     @[JSON::Field(key: "executionContextId", emit_null: false)]
     property execution_context_id : Cdp::Runtime::ExecutionContextId?
 
-    def initialize(@node_id : NodeId?, @backend_node_id : BackendNodeId?, @object_group : String?, @execution_context_id : Cdp::Runtime::ExecutionContextId?)
+    def initialize(@node_id : NodeId? = nil, @backend_node_id : BackendNodeId? = nil, @object_group : String? = nil, @execution_context_id : Cdp::Runtime::ExecutionContextId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -1115,7 +1126,7 @@ module Cdp::DOM
     @[JSON::Field(key: "name", emit_null: false)]
     property name : String?
 
-    def initialize(@node_id : NodeId, @text : String, @name : String?)
+    def initialize(@node_id : NodeId, @text : String, @name : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -1141,7 +1152,7 @@ module Cdp::DOM
     @[JSON::Field(key: "objectId", emit_null: false)]
     property object_id : Cdp::Runtime::RemoteObjectId?
 
-    def initialize(@files : Array(String), @node_id : NodeId?, @backend_node_id : BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?)
+    def initialize(@files : Array(String), @node_id : NodeId? = nil, @backend_node_id : BackendNodeId? = nil, @object_id : Cdp::Runtime::RemoteObjectId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -1307,7 +1318,7 @@ module Cdp::DOM
     include Cdp::Request
     @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : NodeId
-    @[JSON::Field(key: "outerHtml", emit_null: false)]
+    @[JSON::Field(key: "outerHTML", emit_null: false)]
     property outer_html : String
 
     def initialize(@node_id : NodeId, @outer_html : String)
@@ -1381,7 +1392,7 @@ module Cdp::DOM
     @[JSON::Field(key: "queriesAnchored", emit_null: false)]
     property? queries_anchored : Bool?
 
-    def initialize(@node_id : NodeId, @container_name : String?, @physical_axes : PhysicalAxes?, @logical_axes : LogicalAxes?, @queries_scroll_state : Bool?, @queries_anchored : Bool?)
+    def initialize(@node_id : NodeId, @container_name : String? = nil, @physical_axes : PhysicalAxes? = nil, @logical_axes : LogicalAxes? = nil, @queries_scroll_state : Bool? = nil, @queries_anchored : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -1425,7 +1436,7 @@ module Cdp::DOM
     @[JSON::Field(key: "anchorSpecifier", emit_null: false)]
     property anchor_specifier : String?
 
-    def initialize(@node_id : NodeId, @anchor_specifier : String?)
+    def initialize(@node_id : NodeId, @anchor_specifier : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -1447,8 +1458,10 @@ module Cdp::DOM
     property node_id : NodeId
     @[JSON::Field(key: "enable", emit_null: false)]
     property? enable : Bool
+    @[JSON::Field(key: "invokerNodeId", emit_null: false)]
+    property invoker_node_id : BackendNodeId?
 
-    def initialize(@node_id : NodeId, @enable : Bool)
+    def initialize(@node_id : NodeId, @enable : Bool, @invoker_node_id : BackendNodeId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -1461,9 +1474,101 @@ module Cdp::DOM
       Cdp.call(proto_req, self, ForceShowPopoverResult, c)
     end
   end
-end
 
-module Cdp::DOM
+  @[Experimental]
+  struct GetImplicitAnchorCandidates
+    include JSON::Serializable
+    include Cdp::Request
+    @[JSON::Field(key: "nodeId", emit_null: false)]
+    property node_id : NodeId
+
+    def initialize(@node_id : NodeId)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "DOM.getImplicitAnchorCandidates"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : GetImplicitAnchorCandidatesResult
+      Cdp.call(proto_req, self, GetImplicitAnchorCandidatesResult, c)
+    end
+  end
+
+  @[Experimental]
+  struct ForceShowInterest
+    include JSON::Serializable
+    include Cdp::Request
+    @[JSON::Field(key: "nodeId", emit_null: false)]
+    property node_id : NodeId
+    @[JSON::Field(key: "enable", emit_null: false)]
+    property? enable : Bool
+
+    def initialize(@node_id : NodeId, @enable : Bool)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "DOM.forceShowInterest"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
+  struct SetTextMarker
+    include JSON::Serializable
+    include Cdp::Request
+    @[JSON::Field(key: "nodeId", emit_null: false)]
+    property node_id : NodeId?
+    @[JSON::Field(key: "backendNodeId", emit_null: false)]
+    property backend_node_id : BackendNodeId?
+    @[JSON::Field(key: "objectId", emit_null: false)]
+    property object_id : Cdp::Runtime::RemoteObjectId?
+    @[JSON::Field(key: "type", emit_null: false)]
+    property type : SetTextMarkerType
+    @[JSON::Field(key: "start", emit_null: false)]
+    property start : Int64
+    @[JSON::Field(key: "end", emit_null: false)]
+    property end : Int64
+
+    def initialize(@type : SetTextMarkerType, @start : Int64, @end : Int64, @node_id : NodeId? = nil, @backend_node_id : BackendNodeId? = nil, @object_id : Cdp::Runtime::RemoteObjectId? = nil)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "DOM.setTextMarker"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
+  struct ClearTextMarkers
+    include JSON::Serializable
+    include Cdp::Request
+
+    def initialize
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "DOM.clearTextMarkers"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
   def self.quad_to_floats(quad : Quad) : Array(Float64)
     quad.as_a.map(&.as_f)
   end

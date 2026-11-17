@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../security/security"
@@ -33,8 +34,6 @@ module Cdp::Network
   alias LoaderId = String
 
   alias RequestId = String
-
-  alias InterceptionId = String
 
   alias ErrorReason = String
   ErrorReasonFailed               = "Failed"
@@ -130,6 +129,9 @@ module Cdp::Network
     property receive_headers_start : Float64
     @[JSON::Field(key: "receiveHeadersEnd", emit_null: false)]
     property receive_headers_end : Float64
+
+    def initialize(@request_time : Float64, @proxy_start : Float64, @proxy_end : Float64, @dns_start : Float64, @dns_end : Float64, @connect_start : Float64, @connect_end : Float64, @ssl_start : Float64, @ssl_end : Float64, @worker_start : Float64, @worker_ready : Float64, @worker_fetch_start : Float64, @worker_respond_with_settled : Float64, @send_start : Float64, @send_end : Float64, @push_start : Float64, @push_end : Float64, @receive_headers_start : Float64, @receive_headers_end : Float64, @worker_router_evaluation_start : Float64? = nil, @worker_cache_lookup_start : Float64? = nil)
+    end
   end
 
   alias ResourcePriority = String
@@ -151,6 +153,9 @@ module Cdp::Network
     include JSON::Serializable
     @[JSON::Field(key: "bytes", emit_null: false)]
     property bytes : String?
+
+    def initialize(@bytes : String? = nil)
+    end
   end
 
   struct Request
@@ -165,8 +170,6 @@ module Cdp::Network
     property headers : Headers
     @[JSON::Field(key: "hasPostData", emit_null: false)]
     property? has_post_data : Bool?
-    @[JSON::Field(key: "postData", emit_null: false)]
-    property post_data : String?
     @[JSON::Field(key: "postDataEntries", emit_null: false)]
     property post_data_entries : Array(PostDataEntry)?
     @[JSON::Field(key: "mixedContentType", emit_null: false)]
@@ -183,6 +186,26 @@ module Cdp::Network
     property? is_same_site : Bool?
     @[JSON::Field(key: "isAdRelated", emit_null: false)]
     property? is_ad_related : Bool?
+
+    def initialize(@url : String, @method : String, @headers : Headers, @initial_priority : ResourcePriority, @referrer_policy : ReferrerPolicy, @url_fragment : String? = nil, @has_post_data : Bool? = nil, @post_data_entries : Array(PostDataEntry)? = nil, @mixed_content_type : Cdp::Security::MixedContentType? = nil, @is_link_preload : Bool? = nil, @trust_token_params : TrustTokenParams? = nil, @is_same_site : Bool? = nil, @is_ad_related : Bool? = nil)
+    end
+
+    # PostData returns the request body decoded from postDataEntries.
+    def post_data : String?
+      entries = @post_data_entries
+      return nil if entries.nil?
+
+      body = String.build do |io|
+        entries.each do |entry|
+          bytes = entry.bytes
+          next if bytes.nil?
+
+          io << Base64.decode_string(bytes)
+        end
+      end
+
+      body.empty? ? nil : body
+    end
   end
 
   struct SignedCertificateTimestamp
@@ -203,6 +226,9 @@ module Cdp::Network
     property signature_algorithm : String
     @[JSON::Field(key: "signatureData", emit_null: false)]
     property signature_data : String
+
+    def initialize(@status : String, @origin : String, @log_description : String, @log_id : String, @timestamp : Float64, @hash_algorithm : String, @signature_algorithm : String, @signature_data : String)
+    end
   end
 
   struct SecurityDetails
@@ -237,6 +263,9 @@ module Cdp::Network
     property server_signature_algorithm : Int64?
     @[JSON::Field(key: "encryptedClientHello", emit_null: false)]
     property? encrypted_client_hello : Bool
+
+    def initialize(@protocol : String, @key_exchange : String, @cipher : String, @certificate_id : Cdp::Security::CertificateId, @subject_name : String, @san_list : Array(String), @issuer : String, @valid_from : TimeSinceEpoch, @valid_to : TimeSinceEpoch, @signed_certificate_timestamp_list : Array(SignedCertificateTimestamp), @certificate_transparency_compliance : CertificateTransparencyCompliance, @encrypted_client_hello : Bool, @key_exchange_group : String? = nil, @mac : String? = nil, @server_signature_algorithm : Int64? = nil)
+    end
   end
 
   alias CertificateTransparencyCompliance = String
@@ -298,6 +327,9 @@ module Cdp::Network
     property cors_error : CorsError
     @[JSON::Field(key: "failedParameter", emit_null: false)]
     property failed_parameter : String
+
+    def initialize(@cors_error : CorsError, @failed_parameter : String)
+    end
   end
 
   alias ServiceWorkerResponseSource = String
@@ -315,6 +347,9 @@ module Cdp::Network
     property refresh_policy : TrustTokenParamsRefreshPolicy
     @[JSON::Field(key: "issuers", emit_null: false)]
     property issuers : Array(String)?
+
+    def initialize(@operation : TrustTokenOperationType, @refresh_policy : TrustTokenParamsRefreshPolicy, @issuers : Array(String)? = nil)
+    end
   end
 
   @[Experimental]
@@ -350,6 +385,9 @@ module Cdp::Network
     property matched_source_type : ServiceWorkerRouterSource?
     @[JSON::Field(key: "actualSourceType", emit_null: false)]
     property actual_source_type : ServiceWorkerRouterSource?
+
+    def initialize(@rule_id_matched : Int64? = nil, @matched_source_type : ServiceWorkerRouterSource? = nil, @actual_source_type : ServiceWorkerRouterSource? = nil)
+    end
   end
 
   struct Response
@@ -372,7 +410,7 @@ module Cdp::Network
     property? connection_reused : Bool
     @[JSON::Field(key: "connectionId", emit_null: false)]
     property connection_id : Float64
-    @[JSON::Field(key: "remoteIpAddress", emit_null: false)]
+    @[JSON::Field(key: "remoteIPAddress", emit_null: false)]
     property remote_ip_address : String?
     @[JSON::Field(key: "remotePort", emit_null: false)]
     property remote_port : Int64?
@@ -404,12 +442,18 @@ module Cdp::Network
     property security_state : Cdp::Security::SecurityState
     @[JSON::Field(key: "securityDetails", emit_null: false)]
     property security_details : SecurityDetails?
+
+    def initialize(@url : String, @status : Int64, @status_text : String, @headers : Headers, @mime_type : String, @charset : String, @connection_reused : Bool, @connection_id : Float64, @encoded_data_length : Float64, @security_state : Cdp::Security::SecurityState, @request_headers : Headers? = nil, @remote_ip_address : String? = nil, @remote_port : Int64? = nil, @from_disk_cache : Bool? = nil, @from_service_worker : Bool? = nil, @from_prefetch_cache : Bool? = nil, @from_early_hints : Bool? = nil, @service_worker_router_info : ServiceWorkerRouterInfo? = nil, @timing : ResourceTiming? = nil, @service_worker_response_source : ServiceWorkerResponseSource? = nil, @response_time : TimeSinceEpoch? = nil, @cache_storage_cache_name : String? = nil, @protocol : String? = nil, @alternate_protocol_usage : AlternateProtocolUsage? = nil, @security_details : SecurityDetails? = nil)
+    end
   end
 
   struct WebSocketRequest
     include JSON::Serializable
     @[JSON::Field(key: "headers", emit_null: false)]
     property headers : Headers
+
+    def initialize(@headers : Headers)
+    end
   end
 
   struct WebSocketResponse
@@ -426,6 +470,9 @@ module Cdp::Network
     property request_headers : Headers?
     @[JSON::Field(key: "requestHeadersText", emit_null: false)]
     property request_headers_text : String?
+
+    def initialize(@status : Int64, @status_text : String, @headers : Headers, @headers_text : String? = nil, @request_headers : Headers? = nil, @request_headers_text : String? = nil)
+    end
   end
 
   struct WebSocketFrame
@@ -436,6 +483,9 @@ module Cdp::Network
     property? mask : Bool
     @[JSON::Field(key: "payloadData", emit_null: false)]
     property payload_data : String
+
+    def initialize(@opcode : Float64, @mask : Bool, @payload_data : String)
+    end
   end
 
   struct CachedResource
@@ -448,6 +498,9 @@ module Cdp::Network
     property response : Response?
     @[JSON::Field(key: "bodySize", emit_null: false)]
     property body_size : Float64
+
+    def initialize(@url : String, @type : ResourceType, @body_size : Float64, @response : Response? = nil)
+    end
   end
 
   struct Initiator
@@ -464,6 +517,9 @@ module Cdp::Network
     property column_number : Float64?
     @[JSON::Field(key: "requestId", emit_null: false)]
     property request_id : RequestId?
+
+    def initialize(@type : InitiatorType, @stack : Cdp::Runtime::StackTrace? = nil, @url : String? = nil, @line_number : Float64? = nil, @column_number : Float64? = nil, @request_id : RequestId? = nil)
+    end
   end
 
   @[Experimental]
@@ -473,6 +529,9 @@ module Cdp::Network
     property top_level_site : String
     @[JSON::Field(key: "hasCrossSiteAncestor", emit_null: false)]
     property? has_cross_site_ancestor : Bool
+
+    def initialize(@top_level_site : String, @has_cross_site_ancestor : Bool)
+    end
   end
 
   struct Cookie
@@ -507,6 +566,9 @@ module Cdp::Network
     property partition_key : CookiePartitionKey?
     @[JSON::Field(key: "partitionKeyOpaque", emit_null: false)]
     property? partition_key_opaque : Bool?
+
+    def initialize(@name : String, @value : String, @domain : String, @path : String, @expires : Float64, @size : Int64, @http_only : Bool, @secure : Bool, @session : Bool, @priority : CookiePriority, @source_scheme : CookieSourceScheme, @source_port : Int64, @same_site : CookieSameSite? = nil, @partition_key : CookiePartitionKey? = nil, @partition_key_opaque : Bool? = nil)
+    end
   end
 
   @[Experimental]
@@ -518,7 +580,6 @@ module Cdp::Network
   SetCookieBlockedReasonSameSiteNoneInsecure                     = "SameSiteNoneInsecure"
   SetCookieBlockedReasonUserPreferences                          = "UserPreferences"
   SetCookieBlockedReasonThirdPartyPhaseout                       = "ThirdPartyPhaseout"
-  SetCookieBlockedReasonThirdPartyBlockedInFirstPartySet         = "ThirdPartyBlockedInFirstPartySet"
   SetCookieBlockedReasonSyntaxError                              = "SyntaxError"
   SetCookieBlockedReasonSchemeNotSupported                       = "SchemeNotSupported"
   SetCookieBlockedReasonOverwriteSecure                          = "OverwriteSecure"
@@ -543,7 +604,6 @@ module Cdp::Network
   CookieBlockedReasonSameSiteNoneInsecure                     = "SameSiteNoneInsecure"
   CookieBlockedReasonUserPreferences                          = "UserPreferences"
   CookieBlockedReasonThirdPartyPhaseout                       = "ThirdPartyPhaseout"
-  CookieBlockedReasonThirdPartyBlockedInFirstPartySet         = "ThirdPartyBlockedInFirstPartySet"
   CookieBlockedReasonUnknownError                             = "UnknownError"
   CookieBlockedReasonSchemefulSameSiteStrict                  = "SchemefulSameSiteStrict"
   CookieBlockedReasonSchemefulSameSiteLax                     = "SchemefulSameSiteLax"
@@ -557,10 +617,6 @@ module Cdp::Network
   alias CookieExemptionReason = String
   CookieExemptionReasonNone                         = "None"
   CookieExemptionReasonUserSetting                  = "UserSetting"
-  CookieExemptionReasonTPCDMetadata                 = "TPCDMetadata"
-  CookieExemptionReasonTPCDDeprecationTrial         = "TPCDDeprecationTrial"
-  CookieExemptionReasonTopLevelTPCDDeprecationTrial = "TopLevelTPCDDeprecationTrial"
-  CookieExemptionReasonTPCDHeuristics               = "TPCDHeuristics"
   CookieExemptionReasonEnterprisePolicy             = "EnterprisePolicy"
   CookieExemptionReasonStorageAccess                = "StorageAccess"
   CookieExemptionReasonTopLevelStorageAccess        = "TopLevelStorageAccess"
@@ -576,6 +632,9 @@ module Cdp::Network
     property cookie_line : String
     @[JSON::Field(key: "cookie", emit_null: false)]
     property cookie : Cookie?
+
+    def initialize(@blocked_reasons : Array(SetCookieBlockedReason), @cookie_line : String, @cookie : Cookie? = nil)
+    end
   end
 
   @[Experimental]
@@ -587,6 +646,9 @@ module Cdp::Network
     property cookie_line : String
     @[JSON::Field(key: "cookie", emit_null: false)]
     property cookie : Cookie
+
+    def initialize(@exemption_reason : CookieExemptionReason, @cookie_line : String, @cookie : Cookie)
+    end
   end
 
   @[Experimental]
@@ -598,6 +660,9 @@ module Cdp::Network
     property blocked_reasons : Array(CookieBlockedReason)
     @[JSON::Field(key: "exemptionReason", emit_null: false)]
     property exemption_reason : CookieExemptionReason?
+
+    def initialize(@cookie : Cookie, @blocked_reasons : Array(CookieBlockedReason), @exemption_reason : CookieExemptionReason? = nil)
+    end
   end
 
   struct CookieParam
@@ -628,75 +693,9 @@ module Cdp::Network
     property source_port : Int64?
     @[JSON::Field(key: "partitionKey", emit_null: false)]
     property partition_key : CookiePartitionKey?
-  end
 
-  # CookiesToParams converts Cookie list to CookieParam list.
-  def self.cookies_to_params(cookies : Array(Cookie)) : Array(CookieParam)
-    cookies.map do |cookie|
-      expires = Time.unix_ms((cookie.expires * 1000).round.to_i64).to_s("%Y-%m-%dT%H:%M:%S.%3N%:z")
-      CookieParam.from_json({
-        "name"         => cookie.name,
-        "value"        => cookie.value,
-        "url"          => nil,
-        "domain"       => cookie.domain,
-        "path"         => cookie.path,
-        "secure"       => cookie.secure?,
-        "httpOnly"     => cookie.http_only?,
-        "sameSite"     => cookie.same_site,
-        "expires"      => expires,
-        "priority"     => cookie.priority,
-        "sourceScheme" => cookie.source_scheme,
-        "sourcePort"   => cookie.source_port,
-        "partitionKey" => cookie.partition_key,
-      }.to_json)
+    def initialize(@name : String, @value : String, @url : String? = nil, @domain : String? = nil, @path : String? = nil, @secure : Bool? = nil, @http_only : Bool? = nil, @same_site : CookieSameSite? = nil, @expires : Time? = nil, @priority : CookiePriority? = nil, @source_scheme : CookieSourceScheme? = nil, @source_port : Int64? = nil, @partition_key : CookiePartitionKey? = nil)
     end
-  end
-
-  # TimeSinceEpochToTime mirrors go proto TimeSinceEpoch.Time helper semantics.
-  def self.time_since_epoch_time(t : TimeSinceEpoch) : Time
-    if t.is_a?(Time)
-      return t
-    end
-
-    f = t.as(Float64)
-    return Time.unix(0) if f == -1.0
-    Time.unix_ms((f * 1000).round.to_i64)
-  end
-
-  # TimeSinceEpochToString mirrors go proto TimeSinceEpoch.String helper semantics.
-  def self.time_since_epoch_string(t : TimeSinceEpoch) : String
-    time_since_epoch_time(t).to_s
-  end
-
-  # TimeSinceEpoch helper from a Time value.
-  def self.time_since_epoch(value : Time) : TimeSinceEpoch
-    value
-  end
-
-  # TimeSinceEpoch helper from seconds since unix epoch.
-  def self.time_since_epoch(value : Float64) : TimeSinceEpoch
-    value
-  end
-
-  # TimeSinceEpoch helper from seconds since unix epoch.
-  def self.time_since_epoch(value : Int) : TimeSinceEpoch
-    value.to_f64
-  end
-
-  # TimeSinceEpoch helper relative to current UTC time.
-  def self.time_since_epoch_from_now(delta : Time::Span) : TimeSinceEpoch
-    (Time.utc + delta).to_unix.to_f64
-  end
-
-  # MonotonicTimeToDuration mirrors go proto MonotonicTime.Duration semantics.
-  def self.monotonic_time_duration(t : MonotonicTime) : Time::Span
-    seconds = t.is_a?(Time) ? (t.to_unix_ms / 1000.0) : t.as(Float64)
-    seconds.seconds
-  end
-
-  # MonotonicTimeToString mirrors go proto MonotonicTime.String semantics.
-  def self.monotonic_time_string(t : MonotonicTime) : String
-    monotonic_time_duration(t).to_s
   end
 
   @[Experimental]
@@ -710,6 +709,9 @@ module Cdp::Network
     property scheme : String
     @[JSON::Field(key: "realm", emit_null: false)]
     property realm : String
+
+    def initialize(@origin : String, @scheme : String, @realm : String, @source : AuthChallengeSource? = nil)
+    end
   end
 
   @[Experimental]
@@ -721,22 +723,9 @@ module Cdp::Network
     property username : String?
     @[JSON::Field(key: "password", emit_null: false)]
     property password : String?
-  end
 
-  @[Experimental]
-  alias InterceptionStage = String
-  InterceptionStageRequest         = "Request"
-  InterceptionStageHeadersReceived = "HeadersReceived"
-
-  @[Experimental]
-  struct RequestPattern
-    include JSON::Serializable
-    @[JSON::Field(key: "urlPattern", emit_null: false)]
-    property url_pattern : String?
-    @[JSON::Field(key: "resourceType", emit_null: false)]
-    property resource_type : ResourceType?
-    @[JSON::Field(key: "interceptionStage", emit_null: false)]
-    property interception_stage : InterceptionStage?
+    def initialize(@response : AuthChallengeResponseResponse, @username : String? = nil, @password : String? = nil)
+    end
   end
 
   @[Experimental]
@@ -760,6 +749,9 @@ module Cdp::Network
     property expires : Int64
     @[JSON::Field(key: "certificates", emit_null: false)]
     property certificates : Array(String)?
+
+    def initialize(@label : String, @signature : String, @integrity : String, @validity_url : String, @date : Int64, @expires : Int64, @cert_url : String? = nil, @cert_sha256 : String? = nil, @certificates : Array(String)? = nil)
+    end
   end
 
   @[Experimental]
@@ -775,6 +767,9 @@ module Cdp::Network
     property signatures : Array(SignedExchangeSignature)
     @[JSON::Field(key: "headerIntegrity", emit_null: false)]
     property header_integrity : String
+
+    def initialize(@request_url : String, @response_code : Int64, @response_headers : Headers, @signatures : Array(SignedExchangeSignature), @header_integrity : String)
+    end
   end
 
   @[Experimental]
@@ -795,6 +790,9 @@ module Cdp::Network
     property signature_index : Int64?
     @[JSON::Field(key: "errorField", emit_null: false)]
     property error_field : SignedExchangeErrorField?
+
+    def initialize(@message : String, @signature_index : Int64? = nil, @error_field : SignedExchangeErrorField? = nil)
+    end
   end
 
   @[Experimental]
@@ -810,14 +808,10 @@ module Cdp::Network
     property security_details : SecurityDetails?
     @[JSON::Field(key: "errors", emit_null: false)]
     property errors : Array(SignedExchangeError)?
-  end
 
-  @[Experimental]
-  alias ContentEncoding = String
-  ContentEncodingDeflate = "deflate"
-  ContentEncodingGzip    = "gzip"
-  ContentEncodingBr      = "br"
-  ContentEncodingZstd    = "zstd"
+    def initialize(@outer_response : Response, @has_extra_info : Bool, @header : SignedExchangeHeader? = nil, @security_details : SecurityDetails? = nil, @errors : Array(SignedExchangeError)? = nil)
+    end
+  end
 
   @[Experimental]
   struct NetworkConditions
@@ -838,6 +832,11 @@ module Cdp::Network
     property packet_queue_length : Int64?
     @[JSON::Field(key: "packetReordering", emit_null: false)]
     property? packet_reordering : Bool?
+    @[JSON::Field(key: "offline", emit_null: false)]
+    property? offline : Bool?
+
+    def initialize(@url_pattern : String, @latency : Float64, @download_throughput : Float64, @upload_throughput : Float64, @connection_type : ConnectionType? = nil, @packet_loss : Float64? = nil, @packet_queue_length : Int64? = nil, @packet_reordering : Bool? = nil, @offline : Bool? = nil)
+    end
   end
 
   @[Experimental]
@@ -847,6 +846,9 @@ module Cdp::Network
     property url_pattern : String
     @[JSON::Field(key: "block", emit_null: false)]
     property? block : Bool
+
+    def initialize(@url_pattern : String, @block : Bool)
+    end
   end
 
   @[Experimental]
@@ -867,6 +869,9 @@ module Cdp::Network
     property receive_buffer_size : Float64?
     @[JSON::Field(key: "dnsQueryType", emit_null: false)]
     property dns_query_type : DirectSocketDnsQueryType?
+
+    def initialize(@no_delay : Bool, @keep_alive_delay : Float64? = nil, @send_buffer_size : Float64? = nil, @receive_buffer_size : Float64? = nil, @dns_query_type : DirectSocketDnsQueryType? = nil)
+    end
   end
 
   @[Experimental]
@@ -892,6 +897,9 @@ module Cdp::Network
     property multicast_time_to_live : Int64?
     @[JSON::Field(key: "multicastAllowAddressSharing", emit_null: false)]
     property? multicast_allow_address_sharing : Bool?
+
+    def initialize(@remote_addr : String? = nil, @remote_port : Int64? = nil, @local_addr : String? = nil, @local_port : Int64? = nil, @dns_query_type : DirectSocketDnsQueryType? = nil, @send_buffer_size : Float64? = nil, @receive_buffer_size : Float64? = nil, @multicast_loopback : Bool? = nil, @multicast_time_to_live : Int64? = nil, @multicast_allow_address_sharing : Bool? = nil)
+    end
   end
 
   @[Experimental]
@@ -903,6 +911,9 @@ module Cdp::Network
     property remote_addr : String?
     @[JSON::Field(key: "remotePort", emit_null: false)]
     property remote_port : Int64?
+
+    def initialize(@data : String, @remote_addr : String? = nil, @remote_port : Int64? = nil)
+    end
   end
 
   @[Experimental]
@@ -925,6 +936,9 @@ module Cdp::Network
     include JSON::Serializable
     @[JSON::Field(key: "requestTime", emit_null: false)]
     property request_time : Float64
+
+    def initialize(@request_time : Float64)
+    end
   end
 
   @[Experimental]
@@ -932,10 +946,51 @@ module Cdp::Network
     include JSON::Serializable
     @[JSON::Field(key: "initiatorIsSecureContext", emit_null: false)]
     property? initiator_is_secure_context : Bool
-    @[JSON::Field(key: "initiatorIpAddressSpace", emit_null: false)]
+    @[JSON::Field(key: "initiatorIPAddressSpace", emit_null: false)]
     property initiator_ip_address_space : IPAddressSpace
     @[JSON::Field(key: "localNetworkAccessRequestPolicy", emit_null: false)]
     property local_network_access_request_policy : LocalNetworkAccessRequestPolicy
+
+    def initialize(@initiator_is_secure_context : Bool, @initiator_ip_address_space : IPAddressSpace, @local_network_access_request_policy : LocalNetworkAccessRequestPolicy)
+    end
+  end
+
+  @[Experimental]
+  struct AdScriptIdentifier
+    include JSON::Serializable
+    @[JSON::Field(key: "scriptId", emit_null: false)]
+    property script_id : Cdp::Runtime::ScriptId
+    @[JSON::Field(key: "debuggerId", emit_null: false)]
+    property debugger_id : Cdp::Runtime::UniqueDebuggerId
+    @[JSON::Field(key: "name", emit_null: false)]
+    property name : String
+
+    def initialize(@script_id : Cdp::Runtime::ScriptId, @debugger_id : Cdp::Runtime::UniqueDebuggerId, @name : String)
+    end
+  end
+
+  @[Experimental]
+  struct AdAncestry
+    include JSON::Serializable
+    @[JSON::Field(key: "ancestryChain", emit_null: false)]
+    property ancestry_chain : Array(AdScriptIdentifier)
+    @[JSON::Field(key: "rootScriptFilterlistRule", emit_null: false)]
+    property root_script_filterlist_rule : String?
+
+    def initialize(@ancestry_chain : Array(AdScriptIdentifier), @root_script_filterlist_rule : String? = nil)
+    end
+  end
+
+  @[Experimental]
+  struct AdProvenance
+    include JSON::Serializable
+    @[JSON::Field(key: "filterlistRule", emit_null: false)]
+    property filterlist_rule : String?
+    @[JSON::Field(key: "adScriptAncestry", emit_null: false)]
+    property ad_script_ancestry : AdAncestry?
+
+    def initialize(@filterlist_rule : String? = nil, @ad_script_ancestry : AdAncestry? = nil)
+    end
   end
 
   @[Experimental]
@@ -959,6 +1014,9 @@ module Cdp::Network
     property reporting_endpoint : String?
     @[JSON::Field(key: "reportOnlyReportingEndpoint", emit_null: false)]
     property report_only_reporting_endpoint : String?
+
+    def initialize(@value : CrossOriginOpenerPolicyValue, @report_only_value : CrossOriginOpenerPolicyValue, @reporting_endpoint : String? = nil, @report_only_reporting_endpoint : String? = nil)
+    end
   end
 
   @[Experimental]
@@ -978,6 +1036,9 @@ module Cdp::Network
     property reporting_endpoint : String?
     @[JSON::Field(key: "reportOnlyReportingEndpoint", emit_null: false)]
     property report_only_reporting_endpoint : String?
+
+    def initialize(@value : CrossOriginEmbedderPolicyValue, @report_only_value : CrossOriginEmbedderPolicyValue, @reporting_endpoint : String? = nil, @report_only_reporting_endpoint : String? = nil)
+    end
   end
 
   @[Experimental]
@@ -994,6 +1055,9 @@ module Cdp::Network
     property? is_enforced : Bool
     @[JSON::Field(key: "source", emit_null: false)]
     property source : ContentSecurityPolicySource
+
+    def initialize(@effective_directives : String, @is_enforced : Bool, @source : ContentSecurityPolicySource)
+    end
   end
 
   @[Experimental]
@@ -1005,6 +1069,9 @@ module Cdp::Network
     property coep : CrossOriginEmbedderPolicyStatus?
     @[JSON::Field(key: "csp", emit_null: false)]
     property csp : Array(ContentSecurityPolicyStatus)?
+
+    def initialize(@coop : CrossOriginOpenerPolicyStatus? = nil, @coep : CrossOriginEmbedderPolicyStatus? = nil, @csp : Array(ContentSecurityPolicyStatus)? = nil)
+    end
   end
 
   @[Experimental]
@@ -1038,6 +1105,9 @@ module Cdp::Network
     property body : JSON::Any
     @[JSON::Field(key: "status", emit_null: false)]
     property status : ReportStatus
+
+    def initialize(@id : ReportId, @initiator_url : String, @destination : String, @type : String, @timestamp : TimeSinceEpoch, @depth : Int64, @completed_attempts : Int64, @body : JSON::Any, @status : ReportStatus)
+    end
   end
 
   @[Experimental]
@@ -1047,6 +1117,9 @@ module Cdp::Network
     property url : String
     @[JSON::Field(key: "groupName", emit_null: false)]
     property group_name : String
+
+    def initialize(@url : String, @group_name : String)
+    end
   end
 
   @[Experimental]
@@ -1056,6 +1129,9 @@ module Cdp::Network
     property site : String
     @[JSON::Field(key: "id", emit_null: false)]
     property id : String
+
+    def initialize(@site : String, @id : String)
+    end
   end
 
   @[Experimental]
@@ -1065,6 +1141,9 @@ module Cdp::Network
     property session_key : DeviceBoundSessionKey
     @[JSON::Field(key: "usage", emit_null: false)]
     property usage : DeviceBoundSessionWithUsageUsage
+
+    def initialize(@session_key : DeviceBoundSessionKey, @usage : DeviceBoundSessionWithUsageUsage)
+    end
   end
 
   @[Experimental]
@@ -1082,6 +1161,9 @@ module Cdp::Network
     property? http_only : Bool
     @[JSON::Field(key: "sameSite", emit_null: false)]
     property same_site : CookieSameSite?
+
+    def initialize(@name : String, @domain : String, @path : String, @secure : Bool, @http_only : Bool, @same_site : CookieSameSite? = nil)
+    end
   end
 
   @[Experimental]
@@ -1093,6 +1175,9 @@ module Cdp::Network
     property host_pattern : String
     @[JSON::Field(key: "pathPrefix", emit_null: false)]
     property path_prefix : String
+
+    def initialize(@rule_type : DeviceBoundSessionUrlRuleRuleType, @host_pattern : String, @path_prefix : String)
+    end
   end
 
   @[Experimental]
@@ -1104,6 +1189,9 @@ module Cdp::Network
     property? include_site : Bool
     @[JSON::Field(key: "urlRules", emit_null: false)]
     property url_rules : Array(DeviceBoundSessionUrlRule)
+
+    def initialize(@origin : String, @include_site : Bool, @url_rules : Array(DeviceBoundSessionUrlRule))
+    end
   end
 
   @[Experimental]
@@ -1123,6 +1211,9 @@ module Cdp::Network
     property cached_challenge : String?
     @[JSON::Field(key: "allowedRefreshInitiators", emit_null: false)]
     property allowed_refresh_initiators : Array(String)
+
+    def initialize(@key : DeviceBoundSessionKey, @refresh_url : String, @inclusion_rules : DeviceBoundSessionInclusionRules, @cookie_cravings : Array(DeviceBoundSessionCookieCraving), @expiry_date : TimeSinceEpoch, @allowed_refresh_initiators : Array(String), @cached_challenge : String? = nil)
+    end
   end
 
   @[Experimental]
@@ -1131,8 +1222,10 @@ module Cdp::Network
   @[Experimental]
   alias DeviceBoundSessionFetchResult = String
   DeviceBoundSessionFetchResultSuccess                                           = "Success"
-  DeviceBoundSessionFetchResultKeyError                                          = "KeyError"
+  DeviceBoundSessionFetchResultSigningKeyGenerationError                         = "SigningKeyGenerationError"
+  DeviceBoundSessionFetchResultAttestationKeyGenerationError                     = "AttestationKeyGenerationError"
   DeviceBoundSessionFetchResultSigningError                                      = "SigningError"
+  DeviceBoundSessionFetchResultTransientSigningError                             = "TransientSigningError"
   DeviceBoundSessionFetchResultServerRequestedTermination                        = "ServerRequestedTermination"
   DeviceBoundSessionFetchResultInvalidSessionId                                  = "InvalidSessionId"
   DeviceBoundSessionFetchResultInvalidChallenge                                  = "InvalidChallenge"
@@ -1198,6 +1291,13 @@ module Cdp::Network
   DeviceBoundSessionFetchResultInvalidFederatedSessionProviderFailedToRestoreKey = "InvalidFederatedSessionProviderFailedToRestoreKey"
   DeviceBoundSessionFetchResultFailedToUnwrapKey                                 = "FailedToUnwrapKey"
   DeviceBoundSessionFetchResultSessionDeletedDuringRefresh                       = "SessionDeletedDuringRefresh"
+  DeviceBoundSessionFetchResultCrossOriginRegistrationSiteNotIncluded            = "CrossOriginRegistrationSiteNotIncluded"
+  DeviceBoundSessionFetchResultInvalidPreProvisionedKeyInitiatorMissing          = "InvalidPreProvisionedKeyInitiatorMissing"
+  DeviceBoundSessionFetchResultPreProvisionedKeyAccessNotGranted                 = "PreProvisionedKeyAccessNotGranted"
+  DeviceBoundSessionFetchResultPreProvisionedKeyNotFound                         = "PreProvisionedKeyNotFound"
+  DeviceBoundSessionFetchResultAttestationCertificationError                     = "AttestationCertificationError"
+  DeviceBoundSessionFetchResultAttestationSigningError                           = "AttestationSigningError"
+  DeviceBoundSessionFetchResultFederatedRegistrationRedirected                   = "FederatedRegistrationRedirected"
 
   @[Experimental]
   struct DeviceBoundSessionFailedRequest
@@ -1210,6 +1310,9 @@ module Cdp::Network
     property response_error : Int64?
     @[JSON::Field(key: "responseErrorBody", emit_null: false)]
     property response_error_body : String?
+
+    def initialize(@request_url : String, @net_error : String? = nil, @response_error : Int64? = nil, @response_error_body : String? = nil)
+    end
   end
 
   @[Experimental]
@@ -1221,6 +1324,9 @@ module Cdp::Network
     property new_session : DeviceBoundSession?
     @[JSON::Field(key: "failedRequest", emit_null: false)]
     property failed_request : DeviceBoundSessionFailedRequest?
+
+    def initialize(@fetch_result : DeviceBoundSessionFetchResult, @new_session : DeviceBoundSession? = nil, @failed_request : DeviceBoundSessionFailedRequest? = nil)
+    end
   end
 
   @[Experimental]
@@ -1236,6 +1342,9 @@ module Cdp::Network
     property? was_fully_proactive_refresh : Bool
     @[JSON::Field(key: "failedRequest", emit_null: false)]
     property failed_request : DeviceBoundSessionFailedRequest?
+
+    def initialize(@refresh_result : RefreshEventDetailsRefreshResult, @was_fully_proactive_refresh : Bool, @fetch_result : DeviceBoundSessionFetchResult? = nil, @new_session : DeviceBoundSession? = nil, @failed_request : DeviceBoundSessionFailedRequest? = nil)
+    end
   end
 
   @[Experimental]
@@ -1243,6 +1352,9 @@ module Cdp::Network
     include JSON::Serializable
     @[JSON::Field(key: "deletionReason", emit_null: false)]
     property deletion_reason : TerminationEventDetailsDeletionReason
+
+    def initialize(@deletion_reason : TerminationEventDetailsDeletionReason)
+    end
   end
 
   @[Experimental]
@@ -1252,6 +1364,9 @@ module Cdp::Network
     property challenge_result : ChallengeEventDetailsChallengeResult
     @[JSON::Field(key: "challenge", emit_null: false)]
     property challenge : String
+
+    def initialize(@challenge_result : ChallengeEventDetailsChallengeResult, @challenge : String)
+    end
   end
 
   @[Experimental]
@@ -1269,6 +1384,9 @@ module Cdp::Network
     property stream : Cdp::IO::StreamHandle?
     @[JSON::Field(key: "headers", emit_null: false)]
     property headers : Headers?
+
+    def initialize(@success : Bool, @net_error : Float64? = nil, @net_error_name : String? = nil, @http_status_code : Float64? = nil, @stream : Cdp::IO::StreamHandle? = nil, @headers : Headers? = nil)
+    end
   end
 
   @[Experimental]
@@ -1278,6 +1396,9 @@ module Cdp::Network
     property? disable_cache : Bool
     @[JSON::Field(key: "includeCredentials", emit_null: false)]
     property? include_credentials : Bool
+
+    def initialize(@disable_cache : Bool, @include_credentials : Bool)
+    end
   end
 
   alias ReferrerPolicy = String
@@ -1325,13 +1446,16 @@ module Cdp::Network
   DeviceBoundSessionUrlRuleRuleTypeInclude = "Include"
 
   alias RefreshEventDetailsRefreshResult = String
-  RefreshEventDetailsRefreshResultRefreshed            = "Refreshed"
-  RefreshEventDetailsRefreshResultInitializedService   = "InitializedService"
-  RefreshEventDetailsRefreshResultUnreachable          = "Unreachable"
-  RefreshEventDetailsRefreshResultServerError          = "ServerError"
-  RefreshEventDetailsRefreshResultRefreshQuotaExceeded = "RefreshQuotaExceeded"
-  RefreshEventDetailsRefreshResultFatalError           = "FatalError"
-  RefreshEventDetailsRefreshResultSigningQuotaExceeded = "SigningQuotaExceeded"
+  RefreshEventDetailsRefreshResultRefreshed                  = "Refreshed"
+  RefreshEventDetailsRefreshResultInitializedService         = "InitializedService"
+  RefreshEventDetailsRefreshResultUnreachable                = "Unreachable"
+  RefreshEventDetailsRefreshResultServerError                = "ServerError"
+  RefreshEventDetailsRefreshResultFatalError                 = "FatalError"
+  RefreshEventDetailsRefreshResultSigningQuotaExceeded       = "SigningQuotaExceeded"
+  RefreshEventDetailsRefreshResultRefreshedAsWaiter          = "RefreshedAsWaiter"
+  RefreshEventDetailsRefreshResultTransientSigningError      = "TransientSigningError"
+  RefreshEventDetailsRefreshResultInScopeRefreshNotYetNeeded = "InScopeRefreshNotYetNeeded"
+  RefreshEventDetailsRefreshResultCanceled                   = "Canceled"
 
   alias TerminationEventDetailsDeletionReason = String
   TerminationEventDetailsDeletionReasonExpired                 = "Expired"
@@ -1342,6 +1466,8 @@ module Cdp::Network
   TerminationEventDetailsDeletionReasonServerRequested         = "ServerRequested"
   TerminationEventDetailsDeletionReasonInvalidSessionParams    = "InvalidSessionParams"
   TerminationEventDetailsDeletionReasonRefreshFatalError       = "RefreshFatalError"
+  TerminationEventDetailsDeletionReasonDevTools                = "DevTools"
+  TerminationEventDetailsDeletionReasonReplaced                = "Replaced"
 
   alias ChallengeEventDetailsChallengeResult = String
   ChallengeEventDetailsChallengeResultSuccess            = "Success"

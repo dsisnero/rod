@@ -52,7 +52,7 @@ module Cdp::CSS
     @[JSON::Field(key: "computedFontWeight", emit_null: false)]
     property computed_font_weight : String?
 
-    def initialize(@background_colors : Array(String)?, @computed_font_size : String?, @computed_font_weight : String?)
+    def initialize(@background_colors : Array(String)? = nil, @computed_font_size : String? = nil, @computed_font_weight : String? = nil)
     end
   end
 
@@ -94,7 +94,7 @@ module Cdp::CSS
     @[JSON::Field(key: "attributesStyle", emit_null: false)]
     property attributes_style : CSSStyle?
 
-    def initialize(@inline_style : CSSStyle?, @attributes_style : CSSStyle?)
+    def initialize(@inline_style : CSSStyle? = nil, @attributes_style : CSSStyle? = nil)
     end
   end
 
@@ -108,7 +108,7 @@ module Cdp::CSS
     @[JSON::Field(key: "inherited", emit_null: false)]
     property inherited : Array(InheritedAnimatedStyleEntry)?
 
-    def initialize(@animation_styles : Array(CSSAnimationStyle)?, @transitions_style : CSSStyle?, @inherited : Array(InheritedAnimatedStyleEntry)?)
+    def initialize(@animation_styles : Array(CSSAnimationStyle)? = nil, @transitions_style : CSSStyle? = nil, @inherited : Array(InheritedAnimatedStyleEntry)? = nil)
     end
   end
 
@@ -118,7 +118,7 @@ module Cdp::CSS
     property inline_style : CSSStyle?
     @[JSON::Field(key: "attributesStyle", emit_null: false)]
     property attributes_style : CSSStyle?
-    @[JSON::Field(key: "matchedCssRules", emit_null: false)]
+    @[JSON::Field(key: "matchedCSSRules", emit_null: false)]
     property matched_css_rules : Array(RuleMatch)?
     @[JSON::Field(key: "pseudoElements", emit_null: false)]
     property pseudo_elements : Array(PseudoElementMatches)?
@@ -143,7 +143,7 @@ module Cdp::CSS
     @[JSON::Field(key: "cssFunctionRules", emit_null: false)]
     property css_function_rules : Array(CSSFunctionRule)?
 
-    def initialize(@inline_style : CSSStyle?, @attributes_style : CSSStyle?, @matched_css_rules : Array(RuleMatch)?, @pseudo_elements : Array(PseudoElementMatches)?, @inherited : Array(InheritedStyleEntry)?, @inherited_pseudo_elements : Array(InheritedPseudoElementMatches)?, @css_keyframes_rules : Array(CSSKeyframesRule)?, @css_position_try_rules : Array(CSSPositionTryRule)?, @active_position_fallback_index : Int64?, @css_property_rules : Array(CSSPropertyRule)?, @css_property_registrations : Array(CSSPropertyRegistration)?, @css_at_rules : Array(CSSAtRule)?, @parent_layout_node_id : Cdp::DOM::NodeId?, @css_function_rules : Array(CSSFunctionRule)?)
+    def initialize(@inline_style : CSSStyle? = nil, @attributes_style : CSSStyle? = nil, @matched_css_rules : Array(RuleMatch)? = nil, @pseudo_elements : Array(PseudoElementMatches)? = nil, @inherited : Array(InheritedStyleEntry)? = nil, @inherited_pseudo_elements : Array(InheritedPseudoElementMatches)? = nil, @css_keyframes_rules : Array(CSSKeyframesRule)? = nil, @css_position_try_rules : Array(CSSPositionTryRule)? = nil, @active_position_fallback_index : Int64? = nil, @css_property_rules : Array(CSSPropertyRule)? = nil, @css_property_registrations : Array(CSSPropertyRegistration)? = nil, @css_at_rules : Array(CSSAtRule)? = nil, @parent_layout_node_id : Cdp::DOM::NodeId? = nil, @css_function_rules : Array(CSSFunctionRule)? = nil)
     end
   end
 
@@ -242,7 +242,7 @@ module Cdp::CSS
   end
 
   @[Experimental]
-  struct SetContainerQueryTextResult
+  struct SetContainerQueryConditionTextResult
     include JSON::Serializable
     @[JSON::Field(key: "containerQuery", emit_null: false)]
     property container_query : CSSContainerQuery
@@ -258,6 +258,16 @@ module Cdp::CSS
     property supports : CSSSupports
 
     def initialize(@supports : CSSSupports)
+    end
+  end
+
+  @[Experimental]
+  struct SetNavigationTextResult
+    include JSON::Serializable
+    @[JSON::Field(key: "navigation", emit_null: false)]
+    property navigation : CSSNavigation
+
+    def initialize(@navigation : CSSNavigation)
     end
   end
 
@@ -282,10 +292,10 @@ module Cdp::CSS
 
   struct SetStyleSheetTextResult
     include JSON::Serializable
-    @[JSON::Field(key: "sourceMapUrl", emit_null: false)]
+    @[JSON::Field(key: "sourceMapURL", emit_null: false)]
     property source_map_url : String?
 
-    def initialize(@source_map_url : String?)
+    def initialize(@source_map_url : String? = nil)
     end
   end
 
@@ -331,7 +341,7 @@ module Cdp::CSS
     @[JSON::Field(key: "nodeForPropertySyntaxValidation", emit_null: false)]
     property node_for_property_syntax_validation : Cdp::DOM::NodeId?
 
-    def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @rule_text : String, @location : SourceRange, @node_for_property_syntax_validation : Cdp::DOM::NodeId?)
+    def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @rule_text : String, @location : SourceRange, @node_for_property_syntax_validation : Cdp::DOM::NodeId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -373,7 +383,7 @@ module Cdp::CSS
     @[JSON::Field(key: "force", emit_null: false)]
     property? force : Bool?
 
-    def initialize(@frame_id : Cdp::Page::FrameId, @force : Bool?)
+    def initialize(@frame_id : Cdp::Page::FrameId, @force : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -467,6 +477,28 @@ module Cdp::CSS
     end
   end
 
+  struct ForcePositionTryOption
+    include JSON::Serializable
+    include Cdp::Request
+    @[JSON::Field(key: "nodeId", emit_null: false)]
+    property node_id : Cdp::DOM::NodeId
+    @[JSON::Field(key: "index", emit_null: false)]
+    property index : Int64?
+
+    def initialize(@node_id : Cdp::DOM::NodeId, @index : Int64? = nil)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "CSS.forcePositionTryOption"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
   struct GetBackgroundColors
     include JSON::Serializable
     include Cdp::Request
@@ -522,7 +554,7 @@ module Cdp::CSS
     @[JSON::Field(key: "pseudoIdentifier", emit_null: false)]
     property pseudo_identifier : String?
 
-    def initialize(@values : Array(String), @node_id : Cdp::DOM::NodeId, @property_name : String?, @pseudo_type : Cdp::DOM::PseudoType?, @pseudo_identifier : String?)
+    def initialize(@values : Array(String), @node_id : Cdp::DOM::NodeId, @property_name : String? = nil, @pseudo_type : Cdp::DOM::PseudoType? = nil, @pseudo_identifier : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -748,7 +780,7 @@ module Cdp::CSS
     @[JSON::Field(key: "nodeId", emit_null: false)]
     property node_id : Cdp::DOM::NodeId?
 
-    def initialize(@node_id : Cdp::DOM::NodeId?)
+    def initialize(@node_id : Cdp::DOM::NodeId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -899,7 +931,7 @@ module Cdp::CSS
   end
 
   @[Experimental]
-  struct SetContainerQueryText
+  struct SetContainerQueryConditionText
     include JSON::Serializable
     include Cdp::Request
     @[JSON::Field(key: "styleSheetId", emit_null: false)]
@@ -914,12 +946,12 @@ module Cdp::CSS
 
     # ProtoReq returns the protocol method name.
     def proto_req : String
-      "CSS.setContainerQueryText"
+      "CSS.setContainerQueryConditionText"
     end
 
     # Call sends the request and returns the result.
-    def call(c : Cdp::Client) : SetContainerQueryTextResult
-      Cdp.call(proto_req, self, SetContainerQueryTextResult, c)
+    def call(c : Cdp::Client) : SetContainerQueryConditionTextResult
+      Cdp.call(proto_req, self, SetContainerQueryConditionTextResult, c)
     end
   end
 
@@ -945,6 +977,31 @@ module Cdp::CSS
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : SetSupportsTextResult
       Cdp.call(proto_req, self, SetSupportsTextResult, c)
+    end
+  end
+
+  @[Experimental]
+  struct SetNavigationText
+    include JSON::Serializable
+    include Cdp::Request
+    @[JSON::Field(key: "styleSheetId", emit_null: false)]
+    property style_sheet_id : Cdp::DOM::StyleSheetId
+    @[JSON::Field(key: "range", emit_null: false)]
+    property range : SourceRange
+    @[JSON::Field(key: "text", emit_null: false)]
+    property text : String
+
+    def initialize(@style_sheet_id : Cdp::DOM::StyleSheetId, @range : SourceRange, @text : String)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "CSS.setNavigationText"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : SetNavigationTextResult
+      Cdp.call(proto_req, self, SetNavigationTextResult, c)
     end
   end
 
@@ -1027,7 +1084,7 @@ module Cdp::CSS
     @[JSON::Field(key: "nodeForPropertySyntaxValidation", emit_null: false)]
     property node_for_property_syntax_validation : Cdp::DOM::NodeId?
 
-    def initialize(@edits : Array(StyleDeclarationEdit), @node_for_property_syntax_validation : Cdp::DOM::NodeId?)
+    def initialize(@edits : Array(StyleDeclarationEdit), @node_for_property_syntax_validation : Cdp::DOM::NodeId? = nil)
     end
 
     # ProtoReq returns the protocol method name.

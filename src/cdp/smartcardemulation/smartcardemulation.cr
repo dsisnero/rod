@@ -183,7 +183,7 @@ module Cdp::SmartCardEmulation
     @[JSON::Field(key: "activeProtocol", emit_null: false)]
     property active_protocol : Protocol?
 
-    def initialize(@request_id : String, @handle : Int64, @active_protocol : Protocol?)
+    def initialize(@request_id : String, @handle : Int64, @active_protocol : Protocol? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -233,7 +233,7 @@ module Cdp::SmartCardEmulation
     @[JSON::Field(key: "protocol", emit_null: false)]
     property protocol : Protocol?
 
-    def initialize(@request_id : String, @reader_name : String, @state : ConnectionState, @atr : String, @protocol : Protocol?)
+    def initialize(@request_id : String, @reader_name : String, @state : ConnectionState, @atr : String, @protocol : Protocol? = nil)
     end
 
     # ProtoReq returns the protocol method name.

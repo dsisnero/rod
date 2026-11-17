@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../network/network"
@@ -49,7 +50,7 @@ module Cdp::Security
     property? certificate_has_weak_signature : Bool
     @[JSON::Field(key: "certificateHasSha1Signature", emit_null: false)]
     property? certificate_has_sha1_signature : Bool
-    @[JSON::Field(key: "modernSsl", emit_null: false)]
+    @[JSON::Field(key: "modernSSL", emit_null: false)]
     property? modern_ssl : Bool
     @[JSON::Field(key: "obsoleteSslProtocol", emit_null: false)]
     property? obsolete_ssl_protocol : Bool
@@ -59,6 +60,9 @@ module Cdp::Security
     property? obsolete_ssl_cipher : Bool
     @[JSON::Field(key: "obsoleteSslSignature", emit_null: false)]
     property? obsolete_ssl_signature : Bool
+
+    def initialize(@protocol : String, @key_exchange : String, @cipher : String, @certificate : Array(String), @subject_name : String, @issuer : String, @valid_from : Cdp::Network::TimeSinceEpoch, @valid_to : Cdp::Network::TimeSinceEpoch, @certificate_has_weak_signature : Bool, @certificate_has_sha1_signature : Bool, @modern_ssl : Bool, @obsolete_ssl_protocol : Bool, @obsolete_ssl_key_exchange : Bool, @obsolete_ssl_cipher : Bool, @obsolete_ssl_signature : Bool, @key_exchange_group : String? = nil, @mac : String? = nil, @certificate_network_error : String? = nil)
+    end
   end
 
   @[Experimental]
@@ -73,6 +77,9 @@ module Cdp::Security
     property safety_tip_status : SafetyTipStatus
     @[JSON::Field(key: "safeUrl", emit_null: false)]
     property safe_url : String?
+
+    def initialize(@safety_tip_status : SafetyTipStatus, @safe_url : String? = nil)
+    end
   end
 
   @[Experimental]
@@ -86,6 +93,9 @@ module Cdp::Security
     property safety_tip_info : SafetyTipInfo?
     @[JSON::Field(key: "securityStateIssueIds", emit_null: false)]
     property security_state_issue_ids : Array(String)
+
+    def initialize(@security_state : SecurityState, @security_state_issue_ids : Array(String), @certificate_security_state : CertificateSecurityState? = nil, @safety_tip_info : SafetyTipInfo? = nil)
+    end
   end
 
   struct SecurityStateExplanation
@@ -104,6 +114,31 @@ module Cdp::Security
     property certificate : Array(String)
     @[JSON::Field(key: "recommendations", emit_null: false)]
     property recommendations : Array(String)?
+
+    def initialize(@security_state : SecurityState, @title : String, @summary : String, @description : String, @mixed_content_type : MixedContentType, @certificate : Array(String), @recommendations : Array(String)? = nil)
+    end
+  end
+
+  @[Deprecated]
+  struct InsecureContentStatus
+    include JSON::Serializable
+    @[JSON::Field(key: "ranMixedContent", emit_null: false)]
+    property? ran_mixed_content : Bool
+    @[JSON::Field(key: "displayedMixedContent", emit_null: false)]
+    property? displayed_mixed_content : Bool
+    @[JSON::Field(key: "containedMixedForm", emit_null: false)]
+    property? contained_mixed_form : Bool
+    @[JSON::Field(key: "ranContentWithCertErrors", emit_null: false)]
+    property? ran_content_with_cert_errors : Bool
+    @[JSON::Field(key: "displayedContentWithCertErrors", emit_null: false)]
+    property? displayed_content_with_cert_errors : Bool
+    @[JSON::Field(key: "ranInsecureContentStyle", emit_null: false)]
+    property ran_insecure_content_style : SecurityState
+    @[JSON::Field(key: "displayedInsecureContentStyle", emit_null: false)]
+    property displayed_insecure_content_style : SecurityState
+
+    def initialize(@ran_mixed_content : Bool, @displayed_mixed_content : Bool, @contained_mixed_form : Bool, @ran_content_with_cert_errors : Bool, @displayed_content_with_cert_errors : Bool, @ran_insecure_content_style : SecurityState, @displayed_insecure_content_style : SecurityState)
+    end
   end
 
   alias CertificateErrorAction = String

@@ -2,6 +2,7 @@
 <%- # Variables: d (Pdl::Domain), domains (Array(Pdl::Domain)), base_pkg (String), referenced_domains (Array(String)) -%>
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 <%- referenced_domains.each do |ref_domain| -%>
@@ -25,24 +26,57 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
         <%- end -%>
   enum <%= type_name_for_domain(type, d) %>
         <%- enum_values.each do |value| -%>
-    <%= type.enum_value_name_map[value]? || safe_enum_member_name(value) %>
+          <%- member = type.enum_value_name_map[value]? || safe_enum_member_name(value) -%>
+          <%- # `@[Flags]` already defines `None` as the zero value. -%>
+          <%- next if type.enum_bit_mask? && member == "None" -%>
+    <%= member %>
+        <%- end -%>
+
+    # CDP enums travel as their integer value, not their Crystal name.
+    def to_json(json : JSON::Builder)
+      json.number(value)
+    end
+        <%- if type.enum_bit_mask? -%>
+
+    # `@[Flags]` enums otherwise decode from an array of member names, but CDP
+    # sends the integer bitmask.
+    def self.new(pull : JSON::PullParser)
+      new(pull.read_int)
+    end
         <%- end -%>
   end
       <%- else -%>
-  struct <%= type_name_for_domain(type, d) %>
+  <%- type_keyword = type.recursive? ? "class" : "struct" -%>
+  <%= type_keyword %> <%= type_name_for_domain(type, d) %>
     include JSON::Serializable
         <%- if type.properties && !type.properties.empty? -%>
           <%- type.properties.each do |prop| -%>
             <%- next if prop.deprecated? && !prop.always_emit? -%>
             <%- next if prop.name.empty? -%>
             <%- type_str = crystal_type(prop, d, domains) -%>
-    <%= json_field_annotation(prop.name) %>
-    <%- if bool_type?(type_str) -%>
-    property? <%= prop.name.underscore %> : <%= type_str %><%= "?" if prop.optional? %>
+            <%- default_suffix = prop.default_value.empty? ? "" : " = #{prop.default_value}" -%>
+    <%- if prop.no_expose? -%>
+    # Runtime-only state: not part of the protocol wire format.
+    @[JSON::Field(ignore: true)]
     <%- else -%>
-    property <%= prop.name.underscore %> : <%= type_str %><%= "?" if prop.optional? %>
+    <%= json_field_annotation(prop.name) %>
+    <%- end -%>
+    <%- if bool_type?(type_str) -%>
+    property? <%= prop.name.underscore %> : <%= type_str %><%= "?" if prop.optional? %><%= default_suffix %>
+    <%- else -%>
+    property <%= prop.name.underscore %> : <%= type_str %><%= "?" if prop.optional? %><%= default_suffix %>
     <%- end -%>
           <%- end -%>
+        <%- end -%>
+        <%- constructor_props = type.properties.reject { |prop| prop.no_expose? || prop.name.empty? || (prop.deprecated? && !prop.always_emit?) } -%>
+        <%- if !constructor_props.empty? -%>
+
+    def initialize(<%= initializer_parameters(constructor_props, d, domains) %>)
+    end
+        <%- end -%>
+        <%- if type.extra_in_type? && !type.extra.empty? -%>
+
+    <%= type.extra %>
         <%- end -%>
         <%- if d.domain == "DOM" && type_name_for_domain(type, d) == "Node" -%>
 
@@ -82,7 +116,23 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
         <%- end -%>
   enum <%= type_name_for_domain(type, d) %> : Int64
         <%- enum_values.each do |value| -%>
-    <%= type.enum_value_name_map[value]? || enum_member_name(value) %>
+          <%- member = type.enum_value_name_map[value]? || enum_member_name(value) -%>
+          <%- # `@[Flags]` already defines `None` as the zero value. -%>
+          <%- next if type.enum_bit_mask? && member == "None" -%>
+    <%= member %>
+        <%- end -%>
+
+    # CDP enums travel as their integer value, not their Crystal name.
+    def to_json(json : JSON::Builder)
+      json.number(value)
+    end
+        <%- if type.enum_bit_mask? -%>
+
+    # `@[Flags]` enums otherwise decode from an array of member names, but CDP
+    # sends the integer bitmask.
+    def self.new(pull : JSON::PullParser)
+      new(pull.read_int)
+    end
         <%- end -%>
   end
       <%- else -%>
@@ -95,14 +145,14 @@ module <%= base_pkg %>::<%= d.domain.camelcase %>
     <%- elsif type.type == Pdl::TypeEnum::Any -%>
   alias <%= type_name_for_domain(type, d) %> = JSON::Any
     <%- elsif type.type == Pdl::TypeEnum::Timestamp -%>
-  alias <%= type_name_for_domain(type, d) %> = Time
+  alias <%= type_name_for_domain(type, d) %> = <%= type.target_type.empty? ? "Time" : type.target_type %>
     <%- elsif type.type == Pdl::TypeEnum::Binary -%>
   alias <%= type_name_for_domain(type, d) %> = String
     <%- else -%>
   # TODO: Implement type <%= type.type %> for <%= type.name %>
   alias <%= type_name_for_domain(type, d) %> = JSON::Any
     <%- end -%>
-  <%- if !type.extra.empty? -%>
+  <%- if !type.extra_in_type? && !type.extra.empty? -%>
   <%= type.extra %>
   <%- end -%>
 

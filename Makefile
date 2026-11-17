@@ -61,9 +61,24 @@ build-pdlgen-crystal:
 build-pdlgen-go:
 	cd vendor/pdlgen && go build -o ../../bin/pdlgen-go .
 
-# Generate Crystal CDP code using Crystal pdlgen
+# Generate Crystal CDP code using Crystal pdlgen.
+#
+# The generator owns the domain directories, but the root module (src/cdp/cdp.cr)
+# and the shared types (src/cdp/cdp/types.cr) are curated by hand: they carry
+# `Cdp.call`, the client interface, the timestamp normalization and the shared
+# `NodeType` alias. Preserve them across a regeneration, drop the AppleDouble
+# sidecars an exFAT checkout produces, and remove directories left empty by
+# domains the pinned vintage no longer defines.
 generate-crystal: build-pdlgen-crystal
+	mkdir -p temp/cdp_curated
+	-cp src/cdp/cdp.cr temp/cdp_curated/cdp.cr
+	-cp src/cdp/cdp/types.cr temp/cdp_curated/types.cr
 	./bin/pdlgen-crystal $(strip $(CDP_PROTOCOL_ARGS)) --out src/cdp
+	-cp temp/cdp_curated/cdp.cr src/cdp/cdp.cr
+	-cp temp/cdp_curated/types.cr src/cdp/cdp/types.cr
+	-find src/cdp -name '._*' -delete
+	-find src/cdp -mindepth 1 -type d -empty -delete
+	crystal tool format src/cdp
 
 # Generate into scratch space instead of src/cdp. src/cdp is a curated snapshot
 # (see docs/generation.md), so this is the non-destructive toolchain check.

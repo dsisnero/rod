@@ -65,7 +65,7 @@ module Cdp::IndexedDB
     @[JSON::Field(key: "objectStoreName", emit_null: false)]
     property object_store_name : String
 
-    def initialize(@security_origin : String?, @storage_key : String?, @storage_bucket : Cdp::Storage::StorageBucket?, @database_name : String, @object_store_name : String)
+    def initialize(@database_name : String, @object_store_name : String, @security_origin : String? = nil, @storage_key : String? = nil, @storage_bucket : Cdp::Storage::StorageBucket? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -91,7 +91,7 @@ module Cdp::IndexedDB
     @[JSON::Field(key: "databaseName", emit_null: false)]
     property database_name : String
 
-    def initialize(@security_origin : String?, @storage_key : String?, @storage_bucket : Cdp::Storage::StorageBucket?, @database_name : String)
+    def initialize(@database_name : String, @security_origin : String? = nil, @storage_key : String? = nil, @storage_bucket : Cdp::Storage::StorageBucket? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -121,7 +121,7 @@ module Cdp::IndexedDB
     @[JSON::Field(key: "keyRange", emit_null: false)]
     property key_range : KeyRange
 
-    def initialize(@security_origin : String?, @storage_key : String?, @storage_bucket : Cdp::Storage::StorageBucket?, @database_name : String, @object_store_name : String, @key_range : KeyRange)
+    def initialize(@database_name : String, @object_store_name : String, @key_range : KeyRange, @security_origin : String? = nil, @storage_key : String? = nil, @storage_bucket : Cdp::Storage::StorageBucket? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -193,7 +193,7 @@ module Cdp::IndexedDB
     @[JSON::Field(key: "keyRange", emit_null: false)]
     property key_range : KeyRange?
 
-    def initialize(@security_origin : String?, @storage_key : String?, @storage_bucket : Cdp::Storage::StorageBucket?, @database_name : String, @object_store_name : String, @index_name : String?, @skip_count : Int64, @page_size : Int64, @key_range : KeyRange?)
+    def initialize(@database_name : String, @object_store_name : String, @skip_count : Int64, @page_size : Int64, @security_origin : String? = nil, @storage_key : String? = nil, @storage_bucket : Cdp::Storage::StorageBucket? = nil, @index_name : String? = nil, @key_range : KeyRange? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -221,7 +221,7 @@ module Cdp::IndexedDB
     @[JSON::Field(key: "objectStoreName", emit_null: false)]
     property object_store_name : String
 
-    def initialize(@security_origin : String?, @storage_key : String?, @storage_bucket : Cdp::Storage::StorageBucket?, @database_name : String, @object_store_name : String)
+    def initialize(@database_name : String, @object_store_name : String, @security_origin : String? = nil, @storage_key : String? = nil, @storage_bucket : Cdp::Storage::StorageBucket? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -247,7 +247,7 @@ module Cdp::IndexedDB
     @[JSON::Field(key: "databaseName", emit_null: false)]
     property database_name : String
 
-    def initialize(@security_origin : String?, @storage_key : String?, @storage_bucket : Cdp::Storage::StorageBucket?, @database_name : String)
+    def initialize(@database_name : String, @security_origin : String? = nil, @storage_key : String? = nil, @storage_bucket : Cdp::Storage::StorageBucket? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -271,7 +271,7 @@ module Cdp::IndexedDB
     @[JSON::Field(key: "storageBucket", emit_null: false)]
     property storage_bucket : Cdp::Storage::StorageBucket?
 
-    def initialize(@security_origin : String?, @storage_key : String?, @storage_bucket : Cdp::Storage::StorageBucket?)
+    def initialize(@security_origin : String? = nil, @storage_key : String? = nil, @storage_bucket : Cdp::Storage::StorageBucket? = nil)
     end
 
     # ProtoReq returns the protocol method name.

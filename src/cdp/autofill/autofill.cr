@@ -24,7 +24,7 @@ module Cdp::Autofill
     @[JSON::Field(key: "address", emit_null: false)]
     property address : Address?
 
-    def initialize(@field_id : Cdp::DOM::BackendNodeId, @frame_id : Cdp::Page::FrameId?, @card : CreditCard?, @address : Address?)
+    def initialize(@field_id : Cdp::DOM::BackendNodeId, @frame_id : Cdp::Page::FrameId? = nil, @card : CreditCard? = nil, @address : Address? = nil)
     end
 
     # ProtoReq returns the protocol method name.

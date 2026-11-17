@@ -26,7 +26,7 @@ module Cdp::Debugger
     @[JSON::Field(key: "exceptionDetails", emit_null: false)]
     property exception_details : Cdp::Runtime::ExceptionDetails?
 
-    def initialize(@result : Cdp::Runtime::RemoteObject, @exception_details : Cdp::Runtime::ExceptionDetails?)
+    def initialize(@result : Cdp::Runtime::RemoteObject, @exception_details : Cdp::Runtime::ExceptionDetails? = nil)
     end
   end
 
@@ -39,6 +39,16 @@ module Cdp::Debugger
     end
   end
 
+  @[Experimental]
+  struct GetScopeChainResult
+    include JSON::Serializable
+    @[JSON::Field(key: "scopeChain", emit_null: false)]
+    property scope_chain : Array(Scope)
+
+    def initialize(@scope_chain : Array(Scope))
+    end
+  end
+
   struct GetScriptSourceResult
     include JSON::Serializable
     @[JSON::Field(key: "scriptSource", emit_null: false)]
@@ -46,7 +56,7 @@ module Cdp::Debugger
     @[JSON::Field(key: "bytecode", emit_null: false)]
     property bytecode : String?
 
-    def initialize(@script_source : String, @bytecode : String?)
+    def initialize(@script_source : String, @bytecode : String? = nil)
     end
   end
 
@@ -62,7 +72,7 @@ module Cdp::Debugger
     @[JSON::Field(key: "chunk", emit_null: false)]
     property chunk : WasmDisassemblyChunk
 
-    def initialize(@stream_id : String?, @total_number_of_lines : Int64, @function_body_offsets : Array(Int64), @chunk : WasmDisassemblyChunk)
+    def initialize(@total_number_of_lines : Int64, @function_body_offsets : Array(Int64), @chunk : WasmDisassemblyChunk, @stream_id : String? = nil)
     end
   end
 
@@ -95,7 +105,7 @@ module Cdp::Debugger
     @[JSON::Field(key: "asyncStackTraceId", emit_null: false)]
     property async_stack_trace_id : Cdp::Runtime::StackTraceId?
 
-    def initialize(@call_frames : Array(CallFrame), @async_stack_trace : Cdp::Runtime::StackTrace?, @async_stack_trace_id : Cdp::Runtime::StackTraceId?)
+    def initialize(@call_frames : Array(CallFrame), @async_stack_trace : Cdp::Runtime::StackTrace? = nil, @async_stack_trace_id : Cdp::Runtime::StackTraceId? = nil)
     end
   end
 
@@ -149,23 +159,6 @@ module Cdp::Debugger
     end
   end
 
-  struct SetScriptSourceResult
-    include JSON::Serializable
-    @[JSON::Field(key: "callFrames", emit_null: false)]
-    property call_frames : Array(CallFrame)?
-    @[JSON::Field(key: "asyncStackTrace", emit_null: false)]
-    property async_stack_trace : Cdp::Runtime::StackTrace?
-    @[JSON::Field(key: "asyncStackTraceId", emit_null: false)]
-    property async_stack_trace_id : Cdp::Runtime::StackTraceId?
-    @[JSON::Field(key: "status", emit_null: false)]
-    property status : SetScriptSourceStatus
-    @[JSON::Field(key: "exceptionDetails", emit_null: false)]
-    property exception_details : Cdp::Runtime::ExceptionDetails?
-
-    def initialize(@call_frames : Array(CallFrame)?, @async_stack_trace : Cdp::Runtime::StackTrace?, @async_stack_trace_id : Cdp::Runtime::StackTraceId?, @status : SetScriptSourceStatus, @exception_details : Cdp::Runtime::ExceptionDetails?)
-    end
-  end
-
   # Commands
   struct ContinueToLocation
     include JSON::Serializable
@@ -175,7 +168,7 @@ module Cdp::Debugger
     @[JSON::Field(key: "targetCallFrames", emit_null: false)]
     property target_call_frames : ContinueToLocationTargetCallFrames?
 
-    def initialize(@location : Location, @target_call_frames : ContinueToLocationTargetCallFrames?)
+    def initialize(@location : Location, @target_call_frames : ContinueToLocationTargetCallFrames? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -213,7 +206,7 @@ module Cdp::Debugger
     @[JSON::Field(key: "maxScriptsCacheSize", emit_null: false)]
     property max_scripts_cache_size : Float64?
 
-    def initialize(@max_scripts_cache_size : Float64?)
+    def initialize(@max_scripts_cache_size : Float64? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -236,7 +229,7 @@ module Cdp::Debugger
     property expression : String
     @[JSON::Field(key: "objectGroup", emit_null: false)]
     property object_group : String?
-    @[JSON::Field(key: "includeCommandLineApi", emit_null: false)]
+    @[JSON::Field(key: "includeCommandLineAPI", emit_null: false)]
     property? include_command_line_api : Bool?
     @[JSON::Field(key: "silent", emit_null: false)]
     property? silent : Bool?
@@ -248,8 +241,10 @@ module Cdp::Debugger
     property? throw_on_side_effect : Bool?
     @[JSON::Field(key: "timeout", emit_null: false)]
     property timeout : Cdp::Runtime::TimeDelta?
+    @[JSON::Field(key: "scopeNumber", emit_null: false)]
+    property scope_number : Int64?
 
-    def initialize(@call_frame_id : CallFrameId, @expression : String, @object_group : String?, @include_command_line_api : Bool?, @silent : Bool?, @return_by_value : Bool?, @generate_preview : Bool?, @throw_on_side_effect : Bool?, @timeout : Cdp::Runtime::TimeDelta?)
+    def initialize(@call_frame_id : CallFrameId, @expression : String, @object_group : String? = nil, @include_command_line_api : Bool? = nil, @silent : Bool? = nil, @return_by_value : Bool? = nil, @generate_preview : Bool? = nil, @throw_on_side_effect : Bool? = nil, @timeout : Cdp::Runtime::TimeDelta? = nil, @scope_number : Int64? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -273,7 +268,7 @@ module Cdp::Debugger
     @[JSON::Field(key: "restrictToFunction", emit_null: false)]
     property? restrict_to_function : Bool?
 
-    def initialize(@start : Location, @end : Location?, @restrict_to_function : Bool?)
+    def initialize(@start : Location, @end : Location? = nil, @restrict_to_function : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -284,6 +279,27 @@ module Cdp::Debugger
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : GetPossibleBreakpointsResult
       Cdp.call(proto_req, self, GetPossibleBreakpointsResult, c)
+    end
+  end
+
+  @[Experimental]
+  struct GetScopeChain
+    include JSON::Serializable
+    include Cdp::Request
+    @[JSON::Field(key: "callFrameId", emit_null: false)]
+    property call_frame_id : CallFrameId
+
+    def initialize(@call_frame_id : CallFrameId)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Debugger.getScopeChain"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : GetScopeChainResult
+      Cdp.call(proto_req, self, GetScopeChainResult, c)
     end
   end
 
@@ -416,7 +432,7 @@ module Cdp::Debugger
     @[JSON::Field(key: "mode", emit_null: false)]
     property mode : RestartFrameMode?
 
-    def initialize(@call_frame_id : CallFrameId, @mode : RestartFrameMode?)
+    def initialize(@call_frame_id : CallFrameId, @mode : RestartFrameMode? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -436,7 +452,7 @@ module Cdp::Debugger
     @[JSON::Field(key: "terminateOnResume", emit_null: false)]
     property? terminate_on_resume : Bool?
 
-    def initialize(@terminate_on_resume : Bool?)
+    def initialize(@terminate_on_resume : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -462,7 +478,7 @@ module Cdp::Debugger
     @[JSON::Field(key: "isRegex", emit_null: false)]
     property? is_regex : Bool?
 
-    def initialize(@script_id : Cdp::Runtime::ScriptId, @query : String, @case_sensitive : Bool?, @is_regex : Bool?)
+    def initialize(@script_id : Cdp::Runtime::ScriptId, @query : String, @case_sensitive : Bool? = nil, @is_regex : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -526,7 +542,7 @@ module Cdp::Debugger
     @[JSON::Field(key: "skipAnonymous", emit_null: false)]
     property? skip_anonymous : Bool?
 
-    def initialize(@patterns : Array(String), @skip_anonymous : Bool?)
+    def initialize(@patterns : Array(String), @skip_anonymous : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -571,7 +587,7 @@ module Cdp::Debugger
     @[JSON::Field(key: "condition", emit_null: false)]
     property condition : String?
 
-    def initialize(@location : Location, @condition : String?)
+    def initialize(@location : Location, @condition : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -621,7 +637,7 @@ module Cdp::Debugger
     @[JSON::Field(key: "condition", emit_null: false)]
     property condition : String?
 
-    def initialize(@line_number : Int64, @url : String?, @url_regex : String?, @script_hash : String?, @column_number : Int64?, @condition : String?)
+    def initialize(@line_number : Int64, @url : String? = nil, @url_regex : String? = nil, @script_hash : String? = nil, @column_number : Int64? = nil, @condition : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -644,7 +660,7 @@ module Cdp::Debugger
     @[JSON::Field(key: "condition", emit_null: false)]
     property condition : String?
 
-    def initialize(@object_id : Cdp::Runtime::RemoteObjectId, @condition : String?)
+    def initialize(@object_id : Cdp::Runtime::RemoteObjectId, @condition : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -719,32 +735,6 @@ module Cdp::Debugger
     end
   end
 
-  struct SetScriptSource
-    include JSON::Serializable
-    include Cdp::Request
-    @[JSON::Field(key: "scriptId", emit_null: false)]
-    property script_id : Cdp::Runtime::ScriptId
-    @[JSON::Field(key: "scriptSource", emit_null: false)]
-    property script_source : String
-    @[JSON::Field(key: "dryRun", emit_null: false)]
-    property? dry_run : Bool?
-    @[JSON::Field(key: "allowTopFrameEditing", emit_null: false)]
-    property? allow_top_frame_editing : Bool?
-
-    def initialize(@script_id : Cdp::Runtime::ScriptId, @script_source : String, @dry_run : Bool?, @allow_top_frame_editing : Bool?)
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Debugger.setScriptSource"
-    end
-
-    # Call sends the request and returns the result.
-    def call(c : Cdp::Client) : SetScriptSourceResult
-      Cdp.call(proto_req, self, SetScriptSourceResult, c)
-    end
-  end
-
   struct SetSkipAllPauses
     include JSON::Serializable
     include Cdp::Request
@@ -799,7 +789,7 @@ module Cdp::Debugger
     @[JSON::Field(key: "skipList", emit_null: false)]
     property skip_list : Array(LocationRange)?
 
-    def initialize(@break_on_async_call : Bool?, @skip_list : Array(LocationRange)?)
+    def initialize(@break_on_async_call : Bool? = nil, @skip_list : Array(LocationRange)? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -836,8 +826,10 @@ module Cdp::Debugger
     include Cdp::Request
     @[JSON::Field(key: "skipList", emit_null: false)]
     property skip_list : Array(LocationRange)?
+    @[JSON::Field(key: "enterRanges", emit_null: false)]
+    property enter_ranges : Array(LocationRange)?
 
-    def initialize(@skip_list : Array(LocationRange)?)
+    def initialize(@skip_list : Array(LocationRange)? = nil, @enter_ranges : Array(LocationRange)? = nil)
     end
 
     # ProtoReq returns the protocol method name.

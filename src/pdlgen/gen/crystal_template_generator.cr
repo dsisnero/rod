@@ -30,6 +30,9 @@ module Pdlgen
         # Apply fixup first
         Fixup.fix_domains(domains)
 
+        # Crystal needs classes for types that reference themselves
+        mark_recursive_types(domains)
+
         # Generate shared types (circular dependencies)
         generate_shared_types(domains, base_pkg)
 
@@ -63,8 +66,71 @@ module Pdlgen
         end
       end
 
-      private def generate_shared_types(domains : Array(Pdl::Domain), base_pkg : String)
-        # Find circular dependency types, deduplicate by raw_name
+      # mark_recursive_types flags every object type that is part of a reference
+      # cycle. Crystal structs are inline values, so a struct that contains
+      # itself (directly or through other types) has no finite size. go-rod
+      # models such fields as Go pointers, so the Crystal equivalent is a class.
+      private def mark_recursive_types(domains : Array(Pdl::Domain))
+        index = Hash(String, Pdl::Type).new
+        domains.each do |domain|
+          domain.types.each do |type|
+            index[type.raw_name.downcase] ||= type
+          end
+        end
+
+        edges = Hash(String, Array(String)).new
+        domains.each do |domain|
+          domain.types.each do |type|
+            edges[type.raw_name.downcase] = referenced_stored_types(type, domain)
+          end
+        end
+
+        index.each do |name, type|
+          type.recursive = reaches?(name, name, edges)
+        end
+      end
+
+      # referenced_stored_types returns the domain-qualified, downcased names of
+      # the protocol types a type stores directly in its properties.
+      private def referenced_stored_types(type : Pdl::Type, domain : Pdl::Domain) : Array(String)
+        type.properties.compact_map { |prop| stored_type_name(prop, domain) }.uniq!
+      end
+
+      private def stored_type_name(t : Pdl::Type, d : Pdl::Domain) : String?
+        if t.type == Pdl::TypeEnum::Array
+          items = t.items
+          return items ? stored_type_name(items, d) : nil
+        end
+        return nil if t.ref.empty? || t.no_expose? || t.no_resolve? || t.ref.starts_with?("*")
+
+        parts = t.ref.split('.', 2)
+        if parts.size == 2
+          "#{parts[0]}.#{parts[1]}".downcase
+        else
+          "#{d.domain}.#{parts[0]}".downcase
+        end
+      end
+
+      # reaches? reports whether `target` is reachable from `from` following at
+      # least one edge, i.e. `from` sits on a reference cycle.
+      private def reaches?(from : String, target : String, edges : Hash(String, Array(String))) : Bool
+        seen = Set(String).new
+        stack = (edges[from]? || [] of String).dup
+        until stack.empty?
+          current = stack.pop
+          return true if current == target
+
+          next if seen.includes?(current)
+
+          seen << current
+          if next_edges = edges[current]?
+            stack.concat(next_edges)
+          end
+        end
+        false
+      end
+
+      private def generate_shared_types(domains : Array(Pdl::Domain), base_pkg : String) # Find circular dependency types, deduplicate by raw_name
         unique_types = Hash(String, Pdl::Type).new
         domains.each do |domain|
           domain.types.each do |type|
@@ -259,6 +325,24 @@ module Pdlgen
         type_str == "Bool"
       end
 
+      # initializer_parameters renders the constructor parameter list for a value
+      # type. Crystal rejects a parameter without a default that follows one with
+      # a default, and the protocol declares properties in schema order, so
+      # required parameters come first. Optional parameters default to nil and
+      # `no_expose` runtime-state fields are initialized at their declaration.
+      private def initializer_parameters(props : Array(Pdl::Type), d : Pdl::Domain, domains : Array(Pdl::Domain)) : String
+        required, optional = props.partition { |prop| !prop.optional? && prop.default_value.empty? }
+        (required + optional).map do |prop|
+          type_str = crystal_type(prop, d, domains)
+          type_str += "?" if prop.optional? && !type_str.ends_with?("?")
+
+          parameter = "@#{prop.name.underscore} : #{type_str}"
+          default = prop.default_value.empty? ? (prop.optional? ? "nil" : "") : prop.default_value
+          parameter += " = #{default}" unless default.empty?
+          parameter
+        end.join(", ")
+      end
+
       private def safe_constant_name(name : String) : String
         case name
         when "Object"
@@ -310,8 +394,9 @@ module Pdlgen
             end
             io << "  end\n"
           else
-            # Struct type
-            io << "  struct #{type_name_for_domain(t, d)}\n"
+            # Struct type. Recursive types must be classes: a struct cannot
+            # contain itself, while a class stores its fields behind a pointer.
+            io << "  #{t.recursive? ? "class" : "struct"} #{type_name_for_domain(t, d)}\n"
             io << "    include JSON::Serializable\n\n"
             if t.properties && !t.properties.empty?
               t.properties.each do |property|

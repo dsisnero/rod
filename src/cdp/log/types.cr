@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../runtime/runtime"
@@ -30,6 +31,9 @@ module Cdp::Log
     property worker_id : String?
     @[JSON::Field(key: "args", emit_null: false)]
     property args : Array(Cdp::Runtime::RemoteObject)?
+
+    def initialize(@source : Source, @level : Level, @text : String, @timestamp : Cdp::Runtime::Timestamp, @category : LogEntryCategory? = nil, @url : String? = nil, @line_number : Int64? = nil, @stack_trace : Cdp::Runtime::StackTrace? = nil, @network_request_id : Cdp::Network::RequestId? = nil, @worker_id : String? = nil, @args : Array(Cdp::Runtime::RemoteObject)? = nil)
+    end
   end
 
   struct ViolationSetting
@@ -38,6 +42,9 @@ module Cdp::Log
     property name : Violation
     @[JSON::Field(key: "threshold", emit_null: false)]
     property threshold : Float64
+
+    def initialize(@name : Violation, @threshold : Float64)
+    end
   end
 
   alias Source = String

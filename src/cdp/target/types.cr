@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../page/page"
@@ -22,6 +23,8 @@ module Cdp::Target
     property url : String
     @[JSON::Field(key: "attached", emit_null: false)]
     property? attached : Bool
+    @[JSON::Field(key: "parentId", emit_null: false)]
+    property parent_id : TargetID?
     @[JSON::Field(key: "openerId", emit_null: false)]
     property opener_id : TargetID?
     @[JSON::Field(key: "canAccessOpener", emit_null: false)]
@@ -34,6 +37,11 @@ module Cdp::Target
     property browser_context_id : Cdp::Browser::BrowserContextID?
     @[JSON::Field(key: "subtype", emit_null: false)]
     property subtype : String?
+    @[JSON::Field(key: "embedderData", emit_null: false)]
+    property embedder_data : JSON::Any?
+
+    def initialize(@target_id : TargetID, @type : String, @title : String, @url : String, @attached : Bool, @can_access_opener : Bool, @parent_id : TargetID? = nil, @opener_id : TargetID? = nil, @opener_frame_id : Cdp::Page::FrameId? = nil, @parent_frame_id : Cdp::Page::FrameId? = nil, @browser_context_id : Cdp::Browser::BrowserContextID? = nil, @subtype : String? = nil, @embedder_data : JSON::Any? = nil)
+    end
   end
 
   @[Experimental]
@@ -43,10 +51,13 @@ module Cdp::Target
     property? exclude : Bool?
     @[JSON::Field(key: "type", emit_null: false)]
     property type : String?
+
+    def initialize(@exclude : Bool? = nil, @type : String? = nil)
+    end
   end
 
   @[Experimental]
-  # TODO: Implement type array for Target.TargetFilter
+  # TODO: Implement type array for TargetFilter
   alias TargetFilter = JSON::Any
 
   @[Experimental]
@@ -56,6 +67,9 @@ module Cdp::Target
     property host : String
     @[JSON::Field(key: "port", emit_null: false)]
     property port : Int64
+
+    def initialize(@host : String, @port : Int64)
+    end
   end
 
   @[Experimental]

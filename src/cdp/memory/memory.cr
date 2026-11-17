@@ -177,7 +177,7 @@ module Cdp::Memory
     @[JSON::Field(key: "suppressRandomness", emit_null: false)]
     property? suppress_randomness : Bool?
 
-    def initialize(@sampling_interval : Int64?, @suppress_randomness : Bool?)
+    def initialize(@sampling_interval : Int64? = nil, @suppress_randomness : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.

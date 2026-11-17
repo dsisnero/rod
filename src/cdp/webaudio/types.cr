@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../dom/dom"
@@ -44,6 +45,9 @@ module Cdp::WebAudio
     property callback_interval_mean : Float64
     @[JSON::Field(key: "callbackIntervalVariance", emit_null: false)]
     property callback_interval_variance : Float64
+
+    def initialize(@current_time : Float64, @render_capacity : Float64, @callback_interval_mean : Float64, @callback_interval_variance : Float64)
+    end
   end
 
   struct BaseAudioContext
@@ -62,6 +66,11 @@ module Cdp::WebAudio
     property max_output_channel_count : Float64
     @[JSON::Field(key: "sampleRate", emit_null: false)]
     property sample_rate : Float64
+    @[JSON::Field(key: "renderQuantumSize", emit_null: false)]
+    property render_quantum_size : Float64
+
+    def initialize(@context_id : GraphObjectId, @context_type : ContextType, @context_state : ContextState, @callback_buffer_size : Float64, @max_output_channel_count : Float64, @sample_rate : Float64, @render_quantum_size : Float64, @realtime_data : ContextRealtimeData? = nil)
+    end
   end
 
   struct AudioListener
@@ -70,6 +79,9 @@ module Cdp::WebAudio
     property listener_id : GraphObjectId
     @[JSON::Field(key: "contextId", emit_null: false)]
     property context_id : GraphObjectId
+
+    def initialize(@listener_id : GraphObjectId, @context_id : GraphObjectId)
+    end
   end
 
   struct AudioNode
@@ -90,6 +102,9 @@ module Cdp::WebAudio
     property channel_count_mode : ChannelCountMode
     @[JSON::Field(key: "channelInterpretation", emit_null: false)]
     property channel_interpretation : ChannelInterpretation
+
+    def initialize(@node_id : GraphObjectId, @context_id : GraphObjectId, @node_type : Cdp::NodeType, @number_of_inputs : Float64, @number_of_outputs : Float64, @channel_count : Float64, @channel_count_mode : ChannelCountMode, @channel_interpretation : ChannelInterpretation)
+    end
   end
 
   struct AudioParam
@@ -110,5 +125,8 @@ module Cdp::WebAudio
     property min_value : Float64
     @[JSON::Field(key: "maxValue", emit_null: false)]
     property max_value : Float64
+
+    def initialize(@param_id : GraphObjectId, @node_id : GraphObjectId, @context_id : GraphObjectId, @param_type : ParamType, @rate : AutomationRate, @default_value : Float64, @min_value : Float64, @max_value : Float64)
+    end
   end
 end

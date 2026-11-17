@@ -144,7 +144,7 @@ module Cdp::ServiceWorker
   struct SkipWaiting
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(key: "scopeUrl", emit_null: false)]
+    @[JSON::Field(key: "scopeURL", emit_null: false)]
     property scope_url : String
 
     def initialize(@scope_url : String)
@@ -164,7 +164,7 @@ module Cdp::ServiceWorker
   struct StartWorker
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(key: "scopeUrl", emit_null: false)]
+    @[JSON::Field(key: "scopeURL", emit_null: false)]
     property scope_url : String
 
     def initialize(@scope_url : String)
@@ -222,7 +222,7 @@ module Cdp::ServiceWorker
   struct Unregister
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(key: "scopeUrl", emit_null: false)]
+    @[JSON::Field(key: "scopeURL", emit_null: false)]
     property scope_url : String
 
     def initialize(@scope_url : String)
@@ -242,7 +242,7 @@ module Cdp::ServiceWorker
   struct UpdateRegistration
     include JSON::Serializable
     include Cdp::Request
-    @[JSON::Field(key: "scopeUrl", emit_null: false)]
+    @[JSON::Field(key: "scopeURL", emit_null: false)]
     property scope_url : String
 
     def initialize(@scope_url : String)

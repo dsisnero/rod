@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../dom/dom"
@@ -15,6 +16,9 @@ module Cdp::LayerTree
     property rect : Cdp::DOM::Rect
     @[JSON::Field(key: "type", emit_null: false)]
     property type : ScrollRectType
+
+    def initialize(@rect : Cdp::DOM::Rect, @type : ScrollRectType)
+    end
   end
 
   struct StickyPositionConstraint
@@ -27,6 +31,9 @@ module Cdp::LayerTree
     property nearest_layer_shifting_sticky_box : LayerId?
     @[JSON::Field(key: "nearestLayerShiftingContainingBlock", emit_null: false)]
     property nearest_layer_shifting_containing_block : LayerId?
+
+    def initialize(@sticky_box_rect : Cdp::DOM::Rect, @containing_block_rect : Cdp::DOM::Rect, @nearest_layer_shifting_sticky_box : LayerId? = nil, @nearest_layer_shifting_containing_block : LayerId? = nil)
+    end
   end
 
   struct PictureTile
@@ -37,6 +44,9 @@ module Cdp::LayerTree
     property y : Float64
     @[JSON::Field(key: "picture", emit_null: false)]
     property picture : String
+
+    def initialize(@x : Float64, @y : Float64, @picture : String)
+    end
   end
 
   struct Layer
@@ -73,9 +83,12 @@ module Cdp::LayerTree
     property scroll_rects : Array(ScrollRect)?
     @[JSON::Field(key: "stickyPositionConstraint", emit_null: false)]
     property sticky_position_constraint : StickyPositionConstraint?
+
+    def initialize(@layer_id : LayerId, @offset_x : Float64, @offset_y : Float64, @width : Float64, @height : Float64, @paint_count : Int64, @draws_content : Bool, @parent_layer_id : LayerId? = nil, @backend_node_id : Cdp::DOM::BackendNodeId? = nil, @transform : Array(Float64)? = nil, @anchor_x : Float64? = nil, @anchor_y : Float64? = nil, @anchor_z : Float64? = nil, @invisible : Bool? = nil, @scroll_rects : Array(ScrollRect)? = nil, @sticky_position_constraint : StickyPositionConstraint? = nil)
+    end
   end
 
-  # TODO: Implement type array for LayerTree.PaintProfile
+  # TODO: Implement type array for PaintProfile
   alias PaintProfile = JSON::Any
 
   alias ScrollRectType = String

@@ -7,56 +7,59 @@
 
 ## Where we are
 
-**Current focus:** adopting a newer CDP protocol vintage. Phases 6 and 7 turned
-the last two hand-curation steps into generator behaviour (valid constructors +
-enum aliases, and CDP JSON wire keys), so a regeneration now parses and decodes;
-what remains is picking a vintage, regenerating, re-applying the typed-result
-decoding curation (`cc3717f`), and auditing `src/rod` for the domain changes.
-Phase 1 (tree-sitter kind normalization) is still blocked — the `tree_sitter`
-Ruby gem is not installed in this environment — so `PORT_PARSER=regex` stays the
-authoritative parity gate.
+**Current focus:** Phase 8 landed — `src/cdp` is now generated at Chromium
+`160.0.8168.1` / V8 `16.0.61`, and the curation that used to be hand-applied
+after a generation is emitted by `src/pdlgen` (recursive-type classes, value
+type constructors, runtime-only `ignore` fields, integer enum wire format,
+`extra` placement, `DOM.Point`, `Network.Request#post_data`). `make
+generate-crystal` is now byte-for-byte reproducible: it preserves the curated
+root files and formats the tree. Phase 1 (tree-sitter kind normalization) is
+still blocked — the `tree_sitter` Ruby gem is not installed in this environment
+— so `PORT_PARSER=regex` stays the authoritative parity gate.
 
-**Last commit:** `port: generate the CDP JSON wire keys`
+**Last commit:** `port: adopt the Chromium 160.0.8168.1 CDP vintage`
 
-**Gates (baseline, 2026-11-17):** `make format` pass · `make lint` pass (233
-files) · `make test` pass (584 examples, 0 failures) · parity checks pass (5665
-inventory rows with 10 documented divergences, 5368 API items, 297 tests) ·
-upstream Go suite: 8/9 packages pass, `go-rod/rod` main package has two
-browser-timing failures (see Next up).
+**Gates (2026-11-17, after Phase 8):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (592 examples, 0 failures) · parity checks pass
+(5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
+protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages
+pass, `go-rod/rod` main package has browser-timing failures (see Next up).
 
 **Next up:**
 
-1. CDP protocol vintage adoption: pick a vintage, run `make generate-crystal
-   CDP_CHROMIUM=<ver> CDP_V8=<ver>`, re-apply the remaining curation (typed
-   result decoding, `cc3717f`) and run the CDP parity specs
-   (`spec/cdp_*_parity_spec.cr`). The domain set changes: it adds `ads`,
-   `crashreportcontext`, `digitalcredentials`, `findinpage`, `webmcp` and drops
-   `console`, `database`, `schema`, so `src/rod` references need an audit; wire
-   renames such as `remoteIpAddress` → `remoteIPAddress` need a decoding audit.
-2. Tame full-suite browser flakiness: two consecutive full runs on 2026-11-17
-   each had one failure, different specs, both green in isolation —
-   `spec/cdp_client_parity_spec.cr:483` (Go `TestCrash`) and
-   `spec/live_browser_parity_spec.cr:747` (`TestSearchIframes*`). Likely
-   resource/timing under load; a rerun should not be the only safety net.
-3. Phase 1 — (blocked) needs the `tree_sitter` Ruby gem plus kind/id
+1. Tame full-suite browser flakiness: `spec/cdp_client_parity_spec.cr:483`
+   (Go `TestCrash`) and `spec/live_browser_parity_spec.cr:747`
+   (`TestSearchIframes*`) fail intermittently under load and pass in isolation
+   (2026-11-17: `TestSearchIframes*` failed once in a full file run, then the
+   same file passed 56/56). A rerun is not an acceptable safety net, so find the
+   shared resource (browser reuse, port binding, timeouts) and make the specs
+   deterministic.
+2. Phase 1 — (blocked) needs the `tree_sitter` Ruby gem plus kind/id
    normalization before the tree-sitter checks can run; it also closes the
    `states.go::method::Page.cleanupStates` ledger row (the only Phase 2 bullet
    still open).
-4. Upstream Go suite flakiness: `github.com/go-rod/rod` failed
+3. Upstream Go suite flakiness: `github.com/go-rod/rod` failed
    `TestPageElements` and `Example_basic` on 2026-11-17 while the other eight
    packages passed. Re-run before reading anything into a failure — these are
    browser-timing issues in the vendored project, not port gaps.
-5. Optional cleanup: the repo tracks built binaries (`rod`, `bin/pdlgen*`,
+4. Optional cleanup: the repo tracks built binaries (`rod`, `bin/pdlgen*`,
    `pdlgen*`), so local builds keep showing up as modified files. Decide whether
    to untrack them.
+5. Optional follow-up: the generator's `root.ecr` template (120 lines) is still a
+   stale partial of the curated `src/cdp/cdp.cr` (277 lines, holds `Cdp.call`,
+   `Client`, `TIME_FIELD_KEYS`). Teach the template to emit the curated root so
+   `make generate-crystal` no longer needs the preserve/restore step.
 
 **Gotchas:** the 63 tree-sitter "missing" items and the 3422 kind-rename
 "stale" rows are tooling vocabulary drift, not port gaps — see below. Phase 2's
 last checklist bullet (`states.go::method::Page.cleanupStates` ledger row) is
-also waiting on that reconciliation. `make generate-crystal` is not
-reproducible by default (`--latest`); pin `CDP_CHROMIUM`/`CDP_V8`. The upstream
-Go suite panics in its leak detector unless `GODEBUG=tracebackancestors=1000` is
-exported.
+also waiting on that reconciliation. `make generate-crystal` is not reproducible
+by default (`--latest`); pin `CDP_CHROMIUM`/`CDP_V8` (Phase 8 records the working
+pair). Chrome dropped the `console`, `database` and `schema` domains, so those
+inventory rows are `skipped` and `spec/cdp_legacy_proto_parity_spec.cr` is gone.
+The upstream Go suite panics in its leak detector unless
+`GODEBUG=tracebackancestors=1000` is exported. The checkout is on exFAT, so a
+generation emits `._*` AppleDouble sidecars — strip them before counting files.
 
 This is a curated feature roadmap, not a generated dump. Generated manifests
 (`go_source_parity.tsv`, `go_test_parity.tsv`) are reference snapshots;
@@ -68,11 +71,11 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 
 | Metric | Value |
 |---|---|
-| Port inventory rows | 5665 discovered + 10 documented divergences (5,655 `ported` + 10 `intentional_divergence`) |
+| Port inventory rows | 5665 discovered + 10 documented divergences (5,601 `ported` + 54 `skipped` + 10 `intentional_divergence`) |
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 77 files, 579 examples, 0 failures (2026-11-17) |
+| Crystal specs | 77 files, 592 examples, 0 failures (2026-11-17, Chromium `160.0.8168.1`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -296,6 +299,49 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       `Network.ResourceTiming`). Remaining diffs are vintage drift such as
       `remoteIpAddress` → `remoteIPAddress`.
 - [ ] Still curated by hand: typed result decoding (`cc3717f`).
+
+---
+
+### Phase 8 — CDP protocol vintage adoption ✅
+- [x] Red-green spec `spec/cdp_protocol_vintage_parity_spec.cr`: the pinned
+      vintage's domain set (adds `ads`, `crashreportcontext`,
+      `digitalcredentials`, `findinpage`, `webmcp`; drops `console`, `database`,
+      `schema`), the `remoteIPAddress` wire key, typed `Cdp.call` result
+      decoding, and enum serialization as wire integers. Failed before the
+      regeneration and passes after.
+- [x] Regenerated `src/cdp` at Chromium `160.0.8168.1` / V8 `16.0.61`: 59 domain
+      directories, 306 `.cr` files. `console`/`database`/`schema` are retired
+      from Chromium (go-rod's own generator drops them against a current
+      browser), so their 54 ledger rows are `skipped` with a note and
+      `spec/cdp_legacy_proto_parity_spec.cr` was removed with them.
+- [x] Emitter work turned the last hand-curation into generator behaviour:
+      recursive types emit `class` (a Crystal struct cannot contain itself;
+      go-rod uses pointers), value types get constructors with required
+      parameters first, `no_expose` runtime fields emit
+      `@[JSON::Field(ignore: true)]` plus their initializer default, `extra`
+      blocks can be member-scoped (`Input.TouchPoint#move_to`), `DOM.Point` is
+      generated (Go declares it in its patch file), enums serialize as integers
+      (`@[Flags]` enums also decode from an integer), and `Network.Request` gets
+      go-rod's `post_data` back by decoding `postDataEntries`.
+- [x] Per-domain alias targets preserved from the committed tree:
+      `Network.TimeSinceEpoch`/`MonotonicTime` are `Time | Float64`,
+      `Runtime.Timestamp` stays `Float64` (events are not normalized by
+      `Cdp.call`), and `Network.CookieParam#expires` stays `Time`.
+- [x] `Fixup.fix_domains` is idempotent (`Pdl::Domain#fixed?`): the CLI and the
+      emitter both call it, which previously duplicated fused extras such as
+      `enum FrameState`.
+- [x] `make generate-crystal` is reproducible: it preserves the curated
+      `src/cdp/cdp.cr` and `src/cdp/cdp/types.cr`, strips `._*` sidecars, drops
+      directories left empty, and formats the tree. Running it twice produces an
+      identical tree.
+- [x] `src/rod` drift fixups: `Input.Modifier` is now a `$ref` bitmask, so
+      mouse/touch/keyboard call sites build
+      `Cdp::Input::Modifier.new(bits)`; `Network.Request.postData` is gone, so
+      the hijack spec feeds base64 `postDataEntries`.
+- [x] Gates: `make format`, `make lint` (240 files), `make test` (592 examples,
+      0 failures) and `make check-go-*` all pass.
+- [ ] Out of scope (Next up): the `root.ecr` template still does not emit the
+      curated root module, so generation keeps preserving those two files.
 
 ---
 

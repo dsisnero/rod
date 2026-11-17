@@ -51,6 +51,16 @@ module Cdp::Emulation
     end
   end
 
+  @[Experimental]
+  struct UpdateScreenResult
+    include JSON::Serializable
+    @[JSON::Field(key: "screenInfo", emit_null: false)]
+    property screen_info : ScreenInfo
+
+    def initialize(@screen_info : ScreenInfo)
+    end
+  end
+
   # Commands
   struct ClearDeviceMetricsOverride
     include JSON::Serializable
@@ -135,7 +145,7 @@ module Cdp::Emulation
     @[JSON::Field(key: "enabled", emit_null: false)]
     property? enabled : Bool?
 
-    def initialize(@enabled : Bool?)
+    def initialize(@enabled : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -175,7 +185,7 @@ module Cdp::Emulation
     @[JSON::Field(key: "color", emit_null: false)]
     property color : Cdp::DOM::RGBA?
 
-    def initialize(@color : Cdp::DOM::RGBA?)
+    def initialize(@color : Cdp::DOM::RGBA? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -202,6 +212,27 @@ module Cdp::Emulation
     # ProtoReq returns the protocol method name.
     def proto_req : String
       "Emulation.setSafeAreaInsetsOverride"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
+  struct SetVirtualKeyboardGeometryOverride
+    include JSON::Serializable
+    include Cdp::Request
+    @[JSON::Field(key: "keyboardRect", emit_null: false)]
+    property keyboard_rect : Cdp::DOM::Rect?
+
+    def initialize(@keyboard_rect : Cdp::DOM::Rect? = nil)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Emulation.setVirtualKeyboardGeometryOverride"
     end
 
     # Call sends the request.
@@ -241,8 +272,16 @@ module Cdp::Emulation
     property display_feature : DisplayFeature?
     @[JSON::Field(key: "devicePosture", emit_null: false)]
     property device_posture : DevicePosture?
+    @[JSON::Field(key: "scrollbarType", emit_null: false)]
+    property scrollbar_type : SetDeviceMetricsOverrideScrollbarType?
+    @[JSON::Field(key: "screenOrientationLockEmulation", emit_null: false)]
+    property? screen_orientation_lock_emulation : Bool?
+    @[JSON::Field(key: "viewportMeta", emit_null: false)]
+    property viewport_meta : SetDeviceMetricsOverrideViewportMeta?
+    @[JSON::Field(key: "textLayoutMode", emit_null: false)]
+    property text_layout_mode : SetDeviceMetricsOverrideTextLayoutMode?
 
-    def initialize(@width : Int64, @height : Int64, @device_scale_factor : Float64, @mobile : Bool, @scale : Float64?, @screen_width : Int64?, @screen_height : Int64?, @position_x : Int64?, @position_y : Int64?, @dont_set_visible_size : Bool?, @screen_orientation : ScreenOrientation?, @viewport : Cdp::Page::Viewport?, @display_feature : DisplayFeature?, @device_posture : DevicePosture?)
+    def initialize(@width : Int64, @height : Int64, @device_scale_factor : Float64, @mobile : Bool, @scale : Float64? = nil, @screen_width : Int64? = nil, @screen_height : Int64? = nil, @position_x : Int64? = nil, @position_y : Int64? = nil, @dont_set_visible_size : Bool? = nil, @screen_orientation : ScreenOrientation? = nil, @viewport : Cdp::Page::Viewport? = nil, @display_feature : DisplayFeature? = nil, @device_posture : DevicePosture? = nil, @scrollbar_type : SetDeviceMetricsOverrideScrollbarType? = nil, @screen_orientation_lock_emulation : Bool? = nil, @viewport_meta : SetDeviceMetricsOverrideViewportMeta? = nil, @text_layout_mode : SetDeviceMetricsOverrideTextLayoutMode? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -387,7 +426,7 @@ module Cdp::Emulation
     @[JSON::Field(key: "configuration", emit_null: false)]
     property configuration : SetEmitTouchEventsForMouseConfiguration?
 
-    def initialize(@enabled : Bool, @configuration : SetEmitTouchEventsForMouseConfiguration?)
+    def initialize(@enabled : Bool, @configuration : SetEmitTouchEventsForMouseConfiguration? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -409,7 +448,7 @@ module Cdp::Emulation
     @[JSON::Field(key: "features", emit_null: false)]
     property features : Array(MediaFeature)?
 
-    def initialize(@media : String?, @features : Array(MediaFeature)?)
+    def initialize(@media : String? = nil, @features : Array(MediaFeature)? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -449,7 +488,7 @@ module Cdp::Emulation
     @[JSON::Field(key: "scale", emit_null: false)]
     property scale : Float64?
 
-    def initialize(@scale : Float64?)
+    def initialize(@scale : Float64? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -481,7 +520,7 @@ module Cdp::Emulation
     @[JSON::Field(key: "speed", emit_null: false)]
     property speed : Float64?
 
-    def initialize(@latitude : Float64?, @longitude : Float64?, @accuracy : Float64?, @altitude : Float64?, @altitude_accuracy : Float64?, @heading : Float64?, @speed : Float64?)
+    def initialize(@latitude : Float64? = nil, @longitude : Float64? = nil, @accuracy : Float64? = nil, @altitude : Float64? = nil, @altitude_accuracy : Float64? = nil, @heading : Float64? = nil, @speed : Float64? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -527,7 +566,7 @@ module Cdp::Emulation
     @[JSON::Field(key: "metadata", emit_null: false)]
     property metadata : SensorMetadata?
 
-    def initialize(@enabled : Bool, @type : SensorType, @metadata : SensorMetadata?)
+    def initialize(@enabled : Bool, @type : SensorType, @metadata : SensorMetadata? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -575,7 +614,7 @@ module Cdp::Emulation
     @[JSON::Field(key: "metadata", emit_null: false)]
     property metadata : PressureMetadata?
 
-    def initialize(@enabled : Bool, @source : PressureSource, @metadata : PressureMetadata?)
+    def initialize(@enabled : Bool, @source : PressureSource, @metadata : PressureMetadata? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -604,31 +643,6 @@ module Cdp::Emulation
     # ProtoReq returns the protocol method name.
     def proto_req : String
       "Emulation.setPressureStateOverride"
-    end
-
-    # Call sends the request.
-    def call(c : Cdp::Client) : Nil
-      Cdp.call(proto_req, self, nil, c)
-    end
-  end
-
-  @[Experimental]
-  struct SetPressureDataOverride
-    include JSON::Serializable
-    include Cdp::Request
-    @[JSON::Field(key: "source", emit_null: false)]
-    property source : PressureSource
-    @[JSON::Field(key: "state", emit_null: false)]
-    property state : PressureState
-    @[JSON::Field(key: "ownContributionEstimate", emit_null: false)]
-    property own_contribution_estimate : Float64?
-
-    def initialize(@source : PressureSource, @state : PressureState, @own_contribution_estimate : Float64?)
-    end
-
-    # ProtoReq returns the protocol method name.
-    def proto_req : String
-      "Emulation.setPressureDataOverride"
     end
 
     # Call sends the request.
@@ -726,7 +740,7 @@ module Cdp::Emulation
     @[JSON::Field(key: "maxTouchPoints", emit_null: false)]
     property max_touch_points : Int64?
 
-    def initialize(@enabled : Bool, @max_touch_points : Int64?)
+    def initialize(@enabled : Bool, @max_touch_points : Int64? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -753,7 +767,7 @@ module Cdp::Emulation
     @[JSON::Field(key: "initialVirtualTime", emit_null: false)]
     property initial_virtual_time : Cdp::Network::TimeSinceEpoch?
 
-    def initialize(@policy : VirtualTimePolicy, @budget : Float64?, @max_virtual_time_task_starvation_count : Int64?, @initial_virtual_time : Cdp::Network::TimeSinceEpoch?)
+    def initialize(@policy : VirtualTimePolicy, @budget : Float64? = nil, @max_virtual_time_task_starvation_count : Int64? = nil, @initial_virtual_time : Cdp::Network::TimeSinceEpoch? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -774,7 +788,7 @@ module Cdp::Emulation
     @[JSON::Field(key: "locale", emit_null: false)]
     property locale : String?
 
-    def initialize(@locale : String?)
+    def initialize(@locale : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -836,7 +850,7 @@ module Cdp::Emulation
     @[JSON::Field(key: "dataSaverEnabled", emit_null: false)]
     property? data_saver_enabled : Bool?
 
-    def initialize(@data_saver_enabled : Bool?)
+    def initialize(@data_saver_enabled : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -871,6 +885,27 @@ module Cdp::Emulation
     end
   end
 
+  @[Experimental]
+  struct SetCPUPerformanceOverride
+    include JSON::Serializable
+    include Cdp::Request
+    @[JSON::Field(key: "performanceTier", emit_null: false)]
+    property performance_tier : SetCPUPerformanceOverridePerformanceTier?
+
+    def initialize(@performance_tier : SetCPUPerformanceOverridePerformanceTier? = nil)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Emulation.setCPUPerformanceOverride"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
   struct SetUserAgentOverride
     include JSON::Serializable
     include Cdp::Request
@@ -883,7 +918,7 @@ module Cdp::Emulation
     @[JSON::Field(key: "userAgentMetadata", emit_null: false)]
     property user_agent_metadata : UserAgentMetadata?
 
-    def initialize(@user_agent : String, @accept_language : String?, @platform : String?, @user_agent_metadata : UserAgentMetadata?)
+    def initialize(@user_agent : String, @accept_language : String? = nil, @platform : String? = nil, @user_agent_metadata : UserAgentMetadata? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -983,7 +1018,7 @@ module Cdp::Emulation
     @[JSON::Field(key: "isInternal", emit_null: false)]
     property? is_internal : Bool?
 
-    def initialize(@left : Int64, @top : Int64, @width : Int64, @height : Int64, @work_area_insets : WorkAreaInsets?, @device_pixel_ratio : Float64?, @rotation : Int64?, @color_depth : Int64?, @label : String?, @is_internal : Bool?)
+    def initialize(@left : Int64, @top : Int64, @width : Int64, @height : Int64, @work_area_insets : WorkAreaInsets? = nil, @device_pixel_ratio : Float64? = nil, @rotation : Int64? = nil, @color_depth : Int64? = nil, @label : String? = nil, @is_internal : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -994,6 +1029,47 @@ module Cdp::Emulation
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : AddScreenResult
       Cdp.call(proto_req, self, AddScreenResult, c)
+    end
+  end
+
+  @[Experimental]
+  struct UpdateScreen
+    include JSON::Serializable
+    include Cdp::Request
+    @[JSON::Field(key: "screenId", emit_null: false)]
+    property screen_id : ScreenId
+    @[JSON::Field(key: "left", emit_null: false)]
+    property left : Int64?
+    @[JSON::Field(key: "top", emit_null: false)]
+    property top : Int64?
+    @[JSON::Field(key: "width", emit_null: false)]
+    property width : Int64?
+    @[JSON::Field(key: "height", emit_null: false)]
+    property height : Int64?
+    @[JSON::Field(key: "workAreaInsets", emit_null: false)]
+    property work_area_insets : WorkAreaInsets?
+    @[JSON::Field(key: "devicePixelRatio", emit_null: false)]
+    property device_pixel_ratio : Float64?
+    @[JSON::Field(key: "rotation", emit_null: false)]
+    property rotation : Int64?
+    @[JSON::Field(key: "colorDepth", emit_null: false)]
+    property color_depth : Int64?
+    @[JSON::Field(key: "label", emit_null: false)]
+    property label : String?
+    @[JSON::Field(key: "isInternal", emit_null: false)]
+    property? is_internal : Bool?
+
+    def initialize(@screen_id : ScreenId, @left : Int64? = nil, @top : Int64? = nil, @width : Int64? = nil, @height : Int64? = nil, @work_area_insets : WorkAreaInsets? = nil, @device_pixel_ratio : Float64? = nil, @rotation : Int64? = nil, @color_depth : Int64? = nil, @label : String? = nil, @is_internal : Bool? = nil)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Emulation.updateScreen"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : UpdateScreenResult
+      Cdp.call(proto_req, self, UpdateScreenResult, c)
     end
   end
 
@@ -1010,6 +1086,27 @@ module Cdp::Emulation
     # ProtoReq returns the protocol method name.
     def proto_req : String
       "Emulation.removeScreen"
+    end
+
+    # Call sends the request.
+    def call(c : Cdp::Client) : Nil
+      Cdp.call(proto_req, self, nil, c)
+    end
+  end
+
+  @[Experimental]
+  struct SetPrimaryScreen
+    include JSON::Serializable
+    include Cdp::Request
+    @[JSON::Field(key: "screenId", emit_null: false)]
+    property screen_id : ScreenId
+
+    def initialize(@screen_id : ScreenId)
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Emulation.setPrimaryScreen"
     end
 
     # Call sends the request.

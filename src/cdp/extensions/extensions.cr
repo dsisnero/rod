@@ -16,6 +16,15 @@ module Cdp::Extensions
     end
   end
 
+  struct GetExtensionsResult
+    include JSON::Serializable
+    @[JSON::Field(key: "extensions", emit_null: false)]
+    property extensions : Array(ExtensionInfo)
+
+    def initialize(@extensions : Array(ExtensionInfo))
+    end
+  end
+
   struct GetStorageItemsResult
     include JSON::Serializable
     @[JSON::Field(key: "data", emit_null: false)]
@@ -56,7 +65,7 @@ module Cdp::Extensions
     @[JSON::Field(key: "enableInIncognito", emit_null: false)]
     property? enable_in_incognito : Bool?
 
-    def initialize(@path : String, @enable_in_incognito : Bool?)
+    def initialize(@path : String, @enable_in_incognito : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -67,6 +76,24 @@ module Cdp::Extensions
     # Call sends the request and returns the result.
     def call(c : Cdp::Client) : LoadUnpackedResult
       Cdp.call(proto_req, self, LoadUnpackedResult, c)
+    end
+  end
+
+  struct GetExtensions
+    include JSON::Serializable
+    include Cdp::Request
+
+    def initialize
+    end
+
+    # ProtoReq returns the protocol method name.
+    def proto_req : String
+      "Extensions.getExtensions"
+    end
+
+    # Call sends the request and returns the result.
+    def call(c : Cdp::Client) : GetExtensionsResult
+      Cdp.call(proto_req, self, GetExtensionsResult, c)
     end
   end
 
@@ -100,7 +127,7 @@ module Cdp::Extensions
     @[JSON::Field(key: "keys", emit_null: false)]
     property keys : Array(String)?
 
-    def initialize(@id : String, @storage_area : StorageArea, @keys : Array(String)?)
+    def initialize(@id : String, @storage_area : StorageArea, @keys : Array(String)? = nil)
     end
 
     # ProtoReq returns the protocol method name.

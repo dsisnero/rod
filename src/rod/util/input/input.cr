@@ -121,7 +121,7 @@ module Rod::Input
     text = printable?(key) ? info.key : ""
 
     commands = mac? ? MAC_COMMANDS[info.key]? : nil
-    modifier_bits = modifiers == 0 ? nil : modifiers.to_i64
+    modifier_bits = modifiers == 0 ? nil : Cdp::Input::Modifier.new(modifiers.to_i64)
 
     Cdp::Input::DispatchKeyEvent.new(
       type: type,

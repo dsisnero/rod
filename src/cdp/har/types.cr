@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../log/log"
@@ -14,6 +15,9 @@ module Cdp::HAR
     property after_request : CacheData?
     @[JSON::Field(key: "comment", emit_null: false)]
     property comment : String?
+
+    def initialize(@before_request : CacheData? = nil, @after_request : CacheData? = nil, @comment : String? = nil)
+    end
   end
 
   struct CacheData
@@ -28,6 +32,9 @@ module Cdp::HAR
     property hit_count : Int64
     @[JSON::Field(key: "comment", emit_null: false)]
     property comment : String?
+
+    def initialize(@last_access : String, @e_tag : String, @hit_count : Int64, @expires : String? = nil, @comment : String? = nil)
+    end
   end
 
   struct Content
@@ -44,6 +51,9 @@ module Cdp::HAR
     property encoding : String?
     @[JSON::Field(key: "comment", emit_null: false)]
     property comment : String?
+
+    def initialize(@size : Int64, @mime_type : String, @compression : Int64? = nil, @text : String? = nil, @encoding : String? = nil, @comment : String? = nil)
+    end
   end
 
   struct Cookie
@@ -64,6 +74,9 @@ module Cdp::HAR
     property? secure : Bool?
     @[JSON::Field(key: "comment", emit_null: false)]
     property comment : String?
+
+    def initialize(@name : String, @value : String, @path : String? = nil, @domain : String? = nil, @expires : String? = nil, @http_only : Bool? = nil, @secure : Bool? = nil, @comment : String? = nil)
+    end
   end
 
   struct Creator
@@ -74,6 +87,9 @@ module Cdp::HAR
     property version : String
     @[JSON::Field(key: "comment", emit_null: false)]
     property comment : String?
+
+    def initialize(@name : String, @version : String, @comment : String? = nil)
+    end
   end
 
   struct Entry
@@ -92,18 +108,24 @@ module Cdp::HAR
     property cache : Cache
     @[JSON::Field(key: "timings", emit_null: false)]
     property timings : Timings
-    @[JSON::Field(key: "serverIpAddress", emit_null: false)]
+    @[JSON::Field(key: "serverIPAddress", emit_null: false)]
     property server_ip_address : String?
     @[JSON::Field(key: "connection", emit_null: false)]
     property connection : String?
     @[JSON::Field(key: "comment", emit_null: false)]
     property comment : String?
+
+    def initialize(@started_date_time : String, @time : Float64, @request : Request, @response : Response, @cache : Cache, @timings : Timings, @pageref : String? = nil, @server_ip_address : String? = nil, @connection : String? = nil, @comment : String? = nil)
+    end
   end
 
   struct HAR
     include JSON::Serializable
     @[JSON::Field(key: "log", emit_null: false)]
     property log : Log
+
+    def initialize(@log : Log)
+    end
   end
 
   struct Log
@@ -120,6 +142,9 @@ module Cdp::HAR
     property entries : Array(Entry)
     @[JSON::Field(key: "comment", emit_null: false)]
     property comment : String?
+
+    def initialize(@version : String, @creator : Creator, @entries : Array(Entry), @browser : Creator? = nil, @pages : Array(Page)? = nil, @comment : String? = nil)
+    end
   end
 
   struct NameValuePair
@@ -130,6 +155,9 @@ module Cdp::HAR
     property value : String
     @[JSON::Field(key: "comment", emit_null: false)]
     property comment : String?
+
+    def initialize(@name : String, @value : String, @comment : String? = nil)
+    end
   end
 
   struct Page
@@ -144,6 +172,9 @@ module Cdp::HAR
     property page_timings : PageTimings
     @[JSON::Field(key: "comment", emit_null: false)]
     property comment : String?
+
+    def initialize(@started_date_time : String, @id : String, @title : String, @page_timings : PageTimings, @comment : String? = nil)
+    end
   end
 
   struct PageTimings
@@ -154,6 +185,9 @@ module Cdp::HAR
     property on_load : Float64?
     @[JSON::Field(key: "comment", emit_null: false)]
     property comment : String?
+
+    def initialize(@on_content_load : Float64? = nil, @on_load : Float64? = nil, @comment : String? = nil)
+    end
   end
 
   struct Param
@@ -168,6 +202,9 @@ module Cdp::HAR
     property content_type : String?
     @[JSON::Field(key: "comment", emit_null: false)]
     property comment : String?
+
+    def initialize(@name : String, @value : String? = nil, @file_name : String? = nil, @content_type : String? = nil, @comment : String? = nil)
+    end
   end
 
   struct PostData
@@ -180,6 +217,9 @@ module Cdp::HAR
     property text : String
     @[JSON::Field(key: "comment", emit_null: false)]
     property comment : String?
+
+    def initialize(@mime_type : String, @params : Array(Param), @text : String, @comment : String? = nil)
+    end
   end
 
   struct Request
@@ -204,6 +244,9 @@ module Cdp::HAR
     property body_size : Int64
     @[JSON::Field(key: "comment", emit_null: false)]
     property comment : String?
+
+    def initialize(@method : String, @url : String, @http_version : String, @cookies : Array(Cookie), @headers : Array(NameValuePair), @query_string : Array(NameValuePair), @headers_size : Int64, @body_size : Int64, @post_data : PostData? = nil, @comment : String? = nil)
+    end
   end
 
   struct Response
@@ -220,7 +263,7 @@ module Cdp::HAR
     property headers : Array(NameValuePair)
     @[JSON::Field(key: "content", emit_null: false)]
     property content : Content
-    @[JSON::Field(key: "redirectUrl", emit_null: false)]
+    @[JSON::Field(key: "redirectURL", emit_null: false)]
     property redirect_url : String
     @[JSON::Field(key: "headersSize", emit_null: false)]
     property headers_size : Int64
@@ -228,6 +271,9 @@ module Cdp::HAR
     property body_size : Int64
     @[JSON::Field(key: "comment", emit_null: false)]
     property comment : String?
+
+    def initialize(@status : Int64, @status_text : String, @http_version : String, @cookies : Array(Cookie), @headers : Array(NameValuePair), @content : Content, @redirect_url : String, @headers_size : Int64, @body_size : Int64, @comment : String? = nil)
+    end
   end
 
   struct Timings
@@ -248,5 +294,8 @@ module Cdp::HAR
     property ssl : Float64?
     @[JSON::Field(key: "comment", emit_null: false)]
     property comment : String?
+
+    def initialize(@send : Float64, @wait : Float64, @receive : Float64, @blocked : Float64? = nil, @dns : Float64? = nil, @connect : Float64? = nil, @ssl : Float64? = nil, @comment : String? = nil)
+    end
   end
 end

@@ -18,7 +18,7 @@ module Cdp::Accessibility
     @[JSON::Field(key: "nodes", emit_null: false)]
     property nodes : Array(Node)
 
-    def initialize(@nodes : Array(Node) = [] of Node)
+    def initialize(@nodes : Array(Node))
     end
   end
 
@@ -28,7 +28,7 @@ module Cdp::Accessibility
     @[JSON::Field(key: "nodes", emit_null: false)]
     property nodes : Array(Node)
 
-    def initialize(@nodes : Array(Node) = [] of Node)
+    def initialize(@nodes : Array(Node))
     end
   end
 
@@ -36,9 +36,9 @@ module Cdp::Accessibility
   struct GetRootAXNodeResult
     include JSON::Serializable
     @[JSON::Field(key: "node", emit_null: false)]
-    property node : Node?
+    property node : Node
 
-    def initialize(@node : Node? = nil)
+    def initialize(@node : Node)
     end
   end
 
@@ -48,7 +48,7 @@ module Cdp::Accessibility
     @[JSON::Field(key: "nodes", emit_null: false)]
     property nodes : Array(Node)
 
-    def initialize(@nodes : Array(Node) = [] of Node)
+    def initialize(@nodes : Array(Node))
     end
   end
 
@@ -58,7 +58,7 @@ module Cdp::Accessibility
     @[JSON::Field(key: "nodes", emit_null: false)]
     property nodes : Array(Node)
 
-    def initialize(@nodes : Array(Node) = [] of Node)
+    def initialize(@nodes : Array(Node))
     end
   end
 
@@ -68,7 +68,7 @@ module Cdp::Accessibility
     @[JSON::Field(key: "nodes", emit_null: false)]
     property nodes : Array(Node)
 
-    def initialize(@nodes : Array(Node) = [] of Node)
+    def initialize(@nodes : Array(Node))
     end
   end
 
@@ -122,7 +122,7 @@ module Cdp::Accessibility
     @[JSON::Field(key: "fetchRelatives", emit_null: false)]
     property? fetch_relatives : Bool?
 
-    def initialize(@node_id : Cdp::DOM::NodeId?, @backend_node_id : Cdp::DOM::BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?, @fetch_relatives : Bool?)
+    def initialize(@node_id : Cdp::DOM::NodeId? = nil, @backend_node_id : Cdp::DOM::BackendNodeId? = nil, @object_id : Cdp::Runtime::RemoteObjectId? = nil, @fetch_relatives : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -145,7 +145,7 @@ module Cdp::Accessibility
     @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
 
-    def initialize(@depth : Int64?, @frame_id : Cdp::Page::FrameId?)
+    def initialize(@depth : Int64? = nil, @frame_id : Cdp::Page::FrameId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -166,7 +166,7 @@ module Cdp::Accessibility
     @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
 
-    def initialize(@frame_id : Cdp::Page::FrameId?)
+    def initialize(@frame_id : Cdp::Page::FrameId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -191,7 +191,7 @@ module Cdp::Accessibility
     @[JSON::Field(key: "objectId", emit_null: false)]
     property object_id : Cdp::Runtime::RemoteObjectId?
 
-    def initialize(@node_id : Cdp::DOM::NodeId?, @backend_node_id : Cdp::DOM::BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?)
+    def initialize(@node_id : Cdp::DOM::NodeId? = nil, @backend_node_id : Cdp::DOM::BackendNodeId? = nil, @object_id : Cdp::Runtime::RemoteObjectId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -214,7 +214,7 @@ module Cdp::Accessibility
     @[JSON::Field(key: "frameId", emit_null: false)]
     property frame_id : Cdp::Page::FrameId?
 
-    def initialize(@id : NodeId, @frame_id : Cdp::Page::FrameId?)
+    def initialize(@id : NodeId, @frame_id : Cdp::Page::FrameId? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -243,7 +243,7 @@ module Cdp::Accessibility
     @[JSON::Field(key: "role", emit_null: false)]
     property role : String?
 
-    def initialize(@node_id : Cdp::DOM::NodeId?, @backend_node_id : Cdp::DOM::BackendNodeId?, @object_id : Cdp::Runtime::RemoteObjectId?, @accessible_name : String?, @role : String?)
+    def initialize(@node_id : Cdp::DOM::NodeId? = nil, @backend_node_id : Cdp::DOM::BackendNodeId? = nil, @object_id : Cdp::Runtime::RemoteObjectId? = nil, @accessible_name : String? = nil, @role : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.

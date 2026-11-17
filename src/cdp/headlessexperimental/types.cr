@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 module Cdp::HeadlessExperimental
@@ -11,6 +12,9 @@ module Cdp::HeadlessExperimental
     property quality : Int64?
     @[JSON::Field(key: "optimizeForSpeed", emit_null: false)]
     property? optimize_for_speed : Bool?
+
+    def initialize(@format : ScreenshotParamsFormat? = nil, @quality : Int64? = nil, @optimize_for_speed : Bool? = nil)
+    end
   end
 
   alias ScreenshotParamsFormat = String

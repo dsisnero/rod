@@ -30,7 +30,7 @@ module Cdp::DOMDebugger
     @[JSON::Field(key: "pierce", emit_null: false)]
     property? pierce : Bool?
 
-    def initialize(@object_id : Cdp::Runtime::RemoteObjectId, @depth : Int64?, @pierce : Bool?)
+    def initialize(@object_id : Cdp::Runtime::RemoteObjectId, @depth : Int64? = nil, @pierce : Bool? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -74,7 +74,7 @@ module Cdp::DOMDebugger
     @[JSON::Field(key: "targetName", emit_null: false)]
     property target_name : String?
 
-    def initialize(@event_name : String, @target_name : String?)
+    def initialize(@event_name : String, @target_name : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -159,7 +159,7 @@ module Cdp::DOMDebugger
     @[JSON::Field(key: "targetName", emit_null: false)]
     property target_name : String?
 
-    def initialize(@event_name : String, @target_name : String?)
+    def initialize(@event_name : String, @target_name : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.

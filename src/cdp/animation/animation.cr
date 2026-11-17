@@ -159,9 +159,11 @@ module Cdp::Animation
     @[JSON::Field(key: "animations", emit_null: false)]
     property animations : Array(String)
     @[JSON::Field(key: "currentTime", emit_null: false)]
-    property current_time : Float64
+    property current_time : Float64?
+    @[JSON::Field(key: "currentTimes", emit_null: false)]
+    property current_times : Array(Float64)?
 
-    def initialize(@animations : Array(String), @current_time : Float64)
+    def initialize(@animations : Array(String), @current_time : Float64? = nil, @current_times : Array(Float64)? = nil)
     end
 
     # ProtoReq returns the protocol method name.

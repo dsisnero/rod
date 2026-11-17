@@ -91,7 +91,7 @@ module Cdp::CacheStorage
     @[JSON::Field(key: "storageBucket", emit_null: false)]
     property storage_bucket : Cdp::Storage::StorageBucket?
 
-    def initialize(@security_origin : String?, @storage_key : String?, @storage_bucket : Cdp::Storage::StorageBucket?)
+    def initialize(@security_origin : String? = nil, @storage_key : String? = nil, @storage_bucket : Cdp::Storage::StorageBucket? = nil)
     end
 
     # ProtoReq returns the protocol method name.
@@ -110,7 +110,7 @@ module Cdp::CacheStorage
     include Cdp::Request
     @[JSON::Field(key: "cacheId", emit_null: false)]
     property cache_id : CacheId
-    @[JSON::Field(key: "requestUrl", emit_null: false)]
+    @[JSON::Field(key: "requestURL", emit_null: false)]
     property request_url : String
     @[JSON::Field(key: "requestHeaders", emit_null: false)]
     property request_headers : Array(Header)
@@ -141,7 +141,7 @@ module Cdp::CacheStorage
     @[JSON::Field(key: "pathFilter", emit_null: false)]
     property path_filter : String?
 
-    def initialize(@cache_id : CacheId, @skip_count : Int64?, @page_size : Int64?, @path_filter : String?)
+    def initialize(@cache_id : CacheId, @skip_count : Int64? = nil, @page_size : Int64? = nil, @path_filter : String? = nil)
     end
 
     # ProtoReq returns the protocol method name.

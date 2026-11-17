@@ -1,9 +1,10 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
-require "../runtime/runtime"
 require "../network/network"
+require "../runtime/runtime"
 require "../dom/dom"
 require "../io/io"
 require "../debugger/debugger"
@@ -30,24 +31,9 @@ module Cdp::Page
     property ad_frame_type : AdFrameType
     @[JSON::Field(key: "explanations", emit_null: false)]
     property explanations : Array(AdFrameExplanation)?
-  end
 
-  @[Experimental]
-  struct AdScriptId
-    include JSON::Serializable
-    @[JSON::Field(key: "scriptId", emit_null: false)]
-    property script_id : Cdp::Runtime::ScriptId
-    @[JSON::Field(key: "debuggerId", emit_null: false)]
-    property debugger_id : Cdp::Runtime::UniqueDebuggerId
-  end
-
-  @[Experimental]
-  struct AdScriptAncestry
-    include JSON::Serializable
-    @[JSON::Field(key: "ancestryChain", emit_null: false)]
-    property ancestry_chain : Array(AdScriptId)
-    @[JSON::Field(key: "rootScriptFilterlistRule", emit_null: false)]
-    property root_script_filterlist_rule : String?
+    def initialize(@ad_frame_type : AdFrameType, @explanations : Array(AdFrameExplanation)? = nil)
+    end
   end
 
   @[Experimental]
@@ -72,116 +58,111 @@ module Cdp::Page
 
   @[Experimental]
   alias PermissionsPolicyFeature = String
-  PermissionsPolicyFeatureAccelerometer                  = "accelerometer"
-  PermissionsPolicyFeatureAllScreensCapture              = "all-screens-capture"
-  PermissionsPolicyFeatureAmbientLightSensor             = "ambient-light-sensor"
-  PermissionsPolicyFeatureAriaNotify                     = "aria-notify"
-  PermissionsPolicyFeatureAttributionReporting           = "attribution-reporting"
-  PermissionsPolicyFeatureAutofill                       = "autofill"
-  PermissionsPolicyFeatureAutoplay                       = "autoplay"
-  PermissionsPolicyFeatureBluetooth                      = "bluetooth"
-  PermissionsPolicyFeatureBrowsingTopics                 = "browsing-topics"
-  PermissionsPolicyFeatureCamera                         = "camera"
-  PermissionsPolicyFeatureCapturedSurfaceControl         = "captured-surface-control"
-  PermissionsPolicyFeatureChDpr                          = "ch-dpr"
-  PermissionsPolicyFeatureChDeviceMemory                 = "ch-device-memory"
-  PermissionsPolicyFeatureChDownlink                     = "ch-downlink"
-  PermissionsPolicyFeatureChEct                          = "ch-ect"
-  PermissionsPolicyFeatureChPrefersColorScheme           = "ch-prefers-color-scheme"
-  PermissionsPolicyFeatureChPrefersReducedMotion         = "ch-prefers-reduced-motion"
-  PermissionsPolicyFeatureChPrefersReducedTransparency   = "ch-prefers-reduced-transparency"
-  PermissionsPolicyFeatureChRtt                          = "ch-rtt"
-  PermissionsPolicyFeatureChSaveData                     = "ch-save-data"
-  PermissionsPolicyFeatureChUa                           = "ch-ua"
-  PermissionsPolicyFeatureChUaArch                       = "ch-ua-arch"
-  PermissionsPolicyFeatureChUaBitness                    = "ch-ua-bitness"
-  PermissionsPolicyFeatureChUaHighEntropyValues          = "ch-ua-high-entropy-values"
-  PermissionsPolicyFeatureChUaPlatform                   = "ch-ua-platform"
-  PermissionsPolicyFeatureChUaModel                      = "ch-ua-model"
-  PermissionsPolicyFeatureChUaMobile                     = "ch-ua-mobile"
-  PermissionsPolicyFeatureChUaFormFactors                = "ch-ua-form-factors"
-  PermissionsPolicyFeatureChUaFullVersion                = "ch-ua-full-version"
-  PermissionsPolicyFeatureChUaFullVersionList            = "ch-ua-full-version-list"
-  PermissionsPolicyFeatureChUaPlatformVersion            = "ch-ua-platform-version"
-  PermissionsPolicyFeatureChUaWow64                      = "ch-ua-wow64"
-  PermissionsPolicyFeatureChViewportHeight               = "ch-viewport-height"
-  PermissionsPolicyFeatureChViewportWidth                = "ch-viewport-width"
-  PermissionsPolicyFeatureChWidth                        = "ch-width"
-  PermissionsPolicyFeatureClipboardRead                  = "clipboard-read"
-  PermissionsPolicyFeatureClipboardWrite                 = "clipboard-write"
-  PermissionsPolicyFeatureComputePressure                = "compute-pressure"
-  PermissionsPolicyFeatureControlledFrame                = "controlled-frame"
-  PermissionsPolicyFeatureCrossOriginIsolated            = "cross-origin-isolated"
-  PermissionsPolicyFeatureDeferredFetch                  = "deferred-fetch"
-  PermissionsPolicyFeatureDeferredFetchMinimal           = "deferred-fetch-minimal"
-  PermissionsPolicyFeatureDeviceAttributes               = "device-attributes"
-  PermissionsPolicyFeatureDigitalCredentialsCreate       = "digital-credentials-create"
-  PermissionsPolicyFeatureDigitalCredentialsGet          = "digital-credentials-get"
-  PermissionsPolicyFeatureDirectSockets                  = "direct-sockets"
-  PermissionsPolicyFeatureDirectSocketsMulticast         = "direct-sockets-multicast"
-  PermissionsPolicyFeatureDirectSocketsPrivate           = "direct-sockets-private"
-  PermissionsPolicyFeatureDisplayCapture                 = "display-capture"
-  PermissionsPolicyFeatureDocumentDomain                 = "document-domain"
-  PermissionsPolicyFeatureEncryptedMedia                 = "encrypted-media"
-  PermissionsPolicyFeatureExecutionWhileOutOfViewport    = "execution-while-out-of-viewport"
-  PermissionsPolicyFeatureExecutionWhileNotRendered      = "execution-while-not-rendered"
-  PermissionsPolicyFeatureFencedUnpartitionedStorageRead = "fenced-unpartitioned-storage-read"
-  PermissionsPolicyFeatureFocusWithoutUserActivation     = "focus-without-user-activation"
-  PermissionsPolicyFeatureFullscreen                     = "fullscreen"
-  PermissionsPolicyFeatureFrobulate                      = "frobulate"
-  PermissionsPolicyFeatureGamepad                        = "gamepad"
-  PermissionsPolicyFeatureGeolocation                    = "geolocation"
-  PermissionsPolicyFeatureGyroscope                      = "gyroscope"
-  PermissionsPolicyFeatureHid                            = "hid"
-  PermissionsPolicyFeatureIdentityCredentialsGet         = "identity-credentials-get"
-  PermissionsPolicyFeatureIdleDetection                  = "idle-detection"
-  PermissionsPolicyFeatureInterestCohort                 = "interest-cohort"
-  PermissionsPolicyFeatureJoinAdInterestGroup            = "join-ad-interest-group"
-  PermissionsPolicyFeatureKeyboardMap                    = "keyboard-map"
-  PermissionsPolicyFeatureLanguageDetector               = "language-detector"
-  PermissionsPolicyFeatureLanguageModel                  = "language-model"
-  PermissionsPolicyFeatureLocalFonts                     = "local-fonts"
-  PermissionsPolicyFeatureLocalNetwork                   = "local-network"
-  PermissionsPolicyFeatureLocalNetworkAccess             = "local-network-access"
-  PermissionsPolicyFeatureLoopbackNetwork                = "loopback-network"
-  PermissionsPolicyFeatureMagnetometer                   = "magnetometer"
-  PermissionsPolicyFeatureManualText                     = "manual-text"
-  PermissionsPolicyFeatureMediaPlaybackWhileNotVisible   = "media-playback-while-not-visible"
-  PermissionsPolicyFeatureMicrophone                     = "microphone"
-  PermissionsPolicyFeatureMidi                           = "midi"
-  PermissionsPolicyFeatureOnDeviceSpeechRecognition      = "on-device-speech-recognition"
-  PermissionsPolicyFeatureOtpCredentials                 = "otp-credentials"
-  PermissionsPolicyFeaturePayment                        = "payment"
-  PermissionsPolicyFeaturePictureInPicture               = "picture-in-picture"
-  PermissionsPolicyFeaturePrivateAggregation             = "private-aggregation"
-  PermissionsPolicyFeaturePrivateStateTokenIssuance      = "private-state-token-issuance"
-  PermissionsPolicyFeaturePrivateStateTokenRedemption    = "private-state-token-redemption"
-  PermissionsPolicyFeaturePublickeyCredentialsCreate     = "publickey-credentials-create"
-  PermissionsPolicyFeaturePublickeyCredentialsGet        = "publickey-credentials-get"
-  PermissionsPolicyFeatureRecordAdAuctionEvents          = "record-ad-auction-events"
-  PermissionsPolicyFeatureRewriter                       = "rewriter"
-  PermissionsPolicyFeatureRunAdAuction                   = "run-ad-auction"
-  PermissionsPolicyFeatureScreenWakeLock                 = "screen-wake-lock"
-  PermissionsPolicyFeatureSerial                         = "serial"
-  PermissionsPolicyFeatureSharedStorage                  = "shared-storage"
-  PermissionsPolicyFeatureSharedStorageSelectUrl         = "shared-storage-select-url"
-  PermissionsPolicyFeatureSmartCard                      = "smart-card"
-  PermissionsPolicyFeatureSpeakerSelection               = "speaker-selection"
-  PermissionsPolicyFeatureStorageAccess                  = "storage-access"
-  PermissionsPolicyFeatureSubApps                        = "sub-apps"
-  PermissionsPolicyFeatureSummarizer                     = "summarizer"
-  PermissionsPolicyFeatureSyncXhr                        = "sync-xhr"
-  PermissionsPolicyFeatureTranslator                     = "translator"
-  PermissionsPolicyFeatureUnload                         = "unload"
-  PermissionsPolicyFeatureUsb                            = "usb"
-  PermissionsPolicyFeatureUsbUnrestricted                = "usb-unrestricted"
-  PermissionsPolicyFeatureVerticalScroll                 = "vertical-scroll"
-  PermissionsPolicyFeatureWebAppInstallation             = "web-app-installation"
-  PermissionsPolicyFeatureWebPrinting                    = "web-printing"
-  PermissionsPolicyFeatureWebShare                       = "web-share"
-  PermissionsPolicyFeatureWindowManagement               = "window-management"
-  PermissionsPolicyFeatureWriter                         = "writer"
-  PermissionsPolicyFeatureXrSpatialTracking              = "xr-spatial-tracking"
+  PermissionsPolicyFeatureAccelerometer                            = "accelerometer"
+  PermissionsPolicyFeatureAllScreensCapture                        = "all-screens-capture"
+  PermissionsPolicyFeatureAmbientLightSensor                       = "ambient-light-sensor"
+  PermissionsPolicyFeatureAriaNotify                               = "aria-notify"
+  PermissionsPolicyFeatureAutofill                                 = "autofill"
+  PermissionsPolicyFeatureAutoplay                                 = "autoplay"
+  PermissionsPolicyFeatureBluetooth                                = "bluetooth"
+  PermissionsPolicyFeatureCamera                                   = "camera"
+  PermissionsPolicyFeatureCapturedSurfaceControl                   = "captured-surface-control"
+  PermissionsPolicyFeatureChDpr                                    = "ch-dpr"
+  PermissionsPolicyFeatureChDeviceMemory                           = "ch-device-memory"
+  PermissionsPolicyFeatureChDownlink                               = "ch-downlink"
+  PermissionsPolicyFeatureChEct                                    = "ch-ect"
+  PermissionsPolicyFeatureChPrefersColorScheme                     = "ch-prefers-color-scheme"
+  PermissionsPolicyFeatureChPrefersReducedMotion                   = "ch-prefers-reduced-motion"
+  PermissionsPolicyFeatureChPrefersReducedTransparency             = "ch-prefers-reduced-transparency"
+  PermissionsPolicyFeatureChRtt                                    = "ch-rtt"
+  PermissionsPolicyFeatureChSaveData                               = "ch-save-data"
+  PermissionsPolicyFeatureChUa                                     = "ch-ua"
+  PermissionsPolicyFeatureChUaArch                                 = "ch-ua-arch"
+  PermissionsPolicyFeatureChUaBitness                              = "ch-ua-bitness"
+  PermissionsPolicyFeatureChUaHighEntropyValues                    = "ch-ua-high-entropy-values"
+  PermissionsPolicyFeatureChUaPlatform                             = "ch-ua-platform"
+  PermissionsPolicyFeatureChUaModel                                = "ch-ua-model"
+  PermissionsPolicyFeatureChUaMobile                               = "ch-ua-mobile"
+  PermissionsPolicyFeatureChUaFormFactors                          = "ch-ua-form-factors"
+  PermissionsPolicyFeatureChUaFullVersion                          = "ch-ua-full-version"
+  PermissionsPolicyFeatureChUaFullVersionList                      = "ch-ua-full-version-list"
+  PermissionsPolicyFeatureChUaPlatformVersion                      = "ch-ua-platform-version"
+  PermissionsPolicyFeatureChUaWow64                                = "ch-ua-wow64"
+  PermissionsPolicyFeatureChViewportHeight                         = "ch-viewport-height"
+  PermissionsPolicyFeatureChViewportWidth                          = "ch-viewport-width"
+  PermissionsPolicyFeatureChWidth                                  = "ch-width"
+  PermissionsPolicyFeatureClipboardRead                            = "clipboard-read"
+  PermissionsPolicyFeatureClipboardWrite                           = "clipboard-write"
+  PermissionsPolicyFeatureComputePressure                          = "compute-pressure"
+  PermissionsPolicyFeatureControlledFrame                          = "controlled-frame"
+  PermissionsPolicyFeatureCrossOriginIsolated                      = "cross-origin-isolated"
+  PermissionsPolicyFeatureDeferredFetch                            = "deferred-fetch"
+  PermissionsPolicyFeatureDeferredFetchMinimal                     = "deferred-fetch-minimal"
+  PermissionsPolicyFeatureDeviceAttributes                         = "device-attributes"
+  PermissionsPolicyFeatureDigitalCredentialsCreate                 = "digital-credentials-create"
+  PermissionsPolicyFeatureDigitalCredentialsGet                    = "digital-credentials-get"
+  PermissionsPolicyFeatureDirectSockets                            = "direct-sockets"
+  PermissionsPolicyFeatureDirectSocketsMulticast                   = "direct-sockets-multicast"
+  PermissionsPolicyFeatureDisplayCapture                           = "display-capture"
+  PermissionsPolicyFeatureDocumentDomain                           = "document-domain"
+  PermissionsPolicyFeatureEncryptedMedia                           = "encrypted-media"
+  PermissionsPolicyFeatureExecutionWhileOutOfViewport              = "execution-while-out-of-viewport"
+  PermissionsPolicyFeatureExecutionWhileNotRendered                = "execution-while-not-rendered"
+  PermissionsPolicyFeatureFocusWithoutUserActivation               = "focus-without-user-activation"
+  PermissionsPolicyFeatureFullscreen                               = "fullscreen"
+  PermissionsPolicyFeatureFrobulate                                = "frobulate"
+  PermissionsPolicyFeatureGamepad                                  = "gamepad"
+  PermissionsPolicyFeatureGeolocation                              = "geolocation"
+  PermissionsPolicyFeatureGyroscope                                = "gyroscope"
+  PermissionsPolicyFeatureHaptics                                  = "haptics"
+  PermissionsPolicyFeatureHid                                      = "hid"
+  PermissionsPolicyFeatureIdentityCredentialsGet                   = "identity-credentials-get"
+  PermissionsPolicyFeatureIdleDetection                            = "idle-detection"
+  PermissionsPolicyFeatureKeyboardMap                              = "keyboard-map"
+  PermissionsPolicyFeatureLanguageDetector                         = "language-detector"
+  PermissionsPolicyFeatureLanguageModel                            = "language-model"
+  PermissionsPolicyFeatureLocalFonts                               = "local-fonts"
+  PermissionsPolicyFeatureLocalNetwork                             = "local-network"
+  PermissionsPolicyFeatureLocalNetworkAccess                       = "local-network-access"
+  PermissionsPolicyFeatureLoopbackNetwork                          = "loopback-network"
+  PermissionsPolicyFeatureMagnetometer                             = "magnetometer"
+  PermissionsPolicyFeatureManualText                               = "manual-text"
+  PermissionsPolicyFeatureMediaPlaybackWhileNotVisible             = "media-playback-while-not-visible"
+  PermissionsPolicyFeatureMicrophone                               = "microphone"
+  PermissionsPolicyFeatureMidi                                     = "midi"
+  PermissionsPolicyFeatureOnDeviceSpeechRecognition                = "on-device-speech-recognition"
+  PermissionsPolicyFeatureOtpCredentials                           = "otp-credentials"
+  PermissionsPolicyFeaturePayment                                  = "payment"
+  PermissionsPolicyFeaturePictureInPicture                         = "picture-in-picture"
+  PermissionsPolicyFeaturePrivateStateTokenIssuance                = "private-state-token-issuance"
+  PermissionsPolicyFeaturePrivateStateTokenRedemption              = "private-state-token-redemption"
+  PermissionsPolicyFeaturePublickeyCredentialsCreate               = "publickey-credentials-create"
+  PermissionsPolicyFeaturePublickeyCredentialsGet                  = "publickey-credentials-get"
+  PermissionsPolicyFeaturePublickeyCredentialsRemoteClientDataJson = "publickey-credentials-remote-client-data-json"
+  PermissionsPolicyFeatureRewriter                                 = "rewriter"
+  PermissionsPolicyFeatureScreenWakeLock                           = "screen-wake-lock"
+  PermissionsPolicyFeatureSemanticEmbedder                         = "semantic-embedder"
+  PermissionsPolicyFeatureSerial                                   = "serial"
+  PermissionsPolicyFeatureSmartCard                                = "smart-card"
+  PermissionsPolicyFeatureSpeakerSelection                         = "speaker-selection"
+  PermissionsPolicyFeatureStorageAccess                            = "storage-access"
+  PermissionsPolicyFeatureSubApps                                  = "sub-apps"
+  PermissionsPolicyFeatureSummarizer                               = "summarizer"
+  PermissionsPolicyFeatureSyncXhr                                  = "sync-xhr"
+  PermissionsPolicyFeatureTools                                    = "tools"
+  PermissionsPolicyFeatureTranslator                               = "translator"
+  PermissionsPolicyFeatureUnboundedElement                         = "unbounded-element"
+  PermissionsPolicyFeatureUnload                                   = "unload"
+  PermissionsPolicyFeatureUsb                                      = "usb"
+  PermissionsPolicyFeatureUsbUnrestricted                          = "usb-unrestricted"
+  PermissionsPolicyFeatureVerticalScroll                           = "vertical-scroll"
+  PermissionsPolicyFeatureWebAppInstallation                       = "web-app-installation"
+  PermissionsPolicyFeatureWebnn                                    = "webnn"
+  PermissionsPolicyFeatureWebPrinting                              = "web-printing"
+  PermissionsPolicyFeatureWebShare                                 = "web-share"
+  PermissionsPolicyFeatureWindowManagement                         = "window-management"
+  PermissionsPolicyFeatureWriter                                   = "writer"
+  PermissionsPolicyFeatureXrSpatialTracking                        = "xr-spatial-tracking"
 
   @[Experimental]
   alias PermissionsPolicyBlockReason = String
@@ -197,6 +178,9 @@ module Cdp::Page
     property frame_id : FrameId
     @[JSON::Field(key: "blockReason", emit_null: false)]
     property block_reason : PermissionsPolicyBlockReason
+
+    def initialize(@frame_id : FrameId, @block_reason : PermissionsPolicyBlockReason)
+    end
   end
 
   @[Experimental]
@@ -208,6 +192,9 @@ module Cdp::Page
     property? allowed : Bool
     @[JSON::Field(key: "locator", emit_null: false)]
     property locator : PermissionsPolicyBlockLocator?
+
+    def initialize(@feature : PermissionsPolicyFeature, @allowed : Bool, @locator : PermissionsPolicyBlockLocator? = nil)
+    end
   end
 
   @[Experimental]
@@ -252,6 +239,9 @@ module Cdp::Page
     property? is_third_party : Bool
     @[JSON::Field(key: "usageRestriction", emit_null: false)]
     property usage_restriction : OriginTrialUsageRestriction
+
+    def initialize(@origin : String, @match_sub_domains : Bool, @trial_name : String, @expiry_time : Cdp::Network::TimeSinceEpoch, @is_third_party : Bool, @usage_restriction : OriginTrialUsageRestriction)
+    end
   end
 
   @[Experimental]
@@ -263,6 +253,9 @@ module Cdp::Page
     property parsed_token : OriginTrialToken?
     @[JSON::Field(key: "status", emit_null: false)]
     property status : OriginTrialTokenStatus
+
+    def initialize(@raw_token_text : String, @status : OriginTrialTokenStatus, @parsed_token : OriginTrialToken? = nil)
+    end
   end
 
   @[Experimental]
@@ -274,6 +267,9 @@ module Cdp::Page
     property status : OriginTrialStatus
     @[JSON::Field(key: "tokensWithStatus", emit_null: false)]
     property tokens_with_status : Array(OriginTrialTokenWithStatus)
+
+    def initialize(@trial_name : String, @status : OriginTrialStatus, @tokens_with_status : Array(OriginTrialTokenWithStatus))
+    end
   end
 
   @[Experimental]
@@ -281,6 +277,9 @@ module Cdp::Page
     include JSON::Serializable
     @[JSON::Field(key: "isLocalhost", emit_null: false)]
     property? is_localhost : Bool
+
+    def initialize(@is_localhost : Bool)
+    end
   end
 
   struct Frame
@@ -313,16 +312,23 @@ module Cdp::Page
     property secure_context_type : SecureContextType
     @[JSON::Field(key: "crossOriginIsolatedContextType", emit_null: false)]
     property cross_origin_isolated_context_type : CrossOriginIsolatedContextType
-    @[JSON::Field(key: "gatedApiFeatures", emit_null: false)]
+    @[JSON::Field(key: "gatedAPIFeatures", emit_null: false)]
     property gated_api_features : Array(GatedAPIFeatures)
-    @[JSON::Field(key: "state", emit_null: false)]
-    property state : FrameState
-    @[JSON::Field(key: "root", emit_null: false)]
+    # Runtime-only state: not part of the protocol wire format.
+    @[JSON::Field(ignore: true)]
+    property state : FrameState = FrameState.new(0u16)
+    # Runtime-only state: not part of the protocol wire format.
+    @[JSON::Field(ignore: true)]
     property root : DOM::Node?
-    @[JSON::Field(key: "nodes", emit_null: false)]
-    property nodes : Hash(DOM::NodeId, DOM::Node?)
-    @[JSON::Field(key: "mutex", emit_null: false)]
-    property mutex : Mutex
+    # Runtime-only state: not part of the protocol wire format.
+    @[JSON::Field(ignore: true)]
+    property nodes : Hash(DOM::NodeId, DOM::Node?) = Hash(DOM::NodeId, DOM::Node?).new
+    # Runtime-only state: not part of the protocol wire format.
+    @[JSON::Field(ignore: true)]
+    property mutex : Mutex = Mutex.new
+
+    def initialize(@id : FrameId, @loader_id : Cdp::Network::LoaderId, @url : String, @domain_and_registry : String, @security_origin : String, @mime_type : String, @secure_context_type : SecureContextType, @cross_origin_isolated_context_type : CrossOriginIsolatedContextType, @gated_api_features : Array(GatedAPIFeatures), @parent_id : FrameId? = nil, @name : String? = nil, @url_fragment : String? = nil, @security_origin_details : SecurityOriginDetails? = nil, @unreachable_url : String? = nil, @ad_frame_status : AdFrameStatus? = nil)
+    end
   end
 
   # FrameState is the state of a Frame.
@@ -357,10 +363,13 @@ module Cdp::Page
     property? failed : Bool?
     @[JSON::Field(key: "canceled", emit_null: false)]
     property? canceled : Bool?
+
+    def initialize(@url : String, @type : Cdp::Network::ResourceType, @mime_type : String, @last_modified : Cdp::Network::TimeSinceEpoch? = nil, @content_size : Float64? = nil, @failed : Bool? = nil, @canceled : Bool? = nil)
+    end
   end
 
   @[Experimental]
-  struct FrameResourceTree
+  class FrameResourceTree
     include JSON::Serializable
     @[JSON::Field(key: "frame", emit_null: false)]
     property frame : Frame
@@ -368,14 +377,20 @@ module Cdp::Page
     property child_frames : Array(FrameResourceTree)?
     @[JSON::Field(key: "resources", emit_null: false)]
     property resources : Array(FrameResource)
+
+    def initialize(@frame : Frame, @resources : Array(FrameResource), @child_frames : Array(FrameResourceTree)? = nil)
+    end
   end
 
-  struct FrameTree
+  class FrameTree
     include JSON::Serializable
     @[JSON::Field(key: "frame", emit_null: false)]
     property frame : Frame
     @[JSON::Field(key: "childFrames", emit_null: false)]
     property child_frames : Array(FrameTree)?
+
+    def initialize(@frame : Frame, @child_frames : Array(FrameTree)? = nil)
+    end
   end
 
   alias ScriptIdentifier = String
@@ -401,12 +416,15 @@ module Cdp::Page
     property id : Int64
     @[JSON::Field(key: "url", emit_null: false)]
     property url : String
-    @[JSON::Field(key: "userTypedUrl", emit_null: false)]
+    @[JSON::Field(key: "userTypedURL", emit_null: false)]
     property user_typed_url : String
     @[JSON::Field(key: "title", emit_null: false)]
     property title : String
     @[JSON::Field(key: "transitionType", emit_null: false)]
     property transition_type : TransitionType
+
+    def initialize(@id : Int64, @url : String, @user_typed_url : String, @title : String, @transition_type : TransitionType)
+    end
   end
 
   @[Experimental]
@@ -426,6 +444,11 @@ module Cdp::Page
     property scroll_offset_y : Float64
     @[JSON::Field(key: "timestamp", emit_null: false)]
     property timestamp : Cdp::Network::TimeSinceEpoch?
+    @[JSON::Field(key: "monotonicTimestamp", emit_null: false)]
+    property monotonic_timestamp : Cdp::Network::MonotonicTime?
+
+    def initialize(@offset_top : Float64, @page_scale_factor : Float64, @device_width : Float64, @device_height : Float64, @scroll_offset_x : Float64, @scroll_offset_y : Float64, @timestamp : Cdp::Network::TimeSinceEpoch? = nil, @monotonic_timestamp : Cdp::Network::MonotonicTime? = nil)
+    end
   end
 
   alias DialogType = String
@@ -444,6 +467,9 @@ module Cdp::Page
     property line : Int64
     @[JSON::Field(key: "column", emit_null: false)]
     property column : Int64
+
+    def initialize(@message : String, @critical : Int64, @line : Int64, @column : Int64)
+    end
   end
 
   @[Experimental]
@@ -451,6 +477,9 @@ module Cdp::Page
     include JSON::Serializable
     @[JSON::Field(key: "scope", emit_null: false)]
     property scope : String
+
+    def initialize(@scope : String)
+    end
   end
 
   struct LayoutViewport
@@ -463,6 +492,9 @@ module Cdp::Page
     property client_width : Int64
     @[JSON::Field(key: "clientHeight", emit_null: false)]
     property client_height : Int64
+
+    def initialize(@page_x : Int64, @page_y : Int64, @client_width : Int64, @client_height : Int64)
+    end
   end
 
   struct VisualViewport
@@ -483,6 +515,9 @@ module Cdp::Page
     property scale : Float64
     @[JSON::Field(key: "zoom", emit_null: false)]
     property zoom : Float64?
+
+    def initialize(@offset_x : Float64, @offset_y : Float64, @page_x : Float64, @page_y : Float64, @client_width : Float64, @client_height : Float64, @scale : Float64, @zoom : Float64? = nil)
+    end
   end
 
   struct Viewport
@@ -494,17 +529,11 @@ module Cdp::Page
     @[JSON::Field(key: "width", emit_null: false)]
     property width : Float64
     @[JSON::Field(key: "height", emit_null: false)]
-    property height : Float64
+    property height : Float64 = 0.0
     @[JSON::Field(key: "scale", emit_null: false)]
-    property scale : Float64
+    property scale : Float64 = 1.0
 
-    def initialize(
-      @x : Float64,
-      @y : Float64,
-      @width : Float64,
-      @height : Float64 = 0.0,
-      @scale : Float64 = 1.0,
-    )
+    def initialize(@x : Float64, @y : Float64, @width : Float64, @height : Float64 = 0.0, @scale : Float64 = 1.0)
     end
   end
 
@@ -525,6 +554,9 @@ module Cdp::Page
     property fantasy : String?
     @[JSON::Field(key: "math", emit_null: false)]
     property math : String?
+
+    def initialize(@standard : String? = nil, @fixed : String? = nil, @serif : String? = nil, @sans_serif : String? = nil, @cursive : String? = nil, @fantasy : String? = nil, @math : String? = nil)
+    end
   end
 
   @[Experimental]
@@ -534,6 +566,9 @@ module Cdp::Page
     property script : String
     @[JSON::Field(key: "fontFamilies", emit_null: false)]
     property font_families : FontFamilies
+
+    def initialize(@script : String, @font_families : FontFamilies)
+    end
   end
 
   @[Experimental]
@@ -543,6 +578,9 @@ module Cdp::Page
     property standard : Int64?
     @[JSON::Field(key: "fixed", emit_null: false)]
     property fixed : Int64?
+
+    def initialize(@standard : Int64? = nil, @fixed : Int64? = nil)
+    end
   end
 
   @[Experimental]
@@ -572,6 +610,9 @@ module Cdp::Page
     property name : String
     @[JSON::Field(key: "value", emit_null: false)]
     property value : String
+
+    def initialize(@name : String, @value : String)
+    end
   end
 
   @[Experimental]
@@ -581,6 +622,9 @@ module Cdp::Page
     property error_id : String
     @[JSON::Field(key: "errorArguments", emit_null: false)]
     property error_arguments : Array(InstallabilityErrorArgument)
+
+    def initialize(@error_id : String, @error_arguments : Array(InstallabilityErrorArgument))
+    end
   end
 
   @[Experimental]
@@ -601,6 +645,9 @@ module Cdp::Page
     property url : String
     @[JSON::Field(key: "eager", emit_null: false)]
     property? eager : Bool?
+
+    def initialize(@url : String, @eager : Bool? = nil)
+    end
   end
 
   @[Experimental]
@@ -610,6 +657,9 @@ module Cdp::Page
     property name : String?
     @[JSON::Field(key: "accepts", emit_null: false)]
     property accepts : Array(String)?
+
+    def initialize(@name : String? = nil, @accepts : Array(String)? = nil)
+    end
   end
 
   @[Experimental]
@@ -619,12 +669,13 @@ module Cdp::Page
     property action : String
     @[JSON::Field(key: "name", emit_null: false)]
     property name : String
-    @[JSON::Field(key: "icons", emit_null: false)]
-    property icons : Array(ImageResource)?
     @[JSON::Field(key: "accepts", emit_null: false)]
     property accepts : Array(FileFilter)?
     @[JSON::Field(key: "launchType", emit_null: false)]
     property launch_type : String
+
+    def initialize(@action : String, @name : String, @launch_type : String, @accepts : Array(FileFilter)? = nil)
+    end
   end
 
   @[Experimental]
@@ -636,6 +687,9 @@ module Cdp::Page
     property sizes : String?
     @[JSON::Field(key: "type", emit_null: false)]
     property type : String?
+
+    def initialize(@url : String, @sizes : String? = nil, @type : String? = nil)
+    end
   end
 
   @[Experimental]
@@ -643,6 +697,9 @@ module Cdp::Page
     include JSON::Serializable
     @[JSON::Field(key: "clientMode", emit_null: false)]
     property client_mode : String
+
+    def initialize(@client_mode : String)
+    end
   end
 
   @[Experimental]
@@ -652,6 +709,9 @@ module Cdp::Page
     property protocol : String
     @[JSON::Field(key: "url", emit_null: false)]
     property url : String
+
+    def initialize(@protocol : String, @url : String)
+    end
   end
 
   @[Experimental]
@@ -661,6 +721,9 @@ module Cdp::Page
     property id : String?
     @[JSON::Field(key: "url", emit_null: false)]
     property url : String
+
+    def initialize(@url : String, @id : String? = nil)
+    end
   end
 
   @[Experimental]
@@ -670,6 +733,9 @@ module Cdp::Page
     property origin : String
     @[JSON::Field(key: "hasOriginWildcard", emit_null: false)]
     property? has_origin_wildcard : Bool
+
+    def initialize(@origin : String, @has_origin_wildcard : Bool)
+    end
   end
 
   @[Experimental]
@@ -681,6 +747,9 @@ module Cdp::Page
     property form_factor : String
     @[JSON::Field(key: "label", emit_null: false)]
     property label : String?
+
+    def initialize(@image : ImageResource, @form_factor : String, @label : String? = nil)
+    end
   end
 
   @[Experimental]
@@ -700,6 +769,9 @@ module Cdp::Page
     property url : String?
     @[JSON::Field(key: "files", emit_null: false)]
     property files : Array(FileFilter)?
+
+    def initialize(@action : String, @method : String, @enctype : String, @title : String? = nil, @text : String? = nil, @url : String? = nil, @files : Array(FileFilter)? = nil)
+    end
   end
 
   @[Experimental]
@@ -709,6 +781,9 @@ module Cdp::Page
     property name : String
     @[JSON::Field(key: "url", emit_null: false)]
     property url : String
+
+    def initialize(@name : String, @url : String)
+    end
   end
 
   @[Experimental]
@@ -760,6 +835,24 @@ module Cdp::Page
     property start_url : String?
     @[JSON::Field(key: "themeColor", emit_null: false)]
     property theme_color : String?
+
+    def initialize(@background_color : String? = nil, @description : String? = nil, @dir : String? = nil, @display : String? = nil, @display_overrides : Array(String)? = nil, @file_handlers : Array(FileHandler)? = nil, @icons : Array(ImageResource)? = nil, @id : String? = nil, @lang : String? = nil, @launch_handler : LaunchHandler? = nil, @name : String? = nil, @orientation : String? = nil, @prefer_related_applications : Bool? = nil, @protocol_handlers : Array(ProtocolHandler)? = nil, @related_applications : Array(RelatedApplication)? = nil, @scope : String? = nil, @scope_extensions : Array(ScopeExtension)? = nil, @screenshots : Array(Screenshot)? = nil, @share_target : ShareTarget? = nil, @short_name : String? = nil, @shortcuts : Array(Shortcut)? = nil, @start_url : String? = nil, @theme_color : String? = nil)
+    end
+  end
+
+  struct SubApp
+    include JSON::Serializable
+    @[JSON::Field(key: "name", emit_null: false)]
+    property name : String
+    @[JSON::Field(key: "scope", emit_null: false)]
+    property scope : String
+    @[JSON::Field(key: "manifestId", emit_null: false)]
+    property manifest_id : String
+    @[JSON::Field(key: "startUrl", emit_null: false)]
+    property start_url : String
+
+    def initialize(@name : String, @scope : String, @manifest_id : String, @start_url : String)
+    end
   end
 
   @[Experimental]
@@ -809,6 +902,7 @@ module Cdp::Page
   BackForwardCacheNotRestoredReasonBackForwardCacheDisabledForPrerender                     = "BackForwardCacheDisabledForPrerender"
   BackForwardCacheNotRestoredReasonUserAgentOverrideDiffers                                 = "UserAgentOverrideDiffers"
   BackForwardCacheNotRestoredReasonForegroundCacheLimit                                     = "ForegroundCacheLimit"
+  BackForwardCacheNotRestoredReasonForwardCacheDisabled                                     = "ForwardCacheDisabled"
   BackForwardCacheNotRestoredReasonBrowsingInstanceNotSwapped                               = "BrowsingInstanceNotSwapped"
   BackForwardCacheNotRestoredReasonBackForwardCacheDisabledForDelegate                      = "BackForwardCacheDisabledForDelegate"
   BackForwardCacheNotRestoredReasonUnloadHandlerExistsInMainFrame                           = "UnloadHandlerExistsInMainFrame"
@@ -910,6 +1004,8 @@ module Cdp::Page
   BackForwardCacheNotRestoredReasonEmbedderExtensionMessaging                               = "EmbedderExtensionMessaging"
   BackForwardCacheNotRestoredReasonEmbedderExtensionMessagingForOpenPort                    = "EmbedderExtensionMessagingForOpenPort"
   BackForwardCacheNotRestoredReasonEmbedderExtensionSentMessageToCachedFrame                = "EmbedderExtensionSentMessageToCachedFrame"
+  BackForwardCacheNotRestoredReasonEmbedderExtensionFrame                                   = "EmbedderExtensionFrame"
+  BackForwardCacheNotRestoredReasonEmbedderPrivilegedWebContents                            = "EmbedderPrivilegedWebContents"
   BackForwardCacheNotRestoredReasonRequestedByWebViewClient                                 = "RequestedByWebViewClient"
   BackForwardCacheNotRestoredReasonPostMessageByWebViewClient                               = "PostMessageByWebViewClient"
   BackForwardCacheNotRestoredReasonCacheControlNoStoreDeviceBoundSessionTerminated          = "CacheControlNoStoreDeviceBoundSessionTerminated"
@@ -933,6 +1029,9 @@ module Cdp::Page
     property line_number : Int64
     @[JSON::Field(key: "columnNumber", emit_null: false)]
     property column_number : Int64
+
+    def initialize(@line_number : Int64, @column_number : Int64, @url : String? = nil, @function : String? = nil)
+    end
   end
 
   @[Experimental]
@@ -946,10 +1045,13 @@ module Cdp::Page
     property context : String?
     @[JSON::Field(key: "details", emit_null: false)]
     property details : Array(BackForwardCacheBlockingDetails)?
+
+    def initialize(@type : BackForwardCacheNotRestoredReasonType, @reason : BackForwardCacheNotRestoredReason, @context : String? = nil, @details : Array(BackForwardCacheBlockingDetails)? = nil)
+    end
   end
 
   @[Experimental]
-  struct BackForwardCacheNotRestoredExplanationTree
+  class BackForwardCacheNotRestoredExplanationTree
     include JSON::Serializable
     @[JSON::Field(key: "url", emit_null: false)]
     property url : String
@@ -957,6 +1059,9 @@ module Cdp::Page
     property explanations : Array(BackForwardCacheNotRestoredExplanation)
     @[JSON::Field(key: "children", emit_null: false)]
     property children : Array(BackForwardCacheNotRestoredExplanationTree)
+
+    def initialize(@url : String, @explanations : Array(BackForwardCacheNotRestoredExplanation), @children : Array(BackForwardCacheNotRestoredExplanationTree))
+    end
   end
 
   alias FileChooserOpenedMode = String
@@ -1007,6 +1112,10 @@ module Cdp::Page
   alias ScreencastFormat = String
   ScreencastFormatJpeg = "jpeg"
   ScreencastFormatPng  = "png"
+
+  alias StartScreenRecordingCaptureArea = String
+  StartScreenRecordingCaptureAreaTarget        = "target"
+  StartScreenRecordingCaptureAreaBrowserWindow = "browserWindow"
 
   alias SetWebLifecycleStateState = String
   SetWebLifecycleStateStateFrozen = "frozen"

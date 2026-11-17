@@ -1,5 +1,6 @@
 require "../cdp"
 require "json"
+require "base64"
 require "time"
 
 require "../runtime/runtime"
@@ -17,6 +18,9 @@ module Cdp::Debugger
     property line_number : Int64
     @[JSON::Field(key: "columnNumber", emit_null: false)]
     property column_number : Int64?
+
+    def initialize(@script_id : Cdp::Runtime::ScriptId, @line_number : Int64, @column_number : Int64? = nil)
+    end
   end
 
   @[Experimental]
@@ -26,6 +30,9 @@ module Cdp::Debugger
     property line_number : Int64
     @[JSON::Field(key: "columnNumber", emit_null: false)]
     property column_number : Int64
+
+    def initialize(@line_number : Int64, @column_number : Int64)
+    end
   end
 
   @[Experimental]
@@ -37,6 +44,9 @@ module Cdp::Debugger
     property start : ScriptPosition
     @[JSON::Field(key: "end", emit_null: false)]
     property end : ScriptPosition
+
+    def initialize(@script_id : Cdp::Runtime::ScriptId, @start : ScriptPosition, @end : ScriptPosition)
+    end
   end
 
   struct CallFrame
@@ -57,6 +67,9 @@ module Cdp::Debugger
     property return_value : Cdp::Runtime::RemoteObject?
     @[JSON::Field(key: "canBeRestarted", emit_null: false)]
     property? can_be_restarted : Bool?
+
+    def initialize(@call_frame_id : CallFrameId, @function_name : String, @location : Location, @scope_chain : Array(Scope), @this : Cdp::Runtime::RemoteObject, @function_location : Location? = nil, @return_value : Cdp::Runtime::RemoteObject? = nil, @can_be_restarted : Bool? = nil)
+    end
   end
 
   struct Scope
@@ -71,6 +84,11 @@ module Cdp::Debugger
     property start_location : Location?
     @[JSON::Field(key: "endLocation", emit_null: false)]
     property end_location : Location?
+    @[JSON::Field(key: "emptyReason", emit_null: false)]
+    property empty_reason : ScopeEmptyReason?
+
+    def initialize(@type : ScopeType, @object : Cdp::Runtime::RemoteObject, @name : String? = nil, @start_location : Location? = nil, @end_location : Location? = nil, @empty_reason : ScopeEmptyReason? = nil)
+    end
   end
 
   struct SearchMatch
@@ -79,6 +97,9 @@ module Cdp::Debugger
     property line_number : Float64
     @[JSON::Field(key: "lineContent", emit_null: false)]
     property line_content : String
+
+    def initialize(@line_number : Float64, @line_content : String)
+    end
   end
 
   struct BreakLocation
@@ -91,6 +112,9 @@ module Cdp::Debugger
     property column_number : Int64?
     @[JSON::Field(key: "type", emit_null: false)]
     property type : BreakLocationType?
+
+    def initialize(@script_id : Cdp::Runtime::ScriptId, @line_number : Int64, @column_number : Int64? = nil, @type : BreakLocationType? = nil)
+    end
   end
 
   @[Experimental]
@@ -100,6 +124,9 @@ module Cdp::Debugger
     property lines : Array(String)
     @[JSON::Field(key: "bytecodeOffsets", emit_null: false)]
     property bytecode_offsets : Array(Int64)
+
+    def initialize(@lines : Array(String), @bytecode_offsets : Array(Int64))
+    end
   end
 
   alias ScriptLanguage = String
@@ -110,8 +137,11 @@ module Cdp::Debugger
     include JSON::Serializable
     @[JSON::Field(key: "type", emit_null: false)]
     property type : DebugSymbolsType
-    @[JSON::Field(key: "externalUrl", emit_null: false)]
+    @[JSON::Field(key: "externalURL", emit_null: false)]
     property external_url : String?
+
+    def initialize(@type : DebugSymbolsType, @external_url : String? = nil)
+    end
   end
 
   struct ResolvedBreakpoint
@@ -120,6 +150,9 @@ module Cdp::Debugger
     property breakpoint_id : BreakpointId
     @[JSON::Field(key: "location", emit_null: false)]
     property location : Location
+
+    def initialize(@breakpoint_id : BreakpointId, @location : Location)
+    end
   end
 
   alias ScopeType = String
@@ -133,6 +166,10 @@ module Cdp::Debugger
   ScopeTypeEval                = "eval"
   ScopeTypeModule              = "module"
   ScopeTypeWasmExpressionStack = "wasm-expression-stack"
+
+  alias ScopeEmptyReason = String
+  ScopeEmptyReasonNoVariables    = "no-variables"
+  ScopeEmptyReasonAllUnavailable = "all-unavailable"
 
   alias BreakLocationType = String
   BreakLocationTypeDebuggerStatement = "debuggerStatement"
