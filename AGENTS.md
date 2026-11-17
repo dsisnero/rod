@@ -13,8 +13,8 @@ must match Go, differing only in Crystal idioms and libraries.
 ## Commands
 
 ```bash
-make install   # BEADS_DIR=$PWD/.beads shards install
-make update    # BEADS_DIR=$PWD/.beads shards update
+make install   # shards install
+make update    # shards update
 make format    # crystal tool format --check
 make lint      # ameba --fix, then ameba
 make test      # crystal spec
@@ -41,7 +41,9 @@ CDP bindings are generated, not hand-written: `make generate` (Crystal
 - [Testing](docs/testing.md)
 - [CDP generation](docs/generation.md)
 - [PR Workflow](docs/pr-workflow.md)
-- [Plans index](docs/plans/README.md)
+
+> Parity status, next work and known gotchas live in
+> [plans/parity.md](plans/parity.md).
 
 ## Principles
 
@@ -53,24 +55,15 @@ CDP bindings are generated, not hand-written: `make generate` (Crystal
 4. Track parity in `plans/parity.md` and `plans/inventory/`.
 5. Commit one completed feature at a time.
 
-## Issue tracking with bd (beads)
+## Work tracking
 
-This project uses **bd** for all issue tracking. Do not use markdown TODOs,
-internal todo lists, or external trackers.
+There is no external issue tracker. `plans/parity.md` is the work queue:
+its **Where we are** block holds the current focus and the ordered "Next up"
+list, and per-symbol port status lives in
+`plans/inventory/go_port_inventory.tsv`.
 
-```bash
-bd ready --json                             # unblocked work
-bd show <id> --json                         # issue details
-bd update <id> --claim --json               # claim atomically
-bd close <id> --reason "Done" --json        # complete
-bd create "Title" -t task -p 2 --json       # new work
-bd create "Title" -p 1 --deps discovered-from:<parent-id> --json
-```
-
-Rules:
-
-- Create follow-up work with `discovered-from` dependencies instead of
-  silently widening scope.
+- Add follow-up work to **Next up** as you discover it, instead of silently
+  widening scope.
 - Do not create ledger rows for Go-only tooling as `ported`; use
   `intentional_divergence` or `skipped` with a note.
 - Keep `plans/inventory/go_port_inventory.tsv` curated; regenerate the
@@ -131,16 +124,16 @@ can resume from the commit alone.
 When ending a work session, complete ALL steps below. Work is NOT complete until
 `git push` succeeds.
 
-1. **File issues for remaining work** — `bd create` anything that needs
-   follow-up.
+1. **Record remaining work** — leave the follow-ups in `plans/parity.md`'s
+   **Next up** list so nothing depends on memory.
 2. **Run quality gates** (if code changed) — `make format`, `make lint`,
    `make test`, plus the parity checks under `make check-go-*`.
-3. **Update issue status** — `bd close` finished work, update in-progress items.
+3. **Update the plan** — tick finished items in `plans/parity.md` and refresh
+   the **Where we are** block.
 4. **Push to remote** — mandatory:
 
    ```bash
    git pull --rebase
-   bd sync
    git push
    git status  # MUST show "up to date with origin"
    ```

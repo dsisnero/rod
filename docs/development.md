@@ -60,11 +60,13 @@ CRYSTAL_CACHE_DIR=$PWD/.crystal-cache crystal run \
   -rod "bin=/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 ```
 
-## Issue tracking
+## Work tracking
 
-Work is tracked in beads (`bd`), not in markdown TODOs. Start a session with
-`bd ready --json`; see [resuming.md](resuming.md) for the full resume
-checklist and `AGENTS.md` for the definition of done.
+There is no external issue tracker. `plans/parity.md` is the work queue: its
+**Where we are** block names the current focus and the ordered "Next up" list,
+and per-symbol status lives in `plans/inventory/go_port_inventory.tsv`. See
+[resuming.md](resuming.md) for the full resume checklist and `AGENTS.md` for
+the definition of done.
 
 ## CDP bindings
 

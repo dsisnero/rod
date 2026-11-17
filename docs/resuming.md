@@ -82,5 +82,3 @@ worked on plus the next file/phase to start.
   ```
 
 - Use `./temp` for scratch files; `make clean` empties it.
-- `bd` needs its local Dolt server; if a command reports
-  `Dolt server unreachable`, run `bd dolt start` before `bd ready`/`bd sync`.

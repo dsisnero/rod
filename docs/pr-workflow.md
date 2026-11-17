@@ -1,6 +1,6 @@
 # PR Workflow
 
-1. Claim the work in beads (`bd update <id> --claim`).
+1. Pick the next item from the **Next up** list in `plans/parity.md`.
 2. Implement behavior-faithful changes against `vendor/rod`.
 3. Port or update the matching upstream tests as specs.
 4. Run the gates: `make format`, `make lint`, `make test`, and the parity
@@ -9,4 +9,3 @@
    refresh the **Where we are** block in `plans/parity.md`.
 6. Commit focused changesets with a `port: <feature>` message (see
    `AGENTS.md`), then push.
-7. Close the bead with `bd close <id>`.

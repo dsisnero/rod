@@ -93,7 +93,6 @@ and parity gates.
 - [CDP generation](docs/generation.md)
 - [PR Workflow](docs/pr-workflow.md)
 - [Porting plan](plans/parity.md)
-- [Plans index](docs/plans/README.md)
 
 Agent instructions live in [AGENTS.md](AGENTS.md) (also reachable as
 `CLAUDE.md`).

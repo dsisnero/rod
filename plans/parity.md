@@ -33,6 +33,11 @@ inventory rows, 5368 API items, 297 tests).
    `verify_parity_adversarial.sh . vendor/rod go 'crystal spec' '<go test cmd>'`.
 5. Phase 1 — (blocked) re-run the tree-sitter checks once kinds/ids are
    normalized.
+6. Tame full-suite browser flakiness: two consecutive full runs on 2026-11-17
+   each had one failure, different specs, both green in isolation —
+   `spec/cdp_client_parity_spec.cr:483` (Go `TestCrash`) and
+   `spec/live_browser_parity_spec.cr:747` (`TestSearchIframes*`). Likely
+   resource/timing under load; a rerun should not be the only safety net.
 
 **Gotchas:** the 63 tree-sitter "missing" items and the 3422 kind-rename
 "stale" rows are tooling vocabulary drift, not port gaps — see below. Phase 2's
