@@ -7,16 +7,17 @@
 
 ## Where we are
 
-**Current focus:** Phase 18 finished the pooled-harness groundwork: the pool now
-disposes the incognito browser contexts an example leaves behind, and
-`spec/examples_e2e_calculator_parity_spec.cr` runs on the shared browser (2 → 1
-launch). Two small live files still launch per example (Phase 19, Next up),
-ahead of the Phase 1 tooling migration and the optional cleanups listed below.
+**Current focus:** Phase 19 finished the live-spec migration: the last two live
+files run on the pooled browser, no spec hides behind `ROD_REAL_BROWSER` any
+more, and `Page#element` now retries Chrome's `No node with given id found`
+(and any stale document root) until the query deadline, like go-rod. The next
+open work is the Phase 1 tooling migration plus the optional cleanups listed
+below.
 
-**Last commit:** `port: pool the calculator e2e spec and dispose leftover contexts`
+**Last commit:** `port: run the remaining live specs by default and retry stale nodes`
 
-**Gates (2026-11-18, after Phase 18):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (614 examples, 0 failures, 1:30 wall time) · parity checks pass
+**Gates (2026-11-18, after Phase 19):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (619 examples, 0 failures, 2:00 wall time) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -46,15 +47,11 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
 4. Optional cleanup: the repo tracks built binaries (`rod`, `bin/pdlgen*`,
    `pdlgen*`), so local builds keep showing up as modified files. Decide whether
    to untrack them.
-5. Live-spec harness migration (Phase 19): Phase 17 moved
-   `spec/live_browser_parity_spec.cr` onto the pool (56 → 7 launches) and
-   Phase 18 `spec/examples_e2e_calculator_parity_spec.cr` (2 → 1). Still
-   per-example: `spec/page_navigation_error_parity_spec.cr` (one real example)
-   and `spec/page_iframe_reload_parity_spec.cr` (one `ROD_REAL_BROWSER=1`
-   example). Move them one file per commit with the same state audit.
-   `spec/cdp_client_parity_spec.cr` and `spec/launcher_parity_spec.cr` keep
-   their own launchers on purpose: they test the client/launcher itself, not a
-   page (`TestLaunchClient`, `Browser.close` handling).
+5. Optional follow-up: `spec/cdp_client_parity_spec.cr` and
+   `spec/launcher_parity_spec.cr` still launch their own browsers. That is
+   deliberate — they exercise the CDP client and the launcher itself
+   (`TestLaunchClient`, `Browser.close` handling) — so only revisit it if a
+   future spec needs a pooled page on top of its own client.
 
 **Gotchas:** the 63 tree-sitter "missing" items and the 3422 kind-rename
 "stale" rows are tooling vocabulary drift, not port gaps — see Phase 1 and the
@@ -95,7 +92,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 84 files, 614 examples, 0 failures (2026-11-18, Chromium `160.0.8168.1`) |
+| Crystal specs | 86 files, 619 examples, 0 failures (2026-11-18, Chromium `160.0.8168.1`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -658,6 +655,33 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       specs which test the launcher and client themselves.
 - [x] Gates: `make format`, `make lint` (240 files), `make test` (614 examples,
       0 failures, 1:30 wall time) and `make check-go-*` pass.
+
+---
+
+### Phase 19 — Remaining live specs by default, stale-node retries ✅
+- [x] Red-green `spec/live_spec_gating_parity_spec.cr`: no spec may hide behind
+      `ROD_REAL_BROWSER`, because a gated ported test never runs (go-rod runs
+      every test in `go test ./...`). It failed with the two gated files listed.
+      Both now guard on the machine capability (`RodSpec.chrome_available?`)
+      instead of a per-run opt-in.
+- [x] `spec/page_iframe_reload_parity_spec.cr` and
+      `spec/page_navigation_error_parity_spec.cr`: local launchers replaced with
+      `RodSpec.with_live_browser`, so they share the pooled browser.
+- [x] Un-gating exposed a real port gap: the iframe-reload example failed about
+      one run in three with `Element not found: iframe` /
+      `{-32000 No node with given id found }`. Chrome uses that phrasing when the
+      cached document root belongs to the previous document, and
+      `stale_document_root_error?` only knew "Could not find node with given id"
+      and "Node with given id does not belong to the document".
+- [x] Red-green `spec/page_stale_node_retry_parity_spec.cr`: one example per
+      stale-node phrasing, plus one where the document is replaced more than
+      twice. Before the fix the first phrasing escaped as `NotFoundError` and the
+      multi-attempt case failed; `src/rod/page.cr` now recognizes all three
+      phrasings and `retry_finding` keeps retrying stale document roots until the
+      query deadline (go-rod's element lookup does the same). Eight consecutive
+      runs of the two migrated files are green.
+- [x] Gates: `make format`, `make lint` (240 files), `make test` (619 examples,
+      0 failures, 2:00 wall time) and `make check-go-*` pass.
 
 ---
 

@@ -401,7 +401,18 @@ module Rod
           {false, nil}
         end
       rescue ex
-        {true, ex}
+        # go-rod retries an element lookup until the query deadline, so a stale
+        # document root right after a navigation is transient rather than fatal.
+        # Chrome can report it on every attempt while the new document commits.
+        if stale_document_root_error?(ex)
+          if timeout > Time::Span::ZERO && Time.instant - started >= effective_timeout
+            {true, NotFoundError.new("Element not found within #{timeout}", cause: ex)}
+          else
+            {false, nil}
+          end
+        else
+          {true, ex}
+        end
       end
 
       raise err if err
@@ -2499,6 +2510,10 @@ module Rod
 
     private def stale_document_root_error?(error : Exception) : Bool
       if message = error.message
+        # Chrome says "No node with given id found" when the cached document root
+        # belongs to the previous document (typically right after a navigation);
+        # the other two phrasings come from stale node ids and detached documents.
+        return true if message.includes?("No node with given id found")
         return true if message.includes?("Could not find node with given id")
         return true if message.includes?("Node with given id does not belong to the document")
       end

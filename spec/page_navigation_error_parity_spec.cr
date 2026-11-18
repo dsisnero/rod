@@ -15,22 +15,10 @@ private class NavigateErrorStubPage < Rod::Page
   end
 end
 
-private def with_real_browser_for_navigation(&)
-  launcher = Rod::Util::Launcher.new
-  browser = Rod::Browser.new
-
-  begin
-    ws_url = launcher.launch
-    browser.connect(ws_url)
-    yield browser
-  ensure
-    begin
-      browser.close
-    rescue
-      nil
-    end
-    shutdown_launcher(launcher)
-  end
+# Borrow the pooled live browser, like go-rod's `setup` does for every test
+# (`vendor/rod/setup_test.go:41`).
+private def with_real_browser_for_navigation(&block : Rod::Browser ->)
+  RodSpec.with_live_browser { |browser| block.call(browser) }
 end
 
 describe "page navigation error parity" do
@@ -43,7 +31,7 @@ describe "page navigation error parity" do
   end
 
   it "matches go network navigation error behavior in real browser" do
-    next unless ENV["ROD_REAL_BROWSER"]? == "1"
+    next unless RodSpec.chrome_available?
 
     with_real_browser_for_navigation do |browser|
       page = browser.page
