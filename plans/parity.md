@@ -7,17 +7,17 @@
 
 ## Where we are
 
-**Current focus:** Phase 19 finished the live-spec migration: the last two live
-files run on the pooled browser, no spec hides behind `ROD_REAL_BROWSER` any
-more, and `Page#element` now retries Chrome's `No node with given id found`
-(and any stale document root) until the query deadline, like go-rod. The next
-open work is the Phase 1 tooling migration plus the optional cleanups listed
-below.
+**Current focus:** Phase 20 brought the docs back in line with the port: a new
+`CHANGELOG.md`, the pooled harness documented in `docs/testing.md` and friends,
+refreshed architecture notes for the shared JS-context cache and the
+launcher/manager lifecycle, and the e2e example closing its pages and browser
+like go-rod's `g.Cleanup`. The next open work is the Phase 1 tooling migration
+plus the optional cleanups listed below.
 
-**Last commit:** `port: run the remaining live specs by default and retry stale nodes`
+**Last commit:** `docs: changelog, harness docs, refreshed comments and e2e example`
 
-**Gates (2026-11-18, after Phase 19):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (619 examples, 0 failures, 2:00 wall time) · parity checks pass
+**Gates (2026-11-18, after Phase 20):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (619 examples, 0 failures, 1:53 wall time) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -68,7 +68,7 @@ generation emits `._*` AppleDouble sidecars — strip them before counting files
 DevTools URL now waits until the process exits or the context cancels, exactly
 like go-rod, so a wedged browser hangs instead of failing fast. Do not run
 `scripts/stress_live_specs.sh` (or any parallel browser work) at the same time as
-`make test`: the extra load pushes the suite from ~2:20 to 5-8 minutes and makes
+`make test`: the extra load pushes the suite from ~2:00 to 5-8 minutes and makes
 Chrome itself drop connections mid-example, which looks like a port bug. On
 2026-11-17 three `chiasmus` runs from another checkout kept the load average
 above 12 for hours; a full suite then took 12 minutes and
@@ -682,6 +682,35 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       runs of the two migrated files are green.
 - [x] Gates: `make format`, `make lint` (240 files), `make test` (619 examples,
       0 failures, 2:00 wall time) and `make check-go-*` pass.
+
+---
+
+### Phase 20 — Docs, changelog, comments and example refresh ✅
+- [x] `CHANGELOG.md` (new): Keep-a-Changelog format, `Unreleased` section covering
+      the JS-context sharing, stale-node retries, manager lifecycle, profile
+      cleanup and the pooled harness, plus a `0.8.0` section reconstructed from
+      the commits between the `v0.7.0` and `v0.8.0` tags. `docs/pr-workflow.md`
+      now requires an `Unreleased` entry.
+- [x] `docs/testing.md`: new "Live browser specs" section (pool contract,
+      `with_live_browser` / `with_isolated_browser`, context disposal,
+      `ROD_POOL_STATS`, `ROD_CHROME_BIN`), the no-env-gate rule, and the
+      stale-node retry example added to the flakiness section.
+- [x] `docs/architecture.md`: spec harness location, the shared `Page::JsCtxCache`
+      invariant (with the Go pointers), and the launcher/manager lifecycle.
+- [x] `docs/development.md`, `docs/resuming.md`, `docs/coding-guidelines.md`,
+      `README.md`, `AGENTS.md`: `spec/support/` layout, pooled-browser env notes,
+      the "never gate a ported example" rule, and links to the changelog. The
+      suite-time gotcha now says ~2:00 instead of ~2:20.
+- [x] Code comments: the harness header described the per-example launches it was
+      written to remove; both it and the pool spec's "Phase 17 is removing"
+      comment now describe the steady state, and the pool's comments document the
+      context-disposal and dead-browser rules.
+- [x] `examples/e2e-testing/`: the calculator example now closes each page
+      (`ensure`, mirroring `g.Cleanup(page.MustClose)`), closes the shared browser
+      and its incognito contexts at the end, and cites the Go files it ports.
+      `crystal build --no-codegen` passes.
+- [x] Gates: `make format`, `make lint` (240 files) and `make test` (619 examples,
+      0 failures, 1:53) pass; no library behavior changed.
 
 ---
 

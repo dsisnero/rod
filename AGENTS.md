@@ -29,6 +29,15 @@ make check-go-source-parity
 make check-go-test-parity
 ```
 
+Specs that drive a real browser borrow one pooled Chrome
+(`spec/support/live_browser_pool.cr`, go-rod's `testerPool`), so `make test`
+launches a handful of browsers rather than one per example. Use
+`ROD_POOL_STATS=1 make test` to see the launch count, `ROD_CHROME_BIN` to point at
+a different Chrome, and `RodSpec.with_isolated_browser` for examples that change
+browser-wide state or kill the browser. No spec may hide behind an env flag
+(`spec/live_spec_gating_parity_spec.cr`). Details:
+[docs/testing.md](docs/testing.md).
+
 CDP bindings are generated, not hand-written: `make generate` (Crystal
 `pdlgen`). See [docs/generation.md](docs/generation.md).
 
@@ -41,6 +50,7 @@ CDP bindings are generated, not hand-written: `make generate` (Crystal
 - [Testing](docs/testing.md)
 - [CDP generation](docs/generation.md)
 - [PR Workflow](docs/pr-workflow.md)
+- [Changelog](CHANGELOG.md)
 
 > Parity status, next work and known gotchas live in
 > [plans/parity.md](plans/parity.md).

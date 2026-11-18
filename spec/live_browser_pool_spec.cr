@@ -151,8 +151,8 @@ describe "live browser pool" do
     RodSpec.with_live_browser { |browser| first = browser }
     RodSpec.with_live_browser { |browser| second = browser }
 
-    # go-rod's `setup` hands every example the same pool slot; a harness that
-    # launches per example is what Phase 17 is removing.
+    # go-rod's `setup` hands every example the same pool slot, so a second
+    # borrow must not launch another browser.
     RodSpec.live_browser_pool.launches.should eq(launches_before + 1)
     first.not_nil!.same?(second.not_nil!).should be_true
   end

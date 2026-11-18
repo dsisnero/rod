@@ -27,6 +27,8 @@ and the manifests under `plans/inventory/` with the helper scripts in
 - `src/pdlgen/` — Crystal code generator for `src/cdp` (see
   [generation.md](generation.md))
 - `spec/` — Crystal specs, including parity specs mapped from upstream Go tests
+- `spec/support/` — spec harness code (the pooled live browser; see
+  [testing.md](testing.md))
 - `vendor/rod/` — upstream Go source (reference only)
 - `plans/` — parity plan and generated/curated inventories
 - `scripts/` — inventory generation and parity check tooling
@@ -67,9 +69,14 @@ make generate-go-test-parity
 
 Never regenerate `go_port_inventory.tsv` in place: it is the hand-curated ledger.
 
-Live browser checks need a local Chrome/Chromium binary:
+Live browser checks need a local Chrome/Chromium binary. The suite borrows one
+pooled Chrome (`spec/support/live_browser_pool.cr`), so a full `make test` run
+launches a handful of processes instead of one per example and removes their
+profiles on exit. Set `ROD_CHROME_BIN` to point at a non-default Chrome, and
+`ROD_POOL_STATS=1` to print the launch count:
 
 ```bash
+ROD_POOL_STATS=1 make test
 CRYSTAL_CACHE_DIR=$PWD/.crystal-cache crystal run \
   examples/compare-chromedp/download_file/main.cr -- \
   -rod "bin=/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"

@@ -72,6 +72,11 @@ worked on plus the next file/phase to start.
   backend is selected with `PORT_PARSER`; the `regex` backend is authoritative
   for the curated manifests and `tree-sitter` is an exploratory overlay (see
   Phase 1 in `plans/parity.md`).
+- Live specs borrow one pooled Chrome (`spec/support/live_browser_pool.cr`), so
+  `make test` launches a handful of browsers instead of one per example and
+  removes their profiles on exit. `ROD_POOL_STATS=1 make test` prints the launch
+  count; `ROD_CHROME_BIN` overrides the Chrome path. No spec may hide behind
+  `ROD_REAL_BROWSER` (`spec/live_spec_gating_parity_spec.cr` enforces that).
 - The repo's copied `scripts/` are *not* the canonical parity tooling: their
   `tree-sitter` branch is a placeholder that still calls `discover_with_regex`
   (the Ruby `tree_sitter` gem only silences the warning), and their manifest
@@ -80,8 +85,7 @@ worked on plus the next file/phase to start.
   verified Chiasmus toolchain; its labels (`class`/`function`/`definition.*` plus
   merged `const`/`type` declarations) cannot be mapped onto the curated ids
   without a reviewed id migration, so keep `PORT_PARSER=regex` for the gate.
-- Live browser checks need a local Chrome/Chromium binary, and Crystal caches
-  belong in `.crystal-cache/` (git-ignored):
+- Crystal caches belong in `.crystal-cache/` (git-ignored):
 
   ```bash
   CRYSTAL_CACHE_DIR=$PWD/.crystal-cache crystal run \

@@ -3,14 +3,13 @@ require "../../src/rod"
 # go-rod reuses a handful of browsers for its whole suite (`testerPool`,
 # vendor/rod/setup_test.go:41): `newTester` launches one browser per slot and
 # `setup` resets the pooled page with `MustNavigate("")` before each example.
-# The Crystal live specs still launch and kill a browser per example (56
-# launches for `spec/live_browser_parity_spec.cr`), which is the cost this pool
-# removes one file at a time.
+# Every Crystal live spec borrows from this pool instead of launching its own
+# browser, so a full `make test` run launches a handful of Chrome processes
+# rather than one per example (and cleans their profiles up on exit).
 module RodSpec
   @@live_browser_pool : LiveBrowserPool? = nil
 
-  # The Chrome binary the live specs drive (the same path the existing live spec
-  # files hardcode, overridable for other machines).
+  # The Chrome binary the live specs drive; override it with `ROD_CHROME_BIN`.
   def self.chrome_bin : String
     ENV["ROD_CHROME_BIN"]? || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
   end

@@ -27,3 +27,7 @@
 - Port and keep tests as first-class artifacts; see
   [testing.md](testing.md) for the Go → Crystal porting rules.
 - Do not weaken assertions to make a spec pass.
+- Live specs borrow the pooled browser (`RodSpec.with_live_browser`) instead of
+  launching one per example; use `RodSpec.with_isolated_browser` for examples
+  that change browser-wide state or kill the browser. Never gate a ported
+  example behind an env flag.

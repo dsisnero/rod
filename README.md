@@ -79,9 +79,15 @@ make lint      # ameba
 make test      # crystal spec
 ```
 
+Specs that drive a browser borrow one pooled Chrome
+(`spec/support/live_browser_pool.cr`), so the suite does not launch a browser per
+example. Use `ROD_CHROME_BIN` to point at a non-default Chrome and
+`ROD_POOL_STATS=1` to see how many browsers a run launched; see
+[docs/testing.md](docs/testing.md).
+
 Start with [docs/resuming.md](docs/resuming.md) to pick up work, and
 [docs/development.md](docs/development.md) for project layout, upstream pinning,
-and parity gates.
+and parity gates. Released changes are listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## Documentation
 
@@ -93,6 +99,7 @@ and parity gates.
 - [CDP generation](docs/generation.md)
 - [PR Workflow](docs/pr-workflow.md)
 - [Porting plan](plans/parity.md)
+- [Changelog](CHANGELOG.md)
 
 Agent instructions live in [AGENTS.md](AGENTS.md) (also reachable as
 `CLAUDE.md`).

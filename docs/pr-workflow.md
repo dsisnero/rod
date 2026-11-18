@@ -7,5 +7,6 @@
    checks under `make check-go-*` when manifests changed.
 5. Update `plans/inventory/go_port_inventory.tsv` for the feature's symbols and
    refresh the **Where we are** block in `plans/parity.md`.
-6. Commit focused changesets with a `port: <feature>` message (see
+6. Add the user-visible change to the `Unreleased` section of `CHANGELOG.md`.
+7. Commit focused changesets with a `port: <feature>` message (see
    `AGENTS.md`), then push.
