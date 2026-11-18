@@ -504,7 +504,7 @@ lib/launcher/manager.go::method::Launcher.ClientHeader	method	ported	src/rod/lib
 lib/launcher/manager.go::method::Launcher.JSON	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
 lib/launcher/manager.go::method::Launcher.KeepUserDataDir	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
 lib/launcher/manager.go::method::Launcher.MustClient	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
-lib/launcher/manager.go::method::Manager.ServeHTTP	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered; managed browsers are killed and their user-data-dir removed on disconnect (Go Manager.cleanup, manager.go:200)
+lib/launcher/manager.go::method::Manager.ServeHTTP	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered; managed browsers are forced leakless (manager.go:181) and killed with their user-data-dir removed on disconnect (Go Manager.cleanup, manager.go:200)
 lib/launcher/manager.go::struct::Manager	struct	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
 lib/launcher/private_test.go::test::TestGetURLErr	test	ported	spec/launcher_parity_spec.cr	resolve_url malformed path covered
 lib/launcher/private_test.go::test::TestLaunchClient	test	ported	spec/launcher_parity_spec.cr	manager websocket header path now launches/proxies CDP and supports managed launcher client Browser.getVersion parity

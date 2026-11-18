@@ -423,6 +423,46 @@ describe "launcher parity" do
     end
   end
 
+  it "forces leakless on the managed browser like go's manager" do
+    # Keep the profile on the OS temp volume: removing a Chrome profile from the
+    # repo's exFAT checkout trips over AppleDouble `._*` entries that
+    # `FileUtils.rm_rf` cannot delete (same quirk as `make generate-crystal`).
+    dir = File.join(Dir.tempdir, "rod-manager-leakless-#{Random::Secure.hex(6)}")
+    Dir.mkdir_p(dir)
+
+    manager = Rod::Util::Launcher.new_manager
+    launched = nil.as(Rod::Util::Launcher::Launcher?)
+    manager.before_launch = ->(launcher : Rod::Util::Launcher::Launcher, _ctx : HTTP::Server::Context) {
+      launched = launcher
+      launcher.bin(CHROME_BIN).leakless(false).user_data_dir(dir)
+      nil
+    }
+
+    with_launcher_manager_server(manager) do |port|
+      managed = Rod::Util::Launcher.must_new_managed("http://127.0.0.1:#{port}")
+      url, headers = managed.client_header
+      ws = Rod::Util::Cdp::WebSocket.new
+      ws.connect(url, headers)
+      client = Rod::Util::Cdp::Client.new.start(ws)
+
+      begin
+        Cdp::Browser::GetVersion.new.call(client).product.should_not be_empty
+
+        # go-rod's Manager.launch always enables leakless before launching, so a
+        # crashed manager takes its managed browsers with it (manager.go:181).
+        launcher = launched
+        launcher.should_not be_nil
+        launcher.not_nil!.has(Rod::Util::Launcher::Flags::LEAKLESS).should be_true
+      ensure
+        begin
+          ws.close
+        rescue
+        end
+        eventually(10.seconds) { !Dir.exists?(dir) }.should be_true
+      end
+    end
+  end
+
   it "removes the managed browser's user data dir when the client disconnects" do
     # Keep the profile on the OS temp volume: removing a Chrome profile from the
     # repo's exFAT checkout trips over AppleDouble `._*` entries that

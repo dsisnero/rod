@@ -1126,6 +1126,10 @@ module Rod::Util::Launcher
         @before_launch.call(launcher, context)
         return if context.response.status_code == 400
 
+        # Go Manager.launch always enables leakless so that a crashed manager
+        # takes its managed browsers with it (`manager.go:181`).
+        launcher.leakless(true)
+
         # Go Manager.cleanup also removes the managed browser's user-data-dir
         # (`manager.go:205`); killing alone leaves one profile behind per
         # managed browser.
