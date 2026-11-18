@@ -7,6 +7,8 @@ require "../../src/rod"
 # launches for `spec/live_browser_parity_spec.cr`), which is the cost this pool
 # removes one file at a time.
 module RodSpec
+  @@live_browser_pool : LiveBrowserPool? = nil
+
   # The Chrome binary the live specs drive (the same path the existing live spec
   # files hardcode, overridable for other machines).
   def self.chrome_bin : String
@@ -43,8 +45,24 @@ module RodSpec
       browser
     end
 
-    at_exit { pool.close_all }
+    at_exit do
+      pool.close_all
+      # Cheap observability for harness work: `ROD_POOL_STATS=1 crystal spec ...`
+      # prints how many browsers the run launched.
+      STDERR.puts "[rod pool] launches=#{pool.launches}" if ENV["ROD_POOL_STATS"]? == "1"
+    end
     pool
+  end
+
+  # Borrow the pooled browser for one live example. `with_isolated_browser` is
+  # for examples that change state the pool cannot reset: go-rod's tests do the
+  # same by giving those tests their own browser (`newPage`, `tester.mc`).
+  def self.with_live_browser(&block : Rod::Browser ->) : Nil
+    live_browser_pool.with { |browser| block.call(browser) }
+  end
+
+  def self.with_isolated_browser(&block : Rod::Browser ->) : Nil
+    live_browser_pool.with_isolated { |browser| block.call(browser) }
   end
 
   # Borrows a browser for the duration of a block and hands it back reset.
@@ -64,8 +82,19 @@ module RodSpec
 
     def with(&block : Rod::Browser ->) : Nil
       browser = acquire
+
       begin
-        block.call(reset(browser))
+        prepared = reset(browser)
+      rescue ex
+        # A browser that died between examples (crashed target, dropped socket)
+        # must not poison the pool: drop it so the next borrower launches a
+        # fresh one, and let the failure surface for this example.
+        close_browser(browser)
+        raise ex
+      end
+
+      begin
+        block.call(prepared)
       ensure
         release(browser)
       end

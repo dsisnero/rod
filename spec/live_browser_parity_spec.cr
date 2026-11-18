@@ -10,26 +10,18 @@ private def fixture_url(name : String) : String
   "file://#{File.expand_path("vendor/rod/fixtures/#{name}", Dir.current)}"
 end
 
-private def with_live_browser(& : Rod::Browser ->)
-  launcher = Rod::Util::Launcher::Launcher.new
-    .bin(CHROME_BIN)
-    .headless(true)
-    .no_sandbox(true)
-    .leakless(false)
+# go-rod's `setup` hands every live test a browser from `testerPool` and resets
+# the page it keeps (`vendor/rod/setup_test.go:41`); the port borrows the same
+# pooled browser here instead of launching one per example.
+private def with_live_browser(&block : Rod::Browser ->)
+  RodSpec.with_live_browser { |browser| block.call(browser) }
+end
 
-  browser = Rod::Browser.new.control_url(launcher.launch)
-  browser.connect
-
-  begin
-    yield browser
-  ensure
-    begin
-      browser.close
-    rescue
-    end
-
-    shutdown_launcher(launcher)
-  end
+# Examples that change browser-wide state the pool cannot reset (tracing,
+# logging, slow motion, monitor servers) get their own browser, like go-rod's
+# tests that build a fresh page/client for those cases.
+private def with_isolated_browser(&block : Rod::Browser ->)
+  RodSpec.with_isolated_browser { |browser| block.call(browser) }
 end
 
 # Headless Chrome answers `Page.captureScreenshot` with
@@ -1047,7 +1039,7 @@ describe "live browser parity" do
     spawn { server.listen }
 
     begin
-      with_live_browser do |browser|
+      with_isolated_browser do |browser|
         browser.logger(Log.for(logger_name))
 
         page = browser.must_page("http://127.0.0.1:#{addr.port}/")
@@ -1179,7 +1171,7 @@ describe "live browser parity" do
   end
 
   it "matches TestBrowserCrash behavior with real browser" do
-    with_live_browser do |browser|
+    with_isolated_browser do |browser|
       page = browser.must_page("about:blank")
       js = "() => new Promise(r => setTimeout(r, 10000))"
 
@@ -1265,7 +1257,7 @@ describe "live browser parity" do
   end
 
   it "matches TestElementTracing behavior with real browser" do
-    with_live_browser do |browser|
+    with_isolated_browser do |browser|
       browser.trace(true)
       browser.logger(Log.for("rod-live-trace-quiet"))
 
@@ -1280,7 +1272,7 @@ describe "live browser parity" do
   end
 
   it "matches TestTrace behavior with real browser" do
-    with_live_browser do |browser|
+    with_isolated_browser do |browser|
       seen = [] of Array(String)
       browser.logger(Rod::Util::Utils.log { |list| seen << list })
       browser.trace(true)
@@ -1300,7 +1292,7 @@ describe "live browser parity" do
   end
 
   it "matches TestTraceLogs behavior with real browser" do
-    with_live_browser do |browser|
+    with_isolated_browser do |browser|
       browser.logger(Rod::Util::Utils.logger_quiet)
       browser.trace(true)
 
@@ -1317,7 +1309,7 @@ describe "live browser parity" do
   end
 
   it "matches TestMonitor behavior with real browser" do
-    with_live_browser do |browser|
+    with_isolated_browser do |browser|
       page = browser.must_page("about:blank")
       page.must_wait_load
 

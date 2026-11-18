@@ -7,16 +7,17 @@
 
 ## Where we are
 
-**Current focus:** Phase 16 ported go-rod's `testerPool` as
-`RodSpec::LiveBrowserPool` (acquire, reset the pooled page, release; isolated
-mode; `at_exit` shutdown). The live spec files still launch one browser per
-example, so the next feature is migrating them onto the pool (Phase 17), ahead
-of the Phase 1 tooling migration and the optional cleanups listed below.
+**Current focus:** Phase 17 moved the biggest live spec file onto the pooled
+harness: `spec/live_browser_parity_spec.cr` now launches 7 browsers instead of
+56 (50 s instead of ~3 min), with the state-mutating examples (trace, logging,
+slow motion, monitor, browser crash) on isolated browsers. The remaining live
+spec files still launch per example (Phase 18, Next up), ahead of the Phase 1
+tooling migration and the optional cleanups listed below.
 
-**Last commit:** `port: add the pooled live-browser harness`
+**Last commit:** `port: pool the live browser spec harness`
 
-**Gates (2026-11-17, after Phase 16):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (612 examples, 0 failures) · parity checks pass
+**Gates (2026-11-18, after Phase 17):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (613 examples, 0 failures, 1:46 wall time) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -46,15 +47,17 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
 4. Optional cleanup: the repo tracks built binaries (`rod`, `bin/pdlgen*`,
    `pdlgen*`), so local builds keep showing up as modified files. Decide whether
    to untrack them.
-5. Live-spec harness migration (Phase 17): the pool landed in Phase 16
-   (`RodSpec.live_browser_pool`), but the spec files still launch a browser per
-   example — 56 launches for `spec/live_browser_parity_spec.cr` alone. Migrate
-   the files one per commit, auditing the browser state each example changes
-   (hijack routes, trace/logging, `ignore_cert_errors`, incognito contexts) and
-   using `with_isolated` for examples that kill the connection
-   (`TestBrowserLostConnection`) or swap the browser's client. Under heavy
-   external load Chrome itself drops connections mid-example (`not connected`
-   from `WebSocket#send_frame`), which no per-spec retry can absorb — finish the
+5. Live-spec harness migration (Phase 18): Phase 17 moved
+   `spec/live_browser_parity_spec.cr` onto the pool (56 → 7 launches, 3 min →
+   50 s). Still per-example: `spec/examples_e2e_calculator_parity_spec.cr`,
+   `spec/page_navigation_error_parity_spec.cr`,
+   `spec/page_iframe_reload_parity_spec.cr`, `spec/cdp_client_parity_spec.cr`,
+   `spec/launcher_*_parity_spec.cr`. Move them one file per commit, auditing the
+   browser state each example changes (hijack routes, trace/logging,
+   `ignore_cert_errors`, incognito contexts) and using `with_isolated_browser`
+   for examples that kill or crash the browser. Under heavy external load Chrome
+   itself drops connections mid-example (`not connected` from
+   `WebSocket#send_frame`), which no per-spec retry can absorb — finish the
    migration before adding per-spec retries.
 
 **Gotchas:** the 63 tree-sitter "missing" items and the 3422 kind-rename
@@ -96,7 +99,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 84 files, 612 examples, 0 failures (2026-11-17, Chromium `160.0.8168.1`) |
+| Crystal specs | 84 files, 613 examples, 0 failures (2026-11-18, Chromium `160.0.8168.1`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -613,6 +616,31 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       `with_isolated`.
 - [x] Gates: `make format`, `make lint` (240 files), `make test` (612 examples,
       0 failures) and `make check-go-*` pass.
+
+---
+
+### Phase 17 — Live-browser parity spec on the pooled harness ✅
+- [x] Red-green `spec/live_browser_pool_spec.cr` "shares one browser between the
+      live examples that use the harness": a first cut of
+      `RodSpec.with_live_browser` delegated to `with_isolated`, so two borrows
+      launched two browsers (`Expected: 1, got: 2`); delegating to the pool's
+      `with` made it green.
+- [x] `spec/support/live_browser_pool.cr`: added `RodSpec.with_live_browser` and
+      `RodSpec.with_isolated_browser`, made `with` drop a browser whose reset
+      fails (a crashed or disconnected browser no longer poisons the pool for
+      the next example), and added an opt-in `ROD_POOL_STATS=1` launch counter.
+- [x] `spec/live_browser_parity_spec.cr`: the local helper delegates to the
+      pool, and the six examples that change browser-wide state or kill the
+      browser use `with_isolated_browser` (`TestPageWaitRequestIdle`'s logger and
+      trace, `TestBrowserCrash`, `TestElementTracing`, `TestTrace`,
+      `TestTraceLogs`, `TestMonitor`). Launches: 56 → 7, file wall time ~3 min →
+      50 s. The two examples that need their own launcher before connecting
+      (`TestBrowserLostConnection`, `TestMonitorErr`) keep it.
+- [x] Re-ran the file and the pool spec three times each: no cross-example
+      contamination, and `Target.closeTarget` settling is polled instead of
+      sampled once.
+- [x] Gates: `make format`, `make lint` (240 files), `make test` (613 examples,
+      0 failures), wall time down from 3:01 to 1:46 and `make check-go-*` pass.
 
 ---
 

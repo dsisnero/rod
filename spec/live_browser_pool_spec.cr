@@ -137,6 +137,22 @@ describe "live browser pool" do
     launched.first.as(PoolStubBrowser).close_calls.should eq(1)
   end
 
+  it "shares one browser between the live examples that use the harness" do
+    next unless RodSpec.chrome_available?
+
+    launches_before = RodSpec.live_browser_pool.launches
+    first : Rod::Browser? = nil
+    second : Rod::Browser? = nil
+
+    RodSpec.with_live_browser { |browser| first = browser }
+    RodSpec.with_live_browser { |browser| second = browser }
+
+    # go-rod's `setup` hands every example the same pool slot; a harness that
+    # launches per example is what Phase 17 is removing.
+    RodSpec.live_browser_pool.launches.should eq(launches_before + 1)
+    first.not_nil!.same?(second.not_nil!).should be_true
+  end
+
   it "reuses one real browser and resets its pages between examples" do
     next unless RodSpec.chrome_available?
 
@@ -166,11 +182,11 @@ describe "live browser pool" do
       pool.with do |browser|
         browser.same?(first.not_nil!).should be_true
 
-        # The extra target is closed and the kept page is blank, like go-rod's
-        # `setup` before every example.
-        pages = browser.pages
-        pages.size.should eq(1)
-        pages.first.not_nil!.info.url.should eq("about:blank")
+        # The extra targets are closed and the kept page is blank, like go-rod's
+        # `setup` before every example. `Target.closeTarget` settles
+        # asynchronously, so poll instead of sampling once.
+        eventually(5.seconds) { browser.pages.size == 1 }.should be_true
+        browser.pages.first.not_nil!.info.url.should eq("about:blank")
       end
     ensure
       pool.close_all
