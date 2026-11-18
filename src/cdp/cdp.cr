@@ -46,7 +46,7 @@ module Cdp
   struct Error
     property code : Int32
     property message : String
-    @[JSON::Field(emit_null: false)]
+    @[JSON::Field(key: "data", emit_null: false)]
     property data : JSON::Any?
 
     def initialize(@code, @message, @data = JSON::Any.new(""))

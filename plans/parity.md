@@ -7,23 +7,23 @@
 
 ## Where we are
 
-**Current focus:** Phase 10 brought `Page#navigate` back to go-rod's semantics.
-The port had added a `Network.responseReceived` watcher with a 3s cap that
-go-rod's `Page.Navigate` does not have: Chrome already reports HTTP error
-responses through `Page.navigate`'s own `errorText` (`net::ERR_HTTP_RESPONSE_CODE_FAILURE`,
-verified against a local 404/500 server), so the extra wait only added latency
-and could attribute another response's status to the current navigation. The
-next open work is Phase 1's optional tooling migration (native tree-sitter
-discovery is available but is vocabulary-incompatible with the curated ledger)
-plus the optional cleanups listed below.
+**Current focus:** Phase 11 moved the last hand-maintained CDP file into the
+generator. `src/pdlgen/gen/crystal_templates/root.ecr` now emits
+`src/cdp/cdp.cr` (the `Cdp.call` overloads, the client interface,
+`TIME_FIELD_KEYS` and the timestamp normalization) and `src/cdp/cdp/types.cr`,
+so `make generate-crystal` owns the whole tree and regenerating the pinned
+vintage is a no-op — the save/restore step is gone from the `Makefile`. The
+next open work is the Phase 1 tooling migration plus the optional cleanups
+listed below.
 
-**Last commit:** `docs(parity): correct the tree-sitter blocker claim`
+**Last commit:** `port: generate the whole CDP tree, root module included`
 
-**Gates (2026-11-17, after Phase 10):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (599 examples, 0 failures) · parity checks pass
-(5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
-protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages
-pass, `go-rod/rod` main package has browser-timing failures (see Next up).
+**Gates (2026-11-17, after Phase 11):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (601 examples, 0 failures, two consecutive full
+runs) · parity checks pass (5665 inventory rows with 10 documented divergences
+and 54 `skipped` legacy protocol rows, 5368 API items, 297 tests) · upstream Go
+suite: 8/9 packages pass, `go-rod/rod` main package has browser-timing failures
+(see Next up).
 
 **Next up:**
 
@@ -40,13 +40,16 @@ pass, `go-rod/rod` main package has browser-timing failures (see Next up).
    `TestPageElements` and `Example_basic` on 2026-11-17 while the other eight
    packages passed. Re-run before reading anything into a failure — these are
    browser-timing issues in the vendored project, not port gaps.
-3. Optional cleanup: the repo tracks built binaries (`rod`, `bin/pdlgen*`,
+3. Re-run the end-to-end generation no-op check when the Chromium PDL fetch
+   works again: `make generate-crystal CDP_CHROMIUM=160.0.8168.1
+   CDP_V8=16.0.61` must leave a clean `git diff`. The `temp/cdproto-gen` cache
+   was rebuilt on demand and the fetch failed with `504`s / connection resets at
+   the end of Phase 11, so only the root file's byte-equality was re-verified
+   (via `spec/pdlgen_root_template_parity_spec.cr`) after the last template
+   tweak.
+4. Optional cleanup: the repo tracks built binaries (`rod`, `bin/pdlgen*`,
    `pdlgen*`), so local builds keep showing up as modified files. Decide whether
    to untrack them.
-4. Optional follow-up: the generator's `root.ecr` template (120 lines) is still a
-   stale partial of the curated `src/cdp/cdp.cr` (277 lines, holds `Cdp.call`,
-   `Client`, `TIME_FIELD_KEYS`). Teach the template to emit the curated root so
-   `make generate-crystal` no longer needs the preserve/restore step.
 5. Optional follow-up: live specs leave their `user-data-dir` behind
    (`launcher.kill` without `launcher.cleanup`), so `$TMPDIR/rod/user-data`
    grows with every run. Have the specs call `cleanup` in their `ensure` block.
@@ -63,11 +66,12 @@ pass, `go-rod/rod` main package has browser-timing failures (see Next up).
    pool before adding more per-spec retries.
 
 **Gotchas:** the 63 tree-sitter "missing" items and the 3422 kind-rename
-"stale" rows are tooling vocabulary drift, not port gaps — see below. Phase 2's
-last checklist bullet (`states.go::method::Page.cleanupStates` ledger row) is
-also waiting on that reconciliation. `make generate-crystal` is not reproducible
-by default (`--latest`); pin `CDP_CHROMIUM`/`CDP_V8` (Phase 8 records the working
-pair). Chrome dropped the `console`, `database` and `schema` domains, so those
+"stale" rows are tooling vocabulary drift, not port gaps — see Phase 1 and the
+"Parity tooling" section of `AGENTS.md`. Phase 2's last checklist bullet
+(`states.go::method::Page.cleanupStates` ledger row) is also waiting on that
+reconciliation. `make generate-crystal` is not reproducible by default
+(`--latest`); pin `CDP_CHROMIUM`/`CDP_V8` (Phase 8 records the working pair).
+Chrome dropped the `console`, `database` and `schema` domains, so those
 inventory rows are `skipped` and `spec/cdp_legacy_proto_parity_spec.cr` is gone.
 The upstream Go suite panics in its leak detector unless
 `GODEBUG=tracebackancestors=1000` is exported. The checkout is on exFAT, so a
@@ -93,7 +97,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 80 files, 599 examples, 0 failures (2026-11-17, Chromium `160.0.8168.1`) |
+| Crystal specs | 81 files, 601 examples, 0 failures (2026-11-17, Chromium `160.0.8168.1`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -371,8 +375,8 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       the hijack spec feeds base64 `postDataEntries`.
 - [x] Gates: `make format`, `make lint` (240 files), `make test` (592 examples,
       0 failures) and `make check-go-*` all pass.
-- [ ] Out of scope (Next up): the `root.ecr` template still does not emit the
-      curated root module, so generation keeps preserving those two files.
+- [x] Superseded by Phase 11: the root was still emitted by a stale partial
+      template, so generation preserved `cdp.cr`/`cdp/types.cr` by hand.
 
 ---
 
@@ -450,6 +454,34 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       0 failures, three consecutive full runs) and `make check-go-*` all pass.
 - [ ] Out of scope (Next up): navigating an iframe page unsets the JS context on
       that page instead of go-rod's root page.
+
+---
+
+### Phase 11 — The generator owns the whole CDP tree ✅
+- [x] Red-green `spec/pdlgen_root_template_parity_spec.cr`: the rendered
+      `cdp.cr` must equal the committed `src/cdp/cdp.cr` byte for byte, and the
+      template must carry the curated root surface (`TIME_FIELD_KEYS`, both
+      `Cdp.call` overloads, the timestamp transforms, `normalize_incoming`,
+      `pattern_to_reg`, the `JSON::Serializable#from_json` helper, and the
+      `Error`/`Err*` helpers with `data` and `is?`). Both examples failed first:
+      the old 120-line template emitted a two-field `Error` and no call helpers.
+- [x] `src/pdlgen/gen/crystal_templates/root.ecr` is now the single source of
+      truth for the root module: it renders the curated API and interpolates
+      `base_pkg`, so the generator no longer needs a side copy of the file.
+- [x] `Makefile`: `generate-crystal` no longer saves/restores
+      `src/cdp/cdp.cr` and `src/cdp/cdp/types.cr`. Running it at the pinned
+      vintage (`CDP_CHROMIUM=160.0.8168.1 CDP_V8=16.0.61`) now produces a
+      `git diff`-clean tree, including the shared `NodeType` alias, `._*`
+      sidecar stripping and formatting.
+- [x] `src/cdp/cdp.cr` needed one follow-up: the curated root annotated
+      `Error#data` as `@[JSON::Field(emit_null: false)]` without a wire key, and
+      `spec/pdlgen_json_key_parity_spec.cr` rejects that. The template and the
+      committed file now both carry `key: "data"`, and the byte-equality spec
+      pins them together.
+- [x] `docs/generation.md`: `src/cdp` is described as generated end to end, with
+      the root template and the parity spec cited.
+- [x] Gates: `make format`, `make lint` (240 files), `make test` (601 examples,
+      0 failures) and `make check-go-*` pass.
 
 ---
 

@@ -155,15 +155,16 @@ make generate-crystal CDP_CHROMIUM=160.0.8168.1 CDP_V8=16.0.61
 `temp/cdp_generated/` so the toolchain can be exercised without touching
 `src/cdp/`.
 
-## `src/cdp` is a curated snapshot
+## `src/cdp` is generated end to end
 
 The committed tree is generated at Chromium `160.0.8168.1` / V8 `16.0.61`: 59
-domain directories (306 `.cr` files). The generator owns the domain directories;
-two files stay curated by hand and `make generate-crystal` preserves them:
-
-- `src/cdp/cdp.cr` — `Cdp.call` (typed result decoding), the `Client` interface,
-  `TIME_FIELD_KEYS` and the timestamp normalization applied on the wire.
-- `src/cdp/cdp/types.cr` — the shared `NodeType` alias used across domains.
+domain directories (306 `.cr` files). The generator owns the whole tree,
+including the root module: `src/pdlgen/gen/crystal_templates/root.ecr` emits
+`src/cdp/cdp.cr` (`Cdp.call`, the `Client` interface, `TIME_FIELD_KEYS` and the
+timestamp normalization applied on the wire) and `src/cdp/cdp/types.cr` (the
+shared `NodeType` alias). Nothing is preserved across a regeneration, and
+`spec/pdlgen_root_template_parity_spec.cr` pins the rendered root against the
+committed file.
 
 Curation that used to be applied by hand after a generation is now emitted by
 the generator itself, so a regeneration is byte-for-byte reproducible
