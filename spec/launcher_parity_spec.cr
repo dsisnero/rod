@@ -390,7 +390,7 @@ describe "launcher parity" do
     launched = nil.as(Rod::Util::Launcher::Launcher?)
     manager.before_launch = ->(launcher : Rod::Util::Launcher::Launcher, _ctx : HTTP::Server::Context) {
       launched = launcher
-      launcher.bin(CHROME_BIN).leakless(false)
+      launcher.bin(CHROME_BIN)
       nil
     }
 
@@ -398,6 +398,10 @@ describe "launcher parity" do
       launcher = Rod::Util::Launcher.must_new_managed("http://127.0.0.1:#{port}")
         .keep_user_data_dir
         .delete(Rod::Util::Launcher::Flags::KEEP_USER_DATA_DIR)
+        # The manager only kills on disconnect when the caller asked for
+        # leakless (`manager.go:181`); ask for it so this example leaves no
+        # browser behind.
+        .leakless(true)
 
       # Go's test lets the server teardown close the proxy socket; do the same
       # explicitly so the manager's cleanup runs and the profile is removed.
@@ -458,8 +462,68 @@ describe "launcher parity" do
           ws.close
         rescue
         end
-        eventually(10.seconds) { !Dir.exists?(dir) }.should be_true
+
+        # The hook cleared leakless, so the manager leaves this browser for the
+        # spec to release (see the kill-decision example below).
+        if launcher = launched
+          shutdown_launcher(launcher)
+          eventually(10.seconds) { !Dir.exists?(dir) }.should be_true
+        end
       end
+    end
+  end
+
+  it "leaves the managed browser running when the caller disabled leakless" do
+    # Keep the profile on the OS temp volume: removing a Chrome profile from the
+    # repo's exFAT checkout trips over AppleDouble `._*` entries that
+    # `FileUtils.rm_rf` cannot delete (same quirk as `make generate-crystal`).
+    dir = File.join(Dir.tempdir, "rod-manager-no-kill-#{Random::Secure.hex(6)}")
+    Dir.mkdir_p(dir)
+
+    manager = Rod::Util::Launcher.new_manager
+    launched = nil.as(Rod::Util::Launcher::Launcher?)
+    manager.before_launch = ->(launcher : Rod::Util::Launcher::Launcher, _ctx : HTTP::Server::Context) {
+      launched = launcher
+      launcher.bin(CHROME_BIN).user_data_dir(dir)
+      nil
+    }
+
+    with_launcher_manager_server(manager) do |port|
+      # The caller owns the browser lifecycle, so it does not ask for leakless.
+      managed = Rod::Util::Launcher.must_new_managed("http://127.0.0.1:#{port}").leakless(false)
+      url, headers = managed.client_header
+      ws = Rod::Util::Cdp::WebSocket.new
+      ws.connect(url, headers)
+      client = Rod::Util::Cdp::Client.new.start(ws)
+
+      begin
+        Cdp::Browser::GetVersion.new.call(client).product.should_not be_empty
+        launcher = launched
+        launcher.should_not be_nil
+        eventually(5.seconds) { launcher.not_nil!.pid != 0 }.should be_true
+      ensure
+        begin
+          ws.close
+        rescue
+        end
+      end
+
+      browser = launched.not_nil!
+      pid = browser.pid
+
+      # go-rod only kills on disconnect when the caller asked for leakless
+      # (`kill := l.Has(flags.Leakless)`, manager.go:181-207), so this browser
+      # must outlive the proxy socket.
+      begin
+        sleep 1.5.seconds
+        Process.exists?(pid).should be_true
+      ensure
+        shutdown_launcher(browser)
+      end
+
+      eventually(10.seconds) { !Process.exists?(pid) }.should be_true
+      # Removal happens once the browser the spec released has exited.
+      eventually(10.seconds) { !Dir.exists?(dir) }.should be_true
     end
   end
 
@@ -472,12 +536,14 @@ describe "launcher parity" do
 
     manager = Rod::Util::Launcher.new_manager
     manager.before_launch = ->(launcher : Rod::Util::Launcher::Launcher, _ctx : HTTP::Server::Context) {
-      launcher.bin(CHROME_BIN).leakless(false).user_data_dir(dir)
+      launcher.bin(CHROME_BIN).user_data_dir(dir)
       nil
     }
 
     with_launcher_manager_server(manager) do |port|
       managed = Rod::Util::Launcher.must_new_managed("http://127.0.0.1:#{port}")
+        # go-rod only kills on disconnect when the caller asked for leakless.
+        .leakless(true)
       url, headers = managed.client_header
       ws = Rod::Util::Cdp::WebSocket.new
       ws.connect(url, headers)

@@ -7,15 +7,16 @@
 
 ## Where we are
 
-**Current focus:** Phase 14 ported go-rod's forced `leakless(true)` in
-`Manager#call`, so a managed browser inherits the manager's lifetime guard
-whatever the caller asked for. The next open work is the Phase 1 tooling
+**Current focus:** Phase 15 finished the manager's lifecycle parity: on
+disconnect it now kills a managed browser only when the caller asked for
+`leakless`, exactly like go-rod's `Manager.cleanup`, and removes the profile
+whenever the browser it owns exits. The next open work is the Phase 1 tooling
 migration plus the optional cleanups listed below.
 
-**Last commit:** `port: force leakless for manager-launched browsers`
+**Last commit:** `port: match the manager's kill decision on disconnect`
 
-**Gates (2026-11-17, after Phase 14):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (605 examples, 0 failures) · parity checks pass
+**Gates (2026-11-17, after Phase 15):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (606 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -45,19 +46,13 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
 4. Optional cleanup: the repo tracks built binaries (`rod`, `bin/pdlgen*`,
    `pdlgen*`), so local builds keep showing up as modified files. Decide whether
    to untrack them.
-5. Optional follow-up: go-rod's `Manager.cleanup` kills a managed browser on
-   disconnect only when the caller asked for `leakless` (`manager.go:181-207`);
-   the port always kills (and therefore can always remove the profile). The
-   forced `leakless(true)` is ported (Phase 14), so this only differs for
-   callers that explicitly disable leakless. Close it if the manager is ever
-   used outside tests.
-6. Live-spec harness: every `with_live_browser` example launches and kills its
-   own Chrome (56 launches for `spec/live_browser_parity_spec.cr`), while
-   go-rod's `testerPool` reuses a few browsers and resets the page
-   (`MustNavigate("")`). Under heavy external load (suite wall time 3-4x normal)
-   Chrome itself drops connections mid-example — `not connected` from
-   `WebSocket#send_frame` — which no per-spec retry can absorb. Port the tester
-   pool before adding more per-spec retries.
+5. Optional follow-up: live-spec harness — every `with_live_browser` example
+   launches and kills its own Chrome (56 launches for
+   `spec/live_browser_parity_spec.cr`), while go-rod's `testerPool` reuses a few
+   browsers and resets the page (`MustNavigate("")`). Under heavy external load
+   (suite wall time 3-4x normal) Chrome itself drops connections mid-example —
+   `not connected` from `WebSocket#send_frame` — which no per-spec retry can
+   absorb. Port the tester pool before adding more per-spec retries.
 
 **Gotchas:** the 63 tree-sitter "missing" items and the 3422 kind-rename
 "stale" rows are tooling vocabulary drift, not port gaps — see Phase 1 and the
@@ -94,7 +89,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 82 files, 605 examples, 0 failures (2026-11-17, Chromium `160.0.8168.1`) |
+| Crystal specs | 82 files, 606 examples, 0 failures (2026-11-17, Chromium `160.0.8168.1`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -556,9 +551,31 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       leaks on the leakless launch path.
 - [x] Gates: `make format`, `make lint` (240 files), `make test` (605 examples,
       0 failures) and `make check-go-*` pass.
-- Documented divergence (Next up): Go's `Manager.cleanup` only kills the
-  managed browser on disconnect when the caller asked for `leakless`; the port
-  always kills so it can always remove the profile.
+
+---
+
+### Phase 15 — Manager kill decision matches go-rod ✅
+- [x] Red-green `spec/launcher_parity_spec.cr` "leaves the managed browser
+      running when the caller disabled leakless": a managed client that sends
+      `leakless(false)` must survive the proxy socket closing, because go-rod
+      computes `kill := l.Has(flags.Leakless)` before forcing leakless
+      (`manager.go:181`) and only then runs `cleanup`. It failed first (the port
+      killed the browser: `Process.exists?(pid)` was false).
+- [x] `src/rod/util/launcher.cr`: `Manager#call` reads the caller's leakless
+      intent before `launcher.leakless(true)` and hands it to
+      `cleanup_managed_launcher(launcher, kill)`, which kills only when the
+      caller asked for a managed browser and otherwise just waits for the
+      browser's own exit before removing its profile.
+- [x] Specs that expect a manager teardown now ask for it explicitly
+      (`TestLaunchClient` and the profile-cleanup example call `.leakless(true)`
+      on the managed launcher), so no example leaves a Chrome process or a
+      profile behind: a full `make test` run adds none.
+- [x] Gates: `make format`, `make lint` (240 files), `make test` (606 examples,
+      0 failures) and `make check-go-*` pass.
+- Documented divergence: Go blocks its proxy handler on `<-l.exit` inside
+  `Manager.cleanup`, which parks the handler's goroutine when it deliberately
+  leaves a browser running. The port spawns that wait instead, so the handler
+  returns while the profile is still removed once the browser exits.
 
 ---
 

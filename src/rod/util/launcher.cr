@@ -1095,17 +1095,27 @@ module Rod::Util::Launcher
       }
     end
 
-    # Go Manager.cleanup (`manager.go:200`): stop the managed browser and drop
-    # its user-data-dir, which the port used to leave behind. The port always
-    # kills on disconnect (Go only kills when the caller asked for leakless);
-    # see plans/parity.md for that divergence.
-    private def cleanup_managed_launcher(launcher : Launcher) : Nil
-      launcher.kill
-    rescue
-      # Killing a browser that already exited is not an error here.
-    ensure
+    # Go Manager.cleanup (`manager.go:200`): kill the managed browser only when
+    # the caller asked for leakless, then drop its user-data-dir unless the
+    # caller asked to keep it. Go blocks its handler on `<-l.exit` while the
+    # browser is still running; the port spawns that wait instead so a browser
+    # it deliberately leaves alive cannot park the proxy handler's fiber.
+    private def cleanup_managed_launcher(launcher : Launcher, kill : Bool) : Nil
       begin
-        launcher.cleanup
+        launcher.kill if kill
+      rescue
+        # Killing a browser that already exited is not an error here.
+      end
+
+      begin
+        if kill
+          launcher.cleanup
+        else
+          spawn do
+            launcher.cleanup
+          rescue
+          end
+        end
       rescue
         # Cleanup is best-effort, exactly like go-rod's `_ = os.RemoveAll(dir)`.
       end
@@ -1126,14 +1136,19 @@ module Rod::Util::Launcher
         @before_launch.call(launcher, context)
         return if context.response.status_code == 400
 
-        # Go Manager.launch always enables leakless so that a crashed manager
-        # takes its managed browsers with it (`manager.go:181`).
+        # Go Manager.launch reads the caller's leakless intent *before* forcing
+        # the flag: on disconnect it only kills browsers the caller asked to
+        # manage (`kill := l.Has(flags.Leakless)`, manager.go:181).
+        kill = launcher.has(Flags::LEAKLESS)
+
+        # Always enable leakless so that a crashed manager takes its managed
+        # browsers with it (manager.go:181).
         launcher.leakless(true)
 
         # Go Manager.cleanup also removes the managed browser's user-data-dir
         # (`manager.go:205`); killing alone leaves one profile behind per
         # managed browser.
-        shutdown = -> { cleanup_managed_launcher(launcher) }
+        shutdown = -> { cleanup_managed_launcher(launcher, kill) }
 
         handler = HTTP::WebSocketHandler.new do |client_ws, _ws_ctx|
           upstream_url = launcher.launch
