@@ -199,8 +199,23 @@ module Rod
     include ::Cdp::Sessionable
     alias JS = Rod::JS
 
+    # Cache holder for the JavaScript execution-context id. go-rod keeps
+    # `jsCtxID` behind a pointer "so that page clones can share the change"
+    # (`page.go:70`); `dup`-based clones share this holder the same way, and
+    # callers that need an independent cache replace it (Go `new(...)`).
+    class JsCtxCache
+      property id : String?
+
+      def initialize(@id : String? = nil)
+      end
+
+      def clear : Nil
+        @id = nil
+      end
+    end
+
     # JavaScript context ID for function caching
-    @js_ctx_id : String? = nil
+    @js_ctx_cache = JsCtxCache.new
     @js_ctx_lock = Mutex.new
 
     # Cached helper functions: js_context_id -> {function_name -> remote_object_id}
@@ -278,7 +293,10 @@ module Rod
     end
 
     protected def js_ctx_id_cache=(id : String?) : String?
-      @js_ctx_id = id
+      # Go assigns a fresh `new(...)` pointer to the clone (`element.go:466`,
+      # `page.go:943`), so the clone must not keep sharing the parent's cache.
+      @js_ctx_cache = JsCtxCache.new(id)
+      id
     end
 
     # Sleeper for retry logic
@@ -888,7 +906,10 @@ module Rod
         raise NavigationError.new(error_text)
       end
 
-      unset_js_ctx_id
+      # go-rod unsets the *root* page's context here (`p.root.unsetJSCtxID()`,
+      # `page.go:188`), not the navigated page's: clones share the cache, and an
+      # iframe page's navigation invalidates the top-level context too.
+      root_page.unset_js_ctx_id
     end
 
     # NavigateBack history.
@@ -2044,7 +2065,7 @@ module Rod
     # Get JavaScript context ID (window object).
     private def get_js_ctx_id : String
       @js_ctx_lock.synchronize do
-        if id = @js_ctx_id
+        if id = @js_ctx_cache.id
           return id
         end
 
@@ -2057,7 +2078,7 @@ module Rod
           end
           id = res.result.object_id
           raise "No object ID returned for window" unless id
-          @js_ctx_id = id
+          @js_ctx_cache.id = id
           # Clear helpers for this context (if any)
           @helpers_lock.synchronize { @helpers = nil }
           return id
@@ -2081,7 +2102,7 @@ module Rod
           object_id = resolved.object.object_id
           raise "Failed to resolve iframe content document object ID" unless object_id
 
-          old_id = @js_ctx_id
+          old_id = @js_ctx_cache.id
           @helpers_lock.synchronize do
             if helpers = @helpers
               helpers.delete(old_id) if old_id
@@ -2089,7 +2110,7 @@ module Rod
           end
 
           id = js_ctx_id_by_object_id(object_id)
-          @js_ctx_id = id
+          @js_ctx_cache.id = id
           return id
         rescue ex
           if stale_iframe_node_error?(ex) && attempt == 0
@@ -2106,10 +2127,11 @@ module Rod
       end
     end
 
-    # Clear cached JavaScript context ID.
-    private def unset_js_ctx_id : Nil
+    # Clear cached JavaScript context ID. Protected so `navigate` can clear the
+    # root page's cache, mirroring Go's `p.root.unsetJSCtxID()`.
+    protected def unset_js_ctx_id : Nil
       @js_ctx_lock.synchronize do
-        @js_ctx_id = nil
+        @js_ctx_cache.clear
         @helpers_lock.synchronize { @helpers = nil }
       end
     end

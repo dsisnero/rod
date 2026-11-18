@@ -7,23 +7,19 @@
 
 ## Where we are
 
-**Current focus:** Phase 11 moved the last hand-maintained CDP file into the
-generator. `src/pdlgen/gen/crystal_templates/root.ecr` now emits
-`src/cdp/cdp.cr` (the `Cdp.call` overloads, the client interface,
-`TIME_FIELD_KEYS` and the timestamp normalization) and `src/cdp/cdp/types.cr`,
-so `make generate-crystal` owns the whole tree and regenerating the pinned
-vintage is a no-op — the save/restore step is gone from the `Makefile`. The
-next open work is the Phase 1 tooling migration plus the optional cleanups
-listed below.
+**Current focus:** Phase 12 closed the JS-context cache gap: the context id now
+lives behind `Page::JsCtxCache`, a mutable holder that `dup`-based clones share
+(go-rod's `jsCtxID` pointer), and `Page#navigate` clears the *root* page's cache
+instead of the navigated page's. The next open work is the Phase 1 tooling
+migration plus the optional cleanups listed below.
 
-**Last commit:** `port: generate the whole CDP tree, root module included`
+**Last commit:** `port: share the JS context cache and unset it on the root page`
 
-**Gates (2026-11-17, after Phase 11):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (601 examples, 0 failures, two consecutive full
-runs) · parity checks pass (5665 inventory rows with 10 documented divergences
-and 54 `skipped` legacy protocol rows, 5368 API items, 297 tests) · upstream Go
-suite: 8/9 packages pass, `go-rod/rod` main package has browser-timing failures
-(see Next up).
+**Gates (2026-11-17, after Phase 12):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (603 examples, 0 failures) · parity checks pass
+(5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
+protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
+`go-rod/rod` main package has browser-timing failures (see Next up).
 
 **Next up:**
 
@@ -53,11 +49,7 @@ suite: 8/9 packages pass, `go-rod/rod` main package has browser-timing failures
 5. Optional follow-up: live specs leave their `user-data-dir` behind
    (`launcher.kill` without `launcher.cleanup`), so `$TMPDIR/rod/user-data`
    grows with every run. Have the specs call `cleanup` in their `ensure` block.
-6. Optional follow-up: go-rod's `Page.Navigate` unsets the JS context on the
-   *root* page (`p.root.unsetJSCtxID()`); the port unsets it on the page object
-   that was navigated, which differs when navigating an iframe page. Add a
-   red-green spec before changing it.
-7. Live-spec harness: every `with_live_browser` example launches and kills its
+6. Live-spec harness: every `with_live_browser` example launches and kills its
    own Chrome (56 launches for `spec/live_browser_parity_spec.cr`), while
    go-rod's `testerPool` reuses a few browsers and resets the page
    (`MustNavigate("")`). Under heavy external load (suite wall time 3-4x normal)
@@ -97,7 +89,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 81 files, 601 examples, 0 failures (2026-11-17, Chromium `160.0.8168.1`) |
+| Crystal specs | 82 files, 603 examples, 0 failures (2026-11-17, Chromium `160.0.8168.1`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -420,7 +412,8 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       passed three consecutive full runs (596 examples each) with the final
       change in place.
 - [ ] Out of scope (Next up): `Page#navigate`'s 3s `Network.responseReceived`
-      wait and the leaked `user-data-dir` directories.
+      wait and the leaked `user-data-dir` directories. The navigation wait was
+      removed in Phase 10; the iframe JS-context unset landed in Phase 12.
 
 ---
 
@@ -452,8 +445,9 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       failure still surfaces immediately — verified with a stub page.
 - [x] Gates: `make format`, `make lint` (240 files), `make test` (599 examples,
       0 failures, three consecutive full runs) and `make check-go-*` all pass.
-- [ ] Out of scope (Next up): navigating an iframe page unsets the JS context on
-      that page instead of go-rod's root page.
+- [x] Follow-up from this phase — navigating an iframe page used to unset the
+      JS context on that page instead of go-rod's root page — closed in
+      Phase 12.
 
 ---
 
@@ -482,6 +476,31 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       the root template and the parity spec cited.
 - [x] Gates: `make format`, `make lint` (240 files), `make test` (601 examples,
       0 failures) and `make check-go-*` pass.
+
+---
+
+### Phase 12 — Shared JS-context cache, unset on the root page ✅
+- [x] Red-green `spec/page_js_ctx_cache_parity_spec.cr`: navigating an iframe
+      page must clear the *root* page's cached execution context (go
+      `page.go:188` `p.root.unsetJSCtxID()`), and a page clone must observe a
+      navigation performed on the page it was cloned from. Both examples failed
+      first (one `Runtime.evaluate` instead of two).
+- [x] `src/rod/page.cr`: the context id lives in `Page::JsCtxCache`, a mutable
+      holder that `dup`-based clones share, reproducing go-rod's "use pointer so
+      that page clones can share the change" (`page.go:70`). `navigate` unsets
+      `root_page`'s cache (`page.cr:912`), and `unset_js_ctx_id` is `protected`
+      so a page can clear its root's cache.
+- [x] `js_ctx_id_cache=` still installs a *fresh* holder, matching Go's
+      `new(...)` in `Element.Frame` (`element.go:466`) and
+      `ElementFromObject` (`page.go:943`): iframe and iframe-context clones keep
+      an independent cache.
+- [x] Ledger: `page.go::method::Page.Navigate` now references the new spec and
+      notes the root-page eviction.
+- [x] Gates: `make format`, `make lint` (240 files), `make test` (603 examples,
+      0 failures) and `make check-go-*` pass.
+- Documented divergence (kept, no action): go-rod's `unsetJSCtxID` only clears
+  the id, while the port also drops the cached helper functions. It costs one
+  helper re-injection per navigation and changes no API behavior.
 
 ---
 
