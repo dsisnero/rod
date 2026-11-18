@@ -35,6 +35,25 @@ private def with_live_browser(& : Rod::Browser ->)
   end
 end
 
+# Headless Chrome answers `Page.captureScreenshot` with
+# `-32000 Unable to capture screenshot` while the compositor has no frame to grab
+# yet, which happens right after a navigation on a loaded machine. go-rod
+# surfaces that error unchanged, so retry it here (bounded) instead of widening
+# the library's semantics; any other failure surfaces immediately.
+private def scroll_screenshot(page : Rod::Page, opt : Rod::ScrollScreenshotOptions) : Bytes
+  attempts = 0
+  loop do
+    begin
+      return page.scroll_screenshot(opt)
+    rescue ex
+      attempts += 1
+      raise ex if attempts >= 5 || !ex.message.to_s.includes?("Unable to capture screenshot")
+
+      sleep 200.milliseconds
+    end
+  end
+end
+
 private def parse_png_size(bin : Bytes) : Tuple(Int32, Int32)
   io = IO::Memory.new(bin)
   sig = Bytes.new(8)
@@ -308,7 +327,7 @@ describe "live browser parity" do
       page.must_wait_load
       page.must_element("button")
 
-      data = page.scroll_screenshot(Rod::ScrollScreenshotOptions.new(format: "jpeg"))
+      data = scroll_screenshot(page, Rod::ScrollScreenshotOptions.new(format: "jpeg"))
       img = Pluto::ImageRGBA.from_jpeg(IO::Memory.new(data))
       size = page.must_eval("() => ({w: document.documentElement.scrollWidth, h: document.documentElement.scrollHeight})")
 
@@ -319,12 +338,12 @@ describe "live browser parity" do
       viewport["w"].as_i.should eq(1280)
       viewport["h"].as_i.should eq(800)
 
-      page.scroll_screenshot(Rod::ScrollScreenshotOptions.new(format: "jpeg"))
+      scroll_screenshot(page, Rod::ScrollScreenshotOptions.new(format: "jpeg"))
 
       no_emulation = browser.must_page("about:blank")
       no_emulation.must_wait_load
       no_emulation.set_viewport(nil)
-      no_emulation.scroll_screenshot(Rod::ScrollScreenshotOptions.new(format: "jpeg"))
+      scroll_screenshot(no_emulation, Rod::ScrollScreenshotOptions.new(format: "jpeg"))
 
       page.must_close
       no_emulation.must_close
@@ -912,9 +931,12 @@ describe "live browser parity" do
         blocked = browser.must_page("about:blank")
         blocked_error = Channel(Exception?).new(1)
 
+        # go-rod's TestBlockingNavigation never bounds this navigation: like
+        # `Page.Navigate` it returns once Chrome accepts it, while the request
+        # itself stays blocked on the server.
         spawn do
           begin
-            blocked.timeout(800.milliseconds).must_navigate("http://127.0.0.1:#{addr.port}/a")
+            blocked.must_navigate("http://127.0.0.1:#{addr.port}/a")
             blocked_error.send(nil)
           rescue ex
             blocked_error.send(ex)
@@ -927,9 +949,8 @@ describe "live browser parity" do
         ok_page.must_element("html").must_text.should contain("ok")
 
         unblock.send(nil)
-        blocked_error.receive
+        blocked_error.receive.should be_nil
 
-        blocked.must_close
         ok_page.must_close
       end
     ensure

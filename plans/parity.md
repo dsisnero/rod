@@ -7,22 +7,22 @@
 
 ## Where we are
 
-**Current focus:** Phase 9 removed the live-browser flakiness that Phase 8's gate
-runs kept hitting: `Page#reload` now waits for `Page.frameNavigated` for its own
-frame (go-rod's `Page.Reload`), and `Launcher#launch` no longer imposes a fixed
-10s timeout — it races the parsed DevTools URL against process exit and context
-cancellation like go-rod. Both have red-green specs and a stress harness. The
+**Current focus:** Phase 10 brought `Page#navigate` back to go-rod's semantics.
+The port had added a `Network.responseReceived` watcher with a 3s cap that
+go-rod's `Page.Navigate` does not have: Chrome already reports HTTP error
+responses through `Page.navigate`'s own `errorText` (`net::ERR_HTTP_RESPONSE_CODE_FAILURE`,
+verified against a local 404/500 server), so the extra wait only added latency
+and could attribute another response's status to the current navigation. The
 next open work is Phase 1 (still blocked on the `tree_sitter` Ruby gem) plus the
 optional cleanups listed below.
 
-**Last commit:** `port: make the live-browser specs deterministic`
+**Last commit:** `port: match go-rod's Page.navigate semantics`
 
-**Gates (2026-11-17, after Phase 9):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (596 examples, 0 failures, three consecutive full
-runs with the final change) · parity checks pass (5665 inventory rows with 10
-documented divergences and 54 `skipped` legacy protocol rows, 5368 API items,
-297 tests) · upstream Go suite: 8/9 packages pass, `go-rod/rod` main package has
-browser-timing failures (see Next up).
+**Gates (2026-11-17, after Phase 10):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (599 examples, 0 failures) · parity checks pass
+(5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
+protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages
+pass, `go-rod/rod` main package has browser-timing failures (see Next up).
 
 **Next up:**
 
@@ -41,13 +41,20 @@ browser-timing failures (see Next up).
    stale partial of the curated `src/cdp/cdp.cr` (277 lines, holds `Cdp.call`,
    `Client`, `TIME_FIELD_KEYS`). Teach the template to emit the curated root so
    `make generate-crystal` no longer needs the preserve/restore step.
-5. Optional follow-up: `Page#navigate` still waits on `Network.responseReceived`
-   with a 3s cap instead of go-rod's `WaitNavigation` lifecycle event, so a slow
-   navigation can return early. Same class of bug as the reload race; add a
-   red-green spec before changing it.
-6. Optional follow-up: live specs leave their `user-data-dir` behind
+5. Optional follow-up: live specs leave their `user-data-dir` behind
    (`launcher.kill` without `launcher.cleanup`), so `$TMPDIR/rod/user-data`
    grows with every run. Have the specs call `cleanup` in their `ensure` block.
+6. Optional follow-up: go-rod's `Page.Navigate` unsets the JS context on the
+   *root* page (`p.root.unsetJSCtxID()`); the port unsets it on the page object
+   that was navigated, which differs when navigating an iframe page. Add a
+   red-green spec before changing it.
+7. Live-spec harness: every `with_live_browser` example launches and kills its
+   own Chrome (56 launches for `spec/live_browser_parity_spec.cr`), while
+   go-rod's `testerPool` reuses a few browsers and resets the page
+   (`MustNavigate("")`). Under heavy external load (suite wall time 3-4x normal)
+   Chrome itself drops connections mid-example — `not connected` from
+   `WebSocket#send_frame` — which no per-spec retry can absorb. Port the tester
+   pool before adding more per-spec retries.
 
 **Gotchas:** the 63 tree-sitter "missing" items and the 3422 kind-rename
 "stale" rows are tooling vocabulary drift, not port gaps — see below. Phase 2's
@@ -61,7 +68,10 @@ The upstream Go suite panics in its leak detector unless
 generation emits `._*` AppleDouble sidecars — strip them before counting files.
 `Launcher#launch` has no timeout on purpose: a browser that never prints a
 DevTools URL now waits until the process exits or the context cancels, exactly
-like go-rod, so a wedged browser hangs instead of failing fast.
+like go-rod, so a wedged browser hangs instead of failing fast. Do not run
+`scripts/stress_live_specs.sh` (or any parallel browser work) at the same time as
+`make test`: the extra load pushes the suite from ~2:20 to 5-8 minutes and makes
+Chrome itself drop connections mid-example, which looks like a port bug.
 
 This is a curated feature roadmap, not a generated dump. Generated manifests
 (`go_source_parity.tsv`, `go_test_parity.tsv`) are reference snapshots;
@@ -77,7 +87,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 79 files, 596 examples, 0 failures (2026-11-17, Chromium `160.0.8168.1`) |
+| Crystal specs | 80 files, 599 examples, 0 failures (2026-11-17, Chromium `160.0.8168.1`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -388,6 +398,39 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       change in place.
 - [ ] Out of scope (Next up): `Page#navigate`'s 3s `Network.responseReceived`
       wait and the leaked `user-data-dir` directories.
+
+---
+
+### Phase 10 — `Page#navigate` parity ✅
+- [x] Red-green `spec/page_navigate_parity_spec.cr`: `navigate` must return
+      without waiting for network events (the port blocked for 3s), must raise
+      `NavigationError` from `Page.navigate`'s `errorText`, and must not turn
+      another document response's HTTP status into a navigation error. The first
+      two failed before the change (3.003s elapsed; the stray 404 raised
+      `NavigationError`).
+- [x] Verified Chrome's own behavior with a local 404/500 server:
+      `Page.navigate` returns `errorText = net::ERR_HTTP_RESPONSE_CODE_FAILURE`
+      for empty-body error responses, which is why go-rod needs no response
+      watcher (`TestPageNavigateErr` relies on exactly that).
+- [x] `src/rod/page.cr`: `navigate` is now go-rod's sequence — ignore
+      `stopLoading` errors, call `Page.navigate`, raise `NavigationError` on a
+      non-empty `errorText`, unset the JS context. Removed the
+      `Network.responseReceived` subscription, its 3s `timeout` and the
+      `net::ERR_HTTP_RESPONSE_CODE_FAILURE` synthesis.
+- [x] `spec/live_browser_parity_spec.cr` `TestBlockingNavigation`: dropped the
+      artificial `.timeout(800.milliseconds)` around the blocked navigation and
+      the `must_close` that raced it. go-rod's test never bounds that call —
+      `MustNavigate` returns once Chrome accepts the navigation — so the ported
+      spec no longer depends on the removed wait.
+- [x] `spec/live_browser_parity_spec.cr` `TestScrollScreenshot`: a gate run hit
+      Chrome's transient `-32000 Unable to capture screenshot` (the compositor
+      has no frame to grab). go-rod surfaces that error unchanged, so the spec
+      retries only that message (5 attempts, 200ms apart) and every other
+      failure still surfaces immediately — verified with a stub page.
+- [x] Gates: `make format`, `make lint` (240 files), `make test` (599 examples,
+      0 failures, three consecutive full runs) and `make check-go-*` all pass.
+- [ ] Out of scope (Next up): navigating an iframe page unsets the JS context on
+      that page instead of go-rod's root page.
 
 ---
 

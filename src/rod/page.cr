@@ -872,40 +872,6 @@ module Rod
         url = "about:blank"
       end
 
-      http_url = url.starts_with?("http://") || url.starts_with?("https://")
-      response_status : Int32? = nil
-      wait_response_done = Channel(Nil).new(1)
-      response_cancel : Proc(Nil)? = nil
-
-      if http_url
-        watch_page, cancel = with_cancel
-        response_cancel = cancel
-        wait_response = watch_page.browser.context(watch_page.get_context).each_event(@session_id, {
-          Cdp::Network::ResponseReceivedEvent.proto_event => Browser::CallbackInfo.new(
-            Cdp::Network::ResponseReceivedEvent,
-            ->(event : Cdp::Event, _session_id : SessionID?) do
-              received = event.as(Cdp::Network::ResponseReceivedEvent)
-              if received.type == Cdp::Network::ResourceTypeDocument
-                response_status = received.response.status.round.to_i
-                true
-              else
-                nil
-              end
-            end
-          ),
-        })
-
-        spawn do
-          wait_response.call
-        rescue
-        ensure
-          begin
-            wait_response_done.send(nil)
-          rescue Channel::ClosedError
-          end
-        end
-      end
-
       # try to stop loading
       begin
         stop_loading
@@ -913,26 +879,13 @@ module Rod
         # Go parity: ignore StopLoading errors before navigate.
       end
 
-      begin
-        res = Cdp::Page::Navigate.new(url: url, referrer: nil, transition_type: nil, frame_id: nil, referrer_policy: nil).call(self)
-        if error_text = res.error_text
-          raise NavigationError.new(error_text)
-        end
-
-        if http_url
-          select
-          when wait_response_done.receive?
-          when timeout(3.seconds)
-          end
-
-          if status = response_status
-            if status >= 400
-              raise NavigationError.new("net::ERR_HTTP_RESPONSE_CODE_FAILURE")
-            end
-          end
-        end
-      ensure
-        response_cancel.try(&.call)
+      # go-rod only inspects `Page.navigate`'s own error text: Chrome reports
+      # `net::ERR_HTTP_RESPONSE_CODE_FAILURE` there for HTTP error responses, so
+      # watching `Network.responseReceived` adds latency and can attribute
+      # another response's status to this navigation.
+      res = Cdp::Page::Navigate.new(url: url, referrer: nil, transition_type: nil, frame_id: nil, referrer_policy: nil).call(self)
+      if error_text = res.error_text
+        raise NavigationError.new(error_text)
       end
 
       unset_js_ctx_id
