@@ -1,5 +1,6 @@
 require "spec"
 require "../src/rod"
+require "./support/live_browser_pool"
 
 # Poll `condition` until it is true or `timeout` elapses. Used by specs that
 # assert on state a spawned fiber changes (event delivery, browser teardown).

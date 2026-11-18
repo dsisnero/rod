@@ -7,16 +7,16 @@
 
 ## Where we are
 
-**Current focus:** Phase 15 finished the manager's lifecycle parity: on
-disconnect it now kills a managed browser only when the caller asked for
-`leakless`, exactly like go-rod's `Manager.cleanup`, and removes the profile
-whenever the browser it owns exits. The next open work is the Phase 1 tooling
-migration plus the optional cleanups listed below.
+**Current focus:** Phase 16 ported go-rod's `testerPool` as
+`RodSpec::LiveBrowserPool` (acquire, reset the pooled page, release; isolated
+mode; `at_exit` shutdown). The live spec files still launch one browser per
+example, so the next feature is migrating them onto the pool (Phase 17), ahead
+of the Phase 1 tooling migration and the optional cleanups listed below.
 
-**Last commit:** `port: match the manager's kill decision on disconnect`
+**Last commit:** `port: add the pooled live-browser harness`
 
-**Gates (2026-11-17, after Phase 15):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (606 examples, 0 failures) · parity checks pass
+**Gates (2026-11-17, after Phase 16):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (612 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -46,13 +46,16 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
 4. Optional cleanup: the repo tracks built binaries (`rod`, `bin/pdlgen*`,
    `pdlgen*`), so local builds keep showing up as modified files. Decide whether
    to untrack them.
-5. Optional follow-up: live-spec harness — every `with_live_browser` example
-   launches and kills its own Chrome (56 launches for
-   `spec/live_browser_parity_spec.cr`), while go-rod's `testerPool` reuses a few
-   browsers and resets the page (`MustNavigate("")`). Under heavy external load
-   (suite wall time 3-4x normal) Chrome itself drops connections mid-example —
-   `not connected` from `WebSocket#send_frame` — which no per-spec retry can
-   absorb. Port the tester pool before adding more per-spec retries.
+5. Live-spec harness migration (Phase 17): the pool landed in Phase 16
+   (`RodSpec.live_browser_pool`), but the spec files still launch a browser per
+   example — 56 launches for `spec/live_browser_parity_spec.cr` alone. Migrate
+   the files one per commit, auditing the browser state each example changes
+   (hijack routes, trace/logging, `ignore_cert_errors`, incognito contexts) and
+   using `with_isolated` for examples that kill the connection
+   (`TestBrowserLostConnection`) or swap the browser's client. Under heavy
+   external load Chrome itself drops connections mid-example (`not connected`
+   from `WebSocket#send_frame`), which no per-spec retry can absorb — finish the
+   migration before adding per-spec retries.
 
 **Gotchas:** the 63 tree-sitter "missing" items and the 3422 kind-rename
 "stale" rows are tooling vocabulary drift, not port gaps — see Phase 1 and the
@@ -70,7 +73,11 @@ DevTools URL now waits until the process exits or the context cancels, exactly
 like go-rod, so a wedged browser hangs instead of failing fast. Do not run
 `scripts/stress_live_specs.sh` (or any parallel browser work) at the same time as
 `make test`: the extra load pushes the suite from ~2:20 to 5-8 minutes and makes
-Chrome itself drop connections mid-example, which looks like a port bug. Keep
+Chrome itself drop connections mid-example, which looks like a port bug. On
+2026-11-17 three `chiasmus` runs from another checkout kept the load average
+above 12 for hours; a full suite then took 12 minutes and
+`TestScrollScreenshot` exhausted its compositor retries even though it passes in
+isolation. Re-run before blaming a change. Keep
 browser profiles out of `./temp`: on the exFAT checkout Chrome's AppleDouble
 `._*` sidecars appear in `readdir` but `FileUtils.rm_rf` cannot unlink them, so
 `Launcher#cleanup` silently leaves the profile behind (use `Dir.tempdir`).
@@ -89,7 +96,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 82 files, 606 examples, 0 failures (2026-11-17, Chromium `160.0.8168.1`) |
+| Crystal specs | 84 files, 612 examples, 0 failures (2026-11-17, Chromium `160.0.8168.1`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -576,6 +583,36 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
   `Manager.cleanup`, which parks the handler's goroutine when it deliberately
   leaves a browser running. The port spawns that wait instead, so the handler
   returns while the profile is still removed once the browser exits.
+
+---
+
+### Phase 16 — Live-browser pool (harness infrastructure) ✅
+- [x] Red-green `spec/live_browser_pool_spec.cr`: the pool must reuse one
+      browser across examples (go-rod's `testerPool`, `setup_test.go:41`), blank
+      the page the next example inherits (`tester.page.MustNavigate("")`,
+      `setup_test.go:124`) and close the extra targets, return the browser when
+      an example raises, run isolated examples in their own browser, and close
+      everything on cleanup. A first pass with launch-per-call and no reset
+      failed four of the five examples (`Expected: 1, got: 2` launches; the
+      inherited page was still on `https://example.com/left-behind`), then the
+      pool implementation made them green.
+- [x] `spec/support/live_browser_pool.cr`: `RodSpec::LiveBrowserPool` with
+      `with` (acquire → reset → block → release), `with_isolated`,
+      `close_all` and a `launches` counter, plus the shared
+      `RodSpec.live_browser_pool` singleton. It launches one headless Chrome per
+      borrower, tracks each browser's launcher so the profile is removed on
+      shutdown, and closes every pooled browser from an `at_exit` hook (go-rod
+      does the same in `TestMain`, `setup_test.go:51`).
+- [x] The pool spec also drives a real browser: two consecutive borrows return
+      the same instance, the second sees exactly one page (the extra target was
+      closed) already blanked to `about:blank`, and `launches` stays at 1.
+- [x] `spec/spec_helper.cr` requires the support file; no library code changed.
+- [x] Specs only: the live spec files still launch per example. Migrating them
+      is Phase 17 (Next up), one file per commit with a state audit, because a
+      few examples kill the connection or swap the browser's client and need
+      `with_isolated`.
+- [x] Gates: `make format`, `make lint` (240 files), `make test` (612 examples,
+      0 failures) and `make check-go-*` pass.
 
 ---
 
