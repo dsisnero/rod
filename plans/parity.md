@@ -13,10 +13,11 @@ go-rod's `Page.Navigate` does not have: Chrome already reports HTTP error
 responses through `Page.navigate`'s own `errorText` (`net::ERR_HTTP_RESPONSE_CODE_FAILURE`,
 verified against a local 404/500 server), so the extra wait only added latency
 and could attribute another response's status to the current navigation. The
-next open work is Phase 1 (still blocked on the `tree_sitter` Ruby gem) plus the
-optional cleanups listed below.
+next open work is Phase 1's optional tooling migration (native tree-sitter
+discovery is available but is vocabulary-incompatible with the curated ledger)
+plus the optional cleanups listed below.
 
-**Last commit:** `port: match go-rod's Page.navigate semantics`
+**Last commit:** `docs(parity): correct the tree-sitter blocker claim`
 
 **Gates (2026-11-17, after Phase 10):** `make format` pass · `make lint` pass
 (240 files) · `make test` pass (599 examples, 0 failures) · parity checks pass
@@ -26,10 +27,15 @@ pass, `go-rod/rod` main package has browser-timing failures (see Next up).
 
 **Next up:**
 
-1. Phase 1 — (blocked) needs the `tree_sitter` Ruby gem plus kind/id
-   normalization before the tree-sitter checks can run; it also closes the
-   `states.go::method::Page.cleanupStates` ledger row (the only Phase 2 bullet
-   still open).
+1. Phase 1 tooling migration: wrap the installed skill's canonical parity
+   scripts instead of the repo's copied ones (whose `tree-sitter` branch is a
+   placeholder), and decide curated-status preservation. Native tree-sitter
+   discovery already works via the verified Chiasmus toolchain, but its
+   vocabulary (`class`/`function`/`definition.*` plus merged `const`/`type`
+   declarations) cannot be mapped onto the curated ids by a kind rename, so the
+   gate stays `PORT_PARSER=regex` until a reviewed id migration lands. It also
+   closes the `states.go::method::Page.cleanupStates` ledger row (the only
+   Phase 2 bullet still open).
 2. Upstream Go suite flakiness: `github.com/go-rod/rod` failed
    `TestPageElements` and `Example_basic` on 2026-11-17 while the other eight
    packages passed. Re-run before reading anything into a failure — these are
@@ -169,22 +175,35 @@ genuine minor gap**. Full list:
 
 Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
 
-### Phase 1 — Reconcile tree-sitter discovery drift ⛔ blocked
-- [x] Diagnosed: the drift is not 63 items. Adding the 63 unexported rows to the
-      ledger/source manifest does not turn the check green — it then reports
-      **3422 stale** rows because tree-sitter renames every `func`/`struct`/
-      `const`/`type` id to `function`/`class`/`definition.*`.
-- [ ] **Blocked on tooling**, not the repo: strict `PORT_PARSER=tree-sitter`
-      requires kind/id normalization before the curated regex-vocabulary
-      manifests can match. Options (both outside this repo):
-  1. Normalize tree-sitter kinds/ids to the curated vocabulary in
-     `parity_inventory_lib.rb#discover_with_crystal_discovery`
-     (`function`→`func`, `class`→`struct`, `definition.type`/`field`→`const`/`type`).
-  2. Add a `--kind-map`/normalization mode to the bundled `chiasmus-discover`.
-- [ ] Until then, keep `PORT_PARSER=regex` as the authoritative gate (green:
-      5368 API items). Treat tree-sitter output as an exploratory overlay.
-- [ ] (Blocked) Re-run `check_port_inventory.sh` / `check_source_parity.sh` with
-      `PORT_PARSER=tree-sitter` and confirm exit 0.
+### Phase 1 — Tree-sitter discovery: exploratory overlay, not a gate ⚠️
+- [x] Diagnosed the original "63 missing / 3422 stale" numbers: they come from
+      `chiasmus-discover` (native tree-sitter labels) compared against the curated
+      regex-vocabulary manifests, not from `make check-go-*`.
+- [x] Corrected the earlier "blocked on the Ruby `tree_sitter` gem" note. The gem
+      only feeds the placeholder tree-sitter branch in the repo's copied
+      `scripts/parity_inventory_lib.rb`, which still calls `discover_with_regex`;
+      `PORT_PARSER=tree-sitter` therefore warns and exits 0 by falling back to
+      regex. Installing the gem changes the warning, not extraction.
+- [x] Verified a real tree-sitter backend *is* available here:
+      `verify_skill_install.sh . go tree-sitter` resolves a verified Chiasmus
+      toolchain and reports `PARITY_DISCOVERY_BACKEND=chiasmus-tree-sitter`.
+- [x] Measured the native vocabulary over `vendor/rod` with that verified binary:
+      1416 `class`, 551 `function`, 2841 `method`, 1689 `const`, plus auxiliary
+      `definition.method`/`field`/`params`/`return_type`/`reference.class` kinds.
+      The curated ledger uses `func`/`struct`/`const`/`type`/`method`, and Go
+      native discovery also merges standalone `const`/`type` declarations, so a
+      kind rename alone cannot reconstruct the curated ids.
+- [x] Decision (per the cross-language parity skill): keep `PORT_PARSER=regex`
+      authoritative for the curated ledger (green: 5368 API items) and treat
+      native discovery as an exploratory overlay. Never copy native ids or
+      statuses into `go_port_inventory.tsv`.
+- [ ] Optional tooling migration (Next up): adopt the installed skill's canonical
+      scripts as forwarding wrappers. The canonical generator refuses to
+      overwrite an existing manifest and emits `baseline`/`missing` rows, while
+      the repo's copy forked to preserve curated status/refs/notes, so the
+      refresh semantics have to be decided explicitly before switching. A
+      tree-sitter *gate* additionally needs a reviewed id migration plus
+      source-aware classification/dedup — not a gem install.
 
 ### Phase 2 — Page target-cache lifecycle parity ✅
 - [x] Port `Page.cleanupStates`: evict the page's `@targets` entry on successful

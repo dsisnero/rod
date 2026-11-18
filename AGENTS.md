@@ -69,6 +69,25 @@ list, and per-symbol port status lives in
 - Keep `plans/inventory/go_port_inventory.tsv` curated; regenerate the
   `go_source_parity.tsv` / `go_test_parity.tsv` snapshots freely.
 
+### Parity tooling
+
+- Parser mode for the curated ledger: **`regex`** (`PORT_PARSER=regex`). It is
+  the authoritative gate; `tree-sitter` is an exploratory overlay only.
+- Inventory command: `make check-go-port-inventory` (plus `make
+  check-go-source-parity` / `make check-go-test-parity`).
+- The repo's `scripts/` are copied from the installed
+  `cross-language-crystal-parity` skill (currently
+  `/Users/dominic/.config/opencode/skills/cross-language-crystal-parity`) and
+  have drifted: their `tree-sitter` branch is a placeholder that still calls
+  `discover_with_regex`, so `PORT_PARSER=tree-sitter` warns and exits 0 without
+  ever using tree-sitter. Do not report that gate as blocked, and do not install
+  the Ruby `tree_sitter` gem expecting a different result.
+- A real tree-sitter backend needs the skill's verified Chiasmus toolchain
+  (`verify_skill_install.sh . go tree-sitter`) *and* a reviewed id migration,
+  because native labels (`class`/`function`/`definition.*`, plus merged
+  `const`/`type` declarations) do not match the curated vocabulary. See Phase 1
+  in `plans/parity.md` before touching either.
+
 ## Session continuity (read this first)
 
 `plans/parity.md` is the single source of truth for where we are. At the start
