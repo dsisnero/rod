@@ -7,16 +7,16 @@
 
 ## Where we are
 
-**Current focus:** Phase 12 closed the JS-context cache gap: the context id now
-lives behind `Page::JsCtxCache`, a mutable holder that `dup`-based clones share
-(go-rod's `jsCtxID` pointer), and `Page#navigate` clears the *root* page's cache
-instead of the navigated page's. The next open work is the Phase 1 tooling
-migration plus the optional cleanups listed below.
+**Current focus:** Phase 13 closed the leaking browser profiles: live specs shut
+browsers down through the new `shutdown_launcher` helper (kill + cleanup) and
+`Manager` mirrors Go's `Manager.cleanup`, removing the managed browser's
+user-data-dir when the proxied socket closes. The next open work is the Phase 1
+tooling migration plus the optional cleanups listed below.
 
-**Last commit:** `port: share the JS context cache and unset it on the root page`
+**Last commit:** `port: clean up browser profiles on shutdown`
 
-**Gates (2026-11-17, after Phase 12):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (603 examples, 0 failures) · parity checks pass
+**Gates (2026-11-17, after Phase 13):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (604 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -46,9 +46,11 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
 4. Optional cleanup: the repo tracks built binaries (`rod`, `bin/pdlgen*`,
    `pdlgen*`), so local builds keep showing up as modified files. Decide whether
    to untrack them.
-5. Optional follow-up: live specs leave their `user-data-dir` behind
-   (`launcher.kill` without `launcher.cleanup`), so `$TMPDIR/rod/user-data`
-   grows with every run. Have the specs call `cleanup` in their `ensure` block.
+5. Optional follow-up: go-rod's `Manager.launch` forces `leakless(true)`
+   (`manager.go:181`) so a crashed manager takes its browsers with it; the port
+   leaves the caller's `leakless` flag alone and always kills on disconnect
+   (Go only kills when the caller asked for leakless). Close the gap if the
+   manager is ever used outside tests.
 6. Live-spec harness: every `with_live_browser` example launches and kills its
    own Chrome (56 launches for `spec/live_browser_parity_spec.cr`), while
    go-rod's `testerPool` reuses a few browsers and resets the page
@@ -73,7 +75,10 @@ DevTools URL now waits until the process exits or the context cancels, exactly
 like go-rod, so a wedged browser hangs instead of failing fast. Do not run
 `scripts/stress_live_specs.sh` (or any parallel browser work) at the same time as
 `make test`: the extra load pushes the suite from ~2:20 to 5-8 minutes and makes
-Chrome itself drop connections mid-example, which looks like a port bug.
+Chrome itself drop connections mid-example, which looks like a port bug. Keep
+browser profiles out of `./temp`: on the exFAT checkout Chrome's AppleDouble
+`._*` sidecars appear in `readdir` but `FileUtils.rm_rf` cannot unlink them, so
+`Launcher#cleanup` silently leaves the profile behind (use `Dir.tempdir`).
 
 This is a curated feature roadmap, not a generated dump. Generated manifests
 (`go_source_parity.tsv`, `go_test_parity.tsv`) are reference snapshots;
@@ -89,7 +94,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 82 files, 603 examples, 0 failures (2026-11-17, Chromium `160.0.8168.1`) |
+| Crystal specs | 82 files, 604 examples, 0 failures (2026-11-17, Chromium `160.0.8168.1`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -411,9 +416,10 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       after; `TestCrash` alone passed 60/60 at 12-way parallelism; the suite
       passed three consecutive full runs (596 examples each) with the final
       change in place.
-- [ ] Out of scope (Next up): `Page#navigate`'s 3s `Network.responseReceived`
+- [x] Out of scope at the time: `Page#navigate`'s 3s `Network.responseReceived`
       wait and the leaked `user-data-dir` directories. The navigation wait was
-      removed in Phase 10; the iframe JS-context unset landed in Phase 12.
+      removed in Phase 10; the iframe JS-context unset landed in Phase 12 and
+      the profile cleanup in Phase 13.
 
 ---
 
@@ -501,6 +507,34 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
 - Documented divergence (kept, no action): go-rod's `unsetJSCtxID` only clears
   the id, while the port also drops the cached helper functions. It costs one
   helper re-injection per navigation and changes no API behavior.
+
+---
+
+### Phase 13 — Browser profile cleanup ✅
+- [x] Specs: live launch helpers now shut the browser down through the shared
+      `shutdown_launcher` (`spec/spec_helper.cr`), which kills the process and
+      then calls `Launcher#cleanup`, exactly like go-rod's `defer
+      launcher.Cleanup()`. Previously only `kill` ran, so
+      `$TMPDIR/rod/user-data` kept one profile per example (it had grown to
+      thousands of directories).
+- [x] Library: `Manager` now mirrors Go's `Manager.cleanup`
+      (`manager.go:200`) — a managed browser is killed *and* its user-data-dir
+      removed when the proxied socket closes. The port used to call only
+      `launcher.kill`, leaking a profile (and its Chrome children) per managed
+      launch.
+- [x] Red-green `spec/launcher_parity_spec.cr` "removes the managed browser's
+      user data dir when the client disconnects": failed with the profile still
+      on disk, green after the change. `TestLaunchClient` now closes its proxy
+      socket and waits for the profile to disappear, matching Go's teardown.
+- [x] `eventually` moved to `spec/spec_helper.cr` (it was private to
+      `spec/page_event_lifecycle_parity_spec.cr`) so teardown assertions can
+      poll for fiber-driven state.
+- [x] Gates: `make format`, `make lint` (240 files), `make test` (604 examples,
+      0 failures) and `make check-go-*` pass.
+- Documented divergence (Next up): Go's `Manager.launch` also forces
+  `leakless(true)` (`manager.go:181`) so a crashed manager kills its browsers,
+  and only kills on disconnect when the caller asked for leakless. The port
+  keeps the caller's flag and always kills on disconnect.
 
 ---
 

@@ -14,16 +14,7 @@ private def with_real_browser(&)
     rescue
       nil
     end
-    begin
-      launcher.kill
-    rescue
-      nil
-    end
-    begin
-      launcher.cleanup
-    rescue
-      nil
-    end
+    shutdown_launcher(launcher)
   end
 end
 

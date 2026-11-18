@@ -428,10 +428,7 @@ describe "cdp client parity" do
       rescue
       end
 
-      begin
-        launcher.kill
-      rescue
-      end
+      shutdown_launcher(launcher)
     end
   end
 
@@ -577,10 +574,7 @@ describe "cdp client parity" do
       second_msg = second.message.to_s.downcase
       (second_msg.includes?("closed") || second_msg.includes?("not connected")).should be_true
     ensure
-      begin
-        launcher.kill
-      rescue
-      end
+      shutdown_launcher(launcher)
     end
   end
 end

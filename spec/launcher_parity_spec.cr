@@ -168,7 +168,7 @@ describe "launcher parity" do
         out.should eq(u)
       end
     ensure
-      l.kill
+      shutdown_launcher(l)
     end
   end
 
@@ -387,7 +387,9 @@ describe "launcher parity" do
 
   it "matches TestLaunchClient managed websocket client behavior" do
     manager = Rod::Util::Launcher.new_manager
+    launched = nil.as(Rod::Util::Launcher::Launcher?)
     manager.before_launch = ->(launcher : Rod::Util::Launcher::Launcher, _ctx : HTTP::Server::Context) {
+      launched = launcher
       launcher.bin(CHROME_BIN).leakless(false)
       nil
     }
@@ -397,9 +399,72 @@ describe "launcher parity" do
         .keep_user_data_dir
         .delete(Rod::Util::Launcher::Flags::KEEP_USER_DATA_DIR)
 
-      client = launcher.client
-      version = Cdp::Browser::GetVersion.new.call(client)
-      version.product.should_not be_empty
+      # Go's test lets the server teardown close the proxy socket; do the same
+      # explicitly so the manager's cleanup runs and the profile is removed.
+      url, headers = launcher.client_header
+      ws = Rod::Util::Cdp::WebSocket.new
+      ws.connect(url, headers)
+      client = Rod::Util::Cdp::Client.new.start(ws)
+
+      begin
+        version = Cdp::Browser::GetVersion.new.call(client)
+        version.product.should_not be_empty
+      ensure
+        begin
+          ws.close
+        rescue
+        end
+
+        profile = launched.try(&.get(Rod::Util::Launcher::Flags::USER_DATA_DIR))
+        if profile
+          eventually(10.seconds) { !Dir.exists?(profile) }.should be_true
+        end
+      end
+    end
+  end
+
+  it "removes the managed browser's user data dir when the client disconnects" do
+    # Keep the profile on the OS temp volume: removing a Chrome profile from the
+    # repo's exFAT checkout trips over AppleDouble `._*` entries that
+    # `FileUtils.rm_rf` cannot delete (same quirk as `make generate-crystal`).
+    dir = File.join(Dir.tempdir, "rod-manager-user-data-#{Random::Secure.hex(6)}")
+    Dir.mkdir_p(dir)
+
+    manager = Rod::Util::Launcher.new_manager
+    manager.before_launch = ->(launcher : Rod::Util::Launcher::Launcher, _ctx : HTTP::Server::Context) {
+      launcher.bin(CHROME_BIN).leakless(false).user_data_dir(dir)
+      nil
+    }
+
+    with_launcher_manager_server(manager) do |port|
+      managed = Rod::Util::Launcher.must_new_managed("http://127.0.0.1:#{port}")
+      url, headers = managed.client_header
+      ws = Rod::Util::Cdp::WebSocket.new
+      ws.connect(url, headers)
+      client = Rod::Util::Cdp::Client.new.start(ws)
+
+      begin
+        Cdp::Browser::GetVersion.new.call(client).product.should_not be_empty
+        Dir.exists?(dir).should be_true
+
+        ws.close
+
+        # go-rod's Manager.cleanup removes the profile once the proxy socket
+        # closes (manager.go:200); wait for the handler to notice. `kill` also
+        # sleeps 1s before signalling, so allow a few seconds here.
+        60.times do
+          break unless Dir.exists?(dir)
+          sleep 100.milliseconds
+        end
+
+        Dir.exists?(dir).should be_false
+      ensure
+        begin
+          ws.close
+        rescue
+        end
+        FileUtils.rm_rf(dir)
+      end
     end
   end
 
@@ -530,8 +595,8 @@ describe "launcher parity" do
       u2 = l2.launch
       u1.should eq(u2)
     ensure
-      l1.kill
-      l2.kill
+      shutdown_launcher(l1)
+      shutdown_launcher(l2)
     end
   end
 
@@ -587,7 +652,7 @@ describe "launcher parity" do
       rescue
       end
     ensure
-      l.kill
+      shutdown_launcher(l)
     end
   end
 

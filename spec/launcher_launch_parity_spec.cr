@@ -28,10 +28,7 @@ describe "launcher launch parity" do
     begin
       launcher.launch.should eq(DEVTOOLS_LINE.split(' ').last)
     ensure
-      begin
-        launcher.kill
-      rescue
-      end
+      shutdown_launcher(launcher)
       FileUtils.rm_rf(dir)
     end
   end
@@ -48,10 +45,7 @@ describe "launcher launch parity" do
     begin
       expect_raises(Exception, /Failed to get the debug url/) { launcher.launch }
     ensure
-      begin
-        launcher.kill
-      rescue
-      end
+      shutdown_launcher(launcher)
       FileUtils.rm_rf(dir)
     end
   end

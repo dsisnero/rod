@@ -21,10 +21,7 @@ private def with_live_browser(& : Rod::Browser ->)
     rescue
     end
 
-    begin
-      launcher.kill
-    rescue
-    end
+    shutdown_launcher(launcher)
   end
 end
 

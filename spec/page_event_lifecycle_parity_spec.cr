@@ -26,15 +26,6 @@ private class PageEventLifecycleBrowser < Rod::Browser
   end
 end
 
-private def eventually(timeout : Time::Span = 1.second, &condition : -> Bool) : Bool
-  deadline = Time.instant + timeout
-  until condition.call
-    return false if Time.instant >= deadline
-    sleep 5.milliseconds
-  end
-  true
-end
-
 describe "page event lifecycle parity" do
   it "stops page event stream when upstream browser event channel closes" do
     browser = PageEventLifecycleBrowser.new

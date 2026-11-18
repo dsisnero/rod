@@ -1095,6 +1095,22 @@ module Rod::Util::Launcher
       }
     end
 
+    # Go Manager.cleanup (`manager.go:200`): stop the managed browser and drop
+    # its user-data-dir, which the port used to leave behind. The port always
+    # kills on disconnect (Go only kills when the caller asked for leakless);
+    # see plans/parity.md for that divergence.
+    private def cleanup_managed_launcher(launcher : Launcher) : Nil
+      launcher.kill
+    rescue
+      # Killing a browser that already exited is not an error here.
+    ensure
+      begin
+        launcher.cleanup
+      rescue
+        # Cleanup is best-effort, exactly like go-rod's `_ = os.RemoveAll(dir)`.
+      end
+    end
+
     def call(context : HTTP::Server::Context) : Nil
       if context.request.headers["Upgrade"]?.try(&.downcase) == "websocket"
         options = context.request.headers[HEADER_NAME]?
@@ -1109,6 +1125,11 @@ module Rod::Util::Launcher
         launcher.load_flags_json(options)
         @before_launch.call(launcher, context)
         return if context.response.status_code == 400
+
+        # Go Manager.cleanup also removes the managed browser's user-data-dir
+        # (`manager.go:205`); killing alone leaves one profile behind per
+        # managed browser.
+        shutdown = -> { cleanup_managed_launcher(launcher) }
 
         handler = HTTP::WebSocketHandler.new do |client_ws, _ws_ctx|
           upstream_url = launcher.launch
@@ -1129,10 +1150,7 @@ module Rod::Util::Launcher
               upstream_ws.close
             rescue
             end
-            begin
-              launcher.kill
-            rescue
-            end
+            shutdown.call
           end
 
           upstream_ws.on_message do |message|
@@ -1150,30 +1168,21 @@ module Rod::Util::Launcher
               client_ws.close
             rescue
             end
-            begin
-              launcher.kill
-            rescue
-            end
+            shutdown.call
           end
 
           spawn do
             upstream_ws.run
           rescue
           ensure
-            begin
-              launcher.kill
-            rescue
-            end
+            shutdown.call
           end
         rescue
           begin
             client_ws.close
           rescue
           end
-          begin
-            launcher.kill
-          rescue
-          end
+          shutdown.call
         end
 
         handler.call(context)

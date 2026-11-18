@@ -28,10 +28,7 @@ private def with_live_browser(& : Rod::Browser ->)
     rescue
     end
 
-    begin
-      launcher.kill
-    rescue
-    end
+    shutdown_launcher(launcher)
   end
 end
 
@@ -1263,10 +1260,7 @@ describe "live browser parity" do
         browser.close
       rescue
       end
-      begin
-        launcher.kill
-      rescue
-      end
+      shutdown_launcher(launcher)
     end
   end
 
@@ -1372,10 +1366,7 @@ describe "live browser parity" do
         browser.must_connect
       end
     ensure
-      begin
-        launcher.kill
-      rescue
-      end
+      shutdown_launcher(launcher)
     end
   end
 
