@@ -204,7 +204,7 @@ page_eval_test.go::test::TestPageEval	ported	spec/page_eval_runtime_parity_spec.
 page_eval_test.go::test::TestPageEvalOnNewDocument	ported	spec/page_eval_parity_spec.cr	eval_on_new_document add/remove and error parity covered
 page_eval_test.go::test::TestPageEvaluateRetry	ported	spec/page_eval_runtime_parity_spec.cr	eval retries ErrCtxNotFound until success
 page_eval_test.go::test::TestPageExpose	ported	spec/page_eval_parity_spec.cr	expose bind/cleanup error-path parity covered
-page_eval_test.go::test::TestPageIframeReload	ported	spec/page_iframe_reload_parity_spec.cr	iframe reload retains frame queryability and src contains click.html using upstream fixture parity (mandatory real-browser check via ROD_REAL_BROWSER=1)
+page_eval_test.go::test::TestPageIframeReload	ported	spec/page_iframe_reload_parity_spec.cr	iframe reload retains frame queryability and src contains click.html using upstream fixture parity (runs by default on the pooled browser; stale-node retries match go-rod)
 page_eval_test.go::test::TestPageObjCrossNavigation	ported	spec/page_eval_runtime_parity_spec.cr,spec/live_browser_parity_spec.cr	source now raises ObjectNotFoundError for stale this-object; live cross-navigation behavior parity covered
 page_eval_test.go::test::TestPageObjectErr	ported	spec/page_eval_parity_spec.cr	object_to_json invalid object id and element_from_node resolve-node error branches parity covered
 page_eval_test.go::test::TestPageSlowRender	ported	spec/page_slow_render_parity_spec.cr,spec/live_browser_parity_spec.cr	live fixture parity added (slow-render.html div text == ok), with existing deterministic retry coverage retained
@@ -235,7 +235,7 @@ page_test.go::test::TestPageHTML	ported	spec/page_misc_parity_spec.cr	html retri
 page_test.go::test::TestPageHandleFileDialog	ported	spec/page_wait_parity_spec.cr	file chooser intercept/set-files and intercept enable/disable error paths now covered
 page_test.go::test::TestPageNavigateBlank	ported	spec/page_settings_parity_spec.cr	navigate empty string mapped to about:blank
 page_test.go::test::TestPageNavigateErr	ported	spec/page_navigation_error_parity_spec.cr,spec/live_browser_parity_spec.cr	errorText and live HTTP 404/500 document-response navigation failures map to NavigationError parity
-page_test.go::test::TestPageNavigateNetworkErr	ported	spec/page_navigation_error_parity_spec.cr	network navigation error type/message and same-page recovery navigate parity covered (stub + mandatory real-browser check via ROD_REAL_BROWSER=1)
+page_test.go::test::TestPageNavigateNetworkErr	ported	spec/page_navigation_error_parity_spec.cr	network navigation error type/message and same-page recovery navigate parity covered (stub + real-browser example on the pooled browser, runs by default)
 page_test.go::test::TestPageNavigation	ported	spec/page_wait_parity_spec.cr,spec/live_browser_parity_spec.cr	wait_navigation wiring and live history back/forward traversal parity covered
 page_test.go::test::TestPagePDF	ported	spec/screenshot_spec.cr	pdf stream path, printToPDF error propagation, and must_pdf explicit+empty-path file-output behavior parity covered
 page_test.go::test::TestPagePool	ported	spec/pool_spec.cr	new_page_pool get/put/must_get/cleanup page-specific integration parity covered
