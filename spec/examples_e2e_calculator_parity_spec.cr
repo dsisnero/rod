@@ -1,28 +1,12 @@
 require "./spec_helper"
 
-private CHROME_BIN = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
-private APP_URL    = "https://go-rod.github.io/calculator/"
+private APP_URL = "https://go-rod.github.io/calculator/"
 
-private def with_live_browser(& : Rod::Browser ->)
-  launcher = Rod::Util::Launcher::Launcher.new
-    .bin(CHROME_BIN)
-    .headless(true)
-    .no_sandbox(true)
-    .leakless(false)
-
-  browser = Rod::Browser.new.control_url(launcher.launch)
-  browser.connect
-
-  begin
-    yield browser
-  ensure
-    begin
-      browser.close
-    rescue
-    end
-
-    shutdown_launcher(launcher)
-  end
+# Borrow the pooled live browser, like go-rod's `setup` does for its examples
+# (`vendor/rod/setup_test.go:41`). Each example still works in its own incognito
+# context; the pool disposes it before the next one runs.
+private def with_live_browser(&block : Rod::Browser ->)
+  RodSpec.with_live_browser { |browser| block.call(browser) }
 end
 
 describe "examples e2e calculator parity" do

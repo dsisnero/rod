@@ -53,6 +53,10 @@ private class PoolStubBrowser < Rod::Browser
   end
 end
 
+private def browser_contexts(browser : Rod::Browser) : Array(String)
+  Cdp::Target::GetBrowserContexts.new.call(browser).browser_context_ids
+end
+
 private def pool_with_stub(&factory : -> Rod::Browser) : Tuple(RodSpec::LiveBrowserPool, Array(Rod::Browser))
   launched = [] of Rod::Browser
   pool = RodSpec::LiveBrowserPool.new do
@@ -151,6 +155,38 @@ describe "live browser pool" do
     # launches per example is what Phase 17 is removing.
     RodSpec.live_browser_pool.launches.should eq(launches_before + 1)
     first.not_nil!.same?(second.not_nil!).should be_true
+  end
+
+  it "disposes the incognito contexts an example created" do
+    next unless RodSpec.chrome_available?
+
+    launcher = Rod::Util::Launcher::Launcher.new
+      .bin(RodSpec.chrome_bin)
+      .headless(true)
+      .no_sandbox(true)
+      .leakless(false)
+
+    pool = RodSpec::LiveBrowserPool.new do
+      browser = Rod::Browser.new.control_url(launcher.launch)
+      browser.connect
+      browser
+    end
+
+    begin
+      pool.with do |browser|
+        # `spec/examples_e2e_calculator_parity_spec.cr` works in an incognito
+        # context per example; a pooled browser must not accumulate them.
+        browser.must_incognito.must_page("about:blank").must_close
+        browser_contexts(browser).should_not be_empty
+      end
+
+      pool.with do |browser|
+        browser_contexts(browser).should be_empty
+      end
+    ensure
+      pool.close_all
+      shutdown_launcher(launcher)
+    end
   end
 
   it "reuses one real browser and resets its pages between examples" do

@@ -124,7 +124,10 @@ module RodSpec
     end
 
     # go-rod's `setup` (`setup_test.go:121-190`): blank the page the next example
-    # inherits and close every other target the previous one left open.
+    # inherits and close every other target the previous one left open. Browser
+    # contexts are disposed too: live specs that work in an incognito context per
+    # example (`examples_e2e_calculator_parity_spec.cr`) would otherwise leave
+    # one behind on the shared browser.
     def reset(browser : Rod::Browser) : Rod::Browser
       pages = browser.pages.to_a
       pages.skip(1).each { |page| close_page(page) }
@@ -136,6 +139,7 @@ module RodSpec
           # and lets the next example surface its own navigation error.
         end
       end
+      dispose_extra_contexts(browser)
       browser
     end
 
@@ -173,6 +177,24 @@ module RodSpec
       page.close
     rescue
       # A page the previous example already closed is not an error.
+    end
+
+    # Drop every browser context the shared browser is not the owner of. The
+    # default context is not listed by `Target.getBrowserContexts`, so anything
+    # returned here was created by an example (an incognito context).
+    private def dispose_extra_contexts(browser : Rod::Browser) : Nil
+      own = browser.browser_context_id.try(&.value)
+      Cdp::Target::GetBrowserContexts.new.call(browser).browser_context_ids.each do |id|
+        next if id == own
+
+        begin
+          Cdp::Target::DisposeBrowserContext.new(id).call(browser)
+        rescue
+          # A context whose pages are already gone can fail to dispose.
+        end
+      end
+    rescue
+      # A browser that cannot list its contexts is the next example's problem.
     end
   end
 end
