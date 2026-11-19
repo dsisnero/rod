@@ -32,6 +32,10 @@ below describe the Crystal port, not upstream changes.
 
 ### Changed
 
+- `Page#wait_stable` now waits on the page's request queue
+  (`wait_request_idle(d)`, go `WaitRequestIdle(d, nil, nil, nil)`,
+  `page.go:821`) instead of sleeping for `d`, so a page with slow background
+  requests stays unstable until they finish, like go-rod.
 - `Rod::Util::Launcher::Launcher` no longer logs the launch. go-rod's launcher
   logger is `io.Discard` (`launcher.go:120`) and only `Launcher.Logger(w)`
   fills it, so `rodney start`-style commands print just their own output.
@@ -63,6 +67,13 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Browser#download` no longer leaves `bin_path` dangling after a managed
+  download on an exFAT volume. There, `unzip` writes AppleDouble `._*` sidecars
+  next to the extracted top-level folder, so the single-entry guard in
+  `strip_first_dir` skipped the strip; it now ignores filesystem metadata when
+  counting and moving entries. This is a host-environment shim: upstream
+  `fetchup.StripFirstDir` is strict, and the behavior is unchanged on
+  APFS/HFS+/Linux.
 - `Rod::Util::Leakless::Launcher#command` left the browser's stdout on a pipe
   nobody read, which could block the browser once the pipe buffer filled; the
   launcher now wires both streams to the logger sink and the URL parser.

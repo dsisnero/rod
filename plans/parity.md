@@ -7,18 +7,19 @@
 
 ## Where we are
 
-**Current focus:** Phase 21 closed the launcher output contract: `Launcher`
-no longer logs the launch (go-rod's launcher logger is `io.Discard`) and
-`Launcher#logger(io)` now really forwards the browser's stdout/stderr through an
-`IO::MultiWriter`, on both the direct and the leakless path. The issue's second
-claim (a wrong macOS `bin_path` after a managed download) was already fixed by
-`strip_first_dir` and is now pinned by a spec. The next open work is the Phase 1
-tooling migration plus the optional cleanups listed below.
+**Current focus:** Phase 22 triaged every open issue under `temp/issues/`:
+`Page#wait_stable` now waits on the request queue like go-rod instead of
+sleeping, and `strip_first_dir` tolerates the macOS AppleDouble sidecars this
+exFAT checkout produces (verified end-to-end: the managed download's `bin_path`
+used to dangle). The reported `rod.001` CONNECT-proxy gap is not actionable here
+(the repo does not port `rodney`), and the download-logging claim in `rod.003`
+was already upstream behavior. The next open work is the Phase 1 tooling
+migration plus the optional cleanups listed below.
 
-**Last commit:** `port: launcher output contract (no launch log, real logger(io))`
+**Last commit:** `port: strip the managed download's top-level dir on exFAT`
 
-**Gates (2026-11-19, after Phase 21):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (622 examples, 0 failures) · parity checks pass
+**Gates (2026-11-19, after Phase 22):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (625 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -763,6 +764,60 @@ the logging it fed — go-rod's API is `Logger(io.Writer)` only. A consumer that
 silenced the line (`launcher.logger = Log.new(...)`, the reported
 `Webb::CLI.cmd_start` workaround) must delete that workaround; there is nothing
 left to silence.
+
+---
+
+### Phase 22 — Issue triage: `wait_stable` request idle + exFAT strip ✅
+
+Triaged every file in `temp/issues/` against `vendor/rod` and the port:
+
+- **rod.001 (Crystal `HTTP::Server` has no CONNECT upgrade) — not actionable
+  here.** The report is about `webb _proxy` (go-rod's `rodney` `proxyConnect`,
+  `main.go:1895-1946`). This repo does not port `rodney` — the ledger has no
+  `rodney` rows and `src/` has no proxy server — so the gap lives in the
+  consumer's CLI plus Crystal stdlib, not in `dsisnero/rod`.
+- **rod.002 (`wait_stable` waits a duration instead of the request queue) —
+  true.** go-rod's `WaitStable` runs `WaitLoad`, `WaitRequestIdle(d, nil, nil,
+  nil)()` and `WaitDOMStable(d, 0)` concurrently (`page.go:821`); the port
+  spawned `wait_duration(d)` for the middle branch, and `wait_request_idle`
+  existed but was never called.
+- **rod.003 item 1 (launch log on stdout) — resolved by Phase 21 (`1f7636a`).**
+  Its "remaining" claim is wrong: go-rod's `Browser.Logger` defaults to
+  `log.New(os.Stdout, "[launcher.Browser]", ...)` (`browser.go:107`) and is
+  handed to `fetchup` (`browser.go:140`), so download progress on stdout is
+  upstream behavior. The port keeps its download INFO lines; only the
+  launcher's own launch line was spurious.
+- **rod.003 item 2 (exFAT skips `strip_first_dir`) — true and reproduced on this
+  checkout.** On the exFAT volume `unzip` writes AppleDouble sidecars next to
+  every extracted entry (`._chrome-mac`, `._Chromium.app`, `._Contents`), so
+  `Dir.children(dir)` returns two entries and the single-entry guard skipped the
+  strip, leaving `bin_path` dangling. The sidecars are readdir phantoms: a
+  `File.rename` of one fails with `File::NotFoundError`, and they disappear with
+  the entry they describe.
+
+- [x] `src/rod/page.cr`: `Page#wait_stable` calls
+      `wait_request_idle(d).call` instead of `wait_duration(d)`, matching
+      `page.go:821`.
+- [x] `src/rod/util/launcher.cr`: `strip_first_dir` ignores AppleDouble
+      (`._*`) and `.DS_Store` entries when counting *and* moving children, and
+      keeps the strict single-real-entry guard otherwise.
+- [x] Red-green `spec/page_wait_parity_spec.cr` ("waits for load, request idle,
+      and DOM stability like go-rod" fails on the old `wait_duration` branch) and
+      `spec/launcher_parity_spec.cr` ("strips the top-level directory even when
+      macOS sidecars sit next to it" fails with the strict guard; "does not strip
+      when the download directory holds several real entries" keeps the guard
+      honest).
+- [x] End-to-end on this exFAT checkout (local zip server, `root_dir` under
+      `temp/`): before the fix the download dir held `["._chrome-mac",
+      "chrome-mac"]` and `bin_path` did not exist; after the fix it holds
+      `["._Chromium.app", "Chromium.app"]` and the binary is there.
+- [x] Gates: `make format`, `make lint` (240 files), `make test` and
+      `make check-go-*` pass.
+
+**Intentional divergence:** `fetchup.StripFirstDir` is strict about
+`len(entries) == 1`; ignoring macOS metadata is a host-environment shim for this
+exFAT checkout, not a behavior go-rod has. It is inert on APFS/HFS+ and on Linux,
+where no `._*` entries are produced.
 
 ---
 

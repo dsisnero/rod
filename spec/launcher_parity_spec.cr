@@ -94,6 +94,12 @@ class Rod::Util::Launcher::Launcher
   end
 end
 
+class Rod::Util::Launcher::Browser
+  def __strip_first_dir_for_test!(dir : String) : Nil
+    strip_first_dir(dir)
+  end
+end
+
 # Sink for `Launcher#logger(io)`. The browser's stdout and stderr are copied by
 # two fibers running on Crystal's default (parallel) execution context, so the
 # spec sink serializes writes and reads instead of racing on `IO::Memory`.
@@ -426,6 +432,46 @@ describe "launcher parity" do
       File.exists?(b.bin_path).should be_true
     ensure
       FileUtils.rm_rf(build_dir)
+      FileUtils.rm_rf(root)
+    end
+  end
+
+  it "strips the top-level directory even when macOS sidecars sit next to it" do
+    root = File.join(Dir.tempdir, "launcher-sidecar-#{Random::Secure.hex(6)}")
+    begin
+      b = Rod::Util::Launcher::Browser.new(root_dir: root, revision: 1)
+      dir = b.dir
+
+      # exFAT volumes get an AppleDouble `._chrome-mac` sidecar next to the
+      # extracted folder; a strict single-entry guard would skip the strip and
+      # leave `bin_path` dangling.
+      bin_rel = Path[b.bin_path].relative_to(Path[dir])
+      FileUtils.mkdir_p(File.dirname(File.join(dir, "chrome-mac", bin_rel)))
+      File.write(File.join(dir, "chrome-mac", bin_rel), "#!/bin/sh\n")
+      File.write(File.join(dir, "._chrome-mac"), "appledouble metadata")
+
+      b.__strip_first_dir_for_test!(dir)
+
+      File.exists?(File.join(dir, bin_rel)).should be_true
+      File.exists?(File.join(dir, "chrome-mac")).should be_false
+    ensure
+      FileUtils.rm_rf(root)
+    end
+  end
+
+  it "does not strip when the download directory holds several real entries" do
+    root = File.join(Dir.tempdir, "launcher-multi-#{Random::Secure.hex(6)}")
+    begin
+      b = Rod::Util::Launcher::Browser.new(root_dir: root, revision: 1)
+      dir = b.dir
+      FileUtils.mkdir_p(File.join(dir, "chrome-mac"))
+      FileUtils.mkdir_p(File.join(dir, "other-dir"))
+
+      b.__strip_first_dir_for_test!(dir)
+
+      Dir.exists?(File.join(dir, "chrome-mac")).should be_true
+      Dir.exists?(File.join(dir, "other-dir")).should be_true
+    ensure
       FileUtils.rm_rf(root)
     end
   end

@@ -325,9 +325,17 @@ module Rod::Util::Launcher
       end
     end
 
-    # Strip the first directory level (zip often contains a top-level dir)
+    # Strip the first directory level (zip often contains a top-level dir).
+    # This is go-rod's `fetchup.StripFirstDir` (`browser.go:150`) with one
+    # host-environment exception: macOS metadata files are ignored, both when
+    # counting entries and when moving them. On exFAT volumes `unzip` writes an
+    # AppleDouble `._chrome-mac` sidecar next to the archive's top-level folder
+    # (and next to every file inside it), so a strict single-entry guard skips
+    # the strip and leaves `bin_path` pointing at a file that does not exist;
+    # the sidecars themselves cannot even be renamed, they only vanish with the
+    # entry they describe.
     private def strip_first_dir(dir : String) : Nil
-      entries = Dir.children(dir)
+      entries = Dir.children(dir).reject { |entry| metadata_entry?(entry) }
       return unless entries.size == 1
 
       only_entry = File.join(dir, entries.first)
@@ -335,6 +343,8 @@ module Rod::Util::Launcher
 
       # Move contents up
       Dir.children(only_entry).each do |item|
+        next if metadata_entry?(item)
+
         src = File.join(only_entry, item)
         dst = File.join(dir, item)
         File.rename(src, dst)
@@ -342,6 +352,13 @@ module Rod::Util::Launcher
 
       # Remove empty directory
       Dir.delete(only_entry)
+    end
+
+    # macOS writes AppleDouble (`._name`) sidecars and `.DS_Store` files on
+    # filesystems without native extended attributes, such as exFAT. They are
+    # filesystem metadata, not archive content.
+    private def metadata_entry?(name : String) : Bool
+      name.starts_with?("._") || name == ".DS_Store"
     end
 
     # Validate returns nil if the browser executable is valid.
