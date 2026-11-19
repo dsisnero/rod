@@ -659,6 +659,73 @@ describe "launcher parity" do
     end
   end
 
+  it "logs launch, close, killed pid and removed dir like go's manager" do
+    dir = File.join(Dir.tempdir, "rod-manager-log-#{Random::Secure.hex(6)}")
+    Dir.mkdir_p(dir)
+
+    lines = [] of String
+    lines_lock = Mutex.new
+
+    manager = Rod::Util::Launcher.new_manager
+    manager.logger = Rod::Util::Utils.log do |msg|
+      lines_lock.synchronize { lines << msg.join(" ") }
+    end
+    manager.before_launch = ->(launcher : Rod::Util::Launcher::Launcher, _ctx : HTTP::Server::Context) {
+      launcher.bin(CHROME_BIN).user_data_dir(dir)
+      nil
+    }
+
+    with_launcher_manager_server(manager) do |port|
+      managed = Rod::Util::Launcher.must_new_managed("http://127.0.0.1:#{port}")
+        # go-rod only kills on disconnect when the caller asked for leakless.
+        .leakless(true)
+      url, headers = managed.client_header
+      ws = Rod::Util::Cdp::WebSocket.new
+      ws.connect(url, headers)
+      client = Rod::Util::Cdp::Client.new.start(ws)
+
+      begin
+        Cdp::Browser::GetVersion.new.call(client).product.should_not be_empty
+        ws.close
+
+        eventually(15.seconds) {
+          lines_lock.synchronize { lines.any? { |line| line.starts_with?("Removed") } }
+        }.should be_true
+      ensure
+        begin
+          ws.close
+        rescue
+        end
+        FileUtils.rm_rf(dir)
+      end
+    end
+
+    snapshot = lines_lock.synchronize { lines.dup }
+    launch_line = snapshot.find { |line| line.starts_with?("Launch ") }
+    close_line = snapshot.find { |line| line.starts_with?("Close ") }
+    killed_line = snapshot.find { |line| line.starts_with?("Killed PID: ") }
+    removed_line = snapshot.find { |line| line.starts_with?("Removed ") }
+
+    launch_line.should_not be_nil
+    close_line.should_not be_nil
+    killed_line.should_not be_nil
+    removed_line.should_not be_nil
+
+    # go-rod logs `Launch <url> <options>` (manager.go:190) with the caller's
+    # raw options JSON, then `Close <url>` on disconnect, and cleanup logs the
+    # killed pid and the removed profile (manager.go:203,209).
+    launch_line.not_nil!.should contain("ws://")
+    launch_line.not_nil!.should contain("flags")
+    close_line.not_nil!.split(' ')[1].should eq(launch_line.not_nil!.split(' ')[1])
+    killed_line.not_nil!.split(' ').last.to_i?.should_not be_nil
+    removed_line.not_nil!.should contain(dir)
+
+    snapshot.index { |line| line.starts_with?("Launch ") }.not_nil!.should be <
+                                                                           snapshot.index { |line| line.starts_with?("Close ") }.not_nil!
+    snapshot.index { |line| line.starts_with?("Close ") }.not_nil!.should be <
+                                                                          snapshot.index { |line| line.starts_with?("Killed PID: ") }.not_nil!
+  end
+
   it "removes the managed browser's user data dir when the client disconnects" do
     # Keep the profile on the OS temp volume: removing a Chrome profile from the
     # repo's exFAT checkout trips over AppleDouble `._*` entries that

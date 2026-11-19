@@ -7,17 +7,17 @@
 
 ## Where we are
 
-**Current focus:** Phase 24 closed the last crash of the "closed channel" class:
-the event hub's `Pipe#write` selected on the subscriber's `done` channel with a
-bare `receive`, so a publish racing a shutdown raised `Channel::ClosedError` into
-`Browser#init_events` and stopped event delivery. It now uses `receive?`, like
-`IdleCounter#wait` (Phase 23) and the rest of the port. The next open work is the
-Phase 1 tooling migration plus the optional cleanups listed below.
+**Current focus:** Phase 25 ported the manager's logging: `Manager#logger` is now
+go-rod's `utils.Logger` shape (`Rod::Util::Utils::Log`, quiet by default) and the
+manager emits `Launch <url> <options>`, `Close <url>`, `Killed PID: <n>` and
+`Removed <dir>` like `manager.go:190-209`, with one cleanup per connection. The
+next open work is the Phase 1 tooling migration plus the optional cleanups listed
+below.
 
-**Last commit:** `port: keep the event hub alive when a done channel closes`
+**Last commit:** `port: log managed launches and cleanup like go's manager`
 
-**Gates (2026-11-19, after Phase 24):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (627 examples, 0 failures) · parity checks pass
+**Gates (2026-11-19, after Phase 25):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (628 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -47,12 +47,7 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
 4. Optional cleanup: the repo tracks built binaries (`rod`, `bin/pdlgen*`,
    `pdlgen*`), so local builds keep showing up as modified files. Decide whether
    to untrack them.
-5. Optional cleanup: `Launcher::Manager#logger` is still an unused `::Log`
-   property. go-rod's `Manager.Logger` defaults to `utils.LoggerQuiet`
-   (`manager.go:141`) and only ever prints `Launch`/`Close`/`Killed PID`/
-   `Removed`, so either port those four lines behind the quiet default or drop
-   the dead property.
-6. Optional follow-up: `spec/cdp_client_parity_spec.cr` and
+5. Optional follow-up: `spec/cdp_client_parity_spec.cr` and
    `spec/launcher_parity_spec.cr` still launch their own browsers. That is
    deliberate — they exercise the CDP client and the launcher itself
    (`TestLaunchClient`, `Browser.close` handling) — so only revisit it if a
@@ -875,6 +870,38 @@ a vendored package, so there is no `vendor/rod` file to pin against; its
       `spec/live_browser_parity_spec.cr` examples failed once under load and pass
       in isolation (56/56 twice) and in the following full run — the documented
       Chrome-timing flakiness, not a port defect.
+
+---
+
+### Phase 25 — Manager logging matches `manager.go` ✅
+
+`Manager#logger` was a Crystal `::Log` property (not go-rod's `utils.Logger`
+shape) that nothing ever wrote to, so the four management events go-rod logs
+through `Manager.Logger` were missing.
+
+- Go: `Logger utils.Logger` defaulting to `utils.LoggerQuiet` (`manager.go:118,
+  141`), writing `Launch <url> <options>` then `Close <url>` around the proxied
+  connection (`manager.go:190-191`) and `Killed PID: <n>` / `Removed <dir>` in
+  cleanup (`manager.go:203,209`).
+- [x] `src/rod/util/launcher.cr`: `Manager#logger` is now
+      `Rod::Util::Utils::Log` defaulting to `Utils.logger_quiet` (the port's
+      Println adapter), and the manager emits all four lines with Go's argument
+      shape, including the caller's raw options JSON.
+- [x] Cleanup parity while wiring the logs: `cleanup_managed_launcher` skips the
+      profile removal *and* the exit wait when `--rod-keep-user-data-dir` is set
+      (Go's `Manager.cleanup` only calls `l.Cleanup()` inside
+      `if !KeepUserDataDir`), and the three ways a connection can end (client
+      close, upstream close, the run fiber's `ensure`) funnel through one
+      idempotent `shutdown`, so kill/remove/log happen once like Go's single
+      `defer`.
+- [x] Red-green `spec/launcher_parity_spec.cr` "logs launch, close, killed pid
+      and removed dir like go's manager": red with no logger call (no `Removed`
+      line within 15 s), green now; asserts the order Launch → Close → Killed
+      PID → Removed, that `Close` repeats the launched URL, that `Killed PID:`
+      carries a number and `Removed` names the profile dir. Stable over three
+      runs.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (628 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

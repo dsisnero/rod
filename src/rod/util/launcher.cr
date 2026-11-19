@@ -9,6 +9,7 @@ require "json"
 require "lib_c"
 require "./leakless"
 require "./url_parser"
+require "./utils"
 
 module Rod::Util::Launcher
   HEADER_NAME          = "Rod-Launcher"
@@ -1103,12 +1104,14 @@ module Rod::Util::Launcher
   class Manager
     include HTTP::Handler
 
-    property logger : ::Log
+    # Go's `Manager.Logger` is a `utils.Logger` that defaults to
+    # `utils.LoggerQuiet` (`manager.go:118,141`), so the port uses the same
+    # Println-style adapter and stays silent unless the caller sets one.
+    property logger : Rod::Util::Utils::Log = Rod::Util::Utils.logger_quiet
     property defaults : HTTP::Server::Context -> Launcher
     property before_launch : Launcher, HTTP::Server::Context -> Nil
 
     def initialize
-      @logger = ::Log.for("rod.launcher.manager")
       @defaults = ->(_ctx : HTTP::Server::Context) { Launcher.new }
 
       working_dir = Dir.current
@@ -1135,27 +1138,35 @@ module Rod::Util::Launcher
 
     # Go Manager.cleanup (`manager.go:200`): kill the managed browser only when
     # the caller asked for leakless, then drop its user-data-dir unless the
-    # caller asked to keep it. Go blocks its handler on `<-l.exit` while the
+    # caller asked to keep it, logging `Killed PID: <n>` and `Removed <dir>`
+    # exactly like the Go helper. Go blocks its handler on `<-l.exit` while the
     # browser is still running; the port spawns that wait instead so a browser
     # it deliberately leaves alive cannot park the proxy handler's fiber.
     private def cleanup_managed_launcher(launcher : Launcher, kill : Bool) : Nil
       begin
-        launcher.kill if kill
+        if kill
+          launcher.kill
+          @logger.println("Killed PID:", launcher.pid)
+        end
       rescue
         # Killing a browser that already exited is not an error here.
       end
 
-      begin
-        if kill
+      return if launcher.has(Flags::KEEP_USER_DATA_DIR)
+
+      remove = -> {
+        begin
           launcher.cleanup
-        else
-          spawn do
-            launcher.cleanup
-          rescue
-          end
+          @logger.println("Removed", launcher.get(Flags::USER_DATA_DIR) || "")
+        rescue
+          # Cleanup is best-effort, exactly like go-rod's `_ = os.RemoveAll(dir)`.
         end
-      rescue
-        # Cleanup is best-effort, exactly like go-rod's `_ = os.RemoveAll(dir)`.
+      }
+
+      if kill
+        remove.call
+      else
+        spawn { remove.call }
       end
     end
 
@@ -1185,11 +1196,32 @@ module Rod::Util::Launcher
 
         # Go Manager.cleanup also removes the managed browser's user-data-dir
         # (`manager.go:205`); killing alone leaves one profile behind per
-        # managed browser.
-        shutdown = -> { cleanup_managed_launcher(launcher, kill) }
+        # managed browser. go-rod logs `Launch <url> <options>` once the browser
+        # is up and `Close <url>` when the proxied connection ends
+        # (`manager.go:190-191`); every ending (client close, upstream close, the
+        # run fiber) funnels through one `shutdown`, so log and clean up once.
+        close_url : String? = nil
+        shutdown_lock = Mutex.new
+        shut_down = false
+
+        shutdown = -> {
+          url = nil.as(String?)
+          run = false
+          shutdown_lock.synchronize do
+            url = close_url
+            run = !shut_down
+            shut_down = true
+          end
+          if run
+            @logger.println("Close", url) if url
+            cleanup_managed_launcher(launcher, kill)
+          end
+        }
 
         handler = HTTP::WebSocketHandler.new do |client_ws, _ws_ctx|
           upstream_url = launcher.launch
+          shutdown_lock.synchronize { close_url = upstream_url }
+          @logger.println("Launch", upstream_url, options)
           upstream_ws = HTTP::WebSocket.new(upstream_url)
 
           client_ws.on_message do |message|

@@ -32,6 +32,13 @@ below describe the Crystal port, not upstream changes.
 
 ### Changed
 
+- `Rod::Util::Launcher::Manager#logger` is now `Rod::Util::Utils::Log` (go-rod's
+  `utils.Logger` shape) defaulting to `Utils.logger_quiet`, and the manager
+  actually writes go-rod's four management lines: `Launch <url> <options>`,
+  `Close <url>`, `Killed PID: <n>` and `Removed <dir>` (`manager.go:190-209`).
+  The property previously held a Crystal `::Log` that was never used. Managed
+  cleanup now runs once per connection and, like Go's `Manager.cleanup`, skips
+  the profile removal *and* the exit wait when `--rod-keep-user-data-dir` is set.
 - `Page#wait_stable` now waits on the page's request queue
   (`wait_request_idle(d)`, go `WaitRequestIdle(d, nil, nil, nil)`,
   `page.go:821`) instead of sleeping for `d`, so a page with slow background
