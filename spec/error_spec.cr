@@ -243,4 +243,32 @@ describe "Rod.is?" do
     outer.cause = inner
     Rod.is?(outer, Rod::PageNotFoundError).should be_false
   end
+
+  # go-rod's `InvisibleShapeError`, `CoveredError` and `NoPointerEventsError`
+  # all `Unwrap()` to `NotInteractableError`, so `errors.Is(err,
+  # &rod.NotInteractableError{})` is true for any of them.
+  it "follows unwrap like go's errors.Is" do
+    element = build_test_element
+
+    Rod.is?(Rod::InvisibleShapeError.new(element), Rod::NotInteractableError).should be_true
+    Rod.is?(Rod::CoveredError.new(element), Rod::NotInteractableError).should be_true
+    Rod.is?(Rod::NoPointerEventsError.new(element), Rod::NotInteractableError).should be_true
+  end
+
+  it "still matches the concrete type before unwrapping" do
+    element = build_test_element
+    err = Rod::CoveredError.new(element)
+
+    Rod.is?(err, Rod::CoveredError).should be_true
+    Rod.is?(err, Rod::InvisibleShapeError).should be_false
+    Rod.is?(err, Rod::ElementNotFoundError).should be_false
+  end
+
+  it "follows a chain of unwraps" do
+    err = Rod::TryError.new("wrapped", cause: Rod::CoveredError.new(build_test_element))
+
+    Rod.is?(err, Rod::CoveredError).should be_true
+    Rod.is?(err, Rod::NotInteractableError).should be_true
+    Rod.is?(err, Rod::PageNotFoundError).should be_false
+  end
 end

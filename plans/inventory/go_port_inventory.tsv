@@ -5293,7 +5293,7 @@ must.go::method::Element.MustHover	method	ported	src/rod/must.cr,spec/must_panic
 must.go::method::Element.MustInput	method	ported	src/rod/must.cr,spec/must_panic_parity_spec.cr	must wrapper APIs ported with panic-hook behavior parity
 must.go::method::Element.MustInputColor	method	ported	src/rod/must.cr,spec/must_panic_parity_spec.cr	must wrapper APIs ported with panic-hook behavior parity
 must.go::method::Element.MustInputTime	method	ported	src/rod/must.cr,spec/must_panic_parity_spec.cr	must wrapper APIs ported with panic-hook behavior parity
-must.go::method::Element.MustInteractable	method	ported	src/rod/must.cr,spec/must_panic_parity_spec.cr	must wrapper APIs ported with panic-hook behavior parity
+must.go::method::Element.MustInteractable	method	ported	src/rod/must.cr,spec/must_panic_parity_spec.cr,spec/element_spec.cr	classifies with errors.Is-through-Unwrap like must.go:794 (false for CoveredError/InvisibleShapeError/NoPointerEventsError)
 must.go::method::Element.MustKeyActions	method	ported	src/rod/must.cr,spec/must_panic_parity_spec.cr	must wrapper APIs ported with panic-hook behavior parity
 must.go::method::Element.MustMatches	method	ported	src/rod/must.cr,spec/must_panic_parity_spec.cr	must wrapper APIs ported with panic-hook behavior parity
 must.go::method::Element.MustMoveMouseOut	method	ported	src/rod/must.cr,spec/must_panic_parity_spec.cr	must wrapper APIs ported with panic-hook behavior parity

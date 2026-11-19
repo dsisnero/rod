@@ -160,6 +160,19 @@ private class InteractableStubElement < StubElement
   end
 end
 
+private class InteractableResultElement < StubElement
+  def initialize(page : Rod::Page, @err : Exception?)
+    super(page)
+  end
+
+  def interactable : Rod::Point
+    if err = @err
+      raise err
+    end
+    Rod::Point.new(1.0, 2.0)
+  end
+end
+
 private class InteractableStubPage < Rod::Page
   property next_element_from_point : Rod::Element? = nil
 
@@ -1468,6 +1481,40 @@ describe Rod::Element do
       element.wait_writable_calls.should eq(1)
       element.last_args.should eq(["#abcdef"] of Rod::EvalOptions::JsArg)
       element.last_js.not_nil!.should contain("dispatchEvent(new Event(\"input\"")
+    end
+  end
+
+  describe "#must_interactable" do
+    # go-rod's `MustInteractable` classifies with
+    # `errors.Is(err, &NotInteractableError{})`, which matches the three
+    # subtypes through `Unwrap`.
+    it "returns false for every not-interactable error like go-rod" do
+      page = Rod::Page.new(Rod::Browser.new, Rod::TargetID.new("target-id"))
+      reference = StubElement.new(page)
+
+      [
+        Rod::NotInteractableError.new,
+        Rod::CoveredError.new(reference),
+        Rod::InvisibleShapeError.new(reference),
+        Rod::NoPointerEventsError.new(reference),
+      ].each do |err|
+        element = InteractableResultElement.new(page, err)
+        element.must_interactable.should be_false
+      end
+    end
+
+    it "returns true when the element is interactable" do
+      page = Rod::Page.new(Rod::Browser.new, Rod::TargetID.new("target-id"))
+      element = InteractableResultElement.new(page, nil)
+
+      element.must_interactable.should be_true
+    end
+
+    it "raises other errors" do
+      page = Rod::Page.new(Rod::Browser.new, Rod::TargetID.new("target-id"))
+      element = InteractableResultElement.new(page, Rod::NavigationError.new("boom"))
+
+      expect_raises(Rod::NavigationError) { element.must_interactable }
     end
   end
 

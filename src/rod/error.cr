@@ -4,8 +4,16 @@ require "./element"
 require "../cdp/runtime"
 
 module Rod
+  # Unwrappable mirrors Go's `Unwrap() error` interface. `Rod.is?` follows it
+  # the way the standard library's `errors.Is` does.
+  module Unwrappable
+    abstract def unwrap : Exception
+  end
+
   # TryError wraps arbitrary values and provides stack traces.
   class TryError < RodError
+    include Unwrappable
+
     property value : String
     property stack : String
 
@@ -135,6 +143,8 @@ module Rod
 
   # InvisibleShapeError is raised when an element has no visible shape or is outside viewport.
   class InvisibleShapeError < RodError
+    include Unwrappable
+
     property element : Element
 
     def initialize(@element : Element)
@@ -153,6 +163,8 @@ module Rod
 
   # CoveredError is raised when an element is covered by another element.
   class CoveredError < RodError
+    include Unwrappable
+
     property element : Element
 
     def initialize(@element : Element)
@@ -171,6 +183,8 @@ module Rod
 
   # NoPointerEventsError is raised when an element's pointer-events is none.
   class NoPointerEventsError < RodError
+    include Unwrappable
+
     property element : Element
 
     def initialize(@element : Element)
@@ -207,8 +221,13 @@ module Rod
     end
   end
 
-  # Returns true if err is of type klass or wraps an error of type klass.
+  # Returns true if err is of type klass, unwraps to one (Go's `errors.Is`
+  # follows `Unwrap`), or wraps one as its `cause`.
   def self.is?(err : Exception, klass : Exception.class) : Bool
-    klass === err || (err.cause.is_a?(Exception) && Rod.is?(err.cause.as(Exception), klass))
+    return true if klass === err
+    return true if err.is_a?(Unwrappable) && is?(err.unwrap, klass)
+
+    cause = err.cause
+    cause.is_a?(Exception) && is?(cause.as(Exception), klass)
   end
 end

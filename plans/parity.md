@@ -7,18 +7,18 @@
 
 ## Where we are
 
-**Current focus:** Phase 26 aligned `Rod::Context` with Go's `context.Context`
-deadline rules: `deadline` is inherited through the parent chain and
-`with_timeout` keeps the parent's sooner deadline instead of extending it, so a
-nested `Page#timeout`/`Element#timeout` can only shorten the budget. Fixing that
-exposed `retry_finding` masking a context deadline as `NotFoundError`, which is
-now authoritative. The next open work is the Phase 1 tooling migration plus the
-optional cleanups listed below.
+**Current focus:** Phase 27 made error matching follow Go's `errors.Is`: `Rod.is?`
+now walks `unwrap` (new `Rod::Unwrappable`), so `NotInteractableError` matches
+`CoveredError`/`InvisibleShapeError`/`NoPointerEventsError`, and
+`Element#must_interactable` uses it — which also exposed that the method could
+not compile at all (`method_missing` captured its bare re-`raise`). Found while
+auditing `error.go` against `error.cr`. The next open work is the Phase 1
+tooling migration plus the optional cleanups listed below.
 
-**Last commit:** `port: inherit context deadlines like go's context.WithTimeout`
+**Last commit:** `port: match errors.Is through unwrap like go-rod`
 
-**Gates (2026-11-19, after Phase 26):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (633 examples, 0 failures) · parity checks pass
+**Gates (2026-11-19, after Phase 27):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (639 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -53,6 +53,15 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    deliberate — they exercise the CDP client and the launcher itself
    (`TestLaunchClient`, `Browser.close` handling) — so only revisit it if a
    future spec needs a pooled page on top of its own client.
+6. Error-type follow-up found in Phase 27: go-rod's lookups return
+   `*ElementNotFoundError` (`"cannot find element"`), while the port raises its
+   own `NotFoundError` (`"Element not found"`) from `Page#retry_finding`, and
+   `ElementNotFoundError` is never raised outside specs — so code written for
+   go-rod that matches `Rod.is?(err, Rod::ElementNotFoundError)` never fires.
+   Reconciling them (e.g. `NotFoundError < ElementNotFoundError`, which needs the
+   class moved out of `types.cr` because `error.cr` already requires it) changes
+   the exception every miss raises, so it needs its own red-green pass over
+   `query.cr`, `page.cr` and the specs that assert `NotFoundError`.
 
 **Gotchas:** the 63 tree-sitter "missing" items and the 3422 kind-rename
 "stale" rows are tooling vocabulary drift, not port gaps — see Phase 1 and the
@@ -946,6 +955,39 @@ parent chain.
       with a nested one (Go WithDeadline parity)".
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (633 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 27 — Error matching follows `errors.Is` (`unwrap`) ✅
+
+`error.go` defines `Unwrap()` on `TryError`, `InvisibleShapeError`,
+`CoveredError` and `NoPointerEventsError`, so `errors.Is(err,
+&rod.NotInteractableError{})` matches any of the three interactability errors.
+The port shipped `unwrap` methods but `Rod.is?` only walked `cause`, and
+`Element#must_interactable` classified with `rescue ex : NotInteractableError`,
+which cannot match a *sibling* class.
+
+- Red-green `spec/error_spec.cr`: "follows unwrap like go's errors.Is" (red:
+  false for all three), "follows a chain of unwraps" (red through `TryError`),
+  plus a guard that the concrete type still wins over unrelated classes.
+- [x] `src/rod/error.cr`: new `Rod::Unwrappable` (Go's `Unwrap` interface),
+      included by the four error classes; `Rod.is?` now checks the concrete type,
+      then `unwrap`, then `cause`.
+- [x] `src/rod/must.cr`: `Element#must_interactable` uses
+      `Rod.is?(ex, NotInteractableError)` (`must.go:794`), so `CoveredError`,
+      `InvisibleShapeError` and `NoPointerEventsError` return `false` like Go
+      instead of raising.
+- [x] Latent bug found while testing it: the method **could not compile at all**.
+      `Element` defines `method_missing` (the `foo!` alias macro), which captures
+      the bare re-`raise` at the end of the rescue chain, so any call site failed
+      with `undefined method 'raise' for …`. `raise ex` fixes it; it is the only
+      bare `raise` in `src/` (`src/rod/must.cr:712`) and the two other
+      `method_missing` classes (Browser, Page) have none.
+- [x] Red-green `spec/element_spec.cr`: "returns false for every
+      not-interactable error like go-rod" (compile error before), "returns true
+      when the element is interactable", and "raises other errors".
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (639 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

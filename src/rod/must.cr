@@ -702,14 +702,19 @@ module Rod
     end
 
     # MustInteractable is similar to interactable.
+    # Returns false for every not-interactable error: go-rod classifies with
+    # `errors.Is(err, &NotInteractableError{})` (`must.go:794`), which matches
+    # `CoveredError`, `InvisibleShapeError` and `NoPointerEventsError` through
+    # their `Unwrap`. The re-raise must name the error: this class defines
+    # `method_missing`, which otherwise captures a bare `raise`.
     def must_interactable : Bool
       must_try { interactable }
       true
-    rescue ex : NotInteractableError
-      false
     rescue ex
+      return false if Rod.is?(ex, NotInteractableError)
+
       e(ex)
-      raise
+      raise ex
     end
 
     # MustWaitInteractable is similar to wait_interactable.

@@ -81,6 +81,16 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Rod.is?` (the port's `errors.Is`) follows `unwrap` through the new
+  `Rod::Unwrappable` before falling back to `cause`, so
+  `Rod.is?(err, Rod::NotInteractableError)` matches `CoveredError`,
+  `InvisibleShapeError` and `NoPointerEventsError` like go-rod's `Unwrap`
+  chain. `Element#must_interactable` now classifies with it and returns `false`
+  for all three instead of raising.
+- `Element#must_interactable` could not be called at all: `Element` defines
+  `method_missing` for the `foo!` aliases, which captured the method's bare
+  re-`raise` and turned every call site into
+  `undefined method 'raise' for …`. It now re-raises the captured error.
 - `Page#retry_finding` returns the context's error (deadline exceeded or
   cancelled) when the lookup runs out of context, instead of
   `NotFoundError "Element not found within ..."`. go-rod's `utils.Retry` surfaces
