@@ -7,19 +7,19 @@
 
 ## Where we are
 
-**Current focus:** Phase 22 triaged every open issue under `temp/issues/`:
-`Page#wait_stable` now waits on the request queue like go-rod instead of
-sleeping, and `strip_first_dir` tolerates the macOS AppleDouble sidecars this
-exFAT checkout produces (verified end-to-end: the managed download's `bin_path`
-used to dangle). The reported `rod.001` CONNECT-proxy gap is not actionable here
-(the repo does not port `rodney`), and the download-logging claim in `rod.003`
-was already upstream behavior. The next open work is the Phase 1 tooling
-migration plus the optional cleanups listed below.
+**Current focus:** Phase 23 reviewed `7356dd8` (`IdleCounter#wait`): the port
+selected on `ctx.done.receive`, but `Rod::Context#cancel` *closes* that channel
+and Crystal raises `Channel::ClosedError` where Go's `<-ctx.Done()` simply
+returns, so `wait_request_idle`/`wait_stable` fibers printed
+"Unhandled exception in spawn" on cancellation. `receive?` is the faithful
+mapping and the fix matches go-rod, with a red-green spec for the
+cancel-while-blocked race the older example missed. The next open work is the
+Phase 1 tooling migration plus the optional cleanups listed below.
 
-**Last commit:** `port: strip the managed download's top-level dir on exFAT`
+**Last commit:** `port: let IdleCounter#wait observe cancellation` (`7356dd8`)
 
-**Gates (2026-11-19, after Phase 22):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (625 examples, 0 failures) · parity checks pass
+**Gates (2026-11-19, after Phase 23):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (626 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -54,7 +54,13 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    (`manager.go:141`) and only ever prints `Launch`/`Close`/`Killed PID`/
    `Removed`, so either port those four lines behind the quiet default or drop
    the dead property.
-6. Optional follow-up: `spec/cdp_client_parity_spec.cr` and
+6. Optional cleanup: `Goob::Pipe#write` (`src/rod/goob.cr:24`) selects on the
+   closed `done` channel with a bare `receive`; go-rod's `select` just returns
+   when that channel closes, while Crystal raises `Channel::ClosedError` (same
+   class as the Phase 23 fix). It is contained by `Browser#init_events`'
+   rescue today, but a second `Observable#publish` caller would surface it —
+   switch that branch to `receive?` when the event hub is next touched.
+7. Optional follow-up: `spec/cdp_client_parity_spec.cr` and
    `spec/launcher_parity_spec.cr` still launch their own browsers. That is
    deliberate — they exercise the CDP client and the launcher itself
    (`TestLaunchClient`, `Browser.close` handling) — so only revisit it if a
@@ -818,6 +824,39 @@ Triaged every file in `temp/issues/` against `vendor/rod` and the port:
 `len(entries) == 1`; ignoring macOS metadata is a host-environment shim for this
 exFAT checkout, not a behavior go-rod has. It is inert on APFS/HFS+ and on Linux,
 where no `._*` entries are produced.
+
+---
+
+### Phase 23 — `IdleCounter#wait` observes cancellation ✅
+
+Reviewed `7356dd8` ("port: let IdleCounter#wait observe cancellation") against
+`vendor/rod`:
+
+- Go's `IdleCounter.Wait` selects on `<-ctx.Done()` / `<-de.tmr.C`
+  (`lib/utils/utils.go:218-229`). A cancelled Go context's `Done()` is a
+  **closed** channel: the receive returns immediately, no panic. Crystal's
+  `Rod::Context#cancel` closes `@done` (`context.cr:79`) and `Channel#receive`
+  on a closed channel **raises** `Channel::ClosedError`, so the port's bare
+  `receive` was a translation bug, not a parity difference. `receive?` (nil on
+  close) is the faithful mapping and is already what `page.cr`, `browser.cr`,
+  `cdp/client.cr` and `context.cr` use for the same channel.
+- `spec/utils_sleeper_spec.cr` already covered Go's `ctx.Cancel();
+  ct.Wait(ctx)` case, but only through the `cancelled?` pre-check before the
+  select; the new example covers the cancel-while-blocked race, which is the
+  path that raised.
+
+- [x] `src/rod/util/utils.cr`: `wait` selects on `ctx.done.receive?`.
+- [x] Red-green `spec/utils_sleeper_spec.cr` "returns without raising when the
+      context is cancelled while waiting": with `receive` it fails with
+      `Channel::ClosedError`; green now, and stable over five runs.
+- [x] Gates re-run here: `make format`, `make lint` (240 files), full
+      `make test` (626 examples, 0 failures), `make check-go-*` pass.
+
+**Latent, not reachable today:** `Goob::Pipe#write` (`src/rod/goob.cr:24`) also
+selects on a *closed* done channel with a bare `receive`. Its only caller
+(`Browser#init_events`, `browser.cr:438`) rescues `Channel::ClosedError` and
+breaks, so it is contained; recorded in Next up instead of widening this
+change.
 
 ---
 

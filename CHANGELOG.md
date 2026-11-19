@@ -67,6 +67,12 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `IdleCounter#wait` no longer raises `Channel::ClosedError` when the context is
+  cancelled while it is blocked in its select. `Rod::Context#cancel` closes the
+  `done` channel, and Crystal raises on `receive` from a closed channel where
+  Go's `<-ctx.Done()` just returns, so `wait_request_idle`/`wait_stable` fibers
+  leaked `Unhandled exception in spawn: Channel is closed` to stderr on
+  cancellation.
 - `Browser#download` no longer leaves `bin_path` dangling after a managed
   download on an exFAT volume. There, `unzip` writes AppleDouble `._*` sidecars
   next to the extracted top-level folder, so the single-entry guard in
