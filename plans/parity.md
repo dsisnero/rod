@@ -7,16 +7,18 @@
 
 ## Where we are
 
-**Current focus:** Phase 29 removed the manager's 501 for header-less websocket
-upgrades: go-rod only unmarshals the `Rod-Launcher` options when they are present
-(`manager.go:172-178`) and otherwise launches with the launcher defaults, which
-the port now does too. The next open work is the Phase 1 tooling migration plus
-the optional cleanups listed below.
+**Current focus:** Phase 30 aligned the quad geometry with go-rod's
+`lib/proto/a_patch.go`: `area` is the **signed** shoelace sum (the port took
+`abs`), so `one_point_inside` now skips clockwise-wound quads exactly like
+`OnePointInside`'s `q.Area() >= 1` guard. Both copies — `Rod::Util::Quad` and the
+generated `Cdp::DOM` helpers (plus the `pdlgen` template that emits them) — agree
+again. The next open work is the Phase 1 tooling migration plus the optional
+cleanups listed below.
 
-**Last commit:** `port: launch managed browsers without the options header`
+**Last commit:** `port: keep the signed quad area like go's DOMQuad.Area`
 
-**Gates (2026-11-19, after Phase 29):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (641 examples, 0 failures) · parity checks pass
+**Gates (2026-11-19, after Phase 30):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (643 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -1034,6 +1036,33 @@ with `New()`'s default flags.
       Go does.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (641 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 30 — Quad area keeps its sign like `proto.DOMQuad.Area` ✅
+
+go-rod's `DOMQuad.Area` (`lib/proto/a_patch.go:90-100`) returns the shoelace sum
+`/ 2` **without** an absolute value, and `DOMGetContentQuadsResult.OnePointInside`
+only accepts quads with `q.Area() >= 1` (`a_patch.go:107-117`), so a
+clockwise-wound quad is treated as having no visible shape. Both copies in the
+port took `abs`: the hand-written `Rod::Util::Quad` (used by
+`Element#interactable`) and the generated `Cdp::DOM` helpers, so a clockwise quad
+still produced a center point.
+
+- [x] Red-green `spec/cdp_dom_quad_parity_spec.cr`: "keeps the sign of the
+      shoelace area like go's DOMQuad.Area" (red: `1.0` instead of `-1.0` for a
+      clockwise unit square, in both implementations) and "skips clockwise quads
+      in one_point_inside like go" (red: a point instead of `nil`).
+- [x] `src/rod/util/quad.cr`, `src/cdp/dom/dom.cr` and the `pdlgen` template that
+      emits the latter (`src/pdlgen/gen/crystal_extras.cr`,
+      `dom_module_helpers`) drop the `abs` with matching comments, so a future
+      `make generate-crystal` stays a no-op. The generation no-op check itself is
+      still blocked on the Chromium PDL fetch (Next up item 3).
+- [x] The ported Go cases are unchanged (`Area()` of `0` and `1`, the `rect`
+      `Center`, the three-quad `OnePointInside`/`Box` example), so this only
+      touches the winding case Go never tested explicitly.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (643 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

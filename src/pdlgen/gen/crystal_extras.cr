@@ -96,7 +96,9 @@ module Pdlgen
           Point.new(total_x / count, total_y / count)
         end
 
-        # Area computes polygon area using shoelace formula.
+        # Area computes the signed polygon area using the shoelace formula,
+        # matching go-rod's `DOMQuad.Area` (`lib/proto/a_patch.go:90-100`): a
+        # clockwise winding is negative, which `one_point_inside` filters on.
         def self.area(quad : Quad) : Float64
           arr = quad_to_floats(quad)
           n = arr.size // 2
@@ -108,7 +110,7 @@ module Pdlgen
             y2 = arr[((i + 1) % n) * 2 + 1]
             sum += x1 * y2 - x2 * y1
           end
-          sum.abs / 2.0
+          sum / 2.0
         end
         CRYSTAL
       end

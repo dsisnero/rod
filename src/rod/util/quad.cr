@@ -38,6 +38,8 @@ module Rod::Util
 
     # Area of the polygon using shoelace formula.
     # https://en.wikipedia.org/wiki/Polygon#Area
+    # Signed like go-rod's `DOMQuad.Area` (`lib/proto/a_patch.go:90-100`): a
+    # clockwise winding is negative, which is what `one_point_inside` filters on.
     def self.area(quad : ::JSON::Any) : Float64
       arr = to_floats(quad)
       n = arr.size // 2 # number of vertices
@@ -50,7 +52,7 @@ module Rod::Util
         y2 = arr[(i + 1) % n * 2 + 1]
         area += x1 * y2 - x2 * y1
       end
-      area.abs / 2.0
+      area / 2.0
     end
 
     # Find a point inside any quad with area >= 1.

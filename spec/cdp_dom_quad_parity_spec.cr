@@ -38,4 +38,25 @@ describe "cdp dom quad parity" do
     box.not_nil!.width.should eq(3.0)
     box.not_nil!.height.should eq(3.0)
   end
+
+  # Go's `DOMQuad.Area` is the signed shoelace sum
+  # (`lib/proto/a_patch.go:90-100`), so a clockwise winding is negative and
+  # `OnePointInside` skips it (`a_patch.go:107-117` only accepts `q.Area() >= 1`).
+  it "keeps the sign of the shoelace area like go's DOMQuad.Area" do
+    # The unit square wound clockwise instead of counter-clockwise.
+    clockwise = JSON.parse("[1,1,1,2,2,2,2,1]")
+    Cdp::DOM.area(clockwise).should eq(-1.0)
+    Rod::Util::Quad.area(clockwise).should eq(-1.0)
+
+    counter_clockwise = JSON.parse("[1,1,2,1,2,2,1,2]")
+    Cdp::DOM.area(counter_clockwise).should eq(1.0)
+    Rod::Util::Quad.area(counter_clockwise).should eq(1.0)
+  end
+
+  it "skips clockwise quads in one_point_inside like go" do
+    clockwise = JSON.parse("[1,1,1,2,2,2,2,1]")
+
+    Cdp::DOM::GetContentQuadsResult.new([clockwise]).one_point_inside.should be_nil
+    Rod::Util::Quad.one_point_inside([clockwise] of JSON::Any).should be_nil
+  end
 end

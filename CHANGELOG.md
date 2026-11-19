@@ -88,6 +88,11 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Cdp::DOM.area` and `Rod::Util::Quad.area` return the signed shoelace area like
+  go-rod's `DOMQuad.Area` (`lib/proto/a_patch.go:90-100`) instead of its absolute
+  value, so `one_point_inside` skips clockwise-wound quads exactly like
+  `OnePointInside`'s `q.Area() >= 1` guard. The generated helpers and their
+  `pdlgen` template were updated together.
 - `Rod::Util::Launcher::Manager` no longer answers 501 to a websocket upgrade
   without a `Rod-Launcher` header; like go-rod (`manager.go:172-178`) it launches
   with the launcher's default flags, still running the `before_launch` path
