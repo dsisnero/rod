@@ -7,7 +7,10 @@ back to a known-good state.
 
 - `plans/parity.md` — start at the **Where we are** block. It names the current
   focus, the ordered "Next up" list, per-phase status, and the last commit and
-  gate results. Do not re-derive state from git history.
+  gate results. Do not re-derive state from git history. The ledger is fully
+  `ported`, so when Next up is down to tooling/verification items, take the next
+  parity phase from Next up item 1 ("audit queue"): pick an unswept area, diff it
+  against `vendor/rod`, and land one red-green commit.
 - `plans/inventory/go_port_inventory.tsv` — the per-symbol ledger (status +
   `crystal_refs`). Use it to see what is left inside the current chunk:
 

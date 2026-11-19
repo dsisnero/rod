@@ -3,19 +3,22 @@
 **Source of truth**: `vendor/rod` (go-rod) at `d38c753`
 **Target**: Crystal port under `src/`, specs under `spec/`
 **Language**: `go` · **Manifests**: `plans/inventory/go_*`
-**Last evaluated**: 2026-11-17
+**Last evaluated**: 2026-11-19
 
 ## Where we are
 
-**Current focus:** Phase 30 aligned the quad geometry with go-rod's
-`lib/proto/a_patch.go`: `area` is the **signed** shoelace sum (the port took
-`abs`), so `one_point_inside` now skips clockwise-wound quads exactly like
-`OnePointInside`'s `q.Area() >= 1` guard. Both copies — `Rod::Util::Quad` and the
-generated `Cdp::DOM` helpers (plus the `pdlgen` template that emits them) — agree
-again. The next open work is the Phase 1 tooling migration plus the optional
-cleanups listed below.
+**Current focus:** nothing in flight. The tree is clean and pushed, every gate is
+green, and the last feature commit is `c4ee24d` (Phase 30, signed quad area). A
+new session can start with `make lint && make test` to confirm the baseline and
+then pick an item from **Next up**.
 
-**Last commit:** `port: keep the signed quad area like go's DOMQuad.Area`
+Phases 23-30 all came from *auditing `vendor/rod` area by area*: the ledger
+reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
+`intentional_divergence`), so new work has to be found by comparing behaviour,
+not by reading the ledger. The audit queue in Next up item 1 records what has
+already been swept and what has not.
+
+**Last commit:** `c4ee24d port: keep the signed quad area like go's DOMQuad.Area`
 
 **Gates (2026-11-19, after Phase 30):** `make format` pass · `make lint` pass
 (240 files) · `make test` pass (643 examples, 0 failures) · parity checks pass
@@ -25,30 +28,54 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
 
 **Next up:**
 
-1. Phase 1 tooling migration: wrap the installed skill's canonical parity
-   scripts instead of the repo's copied ones (whose `tree-sitter` branch is a
-   placeholder), and decide curated-status preservation. Native tree-sitter
+1. **[code, red-green] Next parity phase — audit queue.** Pick one unswept area,
+   diff it against `vendor/rod`, and land one feature-sized red-green commit
+   (spec first, then the fix, then gates + this file + `CHANGELOG.md`).
+   - Already swept: context/cancellation (Phases 23, 26), event hub (24),
+     launcher/manager (21, 25, 29), error types + `errors.Is` (27, 28), quad
+     geometry (30).
+   - Not swept yet: `hijack.go` / `HijackRouter`, `query.go`
+     (`Search`, `ElementByJS`, `WaitElementsMoreThan`, the query-branch retry),
+     `browser.go` (`Pages`, `Page`, `Cookies`, `Close`, `WaitDownload`),
+     `page_eval.go` + `lib/js/` helpers, `input/` (keyboard, mouse, touch),
+     `dev_helpers.go`, `message.go`/`states.go`.
+   - Known leads already spotted but not yet fixed (verify each against Go
+     before changing anything — some may be deliberate):
+     `Element#wait_visible`/`wait_enabled`/`wait_writable`/`wait_invisible` poll
+     through a private `wait_for(timeout)` instead of Go's
+     `Element#wait(evalHelper(js.Visible))` + page sleeper; `Launcher#kill`
+     signals TERM+KILL to the process group *and* the pid where Go sends only
+     `SIGKILL` to the group.
+2. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
+   parity scripts instead of the repo's copied ones (whose `tree-sitter` branch
+   is a placeholder), and decide curated-status preservation. Native tree-sitter
    discovery already works via the verified Chiasmus toolchain, but its
    vocabulary (`class`/`function`/`definition.*` plus merged `const`/`type`
    declarations) cannot be mapped onto the curated ids by a kind rename, so the
    gate stays `PORT_PARSER=regex` until a reviewed id migration lands. It also
    closes the `states.go::method::Page.cleanupStates` ledger row (the only
    Phase 2 bullet still open).
-2. Upstream Go suite flakiness: `github.com/go-rod/rod` failed
+3. **[verify] Upstream Go suite flakiness:** `github.com/go-rod/rod` failed
    `TestPageElements` and `Example_basic` on 2026-11-17 while the other eight
    packages passed. Re-run before reading anything into a failure — these are
-   browser-timing issues in the vendored project, not port gaps.
-3. Re-run the end-to-end generation no-op check when the Chromium PDL fetch
-   works again: `make generate-crystal CDP_CHROMIUM=160.0.8168.1
-   CDP_V8=16.0.61` must leave a clean `git diff`. The `temp/cdproto-gen` cache
-   was rebuilt on demand and the fetch failed with `504`s / connection resets at
-   the end of Phase 11, so only the root file's byte-equality was re-verified
-   (via `spec/pdlgen_root_template_parity_spec.cr`) after the last template
-   tweak.
-4. Optional cleanup: the repo tracks built binaries (`rod`, `bin/pdlgen*`,
+   browser-timing issues in the vendored project, not port gaps. Run with
+   `GODEBUG=tracebackancestors=1000`.
+4. **[verify] Generation no-op check:** `make generate-crystal
+   CDP_CHROMIUM=160.0.8168.1 CDP_V8=16.0.61` must leave a clean `git diff`. It is
+   blocked on the Chromium PDL fetch (504s / connection resets ended Phase 11),
+   so only the root template byte-equality is pinned today
+   (`spec/pdlgen_root_template_parity_spec.cr`). Phase 30 edited a `pdlgen`
+   template and its generated file by hand to match — a successful run now also
+   proves that edit.
+5. **[optional cleanup]** The repo tracks built binaries (`rod`, `bin/pdlgen*`,
    `pdlgen*`), so local builds keep showing up as modified files. Decide whether
    to untrack them.
-5. Optional follow-up: `spec/cdp_client_parity_spec.cr` and
+6. **[optional cleanup]** Quad geometry exists twice: `Rod::Util::Quad`
+   (`src/rod/util/quad.cr`, used by `Element#interactable`) and the generated
+   `Cdp::DOM` helpers (`area`/`center`/`box`/`one_point_inside`). Phase 30 had to
+   fix both. Either delegate the hand-written module to `Cdp::DOM` or add a spec
+   asserting the two agree.
+7. **[optional follow-up]** `spec/cdp_client_parity_spec.cr` and
    `spec/launcher_parity_spec.cr` still launch their own browsers. That is
    deliberate — they exercise the CDP client and the launcher itself
    (`TestLaunchClient`, `Browser.close` handling) — so only revisit it if a
@@ -77,7 +104,23 @@ above 12 for hours; a full suite then took 12 minutes and
 isolation. Re-run before blaming a change. Keep
 browser profiles out of `./temp`: on the exFAT checkout Chrome's AppleDouble
 `._*` sidecars appear in `readdir` but `FileUtils.rm_rf` cannot unlink them, so
-`Launcher#cleanup` silently leaves the profile behind (use `Dir.tempdir`).
+`Launcher#cleanup` silently leaves the profile behind (use `Dir.tempdir`). The
+same sidecars break naive directory traversals: `strip_first_dir` has to ignore
+`._*`/`.DS_Store` or a managed download leaves `bin_path` dangling (Phase 22).
+
+**Porting traps found while auditing** (each cost a phase; check them when a Go
+symbol "already exists" but misbehaves):
+
+- `<-ch` on a *closed* channel is an immediately-ready branch in Go, but
+  Crystal's `Channel#receive` raises `Channel::ClosedError`. Any channel that can
+  be closed (a context's `done`, a subscription hub's shutdown signal) must be
+  awaited with `receive?` — Phases 23 and 24 were both this bug.
+- A bare `raise` (re-raise) inside a class that defines `method_missing` is
+  captured by the macro and fails to compile at the *call* site
+  (`undefined method 'raise'`). `Element#must_interactable` shipped unusable
+  because of it (Phase 27). Name the error: `raise ex`.
+- `abs` on geometric sums hides winding order: Go's `DOMQuad.Area` is signed and
+  `OnePointInside` filters on `Area() >= 1` (Phase 30).
 
 This is a curated feature roadmap, not a generated dump. Generated manifests
 (`go_source_parity.tsv`, `go_test_parity.tsv`) are reference snapshots;
