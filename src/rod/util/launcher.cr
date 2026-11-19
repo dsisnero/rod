@@ -1172,16 +1172,16 @@ module Rod::Util::Launcher
 
     def call(context : HTTP::Server::Context) : Nil
       if context.request.headers["Upgrade"]?.try(&.downcase) == "websocket"
+        # go-rod only replaces the launcher's defaults when the caller sends
+        # options (`manager.go:172-178`), so a header-less upgrade still
+        # launches a browser with the default flags.
         options = context.request.headers[HEADER_NAME]?
-        unless options
-          context.response.status_code = 501
-          context.response.print("[rod-manager] websocket launch not implemented")
-          return
-        end
 
         launcher = Launcher.new
-        launcher.flags.clear
-        launcher.load_flags_json(options)
+        if options && !options.empty?
+          launcher.flags.clear
+          launcher.load_flags_json(options)
+        end
         @before_launch.call(launcher, context)
         return if context.response.status_code == 400
 

@@ -7,17 +7,15 @@
 
 ## Where we are
 
-**Current focus:** Phase 28 reconciled the lookup-miss error with go-rod: every
-miss now derives from `ElementNotFoundError` (`NotFoundError <
-ElementNotFoundError`), and the `has`/`element_optional`/query classification
-sites match the base type like `errors.Is(err, &rod.ElementNotFoundError{})`, so
-code written for go-rod that catches `ElementNotFoundError` finally fires. The
-next open work is the Phase 1 tooling migration plus the optional cleanups
-listed below.
+**Current focus:** Phase 29 removed the manager's 501 for header-less websocket
+upgrades: go-rod only unmarshals the `Rod-Launcher` options when they are present
+(`manager.go:172-178`) and otherwise launches with the launcher defaults, which
+the port now does too. The next open work is the Phase 1 tooling migration plus
+the optional cleanups listed below.
 
-**Last commit:** `port: report lookup misses as ElementNotFoundError`
+**Last commit:** `port: launch managed browsers without the options header`
 
-**Gates (2026-11-19, after Phase 28):** `make format` pass · `make lint` pass
+**Gates (2026-11-19, after Phase 29):** `make format` pass · `make lint` pass
 (240 files) · `make test` pass (641 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
@@ -1010,6 +1008,30 @@ matching `Rod.is?(err, Rod::ElementNotFoundError)` never fired.
       keeps `err.is_a?(NotFoundError)` for the port's own callers.
 - [x] Guards: `ElementNotFoundError#is?(NotFoundError)` stays false (the base
       does not match the subclass) and the Go message is unchanged.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (641 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 29 — Header-less managed launches work like `manager.go` ✅
+
+`Manager#call` answered **501** (`[rod-manager] websocket launch not
+implemented`) to a websocket upgrade that carried no `Rod-Launcher` header, and
+an existing spec pinned that stub. Go's `Manager.launch` treats the header as
+optional: `options := r.Header.Get(HeaderName); if options != "" { l.Flags = nil;
+json.Unmarshal(...) }` (`manager.go:172-178`), so a header-less upgrade launches
+with `New()`'s default flags.
+
+- [x] Red-green `spec/launcher_parity_spec.cr` "launches with the default flags
+      when the caller sends no options header": the 501 spec is gone, replaced by
+      a real managed launch over a header-less socket (`ws.connect(url)` with no
+      headers) that runs `Browser.getVersion` through the proxy. Red before the
+      change (handshake failed on the 501), green now.
+- [x] `src/rod/util/launcher.cr`: the launcher is always created and only has its
+      flags cleared/replaced when options are present, matching Go's guard.
+      `before_launch` still runs, so the manager's path protection keeps applying.
+- [x] `Launch` logging passes the (possibly empty) options straight through, as
+      Go does.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (641 examples, 0 failures), `make check-go-*` pass.
 

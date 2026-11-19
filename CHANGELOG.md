@@ -88,6 +88,10 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Rod::Util::Launcher::Manager` no longer answers 501 to a websocket upgrade
+  without a `Rod-Launcher` header; like go-rod (`manager.go:172-178`) it launches
+  with the launcher's default flags, still running the `before_launch` path
+  protection.
 - `Rod.is?` (the port's `errors.Is`) follows `unwrap` through the new
   `Rod::Unwrappable` before falling back to `cause`, so
   `Rod.is?(err, Rod::NotInteractableError)` matches `CoveredError`,

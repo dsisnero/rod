@@ -488,12 +488,29 @@ describe "launcher parity" do
     end
   end
 
-  it "manager websocket endpoint returns not implemented for now" do
+  it "launches with the default flags when the caller sends no options header" do
     manager = Rod::Util::Launcher.new_manager
+    manager.before_launch = ->(launcher : Rod::Util::Launcher::Launcher, _ctx : HTTP::Server::Context) {
+      launcher.bin(CHROME_BIN)
+      nil
+    }
+
     with_launcher_manager_server(manager) do |port|
-      headers = HTTP::Headers{"Upgrade" => "websocket"}
-      res = HTTP::Client.get("http://127.0.0.1:#{port}", headers)
-      res.status_code.should eq(501)
+      # go-rod's Manager.launch only unmarshals the options header when it is
+      # present (`manager.go:172-178`); without it the launcher keeps its
+      # defaults and the browser still launches.
+      ws = Rod::Util::Cdp::WebSocket.new
+      ws.connect("ws://127.0.0.1:#{port}")
+      client = Rod::Util::Cdp::Client.new.start(ws)
+
+      begin
+        Cdp::Browser::GetVersion.new.call(client).product.should_not be_empty
+      ensure
+        begin
+          ws.close
+        rescue
+        end
+      end
     end
   end
 
