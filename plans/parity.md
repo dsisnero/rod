@@ -7,18 +7,18 @@
 
 ## Where we are
 
-**Current focus:** Phase 27 made error matching follow Go's `errors.Is`: `Rod.is?`
-now walks `unwrap` (new `Rod::Unwrappable`), so `NotInteractableError` matches
-`CoveredError`/`InvisibleShapeError`/`NoPointerEventsError`, and
-`Element#must_interactable` uses it — which also exposed that the method could
-not compile at all (`method_missing` captured its bare re-`raise`). Found while
-auditing `error.go` against `error.cr`. The next open work is the Phase 1
-tooling migration plus the optional cleanups listed below.
+**Current focus:** Phase 28 reconciled the lookup-miss error with go-rod: every
+miss now derives from `ElementNotFoundError` (`NotFoundError <
+ElementNotFoundError`), and the `has`/`element_optional`/query classification
+sites match the base type like `errors.Is(err, &rod.ElementNotFoundError{})`, so
+code written for go-rod that catches `ElementNotFoundError` finally fires. The
+next open work is the Phase 1 tooling migration plus the optional cleanups
+listed below.
 
-**Last commit:** `port: match errors.Is through unwrap like go-rod`
+**Last commit:** `port: report lookup misses as ElementNotFoundError`
 
-**Gates (2026-11-19, after Phase 27):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (639 examples, 0 failures) · parity checks pass
+**Gates (2026-11-19, after Phase 28):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (641 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -53,15 +53,6 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    deliberate — they exercise the CDP client and the launcher itself
    (`TestLaunchClient`, `Browser.close` handling) — so only revisit it if a
    future spec needs a pooled page on top of its own client.
-6. Error-type follow-up found in Phase 27: go-rod's lookups return
-   `*ElementNotFoundError` (`"cannot find element"`), while the port raises its
-   own `NotFoundError` (`"Element not found"`) from `Page#retry_finding`, and
-   `ElementNotFoundError` is never raised outside specs — so code written for
-   go-rod that matches `Rod.is?(err, Rod::ElementNotFoundError)` never fires.
-   Reconciling them (e.g. `NotFoundError < ElementNotFoundError`, which needs the
-   class moved out of `types.cr` because `error.cr` already requires it) changes
-   the exception every miss raises, so it needs its own red-green pass over
-   `query.cr`, `page.cr` and the specs that assert `NotFoundError`.
 
 **Gotchas:** the 63 tree-sitter "missing" items and the 3422 kind-rename
 "stale" rows are tooling vocabulary drift, not port gaps — see Phase 1 and the
@@ -988,6 +979,39 @@ which cannot match a *sibling* class.
       when the element is interactable", and "raises other errors".
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (639 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 28 — Lookup misses are `ElementNotFoundError` ✅
+
+go-rod raises `*ElementNotFoundError` (`"cannot find element"`) from every
+lookup, and `query.go` classifies with `errors.Is(err, &ElementNotFoundError{})`
+(`query.go:107,119,131,450,462,471,480`). The port had two unrelated classes:
+`NotFoundError` (`"Element not found"`, raised by `Page#retry_finding`) and
+`ElementNotFoundError`, which nothing raised outside specs — so go-rod code
+matching `Rod.is?(err, Rod::ElementNotFoundError)` never fired.
+
+- [x] Ring-fenced as Next up item 6 in Phase 27 and landed here with its own
+      red-green pass, because the change moves the exception type every miss
+      raises.
+- [x] `src/rod/types.cr`: `ElementNotFoundError` moved next to `RodError` with a
+      Go-compatible default message, and `NotFoundError` now subclasses it (the
+      class had to move: `error.cr` already requires `types.cr`, so the reverse
+      would be a require cycle). The port-specific detail message
+      ("Element not found within 5s", `cause`) is kept — matching is by class.
+- [x] `src/rod/page.cr`, `src/rod/query.cr`: every not-found classification now
+      matches the base type (`has`, `has_x`, `has_r`, `element_optional`, the
+      `element_by_*` pass-throughs and the query-branch retry), like Go's
+      `errors.Is`.
+- [x] Red-green: `spec/error_spec.cr` "is the base type of the port's lookup
+      miss" (red: not an `ElementNotFoundError`) and
+      `spec/page_element_timeout_parity_spec.cr` "reports a lookup miss as
+      ElementNotFoundError like go-rod" (red: got `NotFoundError`), which also
+      keeps `err.is_a?(NotFoundError)` for the port's own callers.
+- [x] Guards: `ElementNotFoundError#is?(NotFoundError)` stays false (the base
+      does not match the subclass) and the Go message is unchanged.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (641 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

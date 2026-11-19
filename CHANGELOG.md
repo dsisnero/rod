@@ -32,6 +32,13 @@ below describe the Crystal port, not upstream changes.
 
 ### Changed
 
+- `Rod::NotFoundError` (the port's lookup miss) now derives from
+  `Rod::ElementNotFoundError`, which also moved next to `RodError` in
+  `src/rod/types.cr`. Every element lookup therefore raises an
+  `ElementNotFoundError` subclass like go-rod's
+  `errors.Is(err, &rod.ElementNotFoundError{})` contract expects, while
+  `rescue Rod::NotFoundError` keeps working. The port-specific detail message
+  (`Element not found within 5s`, `cause`) is unchanged; matching is by class.
 - `Rod::Context` now follows Go's `context.Context` deadline rules: `deadline`
   is inherited through the parent chain (`Context.Deadline`), and
   `with_timeout` keeps the parent's sooner deadline (`context.WithDeadline`), so

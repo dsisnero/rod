@@ -198,7 +198,7 @@ error.go::func::NotFoundSleeper	func	ported	src/rod/error.cr,spec/error_spec.cr,
 error.go::method::CoveredError.Error	method	ported	src/rod/error.cr,spec/error_spec.cr,spec/page_navigation_error_parity_spec.cr	error type/is/unwrap parity covered
 error.go::method::CoveredError.Is	method	ported	src/rod/error.cr,spec/error_spec.cr,spec/page_navigation_error_parity_spec.cr	error type/is/unwrap parity covered
 error.go::method::CoveredError.Unwrap	method	ported	src/rod/error.cr,spec/error_spec.cr,spec/page_navigation_error_parity_spec.cr	error type/is/unwrap parity covered
-error.go::method::ElementNotFoundError.Error	method	ported	src/rod/error.cr,spec/error_spec.cr,spec/page_navigation_error_parity_spec.cr	error type/is/unwrap parity covered
+error.go::method::ElementNotFoundError.Error	method	ported	src/rod/types.cr,spec/error_spec.cr,spec/page_element_timeout_parity_spec.cr	error type/is/unwrap parity covered; every lookup miss derives from it (NotFoundError < ElementNotFoundError) so errors.Is matching works
 error.go::method::EvalError.Error	method	ported	src/rod/error.cr,spec/error_spec.cr,spec/page_navigation_error_parity_spec.cr	error type/is/unwrap parity covered
 error.go::method::EvalError.Is	method	ported	src/rod/error.cr,spec/error_spec.cr,spec/page_navigation_error_parity_spec.cr	error type/is/unwrap parity covered
 error.go::method::ExpectElementError.Error	method	ported	src/rod/error.cr,spec/error_spec.cr,spec/page_navigation_error_parity_spec.cr	error type/is/unwrap parity covered
@@ -224,7 +224,7 @@ error.go::method::TryError.Error	method	ported	src/rod/error.cr,spec/error_spec.
 error.go::method::TryError.Is	method	ported	src/rod/error.cr,spec/error_spec.cr,spec/page_navigation_error_parity_spec.cr	error type/is/unwrap parity covered
 error.go::method::TryError.Unwrap	method	ported	src/rod/error.cr,spec/error_spec.cr,spec/page_navigation_error_parity_spec.cr	error type/is/unwrap parity covered
 error.go::struct::CoveredError	struct	ported	src/rod/error.cr,spec/error_spec.cr,spec/page_navigation_error_parity_spec.cr	error type/is/unwrap parity covered
-error.go::struct::ElementNotFoundError	struct	ported	src/rod/error.cr,spec/error_spec.cr,spec/page_navigation_error_parity_spec.cr	error type/is/unwrap parity covered
+error.go::struct::ElementNotFoundError	struct	ported	src/rod/types.cr,spec/error_spec.cr,spec/page_element_timeout_parity_spec.cr	error type/is/unwrap parity covered; NotFoundError subclasses it for go-rod style matching
 error.go::struct::EvalError	struct	ported	src/rod/error.cr,spec/error_spec.cr,spec/page_navigation_error_parity_spec.cr	error type/is/unwrap parity covered
 error.go::struct::ExpectElementError	struct	ported	src/rod/error.cr,spec/error_spec.cr,spec/page_navigation_error_parity_spec.cr	error type/is/unwrap parity covered
 error.go::struct::ExpectElementsError	struct	ported	src/rod/error.cr,spec/error_spec.cr,spec/page_navigation_error_parity_spec.cr	error type/is/unwrap parity covered

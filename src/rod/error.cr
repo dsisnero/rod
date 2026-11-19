@@ -71,13 +71,6 @@ module Rod
     end
   end
 
-  # ElementNotFoundError is raised when an element cannot be found.
-  class ElementNotFoundError < RodError
-    def initialize
-      super("cannot find element")
-    end
-  end
-
   # NotFoundSleeper returns a sleeper that raises ElementNotFoundError on first call.
   def self.not_found_sleeper : Proc(HTTP::Client::Context?, Exception?)
     ->(_ctx : HTTP::Client::Context?) : Exception? do

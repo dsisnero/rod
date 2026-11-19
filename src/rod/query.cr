@@ -159,7 +159,7 @@ module Rod
           # Found element, stop retrying
           stop = true
           break
-        rescue ex : NotFoundError
+        rescue ex : ElementNotFoundError
           # Element not found, try next branch
           next
         rescue ex : Exception

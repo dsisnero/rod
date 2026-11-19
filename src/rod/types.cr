@@ -19,11 +19,19 @@ module Rod
     end
   end
 
-  # Element not found error
-  class NotFoundError < RodError
-    def initialize(message : String = "Element not found", cause : Exception? = nil)
+  # ElementNotFoundError is raised when an element cannot be found. Mirrors
+  # go-rod's `ElementNotFoundError` ("cannot find element"), which callers match
+  # with `errors.Is`.
+  class ElementNotFoundError < RodError
+    def initialize(message : String = "cannot find element", cause : Exception? = nil)
       super(message, cause: cause)
     end
+  end
+
+  # Element not found error, carrying the query details that made the lookup give
+  # up. It derives from `ElementNotFoundError` so go-rod style matching
+  # (`Rod.is?(err, Rod::ElementNotFoundError)`) catches every miss.
+  class NotFoundError < ElementNotFoundError
   end
 
   # NewType pattern implementation for type-safe IDs

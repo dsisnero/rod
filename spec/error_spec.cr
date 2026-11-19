@@ -76,6 +76,16 @@ describe Rod::ElementNotFoundError do
     err.is?(Rod::ElementNotFoundError).should be_true
     err.is?(Rod::NotFoundError).should be_false
   end
+
+  # go-rod raises `*ElementNotFoundError` from every lookup, so callers match
+  # misses with `errors.Is(err, &rod.ElementNotFoundError{})`.
+  it "is the base type of the port's lookup miss" do
+    err = Rod::NotFoundError.new("Element not found within 5s")
+
+    err.should be_a(Rod::ElementNotFoundError)
+    Rod.is?(err, Rod::ElementNotFoundError).should be_true
+    err.message.as(String).should eq("Element not found within 5s")
+  end
 end
 
 describe Rod::ObjectNotFoundError do

@@ -394,7 +394,7 @@ module Rod
       err = Rod::Util::Utils.retry(@ctx, @sleeper.call) do
         result = block.call
         {true, nil}
-      rescue ex : NotFoundError | ElementNotFoundError
+      rescue ex : ElementNotFoundError
         if timeout > Time::Span::ZERO && Time.instant - started >= effective_timeout
           {true, context_error || NotFoundError.new("Element not found within #{timeout}")}
         else
@@ -1469,7 +1469,7 @@ module Rod
     def has(selector : String) : Tuple(Bool, Element?)
       el = element(selector)
       {true, el}
-    rescue NotFoundError
+    rescue ElementNotFoundError
       {false, nil}
     end
 
@@ -1483,7 +1483,7 @@ module Rod
     def has_x(xpath : String) : Tuple(Bool, Element?)
       el = element_x(xpath)
       {true, el}
-    rescue NotFoundError
+    rescue ElementNotFoundError
       {false, nil}
     end
 
@@ -1492,7 +1492,7 @@ module Rod
     def has_r(selector : String, regex : String) : Tuple(Bool, Element?)
       el = element_r(selector, regex)
       {true, el}
-    rescue NotFoundError
+    rescue ElementNotFoundError
       {false, nil}
     end
 
@@ -1506,7 +1506,7 @@ module Rod
     # Find single element by CSS selector, returns nil if not found.
     def element_optional(selector : String, opts : QueryOptions? = nil) : Element?
       element(selector, opts)
-    rescue NotFoundError
+    rescue ElementNotFoundError
       nil
     end
 
@@ -2370,7 +2370,7 @@ module Rod
       else
         element_by_css_cdp(selector, opts)
       end
-    rescue ex : NotFoundError
+    rescue ex : ElementNotFoundError
       raise ex
     rescue ex : Rod::Util::Utils::MaxSleepCountError
       raise ex
@@ -2473,7 +2473,7 @@ module Rod
       else
         element_by_js(eval_opts)
       end
-    rescue ex : NotFoundError
+    rescue ex : ElementNotFoundError
       raise ex
     rescue ex : Rod::Util::Utils::MaxSleepCountError
       raise ex
@@ -2498,7 +2498,7 @@ module Rod
       else
         element_by_js_once(eval_opts)
       end
-    rescue ex : NotFoundError
+    rescue ex : ElementNotFoundError
       raise ex
     rescue ex : Rod::Util::Utils::MaxSleepCountError
       raise ex

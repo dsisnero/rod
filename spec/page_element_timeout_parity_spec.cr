@@ -46,6 +46,16 @@ describe "page element timeout parity" do
     elapsed.should be >= 50.milliseconds
   end
 
+  it "reports a lookup miss as ElementNotFoundError like go-rod" do
+    page = ElementTimeoutStubPage.new
+
+    err = expect_raises(Rod::ElementNotFoundError) do
+      page.element("not-exists", Rod::QueryOptions.new(timeout: 20.milliseconds, retry_interval: 5.milliseconds))
+    end
+    err.should be_a(Rod::NotFoundError)
+    Rod.is?(err, Rod::ElementNotFoundError).should be_true
+  end
+
   it "cannot extend an outer timeout with a nested one (Go WithDeadline parity)" do
     page = ElementTimeoutStubPage.new
     outer = page.timeout(60.milliseconds)
