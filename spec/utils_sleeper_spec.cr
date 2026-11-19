@@ -125,4 +125,35 @@ describe Rod::Util::Utils do
     counter.wait(ctx)
     (Time.instant - start).should be < 20.milliseconds
   end
+
+  # Cancelling closes the context's done channel, so a bare `receive` in the
+  # select raises Channel::ClosedError out of the fiber that wait_request_idle
+  # spawns (observed as "Unhandled exception in spawn" on the CLI's stderr).
+  it "returns without raising when the context is cancelled while waiting" do
+    ctx = Rod::Context.new
+    counter = Rod::Util::Utils::IdleCounter.new(10.seconds)
+    counter.add
+
+    outcome = Channel(Exception?).new(1)
+    spawn do
+      begin
+        counter.wait(ctx)
+        outcome.send(nil)
+      rescue ex
+        outcome.send(ex)
+      end
+    end
+
+    # Let the fiber block in select before cancelling it.
+    sleep 50.milliseconds
+    ctx.cancel
+
+    result = select
+    when ex = outcome.receive
+      ex
+    when timeout(2.seconds)
+      raise "IdleCounter#wait did not return after cancellation"
+    end
+    result.should be_nil
+  end
 end

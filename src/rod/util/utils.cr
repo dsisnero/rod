@@ -475,7 +475,7 @@ module Rod::Util::Utils
         when token = @timer_fired.receive
           current = @lock.synchronize { @timer_token }
           return if token == current
-        when ctx.done.receive
+        when ctx.done.receive?
           return
         end
       end
