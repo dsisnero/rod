@@ -1205,7 +1205,7 @@ module Rod
       end
 
       spawn do
-        wait_duration(d)
+        wait_request_idle(d).call
         error.send(nil)
       rescue ex
         error.send(ex)

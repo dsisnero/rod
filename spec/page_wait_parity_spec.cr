@@ -121,6 +121,36 @@ private class DialogStubPage < Rod::Page
   end
 end
 
+# Records which branches `Page#wait_stable` drives. go-rod's WaitStable runs
+# WaitLoad, WaitRequestIdle(d) and WaitDOMStable(d, 0) concurrently.
+private class StableStubPage < Rod::Page
+  property load_called = false
+  property dom_stable_called = false
+  property request_idle_d : Time::Span? = nil
+
+  def initialize
+    super(Rod::Browser.new, Rod::TargetID.new("target-id"))
+  end
+
+  def wait_load : Nil
+    @load_called = true
+  end
+
+  def wait_dom_stable(d : Time::Span, diff : Float64) : Nil
+    @dom_stable_called = true
+  end
+
+  def wait_request_idle(
+    d : Time::Span,
+    includes : Array(String)? = nil,
+    excludes : Array(String)? = nil,
+    exclude_types : Array(Cdp::Network::ResourceType)? = nil,
+  ) : Proc(Nil)
+    @request_idle_d = d
+    -> { }
+  end
+end
+
 private class MustNavigationPage < Rod::Page
   property last_wait_name : String? = nil
   property wait_open_called = false
@@ -265,6 +295,18 @@ describe Rod::Page do
       callbacks.has_key?(Cdp::Network::LoadingFinishedEvent.proto_event).should be_true
       callbacks.has_key?(Cdp::Network::LoadingFailedEvent.proto_event).should be_true
       browser.wait_called.should be_true
+    end
+  end
+
+  describe "#wait_stable" do
+    it "waits for load, request idle, and DOM stability like go-rod" do
+      page = StableStubPage.new
+
+      page.wait_stable(10.milliseconds)
+
+      page.load_called.should be_true
+      page.request_idle_d.should eq(10.milliseconds)
+      page.dom_stable_called.should be_true
     end
   end
 
