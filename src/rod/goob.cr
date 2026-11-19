@@ -21,8 +21,9 @@ module Goob
         # Signal consumer if channel has capacity; skip if already signaled.
         select
         when @wait.send(nil)
-        when @done.receive
-          # Done signaled, discard
+        when @done.receive?
+          # Done signaled, discard. `receive?` mirrors goober's `<-p.done`,
+          # which returns on a closed channel instead of raising.
         else
         end
       end
@@ -53,11 +54,11 @@ module Goob
           buf.each do |event|
             select
             when @events.send(event)
-            when @done.receive
+            when @done.receive?
               return
             end
           end
-        when @done.receive
+        when @done.receive?
           return
         end
       end
@@ -88,10 +89,7 @@ module Goob
 
         # Cleanup when done
         spawn do
-          begin
-            done.receive
-          rescue Channel::ClosedError
-          end
+          done.receive?
           @lock.synchronize do
             @subscribers.delete(pipe)
             pipe.close

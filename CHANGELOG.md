@@ -67,6 +67,12 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- The event hub (`Goob::Observable`/`Pipe`) no longer raises
+  `Channel::ClosedError` when a subscriber's `done` channel closes during a
+  publish. Go's `<-p.done` returns on a closed channel while Crystal's
+  `Channel#receive` raises, and the raise escaped `Observable#publish` into
+  `Browser#init_events`, whose rescue then stopped delivering browser events for
+  the rest of the session.
 - `IdleCounter#wait` no longer raises `Channel::ClosedError` when the context is
   cancelled while it is blocked in its select. `Rod::Context#cancel` closes the
   `done` channel, and Crystal raises on `receive` from a closed channel where

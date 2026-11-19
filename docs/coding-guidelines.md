@@ -8,6 +8,12 @@
 - `must_*` helpers and their `!` aliases must stay behaviorally equivalent
   (`page!` ↔ `must_page`, `element!` ↔ `must_element`).
 - For query methods, make timeout/cancellation behavior explicit and tested.
+- `<-ch` in Go is an immediately-ready branch once `ch` is *closed*, and the
+  receive just returns. Crystal's `Channel#receive` raises `Channel::ClosedError`
+  instead, so any channel that can be closed (a context's `done`, a subscription
+  hub's shutdown signal) must be awaited with `receive?`. Keep bare `receive`
+  where a close *should* fail loudly, matching Go's panic on a send to a closed
+  channel.
 
 ## Crystal style
 

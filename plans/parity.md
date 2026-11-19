@@ -7,19 +7,17 @@
 
 ## Where we are
 
-**Current focus:** Phase 23 reviewed `7356dd8` (`IdleCounter#wait`): the port
-selected on `ctx.done.receive`, but `Rod::Context#cancel` *closes* that channel
-and Crystal raises `Channel::ClosedError` where Go's `<-ctx.Done()` simply
-returns, so `wait_request_idle`/`wait_stable` fibers printed
-"Unhandled exception in spawn" on cancellation. `receive?` is the faithful
-mapping and the fix matches go-rod, with a red-green spec for the
-cancel-while-blocked race the older example missed. The next open work is the
+**Current focus:** Phase 24 closed the last crash of the "closed channel" class:
+the event hub's `Pipe#write` selected on the subscriber's `done` channel with a
+bare `receive`, so a publish racing a shutdown raised `Channel::ClosedError` into
+`Browser#init_events` and stopped event delivery. It now uses `receive?`, like
+`IdleCounter#wait` (Phase 23) and the rest of the port. The next open work is the
 Phase 1 tooling migration plus the optional cleanups listed below.
 
-**Last commit:** `port: let IdleCounter#wait observe cancellation` (`7356dd8`)
+**Last commit:** `port: keep the event hub alive when a done channel closes`
 
-**Gates (2026-11-19, after Phase 23):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (626 examples, 0 failures) · parity checks pass
+**Gates (2026-11-19, after Phase 24):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (627 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -54,13 +52,7 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    (`manager.go:141`) and only ever prints `Launch`/`Close`/`Killed PID`/
    `Removed`, so either port those four lines behind the quiet default or drop
    the dead property.
-6. Optional cleanup: `Goob::Pipe#write` (`src/rod/goob.cr:24`) selects on the
-   closed `done` channel with a bare `receive`; go-rod's `select` just returns
-   when that channel closes, while Crystal raises `Channel::ClosedError` (same
-   class as the Phase 23 fix). It is contained by `Browser#init_events`'
-   rescue today, but a second `Observable#publish` caller would surface it —
-   switch that branch to `receive?` when the event hub is next touched.
-7. Optional follow-up: `spec/cdp_client_parity_spec.cr` and
+6. Optional follow-up: `spec/cdp_client_parity_spec.cr` and
    `spec/launcher_parity_spec.cr` still launch their own browsers. That is
    deliberate — they exercise the CDP client and the launcher itself
    (`TestLaunchClient`, `Browser.close` handling) — so only revisit it if a
@@ -855,8 +847,34 @@ Reviewed `7356dd8` ("port: let IdleCounter#wait observe cancellation") against
 **Latent, not reachable today:** `Goob::Pipe#write` (`src/rod/goob.cr:24`) also
 selects on a *closed* done channel with a bare `receive`. Its only caller
 (`Browser#init_events`, `browser.cr:438`) rescues `Channel::ClosedError` and
-breaks, so it is contained; recorded in Next up instead of widening this
-change.
+breaks, so it was contained; Phase 24 fixed it.
+
+---
+
+### Phase 24 — Event hub survives a closed `done` channel ✅
+
+Last item of the "closed channel" class found in Phase 23. `Goob` ports
+`github.com/go-rod/goober`, which rod pulls in as a module dependency rather than
+a vendored package, so there is no `vendor/rod` file to pin against; its
+`pipe.Write` is `select { case p.wait <- struct{}{}: case <-p.done: }`, and Go's
+`<-p.done` is an immediately-ready branch that simply returns once `done` closes.
+
+- Red-green `spec/goob_observable_spec.cr` (new): publish once to fill the pipe's
+  one-slot signal buffer, close `done`, then publish again. With the buffer full
+  the done branch is the only ready one, so the old code raised deterministically
+  (8/8 runs) at `src/rod/goob.cr:22`; the spec is green now.
+- [x] `src/rod/goob.cr`: `Pipe#write` and both `Pipe#run_loop` selects use
+      `done.receive?`; `Observable#subscribe`'s cleanup awaits `done.receive?`
+      instead of rescuing `Channel::ClosedError`.
+- [x] `docs/coding-guidelines.md`: records the trap — Go's `<-ch` returns on a
+      closed channel, Crystal's `Channel#receive` raises, so closed-capable
+      channels need `receive?`; bare `receive` stays where a close must fail
+      loudly (Go panics on a send to a closed channel).
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (627 examples, 0 failures), `make check-go-*` pass. Two
+      `spec/live_browser_parity_spec.cr` examples failed once under load and pass
+      in isolation (56/56 twice) and in the following full run — the documented
+      Chrome-timing flakiness, not a port defect.
 
 ---
 
