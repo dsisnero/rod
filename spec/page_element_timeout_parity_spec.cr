@@ -46,6 +46,16 @@ describe "page element timeout parity" do
     elapsed.should be >= 50.milliseconds
   end
 
+  it "cannot extend an outer timeout with a nested one (Go WithDeadline parity)" do
+    page = ElementTimeoutStubPage.new
+    outer = page.timeout(60.milliseconds)
+    # Go's `context.WithDeadline` keeps the parent's sooner deadline, so the
+    # nested timeout can only shorten the budget.
+    inner = outer.timeout(5.seconds)
+
+    inner.get_context.deadline_remaining.not_nil!.should be <= 70.milliseconds
+  end
+
   it "surfaces MaxSleepCountError with count_sleeper (Go TestPageElementMaxRetry parity)" do
     page = ElementTimeoutStubPage.new
     limited = page.sleeper(-> { Rod::Util::Utils.count_sleeper(2) })

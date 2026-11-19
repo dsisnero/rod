@@ -28,13 +28,25 @@ module Rod
       Context.new
     end
 
-    # Absolute deadline when context times out, nil if no deadline.
-    property deadline : Time::Instant?
+    # Absolute deadline owned by this context, nil if it sets none.
+    # Read it through `#deadline`, which inherits from the parent chain.
+    @deadline : Time::Instant? = nil
     @cancelled = false
     @err : Exception? = nil
     @mutex = Mutex.new
     @done = Channel(Nil).new
     @values = {} of ValueKey => ValueType
+
+    # Absolute deadline of the context, inherited from its parents like Go's
+    # `context.Context.Deadline`.
+    def deadline : Time::Instant?
+      @deadline || @parent.try(&.deadline)
+    end
+
+    # Set the deadline owned by this context.
+    def deadline=(value : Time::Instant?) : Nil
+      @deadline = value
+    end
 
     # Create a new context, optionally with a parent.
     def initialize(@parent : Context? = nil, @cancel_func : ->? = nil)
@@ -98,9 +110,9 @@ module Rod
     # DeadlineRemaining returns time remaining until deadline, nil if no deadline.
     # Returns zero or negative time if deadline has passed.
     def deadline_remaining : Time::Span?
-      deadline = @deadline
-      return nil unless deadline
-      deadline - Time.instant
+      deadline_at = deadline
+      return nil unless deadline_at
+      deadline_at - Time.instant
     end
 
     # TimeoutRemaining returns the minimum of given timeout and context deadline remaining.
@@ -132,22 +144,34 @@ module Rod
     # Returns the new context and a cancel function.
     def with_timeout(timeout : Time::Span) : Tuple(Context, ->)
       ctx = Context.new(self)
-      ctx.deadline = Time.instant + timeout
+
+      # Go's `context.WithDeadline` keeps the parent's deadline when it is
+      # sooner (`if cur, ok := parent.Deadline(); ok && cur.Before(d) {
+      # return WithCancel(parent) }`), so a nested timeout can only shorten the
+      # budget, never extend it. In that case the parent listener cancels this
+      # context, exactly like `WithCancel(parent)`, so no extra timer is needed.
+      deadline_at = Time.instant + timeout
+      capped_by_parent = false
+      if parent_deadline = deadline
+        if parent_deadline < deadline_at
+          deadline_at = parent_deadline
+          capped_by_parent = true
+        end
+      end
+
+      ctx.deadline = deadline_at
 
       cancel_fn = -> { ctx.cancel }
 
       # Store parent context and cancel function in value map for CancelTimeout
       ctx.set_value(TIMEOUT_KEY, TimeoutContextVal.new(self, cancel_fn))
 
-      spawn do
-        deadline = ctx.deadline
-        if deadline
-          sleep_time = deadline - Time.instant
-          if sleep_time > Time::Span::ZERO
-            sleep sleep_time
-          end
+      unless capped_by_parent
+        spawn do
+          sleep_time = deadline_at - Time.instant
+          sleep sleep_time if sleep_time > Time::Span::ZERO
+          ctx.cancel(err_override: DeadlineExceededError.new)
         end
-        ctx.cancel(err_override: DeadlineExceededError.new)
       end
 
       {ctx, cancel_fn}

@@ -7,17 +7,18 @@
 
 ## Where we are
 
-**Current focus:** Phase 25 ported the manager's logging: `Manager#logger` is now
-go-rod's `utils.Logger` shape (`Rod::Util::Utils::Log`, quiet by default) and the
-manager emits `Launch <url> <options>`, `Close <url>`, `Killed PID: <n>` and
-`Removed <dir>` like `manager.go:190-209`, with one cleanup per connection. The
-next open work is the Phase 1 tooling migration plus the optional cleanups listed
-below.
+**Current focus:** Phase 26 aligned `Rod::Context` with Go's `context.Context`
+deadline rules: `deadline` is inherited through the parent chain and
+`with_timeout` keeps the parent's sooner deadline instead of extending it, so a
+nested `Page#timeout`/`Element#timeout` can only shorten the budget. Fixing that
+exposed `retry_finding` masking a context deadline as `NotFoundError`, which is
+now authoritative. The next open work is the Phase 1 tooling migration plus the
+optional cleanups listed below.
 
-**Last commit:** `port: log managed launches and cleanup like go's manager`
+**Last commit:** `port: inherit context deadlines like go's context.WithTimeout`
 
-**Gates (2026-11-19, after Phase 25):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (628 examples, 0 failures) · parity checks pass
+**Gates (2026-11-19, after Phase 26):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (633 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -902,6 +903,49 @@ through `Manager.Logger` were missing.
       runs.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (628 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 26 — Context deadlines follow Go's `context.Context` rules ✅
+
+`Rod::Context` said it was "modeled after Go's context.Context but simplified",
+and the simplification was observable: `deadline` was a plain per-instance
+property, so
+
+- a nested timeout **extended** the parent's budget instead of being capped by
+  it, and
+- any derived context (`with_value`, `with_cancel`, which is what
+  `Page#timeout` builds on top of `with_timeout`) reported **no deadline at
+  all**, so `deadline_remaining`/`timeout_remaining` — the caps used by
+  `Page#retry_finding` and `Element#wait_interactable` — silently fell back to
+  the caller's timeout.
+
+Go: `context.WithTimeout` is `WithDeadline(now+d)`, and `WithDeadline` keeps the
+parent deadline when it is sooner (`if cur, ok := parent.Deadline(); ok &&
+cur.Before(d) { return WithCancel(parent) }`); `Context.Deadline` walks the
+parent chain.
+
+- [x] Red-green `spec/context_spec.cr`: "caps a nested timeout at the parent's
+      deadline" (red: 10 s instead of 50 ms), "reports the inherited deadline
+      through a derived context" (red: `deadline_remaining` nil, and
+      `timeout_remaining(5.seconds)` returning 5 s), plus guards that the
+      shorter of the two deadlines wins and that contexts without a deadline
+      still report none.
+- [x] `src/rod/context.cr`: `deadline` is now an inheriting getter over the
+      parent chain (the owning instant stays in `@deadline`), `deadline_remaining`
+      reads that getter, and `with_timeout` caps its deadline at the parent's and
+      skips its own timer when the parent wins — the parent listener cancels the
+      child with the parent's error, exactly like `WithCancel(parent)`.
+- [x] Regression the change exposed: with the deadline finally visible,
+      `Page#retry_finding` reported `NotFoundError "Element not found within 5s"`
+      when the *context* ran out first. It now prefers the context error, which
+      is what go-rod's `utils.Retry` returns through the sleeper. The existing
+      `spec/page_element_timeout_parity_spec.cr` "respects context timeout while
+      polling for missing elements" caught it and pins it.
+- [x] `spec/page_element_timeout_parity_spec.cr`: "cannot extend an outer timeout
+      with a nested one (Go WithDeadline parity)".
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (633 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

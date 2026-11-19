@@ -396,7 +396,7 @@ module Rod
         {true, nil}
       rescue ex : NotFoundError | ElementNotFoundError
         if timeout > Time::Span::ZERO && Time.instant - started >= effective_timeout
-          {true, NotFoundError.new("Element not found within #{timeout}")}
+          {true, context_error || NotFoundError.new("Element not found within #{timeout}")}
         else
           {false, nil}
         end
@@ -406,7 +406,7 @@ module Rod
         # Chrome can report it on every attempt while the new document commits.
         if stale_document_root_error?(ex)
           if timeout > Time::Span::ZERO && Time.instant - started >= effective_timeout
-            {true, NotFoundError.new("Element not found within #{timeout}", cause: ex)}
+            {true, context_error || NotFoundError.new("Element not found within #{timeout}", cause: ex)}
           else
             {false, nil}
           end
@@ -419,6 +419,14 @@ module Rod
       found = result
       raise NotFoundError.new("Element not found") unless found
       found
+    end
+
+    # A cancelled context is authoritative over the query's own deadline:
+    # go-rod's `utils.Retry` returns the sleeper's `ctx.Err()`, so a lookup that
+    # runs out of context must surface the deadline/cancel error instead of a
+    # `NotFoundError` for the remaining query time.
+    private def context_error : Exception?
+      @ctx.cancelled? ? (@ctx.err || ContextCanceledError.new("context cancelled")) : nil
     end
 
     # Get document root node ID with DOM domain enabled.

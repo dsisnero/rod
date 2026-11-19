@@ -32,6 +32,13 @@ below describe the Crystal port, not upstream changes.
 
 ### Changed
 
+- `Rod::Context` now follows Go's `context.Context` deadline rules: `deadline`
+  is inherited through the parent chain (`Context.Deadline`), and
+  `with_timeout` keeps the parent's sooner deadline (`context.WithDeadline`), so
+  a nested `Page#timeout`/`Browser#timeout`/`Element#timeout` can only shorten
+  the budget. Previously a nested timeout could extend it, and contexts derived
+  with `with_value` (which is what `Page#timeout` returns) reported no deadline,
+  so `deadline_remaining`/`timeout_remaining` fell back to the caller's timeout.
 - `Rod::Util::Launcher::Manager#logger` is now `Rod::Util::Utils::Log` (go-rod's
   `utils.Logger` shape) defaulting to `Utils.logger_quiet`, and the manager
   actually writes go-rod's four management lines: `Launch <url> <options>`,
@@ -74,6 +81,10 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Page#retry_finding` returns the context's error (deadline exceeded or
+  cancelled) when the lookup runs out of context, instead of
+  `NotFoundError "Element not found within ..."`. go-rod's `utils.Retry` surfaces
+  the sleeper's `ctx.Err()`.
 - The event hub (`Goob::Observable`/`Pipe`) no longer raises
   `Channel::ClosedError` when a subscriber's `done` channel closes during a
   publish. Go's `<-p.done` returns on a closed channel while Crystal's
