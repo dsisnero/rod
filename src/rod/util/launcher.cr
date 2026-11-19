@@ -538,10 +538,13 @@ module Rod::Util::Launcher
   # Launcher is a helper to launch browser binary smartly.
   class Launcher
     property flags : Hash(String, Array(String))
-    property logger : ::Log
     property browser : Browser
     property? managed : Bool = false
     property service_url : String = ""
+    # Sink for the browser's own stdout/stderr. go-rod's launcher defaults this
+    # to `io.Discard` (`launcher.go:120`) and only fills it via
+    # `Launcher.Logger(w)`; the launcher itself never logs the launch.
+    @log_io : IO? = nil
     @pid : Int32 = 0
     @exit : Channel(Nil)? = nil
     @is_launched : Bool = false
@@ -565,7 +568,6 @@ module Rod::Util::Launcher
       end
 
       @flags = {} of String => Array(String)
-      @logger = ::Log.for("rod.launcher")
       @browser = Browser.new
       @pid = 0
       @exit = nil
@@ -656,11 +658,15 @@ module Rod::Util::Launcher
       set(Flags::BIN, path)
     end
 
-    # Set browser process output sink for API parity with Go Logger(io.Writer).
+    # Set the sink for the browser's stdout and stderr.
+    # Mirrors go-rod's `Launcher.Logger(w)` (`launcher.go:403`), which is
+    # `io.Discard` unless the caller opts in:
+    #
+    # ```
+    # launcher.New.logger(STDOUT).launch
+    # ```
     def logger(io : IO) : self
-      # Keep existing structured logger as source of launch logs; output sink
-      # integration can be expanded when websocket launch path is fully ported.
-      io # mark argument as used
+      @log_io = io
       self
     end
 
@@ -874,9 +880,6 @@ module Rod::Util::Launcher
       # Format command line arguments
       args = format_args
 
-      # Launch process with leakless if enabled
-      @logger.info { "Launching browser: #{bin_path} #{args.join(" ")}" }
-
       # Try to resolve URL first if not using leakless
       unless has(Flags::LEAKLESS) && Rod::Util::Leakless.support?
         port = get(Flags::REMOTE_DEBUGGING_PORT) || "0"
@@ -894,9 +897,14 @@ module Rod::Util::Launcher
         parser.context(ctx)
       end
 
+      # go-rod pipes both streams through `io.MultiWriter(l.logger, l.parser)`
+      # (`launcher.go:514-515`), so the parser always sees the debug URL and
+      # the caller's sink sees the browser's output only when one was set.
+      out_io, err_io = output_sinks(parser)
+
       if has(Flags::LEAKLESS) && Rod::Util::Leakless.support?
         ll = Rod::Util::Leakless.new
-        process = ll.command(bin_path, args, error: parser)
+        process = ll.command(bin_path, args, output: out_io, error: err_io)
 
         # Wait for PID from leakless channel
         pid_channel = ll.pid
@@ -912,8 +920,8 @@ module Rod::Util::Launcher
           raise "Leakless error: #{err}"
         end
       else
-        # Launch new process with output piped to parser
-        process = Process.new(bin_path, args, env_hash, false, false, Process::Redirect::Close, parser, parser, working_dir_or_nil)
+        # Launch new process with output piped to the logger sink and parser
+        process = Process.new(bin_path, args, env_hash, false, false, Process::Redirect::Close, out_io, err_io, working_dir_or_nil)
         @pid = process.pid.to_i32
       end
 
@@ -1004,6 +1012,19 @@ module Rod::Util::Launcher
       dir = get(Flags::WORKING_DIR)
       return nil if dir.nil? || dir.empty?
       dir
+    end
+
+    # Pipes for the browser's stdout and stderr. go-rod builds a
+    # `io.MultiWriter(l.logger, l.parser)` per stream (`launcher.go:514-515`):
+    # the parser always sees the output, the caller's sink only when
+    # `logger(io)` was used. `IO::MultiWriter` defaults to `sync_close: false`,
+    # so the caller keeps ownership of the IO it passed in.
+    private def output_sinks(parser : Rod::Util::URLParser) : Tuple(IO, IO)
+      if io = @log_io
+        {IO::MultiWriter.new(io, parser), IO::MultiWriter.new(io, parser)}
+      else
+        {parser, parser}
+      end
     end
 
     private def env_hash : Hash(String, String)?

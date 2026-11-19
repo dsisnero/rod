@@ -1,5 +1,6 @@
 require "./spec_helper"
 require "http/server"
+require "log/spec"
 
 private CHROME_BIN = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 
@@ -90,6 +91,55 @@ class Rod::Util::Launcher::Launcher
 
   def __setup_user_preferences_for_test!
     setup_user_preferences
+  end
+end
+
+# Sink for `Launcher#logger(io)`. The browser's stdout and stderr are copied by
+# two fibers running on Crystal's default (parallel) execution context, so the
+# spec sink serializes writes and reads instead of racing on `IO::Memory`.
+private class LauncherSpecSink < IO
+  def initialize
+    @io = IO::Memory.new
+    @lock = Mutex.new
+  end
+
+  def write(slice : Bytes) : Nil
+    @lock.synchronize { @io.write(slice) }
+  end
+
+  def read(slice : Bytes) : NoReturn
+    raise IO::Error.new("launcher spec sink is write-only")
+  end
+
+  def text : String
+    @lock.synchronize { @io.to_s }
+  end
+
+  def wait_for(text : String, timeout : Time::Span = 2.seconds) : Bool
+    deadline = Time.instant + timeout
+    until self.text.includes?(text)
+      return false if Time.instant >= deadline
+      sleep 10.milliseconds
+    end
+    true
+  end
+end
+
+# A stand-in for the browser binary: a shell script that prints whatever the
+# example wants on stdout/stderr. The launcher only needs the debug URL.
+private def with_fake_browser(lines : Array(String), &)
+  dir = File.join(Dir.tempdir, "launcher-fake-bin-#{Random::Secure.hex(6)}")
+  path = File.join(dir, "fake-chrome")
+  begin
+    FileUtils.mkdir_p(dir)
+    File.write(path, String.build do |script|
+      script << "#!/bin/sh\n"
+      lines.each { |line| script << line << '\n' }
+    end)
+    File.chmod(path, 0o755)
+    yield path
+  ensure
+    FileUtils.rm_rf(dir)
   end
 end
 
@@ -338,6 +388,42 @@ describe "launcher parity" do
 
         File.exists?(File.join(b.dir, "b", "c.txt")).should be_true
       end
+    ensure
+      FileUtils.rm_rf(build_dir)
+      FileUtils.rm_rf(root)
+    end
+  end
+
+  it "resolves bin_path inside the stripped managed-download layout" do
+    zip_bin = Process.find_executable("zip")
+    zip_bin.should_not be_nil
+    next unless zip_bin
+
+    build_dir = File.join(Dir.tempdir, "launcher-layout-build-#{Random::Secure.hex(6)}")
+    root = File.join(Dir.tempdir, "launcher-layout-#{Random::Secure.hex(6)}")
+
+    begin
+      b = Rod::Util::Launcher::Browser.new(root_dir: root, revision: 1)
+      rel_bin = Path[b.bin_path].relative_to(Path[b.dir]).to_s
+
+      # The macOS snapshot (`chrome-mac.zip`) extracts with a single top-level
+      # folder, so `bin_path` only exists after go-rod's
+      # `fetchup.StripFirstDir` step (`browser.go:150`). Build the archive with
+      # the platform's real binary path inside that folder.
+      inner = File.join(build_dir, "chrome-mac", rel_bin)
+      FileUtils.mkdir_p(File.dirname(inner))
+      File.write(inner, "#!/bin/sh\n")
+
+      archive = File.join(build_dir, "archive.zip")
+      Process.run(zip_bin, ["-rq", archive, "chrome-mac"], chdir: build_dir).success?.should be_true
+
+      with_bytes_http_server(File.read(archive).to_slice) do |port|
+        b.hosts = [->(_rev : Int32) { "http://127.0.0.1:#{port}/chrome-mac.zip" }] of Rod::Util::Launcher::Host
+        b.download
+      end
+
+      b.bin_path.should eq(File.join(b.dir, rel_bin))
+      File.exists?(b.bin_path).should be_true
     ensure
       FileUtils.rm_rf(build_dir)
       FileUtils.rm_rf(root)
@@ -640,6 +726,46 @@ describe "launcher parity" do
     l = Rod::Util::Launcher.new
     io = IO::Memory.new
     l.logger(io).should eq(l)
+  end
+
+  it "forwards browser stdout and stderr to the logger sink without logging the launch" do
+    sink = LauncherSpecSink.new
+    with_fake_browser([
+      %(echo "browser-stdout-line"),
+      %(echo "browser-stderr-line" >&2),
+      %(echo "ws://127.0.0.1:1/devtools/browser/fake"),
+    ]) do |bin|
+      l = Rod::Util::Launcher.new.bin(bin).leakless(false)
+      begin
+        Log.capture("rod.launcher") do |logs|
+          # go-rod's launcher logger is `io.Discard`, so the launcher itself
+          # never writes a launch line to stdout (`launcher.go:120`).
+          l.logger(sink).launch.should eq("ws://127.0.0.1:1/devtools/browser/fake")
+          logs.empty
+        end
+
+        sink.wait_for("browser-stdout-line").should be_true
+        sink.wait_for("browser-stderr-line").should be_true
+      ensure
+        shutdown_launcher(l)
+      end
+    end
+  end
+
+  it "forwards browser output to the logger sink on the leakless path" do
+    sink = LauncherSpecSink.new
+    with_fake_browser([
+      %(echo "browser-stdout-line"),
+      %(echo "ws://127.0.0.1:1/devtools/browser/fake"),
+    ]) do |bin|
+      l = Rod::Util::Launcher.new.bin(bin).leakless(true)
+      begin
+        l.logger(sink).launch.should eq("ws://127.0.0.1:1/devtools/browser/fake")
+        sink.wait_for("browser-stdout-line").should be_true
+      ensure
+        shutdown_launcher(l)
+      end
+    end
   end
 
   it "enables no-sandbox by default in container mode" do

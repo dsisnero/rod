@@ -7,17 +7,18 @@
 
 ## Where we are
 
-**Current focus:** Phase 20 brought the docs back in line with the port: a new
-`CHANGELOG.md`, the pooled harness documented in `docs/testing.md` and friends,
-refreshed architecture notes for the shared JS-context cache and the
-launcher/manager lifecycle, and the e2e example closing its pages and browser
-like go-rod's `g.Cleanup`. The next open work is the Phase 1 tooling migration
-plus the optional cleanups listed below.
+**Current focus:** Phase 21 closed the launcher output contract: `Launcher`
+no longer logs the launch (go-rod's launcher logger is `io.Discard`) and
+`Launcher#logger(io)` now really forwards the browser's stdout/stderr through an
+`IO::MultiWriter`, on both the direct and the leakless path. The issue's second
+claim (a wrong macOS `bin_path` after a managed download) was already fixed by
+`strip_first_dir` and is now pinned by a spec. The next open work is the Phase 1
+tooling migration plus the optional cleanups listed below.
 
-**Last commit:** `docs: changelog, harness docs, refreshed comments and e2e example`
+**Last commit:** `port: launcher output contract (no launch log, real logger(io))`
 
-**Gates (2026-11-18, after Phase 20):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (619 examples, 0 failures, 1:53 wall time) · parity checks pass
+**Gates (2026-11-19, after Phase 21):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (622 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -47,7 +48,12 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
 4. Optional cleanup: the repo tracks built binaries (`rod`, `bin/pdlgen*`,
    `pdlgen*`), so local builds keep showing up as modified files. Decide whether
    to untrack them.
-5. Optional follow-up: `spec/cdp_client_parity_spec.cr` and
+5. Optional cleanup: `Launcher::Manager#logger` is still an unused `::Log`
+   property. go-rod's `Manager.Logger` defaults to `utils.LoggerQuiet`
+   (`manager.go:141`) and only ever prints `Launch`/`Close`/`Killed PID`/
+   `Removed`, so either port those four lines behind the quiet default or drop
+   the dead property.
+6. Optional follow-up: `spec/cdp_client_parity_spec.cr` and
    `spec/launcher_parity_spec.cr` still launch their own browsers. That is
    deliberate — they exercise the CDP client and the launcher itself
    (`TestLaunchClient`, `Browser.close` handling) — so only revisit it if a
@@ -711,6 +717,52 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       `crystal build --no-codegen` passes.
 - [x] Gates: `make format`, `make lint` (240 files) and `make test` (619 examples,
       0 failures, 1:53) pass; no library behavior changed.
+
+---
+
+### Phase 21 — Launcher output contract (issue `rod.003`) ✅
+
+Verified both claims in the reported issue against `vendor/rod` and the port:
+
+- **Launch logging (true).** `Launcher#launch` emitted
+  `@logger.info { "Launching browser: ..." }` through a
+  `Log.for("rod.launcher")` whose default backend writes INFO to stdout, and the
+  launcher carried a `::Log` logger with no upstream counterpart. go-rod's
+  launcher logger is `io.Discard` (`launcher.go:120`), filled only by
+  `Launcher.Logger(w)` (`launcher.go:403`), which `setupCmd` wires as
+  `io.MultiWriter(l.logger, l.parser)` for stdout *and* stderr
+  (`launcher.go:514-515`), so `rodney start` prints only its own two lines.
+  `Browser`'s download logging is *not* a divergence: go-rod's
+  `Browser.Logger` defaults to stdout (`browser.go:107`) and `fetchup` prints
+  progress there, so the port keeps its `Log.for("rod.launcher")` download
+  lines.
+- **Managed-download `bin_path` on macOS (false).** `Browser#download` already
+  ends with `strip_first_dir` (go `browser.go:150`), and the existing
+  "downloads and extracts browser archive, stripping top-level directory" spec
+  covered it, so `<dir>/Chromium.app/Contents/MacOS/Chromium` is correct and no
+  download-then-`File::NotFoundError` exists. A new spec now pins that claim
+  end to end instead of leaving it implicit.
+- [x] `src/rod/util/launcher.cr`: dropped the launch INFO line and the
+      launcher's `::Log` logger; `Launcher#logger(io)` stores a sink and
+      `output_sinks` builds one `IO::MultiWriter` per stream, so the parser
+      always sees the DevTools URL and the caller's IO sees browser output only
+      when set.
+- [x] `src/rod/util/leakless.cr`: `Launcher#command` takes an `output` sink and
+      wires both streams instead of leaving the browser's stdout on an unread
+      pipe, which would block the browser once the pipe buffer filled.
+- [x] Red-green `spec/launcher_parity_spec.cr`: "forwards browser stdout and
+      stderr to the logger sink without logging the launch" (fails while the old
+      INFO line exists), "forwards browser output to the logger sink on the
+      leakless path", and "resolves bin_path inside the stripped
+      managed-download layout" (fails when `strip_first_dir` is removed).
+- [x] Gates: `make format`, `make lint` (240 files), `make test` (622 examples,
+      0 failures) and `make check-go-*` pass.
+
+**Intentional divergence:** `Launcher#logger=(::Log)` was removed together with
+the logging it fed — go-rod's API is `Logger(io.Writer)` only. A consumer that
+silenced the line (`launcher.logger = Log.new(...)`, the reported
+`Webb::CLI.cmd_start` workaround) must delete that workaround; there is nothing
+left to silence.
 
 ---
 

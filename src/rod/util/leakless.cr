@@ -40,13 +40,16 @@ module Rod::Util::Leakless
       @pid = nil
     end
 
-    # Create a command that will be managed by leakless
-    def command(bin : String, args : Array(String) = [] of String, error : IO = Process::Redirect::Pipe) : Process
+    # Create a command that will be managed by leakless.
+    # Both streams are wired by the caller, mirroring go-rod's
+    # `io.MultiWriter(l.logger, l.parser)` setup (`launcher.go:514-515`); an
+    # unread stdout pipe would eventually block the browser once full.
+    def command(bin : String, args : Array(String) = [] of String, output : IO | Process::Redirect = Process::Redirect::Pipe, error : IO | Process::Redirect = Process::Redirect::Pipe) : Process
       # Register cleanup handler if not already done
       ::Rod::Util::Leakless.register_cleanup
 
       # Create process with pipes for stderr/stdout
-      process = Process.new(bin, args, output: Process::Redirect::Pipe, error: error)
+      process = Process.new(bin, args, output: output, error: error)
       @process = process
 
       # Start monitoring process

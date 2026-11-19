@@ -22,12 +22,24 @@ below describe the Crystal port, not upstream changes.
   hides behind an env flag, so every ported check actually runs.
 - `spec/page_stale_node_retry_parity_spec.cr`: pins the stale-document retry
   behavior for all three node-id error phrasings Chrome uses.
+- `spec/launcher_parity_spec.cr`: launcher output contract coverage — the
+  browser's stdout/stderr reach `Launcher#logger(io)` on both the direct and
+  leakless paths, the launcher itself logs nothing, and a managed download's
+  `bin_path` resolves inside the stripped archive layout.
 - `CHANGELOG.md`, and docs for the pooled harness, launcher/manager lifecycle and
   shared JS-context state (`docs/testing.md`, `docs/architecture.md`,
   `docs/development.md`, `docs/resuming.md`).
 
 ### Changed
 
+- `Rod::Util::Launcher::Launcher` no longer logs the launch. go-rod's launcher
+  logger is `io.Discard` (`launcher.go:120`) and only `Launcher.Logger(w)`
+  fills it, so `rodney start`-style commands print just their own output.
+  `Launcher#logger(io)` now actually forwards the browser's stdout and stderr
+  (`io.MultiWriter(l.logger, l.parser)`, `launcher.go:514-515`) on both the
+  direct and the leakless path; `Launcher#logger=(::Log)` — which had no
+  upstream counterpart — was removed, so the workaround that silenced the old
+  INFO line can be deleted.
 - `Page#navigate` clears the *root* page's JavaScript execution-context cache
   (go `p.root.unsetJSCtxID()`, `page.go:188`) instead of the navigated page's, and
   that cache is now shared between page clones (`Page::JsCtxCache`), matching
@@ -51,6 +63,9 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Rod::Util::Leakless::Launcher#command` left the browser's stdout on a pipe
+  nobody read, which could block the browser once the pipe buffer filled; the
+  launcher now wires both streams to the logger sink and the URL parser.
 - Live specs leaked a Chrome process and a user-data profile per managed
   launcher and per example; both are cleaned up now.
 - `TestPageIframeReload` no longer needs `ROD_REAL_BROWSER=1` and no longer fails

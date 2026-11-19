@@ -464,7 +464,7 @@ lib/launcher/launcher.go::method::Launcher.IgnoreCerts	method	ported	src/rod/lib
 lib/launcher/launcher.go::method::Launcher.Kill	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
 lib/launcher/launcher.go::method::Launcher.Launch	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
 lib/launcher/launcher.go::method::Launcher.Leakless	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
-lib/launcher/launcher.go::method::Launcher.Logger	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
+lib/launcher/launcher.go::method::Launcher.Logger	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered; logger(io) tees the browser's stdout/stderr (go's io.MultiWriter(l.logger, l.parser)) and the launcher itself never logs
 lib/launcher/launcher.go::method::Launcher.MustLaunch	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
 lib/launcher/launcher.go::method::Launcher.NoSandbox	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
 lib/launcher/launcher.go::method::Launcher.PID	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
