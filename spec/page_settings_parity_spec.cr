@@ -274,17 +274,17 @@ describe Rod::Page do
       page = SettingsStubPage.new(browser)
       req = Cdp::Page::Enable.new(nil)
 
-      page.load_state(req).should be_false
+      page.load_state(req).should be_nil
       restore_enable = page.enable_domain(req)
-      page.load_state(req).should be_true
+      page.load_state(req).should_not be_nil
 
       restore_disable = page.disable_domain(req)
-      page.load_state(req).should be_false
+      page.load_state(req).should be_nil
 
       restore_disable.call
-      page.load_state(req).should be_true
+      page.load_state(req).should_not be_nil
       restore_enable.call
-      page.load_state(req).should be_false
+      page.load_state(req).should be_nil
     end
 
     it "navigate_back and navigate_forward evaluate history scripts with user gesture" do

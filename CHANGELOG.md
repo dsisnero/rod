@@ -32,6 +32,17 @@ below describe the Crystal port, not upstream changes.
 
 ### Changed
 
+- `Browser#load_state`/`Page#load_state` load the stored CDP params like go-rod's
+  reflective `LoadState` (`states.go:43-52`), and `Page#screenshot(full_page:
+  true)` restores the viewport from the browser state map (`page.go:437-471`)
+  instead of a page-local copy, so a viewport applied with a raw
+  `Emulation.setDeviceMetricsOverride` survives a full-page shot. A stored
+  payload the request cannot rebuild is left alone field by field, and `nil`
+  means "no state was stored". go fills the caller's request through
+  `reflect.Value.Set`; Crystal copies structs at call boundaries, so
+  `load_state` returns the loaded request instead (documented divergence).
+  `Browser#wait_download` now reads the previous behavior through the same path,
+  dropping the JSON workaround it shipped with.
 - `Hijack#load_response(client, false)` no longer reads the response body, like
   go-rod's `LoadResponse` (`hijack.go:224-250`): the response is streamed through
   `HTTP::Client#exec(request) { ... }` so only `load_body: true` drains

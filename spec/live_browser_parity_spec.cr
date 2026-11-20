@@ -310,6 +310,36 @@ describe "live browser parity" do
     end
   end
 
+  it "restores a viewport applied through raw CDP after a full page screenshot" do
+    with_live_browser do |browser|
+      page = browser.must_page(fixture_url("scroll.html"))
+      page.must_wait_load
+      page.must_element("button")
+
+      # go reads the previous viewport back from the browser state map
+      # (`page.go:437-471`), which every CDP call fills, so a viewport applied
+      # with a raw request is restored too, not only one applied through
+      # `Page#set_viewport`.
+      Cdp::Emulation::SetDeviceMetricsOverride.new(
+        width: 700_i64,
+        height: 500_i64,
+        device_scale_factor: 1.0,
+        mobile: false
+      ).call(page)
+      page.must_eval("() => [innerWidth, innerHeight]").should eq(JSON.parse("[700,500]"))
+
+      page.must_screenshot_full_page
+
+      page.must_eval("() => [innerWidth, innerHeight]").should eq(JSON.parse("[700,500]"))
+      # The restored viewport is stored again, so a second full page shot
+      # restores it as well.
+      page.must_screenshot_full_page
+      page.must_eval("() => [innerWidth, innerHeight]").should eq(JSON.parse("[700,500]"))
+
+      page.must_close
+    end
+  end
+
   it "matches TestScrollScreenshot behavior with real browser" do
     with_live_browser do |browser|
       page = browser.must_page(fixture_url("scroll-y.html"))

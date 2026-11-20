@@ -238,7 +238,6 @@ module Rod
     property touch : Touch?
     property element : Element?
     @e : EFunc?
-    @viewport_state : Cdp::Emulation::SetDeviceMetricsOverride? = nil
 
     # IsIframe tells if it's iframe.
     def iframe? : Bool
@@ -997,10 +996,8 @@ module Rod
     def set_viewport(params : Cdp::Emulation::SetDeviceMetricsOverride?) : Nil
       if params.nil?
         Cdp::Emulation::ClearDeviceMetricsOverride.new.call(self)
-        @viewport_state = nil
       else
         params.call(self)
-        @viewport_state = params
       end
     end
 
@@ -1012,7 +1009,7 @@ module Rod
     end
 
     # LoadState into the method.
-    def load_state(method : Cdp::Request) : Bool
+    def load_state(method : T) : T? forall T
       browser.load_state(@session_id, method)
     end
 
@@ -1038,41 +1035,13 @@ module Rod
           raise "failed to get css content size"
         end
 
-        old_viewport = @viewport_state
-        # Create base viewport with default values if old_viewport doesn't exist
-        base = old_viewport || Cdp::Emulation::SetDeviceMetricsOverride.new(
-          width: 0_i64,
-          height: 0_i64,
-          device_scale_factor: 0.0,
-          mobile: false,
-          scale: nil,
-          screen_width: nil,
-          screen_height: nil,
-          position_x: nil,
-          position_y: nil,
-          dont_set_visible_size: nil,
-          screen_orientation: nil,
-          viewport: nil,
-          display_feature: nil,
-          device_posture: nil
-        )
-        # Create new viewport with full page dimensions
-        view = Cdp::Emulation::SetDeviceMetricsOverride.new(
-          width: css_content_size.width.to_i64,
-          height: css_content_size.height.to_i64,
-          device_scale_factor: base.device_scale_factor,
-          mobile: base.mobile?,
-          scale: base.scale,
-          screen_width: base.screen_width,
-          screen_height: base.screen_height,
-          position_x: base.position_x,
-          position_y: base.position_y,
-          dont_set_visible_size: base.dont_set_visible_size?,
-          screen_orientation: base.screen_orientation,
-          viewport: base.viewport,
-          display_feature: base.display_feature,
-          device_posture: base.device_posture
-        )
+        # go reads the previous viewport back from the browser state map rather
+        # than a page-local copy (`page.go:437-471`), so a viewport applied with
+        # a raw CDP request is restored too.
+        previous_view = load_state(Cdp::Emulation::SetDeviceMetricsOverride.new(0_i64, 0_i64, 0.0, false))
+        view = previous_view || Cdp::Emulation::SetDeviceMetricsOverride.new(0_i64, 0_i64, 0.0, false)
+        view.width = css_content_size.width.to_i64
+        view.height = css_content_size.height.to_i64
 
         set_viewport(view)
 
@@ -1080,7 +1049,9 @@ module Rod
           shot = req.call(self)
           return Base64.decode(shot.data)
         ensure
-          set_viewport(old_viewport)
+          # Try to recover the viewport: the stored one, or no emulation at all
+          # when the page did not have a viewport before (`page.go:462-469`).
+          previous_view ? set_viewport(previous_view) : set_viewport(nil)
         end
       end
 

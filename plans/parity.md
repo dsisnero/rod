@@ -8,25 +8,25 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 43 (event waits keep caller-enabled
-domains; live `TestHandleAuth`).
+green, and the last feature commit is Phase 44 (`LoadState` copies the stored
+params; full-page screenshots restore the browser-state viewport).
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~1m45s). Before a full run, clear stray headless browsers left
 by an aborted run — `pgrep -f "rod/user-data" | xargs -r kill -9`; they push the
 live specs into their documented load flake (see Gotchas).
 
-Phases 23-43 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-44 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. Next up item 1 records what cannot be re-derived from
 the ledger: which areas were swept and which leads are still open.
 
-**Last commit:** `port: keep caller-enabled domains across event waits like go-rod`
-(Phase 43; `git log -1` for the hash).
+**Last commit:** `port: read LoadState params and restore the browser viewport`
+(Phase 44; `git log -1` for the hash).
 
-**Gates (2026-11-20, after Phase 43):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (685 examples, 0 failures) · parity checks pass
+**Gates (2026-11-20, after Phase 44):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (690 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -40,43 +40,36 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    test first matters: Phase 43 found that the stub-only `TestHandleAuth` had
    hidden a `Fetch domain is not enabled` bug in `handle_auth`.
    - Candidate leads, roughly easiest-first, each already verified to exist:
-     a. `Page#screenshot(full_page: true)` restores the viewport from the
-        page-local `@viewport_state`; go reads the browser state map
-        (`oldView := ...; set := p.LoadState(&oldView)`, `page.go:437-471`), so a
-        viewport applied through raw CDP is not restored.
-     b. `Element#frame` builds the iframe page with the *element's* `ctx` and
+     a. `Element#frame` builds the iframe page with the *element's* `ctx` and
         `sleeper`; go uses `el.page.ctx`/`el.page.sleeper` (`element.go` `Frame`).
-     c. `Element#parents` hand-writes JS and makes the selector optional; go is
+     b. `Element#parents` hand-writes JS and makes the selector optional; go is
         `evalHelper(js.Parents, selector)` with a required selector
         (`query.go:516-518`).
-     d. `Element#element`/`element_x`/`element_r` hand-write JS with
+     c. `Element#element`/`element_x`/`element_r` hand-write JS with
         `/* rod.element */`-style markers instead of `js.Element`/`js.ElementX`/
         `js.ElementR` (`query.go:487-499`). Behaviourally equivalent today;
         switching to the helpers also exercises `ensure_js_helper` caching.
-     e. `HijackRouter#add/remove/stop` against `hijack.go:113-192` (go's `Add`
+     d. `HijackRouter#add/remove/stop` against `hijack.go:113-192` (go's `Add`
         returns the `Fetch.enable` error; `Remove` rebuilds patterns *without*
         the resource type).
-     f. `query.go`: `Search` (`DOM.performSearch` retry, iframe/shadow search,
+     e. `query.go`: `Search` (`DOM.performSearch` retry, iframe/shadow search,
         `SearchResult#get/release`) and `WaitElementsMoreThan` (go passes `Eval`,
         i.e. by-value *and* by-promise).
-     g. `browser.go`: `Pages`, `Page`, `Cookies`, `Close`. Audited so far and
+     f. `browser.go`: `Pages`, `Page`, `Cookies`, `Close`. Audited so far and
         matched — re-check `Browser#page`'s close-on-error path and `Pages`
         ordering before starting.
-     h. `page_eval.go`: `evaluate` backoff, per-JS-context helper cache,
+     g. `page_eval.go`: `evaluate` backoff, per-JS-context helper cache,
         `object_to_json`, `release`.
-     i. `dev_helpers.go`: `try_trace_req` network tracing
+     h. `dev_helpers.go`: `try_trace_req` network tracing
         (`TraceTypeWaitRequests`), `ExposeHelpers`, `Overlay`.
-     j. `states.go`: `Browser#load_state`/`Page#load_state` report presence but do
-        not copy the stored params into the request (go's reflective
-        `reflect.Value.Set`). Crystal's generated request types are structs, so
-        this needs a design decision, not a straight port (see Phase 37).
    - Already swept, do not re-audit: context/cancellation (23, 26), event hub
      (24), launcher/manager (21, 25, 29, 34), error types + `errors.Is` (27, 28),
      quad geometry (30), `Element.Wait*` + `visible?` (31), lookup probes /
      `NotFoundSleeper` (32), `wait_interactable` (33), `ElementsByJS` errors (35),
      hijack bodies (36), `WaitDownload` restore (37), input mac mode (38),
      `Pages#find` (39), `LoadResponse` bodies (40), `SelectAllText` (41),
-     `HandleAuth` + event-wait domain state (42, 43).
+     `HandleAuth` + event-wait domain state (42, 43), `LoadState` params +
+     full-page screenshot viewport restore (44).
    - Verified equal, no work needed: all 32 `lib/js` helper definitions are
      byte-identical to `vendor/rod/lib/js/helper.go` (checked programmatically in
      Phase 39 — don't re-audit them), and the keyboard/mouse/touch event payloads
@@ -187,7 +180,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 86 files, 619 examples, 0 failures (2026-11-18, Chromium `160.0.8168.1`) |
+| Crystal specs | 94 files, 690 examples, 0 failures (2026-11-20, Chromium `160.0.8168.1`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -1495,6 +1488,47 @@ as `net::ERR_INVALID_AUTH_CREDENTIALS`.
       left a warm browser in the free list.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (685 examples, 0 failures), `make check-go-*` pass.
+
+### Phase 44 — `LoadState` copies params, full-page shots restore the browser viewport ✅
+
+`Page#screenshot(full_page: true)` restored the viewport from a page-local
+`@viewport_state` that only `Page#set_viewport` wrote. go keeps the params in the
+browser state map instead (`oldView := proto.EmulationSetDeviceMetricsOverride{};
+set := p.LoadState(&oldView)`, `page.go:437-471`), so a viewport applied through
+a raw CDP request is restored too. The port's `LoadState` could not do that: it
+only reported presence, because filling a caller's struct through a method
+argument loses the assignments (Crystal copies structs at call boundaries).
+
+- [x] Red-green: `spec/live_browser_parity_spec.cr` applies a 700x500 viewport
+      with a raw `Emulation.setDeviceMetricsOverride`, takes a full-page shot and
+      expects `[innerWidth, innerHeight]` back (twice, so the restored viewport
+      is stored again); it answered `[1280, 800]` — the pooled default device —
+      before the fix.
+- [x] `spec/state_management_spec.cr`: `load_state` copies the stored width,
+      height, `deviceScaleFactor` and `mobile`, keeps the caller's values for
+      params the payload does not carry, and answers `nil` when nothing is
+      stored.
+- [x] `spec/screenshot_spec.cr`: the stub page seeds the browser state map and
+      asserts the restore request carries the stored params (the old code blindly
+      sent `Emulation.clearDeviceMetricsOverride`).
+- [x] `src/cdp/cdp.cr` + `src/pdlgen/gen/crystal_templates/root.ecr`:
+      `Cdp::Request#apply_state` assigns one field per declared ivar, keyed by
+      the field's `JSON::Field` key. The scan is wrapped in `{% verbatim %}`
+      because the including type's instance vars are only registered after the
+      `include` line. `spec/pdlgen_root_template_parity_spec.cr` pins the
+      template and the generated file together.
+- [x] **Intentional divergence**: go's `LoadState(sessionID, method) (has bool)`
+      fills the caller's request via `reflect.Value.Set` (`states.go:43-52`).
+      Crystal cannot, so `Browser#load_state(session_id, req) : T?` returns the
+      loaded request and `nil` means "no state" (go's `has`); `Page#load_state`
+      delegates. Recorded in the ledger notes.
+- [x] `Browser#wait_download` reads the previous behavior with `load_state` and
+      re-applies that request, dropping the `saved_state` JSON workaround Phase 37
+      needed (`browser.go:504-538`).
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (690 examples, 0 failures), `make check-go-*` pass.
+
+---
 
 ---
 

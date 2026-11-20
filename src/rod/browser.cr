@@ -301,8 +301,14 @@ module Rod
     # call is restored afterwards, not blindly reset to `default`.
     def wait_download(dir : String) : Proc(Cdp::Browser::DownloadWillBeginEvent?)
       # go reads the current behavior back with
-      # `has := b.LoadState("", &oldDownloadBehavior)` and re-applies it later.
-      previous = saved_state("Browser.setDownloadBehavior")
+      # `has := b.LoadState("", &oldDownloadBehavior)` and re-applies it later
+      # (`browser.go:504-538`).
+      previous = load_state(nil, Cdp::Browser::SetDownloadBehavior.new(
+        Cdp::Browser::SetDownloadBehaviorBehaviorDefault,
+        nil,
+        nil,
+        nil
+      ))
 
       Cdp::Browser::SetDownloadBehavior.new(
         Cdp::Browser::SetDownloadBehaviorBehaviorAllowAndName,
@@ -343,27 +349,19 @@ module Rod
       end
     end
 
-    # saved_state returns the params recorded for a browser-level method, if any.
-    # go's `LoadState` copies them back into the request object; Crystal's
-    # generated request types are structs, so callers that need the payload read
-    # the JSON here.
-    private def saved_state(method_name : String) : JSON::Any?
-      key = StateKey.new(@browser_context_id, nil, method_name)
+    # state_params returns the params recorded for a CDP method, if any.
+    private def state_params(session_id : SessionID?, method_name : String) : JSON::Any?
+      key = StateKey.new(@browser_context_id, session_id, method_name)
       @states_lock.synchronize { @states[key]? }
     end
 
     # restore_download_behavior re-applies the behavior that was saved before
     # `wait_download`, like go's `oldDownloadBehavior.Call(b)`, and falls back to
     # `default` when there was none (`browser.go:522-532`).
-    private def restore_download_behavior(previous : JSON::Any?) : Nil
+    private def restore_download_behavior(previous : Cdp::Browser::SetDownloadBehavior?) : Nil
       if previous
-        begin
-          Cdp::Browser::SetDownloadBehavior.from_json(previous.to_json).call(self)
-          return
-        rescue
-          # A stored payload we cannot rebuild falls back to `default` instead of
-          # masking the download result.
-        end
+        previous.call(self)
+        return
       end
 
       Cdp::Browser::SetDownloadBehavior.new(
@@ -430,11 +428,17 @@ module Rod
       delete_state(session_id, delete_key) if delete_key
     end
 
-    # LoadState loads previously stored params for a CDP method call.
-    # Returns true if state existed and params were loaded into the request object.
-    def load_state(session_id : SessionID?, req : Cdp::Request) : Bool
-      key = StateKey.new(@browser_context_id, session_id, req.proto_req)
-      @states_lock.synchronize { @states.has_key?(key) }
+    # LoadState loads previously stored params for a CDP method call, like go's
+    # `Browser.LoadState` (`states.go:43-52`). go fills the caller's request
+    # through reflection; Crystal copies structs at call boundaries, so the
+    # loaded request is returned instead, and nil means no state was stored
+    # (go's `has`).
+    def load_state(session_id : SessionID?, req : T) : T? forall T
+      params = state_params(session_id, req.proto_req)
+      return nil unless params
+
+      req.apply_state(params)
+      req
     end
 
     # RemoveState deletes a state entry.

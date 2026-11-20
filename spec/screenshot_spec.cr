@@ -71,6 +71,7 @@ end
 
 private class ScreenshotStubPage < Rod::Page
   getter methods = [] of String
+  getter payloads = {} of String => Array(JSON::Any)
   @responses = {} of String => String
   @failures = {} of String => Exception
 
@@ -88,6 +89,7 @@ private class ScreenshotStubPage < Rod::Page
 
   def call(context : HTTP::Client::Context?, session_id : String?, method : String, params : JSON::Any) : Bytes
     @methods << method
+    (@payloads[method] ||= [] of JSON::Any) << params
     if ex = @failures[method]?
       raise ex
     end
@@ -178,6 +180,43 @@ describe Rod::Page do
     page.screenshot(full_page: true).should eq("full".to_slice)
     page.methods.should contain("Emulation.setDeviceMetricsOverride")
     page.methods.should contain("Emulation.clearDeviceMetricsOverride")
+  end
+
+  it "#screenshot restores the viewport stored in the browser state like go" do
+    page = ScreenshotStubPage.new
+    page.set_response("Page.getLayoutMetrics", %({
+      "layoutViewport":{"pageX":0,"pageY":0,"clientWidth":100,"clientHeight":50},
+      "visualViewport":{"offsetX":0.0,"offsetY":0.0,"pageX":0.0,"pageY":0.0,"clientWidth":100.0,"clientHeight":50.0,"scale":1.0},
+      "contentSize":{"x":0.0,"y":0.0,"width":100.0,"height":300.0},
+      "cssLayoutViewport":{"pageX":0,"pageY":0,"clientWidth":100,"clientHeight":50},
+      "cssVisualViewport":{"offsetX":0.0,"offsetY":0.0,"pageX":0.0,"pageY":0.0,"clientWidth":100.0,"clientHeight":50.0,"scale":1.0},
+      "cssContentSize":{"x":0.0,"y":0.0,"width":100.0,"height":300.0}
+    }))
+    page.set_response("Page.captureScreenshot", %({"data":"ZnVsbA=="}))
+    page.set_response("Emulation.setDeviceMetricsOverride", %({}))
+
+    # go reads the previous viewport back from the browser state map
+    # (`page.go:452`), which every CDP call fills (`browser.go`), so the
+    # viewport does not have to come from `Page#set_viewport`.
+    page.browser.set_state(
+      page.session_id.try { |sid| Rod::SessionID.new(sid) },
+      "Emulation.setDeviceMetricsOverride",
+      JSON.parse(%({"width":700,"height":500,"deviceScaleFactor":2.0,"mobile":true}))
+    )
+
+    page.screenshot(full_page: true).should eq("full".to_slice)
+
+    page.methods.should_not contain("Emulation.clearDeviceMetricsOverride")
+    viewports = page.payloads["Emulation.setDeviceMetricsOverride"]
+    viewports.size.should eq(2)
+    viewports.first["width"].as_i.should eq(100)
+    viewports.first["height"].as_i.should eq(300)
+    viewports.first["deviceScaleFactor"].as_f.should eq(2.0)
+    viewports.first["mobile"].as_bool.should be_true
+    viewports.last["width"].as_i.should eq(700)
+    viewports.last["height"].as_i.should eq(500)
+    viewports.last["deviceScaleFactor"].as_f.should eq(2.0)
+    viewports.last["mobile"].as_bool.should be_true
   end
 
   it "#scroll_screenshot returns scroll screenshot data" do

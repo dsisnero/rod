@@ -113,6 +113,31 @@ module Cdp
   # Request represents a cdp.Request.Method.
   module Request
     abstract def proto_req : String
+
+    # apply_state copies stored CDP params into the request, the way go's
+    # `Browser.LoadState` uses `reflect.Value.Set` to overwrite every field
+    # (`vendor/rod/states.go:43-52`). Crystal has no runtime reflection, so the
+    # assignments are generated per declared field from its `JSON::Field` key.
+    # A field the payload does not carry keeps its current value; a JSON `null`
+    # clears a nilable field, matching go's nil pointer copy.
+    #
+    # `verbatim` defers the field scan to the including type, whose instance
+    # vars are only registered after the `include` line.
+    macro included
+      def apply_state(json : JSON::Any) : Nil
+        {% verbatim do %}
+          object = json.as_h?
+          return unless object
+          {% for ivar in @type.instance_vars %}
+            {% field = ivar.annotation(::JSON::Field) %}
+            {% key = field ? (field[:key] || ivar.name.stringify) : ivar.name.stringify.camelcase %}
+            if value = object[{{ key }}]?
+              @{{ ivar.name }} = {{ ivar.type }}.from_json(value.to_json)
+            end
+          {% end %}
+        {% end %}
+      end
+    end
   end
 
   # Event represents a cdp.Event.Params.
