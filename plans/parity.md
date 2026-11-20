@@ -8,21 +8,21 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 38 (input mac mode and
-`macCommands`). A new session can start with
+green, and the last feature commit is Phase 39 (`Pages#find` reports
+`PageNotFoundError`). A new session can start with
 `make lint && make test` to confirm the baseline and then pick an item from
 **Next up**.
 
-Phases 23-38 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-39 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. The audit queue in Next up item 1 records what has
 already been swept and what has not.
 
-**Last commit:** `port: default input mac mode and macCommands like go-rod`
-(Phase 38; `git log -1` for the hash).
+**Last commit:** `port: raise PageNotFoundError from Pages#find like go-rod`
+(Phase 39; `git log -1` for the hash).
 
-**Gates (2026-11-19, after Phase 38):** `make format` pass · `make lint` pass
+**Gates (2026-11-19, after Phase 39):** `make format` pass · `make lint` pass
 (240 files) · `make test` pass (675 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
@@ -38,10 +38,9 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      geometry (30), `Element.Wait*` + `visible?` (31), lookup probes /
      `NotFoundSleeper` (32), `wait_interactable` (33), launcher shutdown (34),
      `ElementsByJS` error types (35), hijack bodies (36), `WaitDownload`
-     restore (37), input mac mode (38).
+     restore (37), input mac mode (38), `Pages#find` misses (39).
    - Not swept yet: `hijack.go` router/headers (`HijackRouter`, `HandleAuth`),
-     `query.go` (`Search`,
-     `WaitElementsMoreThan`, `Pages#find*`),
+     `query.go` (`Search`, `WaitElementsMoreThan`),
      `browser.go` (`Pages`, `Page`, `Cookies`, `Close`),
      `page_eval.go` + `lib/js/` helpers, `input/` beyond the keymap
      (keyboard/mouse semantics, `KeyActions`), `dev_helpers.go`, `states.go`,
@@ -1333,6 +1332,23 @@ emitted and the other reachable keys lost theirs.
 - [x] `src/rod/util/input/input.cr`: `@@is_mac` is initialised from
       `flag?(:darwin)`, and `MAC_COMMANDS` is go's reachable subset verbatim
       (the combination rows are documented as unreachable in go).
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (675 examples, 0 failures), `make check-go-*` pass.
+
+### Phase 39 — `Pages#find` reports `PageNotFoundError` ✅
+
+go-rod's `Pages.Find`/`FindByURL` (`query.go:76-102`) propagate the per-page
+errors and answer `(nil, &PageNotFoundError{})` on a miss, so callers match it
+with `errors.Is`. The port returned a nilable `Page?`, which made the miss
+indistinguishable from a real page result and left `PageNotFoundError` to the
+`must_*` helpers only.
+
+- [x] Red-green `spec/pages_parity_spec.cr`: a miss must raise
+      `PageNotFoundError` for both `find` and `find_by_url` (red: `nil`), while
+      the hit and the propagated eval-error cases keep their expectations.
+- [x] `src/rod/page.cr`: `find`/`find_by_url` return `Page` and raise
+      `PageNotFoundError`; `src/rod/must.cr`'s `must_find`/`must_find_by_url`
+      now just delegate.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (675 examples, 0 failures), `make check-go-*` pass.
 

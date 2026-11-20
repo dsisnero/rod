@@ -53,22 +53,24 @@ describe Rod::Pages do
     list.last.should eq(b)
   end
 
-  it "#find returns page containing selector and nil when no page matches" do
+  it "#find returns the page containing the selector and raises PageNotFoundError on a miss" do
     a = PagesStubPage.new("https://a.test")
     b = PagesStubPage.new("https://b.test", ["button"])
     list = Rod::Pages.new([a.as(Rod::Page), b.as(Rod::Page)])
 
     list.find("button").should eq(b)
-    list.find("missing").should be_nil
+    # go: `return nil, &PageNotFoundError{}` (`query.go:86`).
+    expect_raises(Rod::PageNotFoundError) { list.find("missing") }
   end
 
-  it "#find_by_url returns first matching page and nil when none match" do
+  it "#find_by_url returns the first matching page and raises PageNotFoundError on a miss" do
     a = PagesStubPage.new("https://a.test/path")
     b = PagesStubPage.new("https://b.test/other")
     list = Rod::Pages.new([a.as(Rod::Page), b.as(Rod::Page)])
 
     list.find_by_url("a\\.test").should eq(a)
-    list.find_by_url("c\\.test").should be_nil
+    # go: `return nil, &PageNotFoundError{}` (`query.go:101`).
+    expect_raises(Rod::PageNotFoundError) { list.find_by_url("c\\.test") }
   end
 
   it "must helpers return matching page and raise PageNotFoundError when absent" do

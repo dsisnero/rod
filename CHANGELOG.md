@@ -32,6 +32,10 @@ below describe the Crystal port, not upstream changes.
 
 ### Changed
 
+- `Pages#find` and `Pages#find_by_url` return the page or raise
+  `PageNotFoundError`, like go-rod's `(nil, &PageNotFoundError{})`
+  (`query.go:76-102`), instead of returning `nil`; `must_find`/`must_find_by_url`
+  keep raising it. Page-level errors (`Has`, the URL eval) still propagate.
 - `Rod::Input.mac?` defaults to the host OS, like go-rod's
   `var IsMac = runtime.GOOS == "darwin"` (`lib/input/mac_comands.go:5`), and
   `MAC_COMMANDS` carries every row go's `macCommands` can actually reach

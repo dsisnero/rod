@@ -2605,25 +2605,24 @@ module Rod
     end
 
     # Find the page that has the specified element with the css selector.
-    # Returns nil if no page contains the element.
-    def find(selector : String) : Page?
+    # Raises PageNotFoundError when no page contains the element, like go-rod
+    # (`query.go:76-87`).
+    def find(selector : String) : Page
       @pages.each do |page|
-        if page.has_element?(selector)
-          return page
-        end
+        return page if page.has_element?(selector)
       end
-      nil
+      raise PageNotFoundError.new
     end
 
     # Find the page that has the url that matches the js_regex.
-    # Returns nil if no page matches.
-    def find_by_url(js_regex : String) : Page?
+    # Raises PageNotFoundError when no page matches (`query.go:90-102`).
+    def find_by_url(js_regex : String) : Page
       regex = Regex.new(js_regex)
       @pages.each do |page|
         url = page.eval("() => location.href").value.try(&.as_s) || ""
         return page if regex.match(url)
       end
-      nil
+      raise PageNotFoundError.new
     end
 
     # Convert to array

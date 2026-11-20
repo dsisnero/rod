@@ -138,16 +138,12 @@ module Rod
   struct Pages
     # MustFind is similar to find.
     def must_find(selector : String) : Page
-      page = find(selector)
-      raise PageNotFoundError.new unless page
-      page
+      find(selector)
     end
 
     # MustFindByURL is similar to find_by_url.
     def must_find_by_url(regex : String) : Page
-      page = find_by_url(regex)
-      raise PageNotFoundError.new unless page
-      page
+      find_by_url(regex)
     end
   end
 
