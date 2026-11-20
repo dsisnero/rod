@@ -79,9 +79,22 @@ describe "Query has parity" do
     el = HasStubElement.new(page)
     page.next_element = el
 
-    page.has("a").should eq({true, el.as(Rod::Element?)})
-    page.has_x("//a").should eq({true, el.as(Rod::Element?)})
-    page.has_r("a", "b").should eq({true, el.as(Rod::Element?)})
+    # go hands the found element `el.Sleeper(p.sleeper)` (`query.go:113`), so the
+    # port compares the object it points at, not the clone's identity.
+    hit, found = page.has("a")
+    hit.should be_true
+    found.not_nil!.object.should eq(el.object)
+    found.not_nil!.sleeper.should eq(page.sleeper)
+
+    hit, found = page.has_x("//a")
+    hit.should be_true
+    found.not_nil!.object.should eq(el.object)
+    found.not_nil!.sleeper.should eq(page.sleeper)
+
+    hit, found = page.has_r("a", "b")
+    hit.should be_true
+    found.not_nil!.object.should eq(el.object)
+    found.not_nil!.sleeper.should eq(page.sleeper)
   end
 
   it "page has_x/has_r propagate non-NotFound errors" do

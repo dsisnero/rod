@@ -43,8 +43,10 @@ describe Rod::RaceContext do
     race.handle { |element| handled << element }
 
     result = race.do
-    result.should eq(target)
-    handled.should eq([target])
+    # go returns `bEl.Sleeper(rc.page.sleeper)` (`query.go:444`), so the winner is
+    # a clone that points at the same remote object.
+    result.object.should eq(target.object)
+    handled.map(&.object).should eq([target.object])
   end
 
   it "#do propagates non-not-found errors immediately" do
@@ -78,7 +80,7 @@ describe Rod::RaceContext do
     page.search_result = result
 
     found = page.race.search("button").do
-    found.should eq(target)
+    found.object.should eq(target.object)
     released.should be_true
   end
 

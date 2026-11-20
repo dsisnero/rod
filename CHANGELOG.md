@@ -32,6 +32,19 @@ below describe the Crystal port, not upstream changes.
 
 ### Changed
 
+- Lookup probes follow go-rod's `NotFoundSleeper` split between "look once" and
+  "wait for it": `Page#has`/`has_x`/`has_r` (`query.go:105-138`),
+  `Element#element_by_js` (`query.go:501-508`) and every `RaceContext` branch
+  (`query.go:438-457`) now fail the first attempt instead of retrying with the
+  page sleeper, and the element they find keeps the caller's sleeper
+  (`el.Sleeper(...)`). `Rod.not_found_sleeper` is now the factory shape Go's
+  `NotFoundSleeper` has (`func() utils.Sleeper`), so it can be installed with
+  `Page#sleeper`/`Element#sleeper`.
+- Elements inherit their page's `ctx` and `sleeper` (`ElementFromObject`,
+  `page.go:947-953`), so `page.timeout(...)` and
+  `page.sleeper(-> { ... })` now bound element lookups and waits the way
+  go-rod's do; `Element#elements_by_js` also runs in the element context
+  (`query.go:540-543`).
 - `Element#wait_visible`, `Element#wait_enabled`, `Element#wait_writable` and
   `Element#wait_invisible` now take no timeout argument and delegate to
   `Element#wait`/`Page#wait`, like go-rod's
@@ -97,6 +110,14 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `page.has("#missing")` blocked for the whole 5 s query timeout instead of
+  answering `false` on the first attempt, `element.has("#missing")` never
+  returned at all (an `Element#timeout` did not apply because the lookup ran on
+  the page context), and `page.race` burned 5 s on every branch that missed.
+  All of them now probe once, like go-rod's `NotFoundSleeper`.
+- `Element#has`/`has_x`/`has_r` (and `parent`/`next`/`previous`) only rescued the
+  port's `NotFoundError`, so a plain `ElementNotFoundError` — the one
+  `NotFoundSleeper` raises — escaped instead of answering `false`/`nil`.
 - `Element#wait_visible`, `wait_enabled`, `wait_writable` and `wait_invisible`
   ignored the page/element timeout and the chained sleeper: an element that
   became visible after 6 seconds failed under `page.timeout(30.seconds)`, and

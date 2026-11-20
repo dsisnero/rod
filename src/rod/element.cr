@@ -779,15 +779,18 @@ module Rod
     end
 
     # Find element using JavaScript function with this element as context.
+    # go-rod probes once with `NotFoundSleeper` inside the element's own context
+    # and hands the result this element's sleeper (`query.go:501-508`).
     def element_by_js(opts : EvalOptions) : Element
       opts_with_this = opts.this(@object)
-      @page.element_by_js(opts_with_this)
+      found = @page.context(@ctx).sleeper(Rod.not_found_sleeper).element_by_js(opts_with_this)
+      found.sleeper(@sleeper)
     end
 
     # Find elements using JavaScript function with this element as context.
     def elements_by_js(opts : EvalOptions) : Elements
       opts_with_this = opts.this(@object)
-      @page.elements_by_js(opts_with_this)
+      @page.context(@ctx).elements_by_js(opts_with_this)
     end
 
     # Check if child element exists matching the CSS selector.
@@ -795,7 +798,7 @@ module Rod
     def has(selector : String) : Tuple(Bool, Element?)
       el = element(selector)
       {true, el}
-    rescue NotFoundError
+    rescue ElementNotFoundError
       {false, nil}
     end
 
@@ -804,7 +807,7 @@ module Rod
     def has_x(xpath : String) : Tuple(Bool, Element?)
       el = element_x(xpath)
       {true, el}
-    rescue NotFoundError
+    rescue ElementNotFoundError
       {false, nil}
     end
 
@@ -813,7 +816,7 @@ module Rod
     def has_r(selector : String, regex : String) : Tuple(Bool, Element?)
       el = element_r(selector, regex)
       {true, el}
-    rescue NotFoundError
+    rescue ElementNotFoundError
       {false, nil}
     end
 
@@ -872,7 +875,7 @@ module Rod
         execution_context_id: nil
       )
       result = req.call(@page)
-      Element.new(result.object, @page)
+      Element.new(result.object, @page, @page.ctx, @page.sleeper)
     end
 
     # Frame creates a page instance that represents the iframe.
@@ -943,7 +946,7 @@ module Rod
       opts = EvalOptions.new(js: "function() { return this.parentElement }")
       begin
         element_by_js(opts)
-      rescue NotFoundError
+      rescue ElementNotFoundError
         nil
       end
     end
@@ -973,7 +976,7 @@ module Rod
       opts = EvalOptions.new(js: "function() { return this.nextElementSibling }")
       begin
         element_by_js(opts)
-      rescue NotFoundError
+      rescue ElementNotFoundError
         nil
       end
     end
@@ -983,7 +986,7 @@ module Rod
       opts = EvalOptions.new(js: "function() { return this.previousElementSibling }")
       begin
         element_by_js(opts)
-      rescue NotFoundError
+      rescue ElementNotFoundError
         nil
       end
     end

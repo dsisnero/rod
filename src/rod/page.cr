@@ -1464,34 +1464,34 @@ module Rod
       eval(js, args || [] of JSON::Any)
     end
 
-    # Check if element exists matching the CSS selector.
-    # Returns tuple of {found, element} where element is nil if not found.
+    # Has an element that matches the css selector.
+    # Like go-rod (`query.go:105-114`), the lookup is a single probe through
+    # `NotFoundSleeper` and the element it finds keeps this page's sleeper.
     def has(selector : String) : Tuple(Bool, Element?)
-      el = element(selector)
-      {true, el}
+      el = sleeper(Rod.not_found_sleeper).element(selector)
+      {true, el.sleeper(@sleeper)}
     rescue ElementNotFoundError
       {false, nil}
     end
 
-    # Convenience method - just check existence without returning element.
+    # Check if element exists matching the CSS selector.
     def has_element?(selector : String) : Bool
       has(selector)[0]
     end
 
-    # Check if element exists matching the XPath selector.
-    # Returns tuple of {found, element} where element is nil if not found.
+    # HasX an element that matches the XPath selector.
     def has_x(xpath : String) : Tuple(Bool, Element?)
-      el = element_x(xpath)
-      {true, el}
+      el = sleeper(Rod.not_found_sleeper).element_x(xpath)
+      {true, el.sleeper(@sleeper)}
     rescue ElementNotFoundError
       {false, nil}
     end
 
-    # Check if element exists matching the CSS selector and text regex.
-    # Returns tuple of {found, element} where element is nil if not found.
+    # HasR has an element that matches the css selector and its display text
+    # matches the jsRegex.
     def has_r(selector : String, regex : String) : Tuple(Bool, Element?)
-      el = element_r(selector, regex)
-      {true, el}
+      el = sleeper(Rod.not_found_sleeper).element_r(selector, regex)
+      {true, el.sleeper(@sleeper)}
     rescue ElementNotFoundError
       {false, nil}
     end
@@ -1849,7 +1849,7 @@ module Rod
           end
 
           # Create element from remote object
-          elem = Element.new(value, self)
+          elem = element_from_object(value)
           elements << elem
         end
 
@@ -1946,7 +1946,7 @@ module Rod
         page.js_ctx_id_cache = id
       end
 
-      Element.new(obj, page)
+      Element.new(obj, page, page.ctx, page.sleeper)
     end
 
     # search performs a text search across the page.
@@ -2222,7 +2222,7 @@ module Rod
             object_group: nil,
             execution_context_id: nil
           ).call(self)
-          candidate = Element.new(resolved.object, self)
+          candidate = Element.new(resolved.object, self, @ctx, @sleeper)
           described = candidate.describe(1, false)
           return candidate if described.frame_id == fid
         rescue

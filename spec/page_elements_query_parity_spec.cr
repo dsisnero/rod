@@ -49,6 +49,12 @@ private class PageElementsStub < Rod::Page
     when "Runtime.releaseObject"
       @release_calls += 1
       %({}).to_slice
+    when "Runtime.evaluate"
+      %({"result":{"type":"object","objectId":"window-1"}}).to_slice
+    when "Runtime.callFunctionOn"
+      # `element_from_object` resolves each element's JS context first
+      # (go `jsCtxIDByObjectID`, `page.go:900-916`).
+      %({"result":{"type":"object","objectId":"window-1"}}).to_slice
     else
       raise "unexpected method: #{method}"
     end

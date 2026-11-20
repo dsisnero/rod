@@ -8,22 +8,22 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 31 (`Element.Wait*` retries
-through the page sleeper). A new session can start with
+green, and the last feature commit is Phase 32 (lookup probes through
+`NotFoundSleeper`). A new session can start with
 `make lint && make test` to confirm the baseline and then pick an item from
 **Next up**.
 
-Phases 23-31 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-32 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. The audit queue in Next up item 1 records what has
 already been swept and what has not.
 
-**Last commit:** `port: retry Element.Wait* through the page sleeper like go-rod`
-(Phase 31; `git log -1` for the hash).
+**Last commit:** `port: probe lookups with NotFoundSleeper like go-rod`
+(Phase 32; `git log -1` for the hash).
 
-**Gates (2026-11-19, after Phase 31):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (649 examples, 0 failures) · parity checks pass
+**Gates (2026-11-19, after Phase 32):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (657 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -35,9 +35,10 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    (spec first, then the fix, then gates + this file + `CHANGELOG.md`).
    - Already swept: context/cancellation (Phases 23, 26), event hub (24),
      launcher/manager (21, 25, 29), error types + `errors.Is` (27, 28), quad
-     geometry (30), `Element.Wait*` + `visible?` (31).
-   - Not swept yet: `hijack.go` / `HijackRouter`, `query.go`
-     (`Search`, `ElementByJS`, `WaitElementsMoreThan`, the query-branch retry),
+     geometry (30), `Element.Wait*` + `visible?` (31), lookup probes /
+     `NotFoundSleeper` (32).
+   - Not swept yet: `hijack.go` / `HijackRouter`, `query.go` (`Search`,
+     `WaitElementsMoreThan`, `Pages#find*`, the `ElementsByJS` error types),
      `browser.go` (`Pages`, `Page`, `Cookies`, `Close`, `WaitDownload`),
      `page_eval.go` + `lib/js/` helpers, `input/` (keyboard, mouse, touch),
      `dev_helpers.go`, `states.go`, `element.go` beyond the wait helpers.
@@ -1139,6 +1140,47 @@ check, no client-rect check) rather than `js.Visible`.
       overrides dropped the removed `timeout` parameter.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (649 examples, 0 failures), `make check-go-*` pass.
+
+### Phase 32 — Lookup probes use `NotFoundSleeper` like go-rod ✅
+
+go-rod separates "look once" from "wait for it": `Page#Has`, `Element#Has`,
+`Element#ElementByJS` and every `RaceContext` branch go through
+`NotFoundSleeper` (`error.go:63-68`, `query.go:105-138`, `query.go:460-508`,
+`query.go:438-457`), so a miss fails on the first attempt instead of waiting out
+the page timeout. Elements also inherit their page's `ctx` and `sleeper`
+(`ElementFromObject`, `page.go:947-953`). The port retried every one of those
+with the page's own sleeper, and `Element.new(obj, page)` reset the context to
+`Context.background`: `page.has("#missing")` blocked for the full 5 s query
+timeout, `el.has("#missing")` never returned (a 2 s element timeout did not
+apply because the lookup ran on the page context), a `Race` burned 5 s per
+missing branch, and `Rod.not_found_sleeper` returned a bare proc that could not
+be installed through `Page#sleeper` at all.
+
+- [x] Red-green `spec/query_probe_parity_spec.cr`: live `page.has`/`el.has` miss
+      timing (red: 5 s and a `DeadlineExceededError`), an element-level lookup
+      that must raise `ElementNotFoundError` instead of hanging (red: still
+      running after 10 s), `Race` branch timing (red: 5.01 s), and elements
+      inheriting the page deadline/sleeper; unit cases assert the probe sleeper
+      (`ElementNotFoundError` after one miss), the chained sleeper on the found
+      element and `elements_by_js` running in the element context.
+- [x] `Rod.not_found_sleeper` is the factory shape Go's `NotFoundSleeper` has
+      (`func() utils.Sleeper`), so `page.sleeper(Rod.not_found_sleeper)` works.
+- [x] `Page#has`/`has_x`/`has_r` probe with it and hand the found element
+      `el.sleeper(@sleeper)`; `Element#element_by_js` probes in
+      `page.Context(el.ctx)` and chains `el.sleeper`;
+      `Element#elements_by_js` runs in the element context;
+      `RaceContext#do` gives branches the probe page and the winner the page
+      sleeper.
+- [x] Elements built by `element_from_object` (and `elements_by_js`,
+      `refresh_iframe_element`, `Element#shadow_root`) inherit the page's `ctx`
+      and `sleeper`.
+- [x] `spec/query_has_parity_spec.cr` and `spec/query_race_parity_spec.cr`
+      compare the returned clone's `object` (go returns `e.Sleeper(...)` too) and
+      assert the chained sleeper; `spec/page_elements_query_parity_spec.cr`
+      answers the per-element `jsCtxIDByObjectID` calls go makes in
+      `ElementFromObject`.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (657 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

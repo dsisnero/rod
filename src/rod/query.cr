@@ -142,18 +142,23 @@ module Rod
     # Raises NotFoundError if no branches succeed.
     def do : Element
       element : Element? = nil
+      # go-rod hands every branch `rc.page.Sleeper(NotFoundSleeper)` so a branch
+      # that misses fails at once instead of burning the page timeout
+      # (`query.go:440-455`).
+      probe_page = @page.sleeper(Rod.not_found_sleeper)
 
       err = ::Rod::Util::Utils.retry(@page.ctx, @page.sleeper.call) do
         stop = false
         stop_error : Exception? = nil
 
         @branches.each do |branch|
-          found = branch.condition.call(@page)
-          element = found
+          found = branch.condition.call(probe_page)
+          winner = found.sleeper(@page.sleeper)
+          element = winner
 
           # Run callback if exists
           if callback = branch.callback
-            callback.call(found)
+            callback.call(winner)
           end
 
           # Found element, stop retrying

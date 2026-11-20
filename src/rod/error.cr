@@ -71,11 +71,12 @@ module Rod
     end
   end
 
-  # NotFoundSleeper returns a sleeper that raises ElementNotFoundError on first call.
-  def self.not_found_sleeper : Proc(HTTP::Client::Context?, Exception?)
-    ->(_ctx : HTTP::Client::Context?) : Exception? do
-      ElementNotFoundError.new.as(Exception)
-    end
+  # NotFoundSleeper returns a sleeper that stops a retry with
+  # ElementNotFoundError on the first call, like go-rod's `NotFoundSleeper`
+  # (`error.go:63-68`). That is the factory shape `Page#sleeper`/`Element#sleeper`
+  # take, matching Go's `Sleeper(sleeper func() Sleeper)`.
+  def self.not_found_sleeper : Proc(Rod::Utils::Sleeper)
+    -> { Rod::Utils::Sleeper.new { |_ctx| ElementNotFoundError.new.as(Exception) } }
   end
 
   # ObjectNotFoundError is raised when a remote object cannot be found.
