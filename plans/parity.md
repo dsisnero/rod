@@ -8,22 +8,22 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 49 (quad geometry now has a single
-implementation, guarded by an equivalence spec).
+green, and the last feature commit is Phase 50 (`make check-generate-crystal`
+proves `src/cdp` still matches the pinned generation).
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~1m45s). Before a full run, clear stray headless browsers left
 by an aborted run — `pgrep -f "rod/user-data" | xargs -r kill -9`; they push the
 live specs into their documented load flake (see Gotchas).
 
-Phases 23-49 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-50 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. Next up item 1 records what cannot be re-derived from
 the ledger: which areas were swept and which leads are still open.
 
-**Last commit:** `refactor: delegate quad geometry to the Cdp::DOM helpers`
-(Phase 49; `git log -1` for the hash).
+**Last commit:** `build: gate src/cdp against the pinned generation`
+(Phase 50; `git log -1` for the hash).
 
 **Gates (2026-11-20, after Phase 49):** `make format` pass · `make lint` pass
 (240 files) · `make test` pass (704 examples, 0 failures) · parity checks pass
@@ -87,13 +87,10 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    packages passed. Re-run before reading anything into a failure — these are
    browser-timing issues in the vendored project, not port gaps. Run with
    `GODEBUG=tracebackancestors=1000`.
-4. **[verify] Generation no-op check:** `make generate-crystal
-   CDP_CHROMIUM=160.0.8168.1 CDP_V8=16.0.61` must leave a clean `git diff`. It is
-   blocked on the Chromium PDL fetch (504s / connection resets ended Phase 11),
-   so only the root template byte-equality is pinned today
-   (`spec/pdlgen_root_template_parity_spec.cr`). Phase 30 edited a `pdlgen`
-   template and its generated file by hand to match — a successful run now also
-   proves that edit.
+4. **[done]** Generation no-op check — landed as Phase 50:
+   `make check-generate-crystal` regenerates the pinned vintage into
+   `temp/cdp_generated/` and diffs it against `src/cdp`; the pinned run is a
+   no-op. It needs network on a cold cache (PDL files come from googlesource.com).
 5. **[optional cleanup]** The repo tracks built binaries (`rod`, `bin/pdlgen*`,
    `pdlgen*`), so local builds keep showing up as modified files. Decide whether
    to untrack them.
@@ -1663,6 +1660,26 @@ when they drifted.
       `one_point_inside`/`box` to `::Cdp::DOM` (the `::` prefix is required:
       inside `Rod::Util`, bare `Cdp` does not resolve to the top-level module) and
       only adapts the result types to `Rod::Point`/tuples.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (704 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 50 — generation no-op gate ✅
+
+`docs/generation.md` claims a regeneration of the pinned vintage is byte-for-byte
+reproducible, but nothing enforced it: the claim was last checked by hand, and
+Phase 30 had to edit a template *and* its generated file together.
+
+- [x] Verified the claim: `make generate-crystal CDP_CHROMIUM=160.0.8168.1
+      CDP_V8=16.0.61` on a clean tree leaves `git status --short src/cdp` empty
+      (all 154 generated `.cr` files reproduce exactly).
+- [x] `scripts/check_generate_crystal.sh` + `make check-generate-crystal`:
+      regenerate the pinned vintage into `temp/cdp_generated/`, format it like
+      `make generate-crystal` does, and `diff -r` it against `src/cdp` (ignoring
+      `._*`/`.DS_Store` sidecars). Red-green: a planted hand edit in
+      `src/cdp/cdp.cr` failed the gate naming that file; the clean tree passes.
+- [x] `docs/generation.md` documents the gate and its network requirement.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (704 examples, 0 failures), `make check-go-*` pass.
 

@@ -11,6 +11,11 @@ below describe the Crystal port, not upstream changes.
 
 ### Added
 
+- `make check-generate-crystal` (`scripts/check_generate_crystal.sh`): regenerates
+  the pinned CDP vintage (`CDP_CHROMIUM=160.0.8168.1` / `CDP_V8=16.0.61`) into
+  `temp/cdp_generated/`, formats it like `make generate-crystal`, and diffs it
+  against `src/cdp`, so a hand edit or a template regression in the generated
+  bindings cannot go unnoticed. A hand edit in `src/cdp` fails the gate by path.
 - `spec/support/live_browser_pool.cr`: pooled live-browser harness
   (`RodSpec.with_live_browser`, `RodSpec.with_isolated_browser`), the Crystal
   port of go-rod's `testerPool`. It reuses one Chrome per concurrent example,

@@ -155,6 +155,14 @@ make generate-crystal CDP_CHROMIUM=160.0.8168.1 CDP_V8=16.0.61
 `temp/cdp_generated/` so the toolchain can be exercised without touching
 `src/cdp/`.
 
+`make check-generate-crystal` proves the committed tree still matches that
+generation: it regenerates the pinned vintage into `temp/cdp_generated/`, formats
+it the way `make generate-crystal` formats `src/cdp`, and diffs the two trees
+(ignoring the AppleDouble sidecars an exFAT checkout emits). A planted hand edit
+in a generated file fails the gate with the offending paths. The first run needs
+network access — the PDL files are fetched from googlesource.com and cached under
+`temp/cdproto-gen`.
+
 ## `src/cdp` is generated end to end
 
 The committed tree is generated at Chromium `160.0.8168.1` / V8 `16.0.61`: 59

@@ -1,5 +1,5 @@
 .PHONY: install update format lint test clean generate generate-crystal generate-crystal-scratch generate-go-ref build-pdlgen-crystal build-pdlgen-go \
-	check-go-port-inventory check-go-source-parity check-go-test-parity \
+	check-generate-crystal check-go-port-inventory check-go-source-parity check-go-test-parity \
 	generate-go-port-inventory generate-go-source-parity generate-go-test-parity
 
 GO_PORT_SOURCE_DIR ?= vendor/rod
@@ -30,6 +30,11 @@ lint:
 
 test:
 	crystal spec
+
+# Gate: the committed src/cdp must still be exactly what the pinned protocol
+# generates (Chromium CDP_CHROMIUM / V8 CDP_V8).
+check-generate-crystal:
+	./scripts/check_generate_crystal.sh .
 
 check-go-port-inventory:
 	./scripts/check_go_port_inventory.sh . plans/inventory/go_port_inventory.tsv $(GO_PORT_SOURCE_DIR)
@@ -76,8 +81,8 @@ generate-crystal: build-pdlgen-crystal
 	-find src/cdp -mindepth 1 -type d -empty -delete
 	crystal tool format src/cdp
 
-# Generate into scratch space instead of src/cdp. src/cdp is a curated snapshot
-# (see docs/generation.md), so this is the non-destructive toolchain check.
+# Generate into scratch space instead of src/cdp: the non-destructive toolchain
+# check (see docs/generation.md).
 generate-crystal-scratch: build-pdlgen-crystal
 	rm -rf temp/cdp_generated
 	mkdir -p temp/cdp_generated
