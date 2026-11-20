@@ -8,22 +8,22 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 39 (`Pages#find` reports
-`PageNotFoundError`). A new session can start with
+green, and the last feature commit is Phase 40 (`Hijack.LoadResponse` honours
+`loadBody`). A new session can start with
 `make lint && make test` to confirm the baseline and then pick an item from
 **Next up**.
 
-Phases 23-39 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-40 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. The audit queue in Next up item 1 records what has
 already been swept and what has not.
 
-**Last commit:** `port: raise PageNotFoundError from Pages#find like go-rod`
-(Phase 39; `git log -1` for the hash).
+**Last commit:** `port: keep LoadResponse bodies unread unless asked, like go-rod`
+(Phase 40; `git log -1` for the hash).
 
-**Gates (2026-11-19, after Phase 39):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (675 examples, 0 failures) · parity checks pass
+**Gates (2026-11-19, after Phase 40):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (677 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -38,8 +38,10 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      geometry (30), `Element.Wait*` + `visible?` (31), lookup probes /
      `NotFoundSleeper` (32), `wait_interactable` (33), launcher shutdown (34),
      `ElementsByJS` error types (35), hijack bodies (36), `WaitDownload`
-     restore (37), input mac mode (38), `Pages#find` misses (39).
-   - Not swept yet: `hijack.go` router/headers (`HijackRouter`, `HandleAuth`),
+     restore (37), input mac mode (38), `Pages#find` misses (39),
+     `LoadResponse` bodies (40).
+   - Not swept yet: `hijack.go` router/headers (`HijackRouter#add/remove/stop`,
+     `Browser#handle_auth`),
      `query.go` (`Search`, `WaitElementsMoreThan`),
      `browser.go` (`Pages`, `Page`, `Cookies`, `Close`),
      `page_eval.go` + `lib/js/` helpers, `input/` beyond the keymap
@@ -1351,6 +1353,25 @@ indistinguishable from a real page result and left `PageNotFoundError` to the
       now just delegate.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (675 examples, 0 failures), `make check-go-*` pass.
+
+### Phase 40 — `Hijack.LoadResponse` honours `loadBody` ✅
+
+go-rod's `Hijack.LoadResponse` (`hijack.go:224-250`) reads the proxied response
+body only when `loadBody` is true (`if loadBody { io.ReadAll(res.Body) }`); the
+headers, status and `RawResponse` are always taken. The port called
+`HTTP::Client#exec(request)` without a block, and Crystal's non-block form
+buffers the whole body before returning, so `load_body: false` downloaded
+everything anyway — a hijack handler proxying a large file paid for it.
+
+- [x] Red-green `spec/hijack_parity_spec.cr`: against a server that sends
+      headers plus one chunk and then stalls 1.5 s, `load_response(client, false)`
+      must return in under a second with `payload.body` nil (red: 1.50 s), while
+      `load_response(client, true)` still returns `"startend"`.
+- [x] `src/rod/hijack.cr`: `load_response` streams through
+      `client.exec(request.req) { |res| ... }` and only drains
+      `res.body_io.gets_to_end` when `load_body` is set.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (677 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

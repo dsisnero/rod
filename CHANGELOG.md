@@ -32,6 +32,11 @@ below describe the Crystal port, not upstream changes.
 
 ### Changed
 
+- `Hijack#load_response(client, false)` no longer reads the response body, like
+  go-rod's `LoadResponse` (`hijack.go:224-250`): the response is streamed through
+  `HTTP::Client#exec(request) { ... }` so only `load_body: true` drains
+  `body_io`. A hijack handler that proxies a large download no longer buffers it
+  in memory first.
 - `Pages#find` and `Pages#find_by_url` return the page or raise
   `PageNotFoundError`, like go-rod's `(nil, &PageNotFoundError{})`
   (`query.go:76-102`), instead of returning `nil`; `must_find`/`must_find_by_url`

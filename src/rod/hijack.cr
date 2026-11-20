@@ -231,19 +231,23 @@ module Rod
       @continue_request = cq
     end
 
-    # LoadResponse will send request to the real destination and load the response as default response to override.
+    # LoadResponse will send request to the real destination and load the response
+    # as default response to override, like go-rod's `LoadResponse`
+    # (`hijack.go:224-250`): `load_body` false keeps the body unread.
     def load_response(client : HTTP::Client, load_body : Bool) : Nil
-      res = client.exec(request.req)
-      response.raw_response = res
-      response.payload.response_code = res.status.code
+      client.exec(request.req) do |res|
+        response.raw_response = res
+        response.payload.response_code = res.status.code
 
-      res.headers.each do |k, values|
-        values.each do |v|
-          response.set_header(k, v)
+        res.headers.each do |k, values|
+          values.each do |v|
+            response.set_header(k, v)
+          end
         end
-      end
 
-      response.set_body(res.body) if load_body
+        # go only reads the body when asked to: `if loadBody { io.ReadAll(...) }`.
+        response.set_body(res.body_io.gets_to_end) if load_body
+      end
     end
   end
 

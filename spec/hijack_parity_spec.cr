@@ -126,7 +126,73 @@ private class HijackErrorEventBrowser < Rod::Browser
   end
 end
 
+# Serves headers plus a first chunk, then stalls before the rest of the body, so a
+# response that reads the body cannot return before the stall.
+private def with_slow_body_server(&)
+  server = HTTP::Server.new do |ctx|
+    ctx.response.content_type = "text/plain; charset=utf-8"
+    ctx.response.print("start")
+    ctx.response.flush
+    sleep 1.5.seconds
+    ctx.response.print("end")
+  end
+  addr = server.bind_tcp("127.0.0.1", 0)
+  spawn { server.listen }
+  begin
+    yield "http://127.0.0.1:#{addr.port}/slow"
+  ensure
+    server.close
+  end
+end
+
 describe "Hijack parity" do
+  it "skips reading the body when load_body is false, like go's LoadResponse" do
+    with_slow_body_server do |url|
+      client = HTTP::Client.new(URI.parse(url))
+      hijack = Rod::Hijack.new(
+        request: make_hijack_request(url: url, method: "GET", body: nil),
+        response: make_hijack_response,
+        on_error: ->(_err : Exception) { },
+        browser: Rod::Browser.new
+      )
+      begin
+        started = Time.instant
+        hijack.load_response(client, false)
+        elapsed = Time.instant - started
+
+        # go returns right after the headers when loadBody is false
+        # (`hijack.go:224-250`: `if loadBody { io.ReadAll(...) }`).
+        elapsed.should be < 1.second
+        hijack.response.payload.response_code.should eq(200)
+        hijack.response.payload.body.should be_nil
+        hijack.response.body.should eq("")
+        hijack.response.raw_response.not_nil!.status_code.should eq(200)
+      ensure
+        client.close
+      end
+    end
+  end
+
+  it "loads the body when load_body is true" do
+    with_slow_body_server do |url|
+      client = HTTP::Client.new(URI.parse(url))
+      hijack = Rod::Hijack.new(
+        request: make_hijack_request(url: url, method: "GET", body: nil),
+        response: make_hijack_response,
+        on_error: ->(_err : Exception) { },
+        browser: Rod::Browser.new
+      )
+      begin
+        hijack.load_response(client, true)
+
+        hijack.response.payload.body.should_not be_nil
+        hijack.response.body.should eq("startend")
+      ensure
+        client.close
+      end
+    end
+  end
+
   it "supports hijack request body parsing and mutation" do
     request = make_hijack_request
 
