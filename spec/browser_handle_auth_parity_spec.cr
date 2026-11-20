@@ -77,6 +77,20 @@ describe "browser handle_auth parity" do
     browser.method_calls.last.should eq("Fetch.disable")
   end
 
+  it "restores a pre-existing fetch enable instead of disabling it" do
+    browser = HandleAuthStubBrowser.new
+    # A hijack router (or any other caller) had Fetch enabled before the wait.
+    browser.set_state(nil, "Fetch.enable", JSON.parse(%({"patterns":[]})))
+    browser.method_calls.clear
+
+    browser.handle_auth("a", "b").call.should be_nil
+
+    # go: `enable := b.DisableDomain("", &FetchEnable{})` tears it down and its
+    # deferred restore puts it back (`hijack.go:415-455`), so the hijacker keeps
+    # working after HandleAuth.
+    browser.method_calls.last.should eq("Fetch.enable")
+  end
+
   it "returns error and still disables fetch on failure" do
     browser = HandleAuthStubBrowser.new
     browser.fail_continue_request = true

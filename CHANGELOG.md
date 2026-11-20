@@ -159,6 +159,13 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Browser#handle_auth` tore the Fetch domain down and always disabled it when
+  the auth wait finished, so a hijack router enabled before the call stopped
+  intercepting afterwards. It now uses `disable_domain`/`enable_domain` like
+  go-rod's `DisableDomain("", &FetchEnable{})` /
+  `EnableDomain("", &FetchEnable{HandleAuthRequests: true})`
+  (`hijack.go:415-455`) and restores the previous state in go's deferred order
+  (`cancel`, then the disable restore, then the enable restore).
 - `Element#select_all_text` selected a **document** range
   (`window.getSelection()` + `range.selectNodeContents`), which cannot select
   `<input>`/`<textarea>` contents — those keep their selection in

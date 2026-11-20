@@ -683,13 +683,12 @@ module Rod
     # It will prevent the popup that requires user to input user name and password.
     # Ref: https://developer.mozilla.org/en-US/docs/Web/HTTP/Authentication
     def handle_auth(username : String, password : String) : Proc(Exception?)
-      # First disable fetch domain (stop any existing hijacking)
-      disable_fetch = Cdp::Fetch::Disable.new
-      disable_fetch.call(self)
-
-      # Enable fetch domain with auth handling
-      enable_auth = Cdp::Fetch::Enable.new(nil, true)
-      enable_auth.call(self)
+      # go tears the domain down with `DisableDomain` and turns on auth handling
+      # with `EnableDomain` (`hijack.go:415-455`), so the restore functions put
+      # back whatever state the caller had — a hijack router keeps working after
+      # the auth wait instead of being disabled.
+      restore_enable = disable_domain(nil, Cdp::Fetch::Enable.new(nil, nil))
+      restore_disable = enable_domain(nil, Cdp::Fetch::Enable.new(nil, true))
 
       ctx, cancel = @ctx.with_cancel
       browser_with_ctx = context(ctx)
@@ -722,16 +721,14 @@ module Rod
 
           continue_auth_req.call(self)
 
-          # Clean up
-          cancel.call
-          disable_fetch.call(self) # Disable auth handling
-
           nil # No error
         rescue ex
-          # Ensure cleanup even on error
-          cancel.call
-          disable_fetch.call(self) rescue nil
           ex
+        ensure
+          # go's deferred order: `cancel()`, then `disable()`, then `enable()`.
+          cancel.call
+          restore_disable.call
+          restore_enable.call
         end
       end
     end

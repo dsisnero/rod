@@ -8,22 +8,22 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 41 (`SelectAllText` selects field
-contents, issue `rod.004`). A new session can start with
+green, and the last feature commit is Phase 42 (`HandleAuth` restores the Fetch
+domain). A new session can start with
 `make lint && make test` to confirm the baseline and then pick an item from
 **Next up**.
 
-Phases 23-41 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-42 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. The audit queue in Next up item 1 records what has
 already been swept and what has not.
 
-**Last commit:** `port: select field contents in select_all_text like go-rod`
-(Phase 41; `git log -1` for the hash).
+**Last commit:** `port: restore the fetch domain after HandleAuth like go-rod`
+(Phase 42; `git log -1` for the hash).
 
-**Gates (2026-11-19, after Phase 41):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (682 examples, 0 failures) · parity checks pass
+**Gates (2026-11-19, after Phase 42):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (683 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -39,9 +39,9 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      `NotFoundSleeper` (32), `wait_interactable` (33), launcher shutdown (34),
      `ElementsByJS` error types (35), hijack bodies (36), `WaitDownload`
      restore (37), input mac mode (38), `Pages#find` misses (39),
-     `LoadResponse` bodies (40), `SelectAllText` (41, issue `rod.004`).
-   - Not swept yet: `hijack.go` router/headers (`HijackRouter#add/remove/stop`,
-     `Browser#handle_auth`),
+     `LoadResponse` bodies (40), `SelectAllText` (41, issue `rod.004`),
+     `HandleAuth` domain state (42).
+   - Not swept yet: `hijack.go` router (`HijackRouter#add/remove/stop`),
      `query.go` (`Search`, `WaitElementsMoreThan`),
      `browser.go` (`Pages`, `Page`, `Cookies`, `Close`),
      `page_eval.go` + `lib/js/` helpers, `input/` beyond the keymap
@@ -49,7 +49,9 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      `element.go` beyond the wait helpers
      (`shape`/`interactable` fallbacks, `canvas_to_image`, `select_text`).
    - Known leads already spotted but not yet fixed (verify each against Go
-     before changing anything — some may be deliberate): none open; the
+     before changing anything — some may be deliberate): the live
+     `hijack_test.go::test::TestHandleAuth` port is still missing (the stub spec
+     covers the fetch-auth flow, not a real 401 challenge); the
      `Launcher#kill` lead landed in Phase 34, and its process-group half is
      blocked on Crystal's `Process` API (see Gotchas).
 2. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
@@ -1400,6 +1402,31 @@ user gesture).
       `/* selectAllText:`) and the user-gesture flag instead of the inline JS.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (682 examples, 0 failures), `make check-go-*` pass.
+
+### Phase 42 — `HandleAuth` restores the Fetch domain like go-rod ✅
+
+go-rod's `Browser.HandleAuth` (`hijack.go:415-455`) tears the domain down with
+`disable := b.DisableDomain("", &FetchEnable{})`, turns on auth handling with
+`b.EnableDomain("", &FetchEnable{HandleAuthRequests: true})`, and defers
+`cancel()`, `disable()`, `enable()` — so whatever Fetch state the caller had
+before the auth wait is restored. The port called `Fetch.disable` /
+`Fetch.enable` directly and always disabled at the end, which stopped a hijack
+router that was running before `handle_auth`.
+
+- [x] Red-green `spec/browser_handle_auth_parity_spec.cr`: with
+      `Fetch.enable` already in the browser state, the cleanup sequence must end
+      with `Fetch.enable` (red: `Fetch.disable`), while the fresh-browser case
+      still ends with `Fetch.disable`.
+- [x] `src/rod/browser.cr`: `handle_auth` installs the two restore functions and
+      runs them in go's deferred order (`cancel`, disable restore, enable
+      restore) from an `ensure`, so the error path cleans up too.
+- [x] Follow-up recorded: the upstream `TestHandleAuth` is still only covered by
+      this stub spec. A live basic-auth port was attempted in this phase and hit
+      `net::ERR_INVALID_AUTH_CREDENTIALS` with an ad-hoc fixture server, so it
+      needs the fixture/server shape go-rod uses (`g.Serve` + `BasicAuth`)
+      before it can replace the stub — see **Next up**.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (683 examples, 0 failures), `make check-go-*` pass.
 
 ---
 
