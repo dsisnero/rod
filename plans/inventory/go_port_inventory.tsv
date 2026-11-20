@@ -395,7 +395,7 @@ lib/input/keyboard.go::const::ModifierControl	const	ported	src/rod/lib/input/inp
 lib/input/keyboard.go::const::ModifierMeta	const	ported	src/rod/lib/input/input.cr,spec/input_keymap_spec.cr	modifier meta constant parity covered
 lib/input/keyboard.go::const::ModifierShift	const	ported	src/rod/lib/input/input.cr,spec/input_keymap_spec.cr	modifier shift constant parity covered
 lib/input/keyboard.go::func::AddKey	func	ported	src/rod/lib/input/input.cr,spec/input_keymap_spec.cr	add_key keymap registration parity covered
-lib/input/keyboard.go::method::Key.Encode	method	ported	src/rod/lib/input/input.cr,spec/input_keymap_spec.cr	key encode event payload parity covered
+lib/input/keyboard.go::method::Key.Encode	method	ported	src/rod/util/input/input.cr,spec/input_keymap_spec.cr	rawKeyDown/key/text/location/keypad payload plus go's reachable macCommands set (mac_comands.go) parity covered
 lib/input/keyboard.go::method::Key.Info	method	ported	src/rod/lib/input/input.cr,spec/input_keymap_spec.cr	key info lookup parity covered
 lib/input/keyboard.go::method::Key.Modifier	method	ported	src/rod/lib/input/input.cr,spec/input_keymap_spec.cr	key modifier derivation parity covered
 lib/input/keyboard.go::method::Key.Printable	method	ported	src/rod/lib/input/input.cr,spec/input_keymap_spec.cr	printable key detection parity covered

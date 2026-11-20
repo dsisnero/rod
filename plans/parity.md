@@ -8,22 +8,22 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 37 (`WaitDownload` restores the
-previous download behavior). A new session can start with
+green, and the last feature commit is Phase 38 (input mac mode and
+`macCommands`). A new session can start with
 `make lint && make test` to confirm the baseline and then pick an item from
 **Next up**.
 
-Phases 23-37 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-38 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. The audit queue in Next up item 1 records what has
 already been swept and what has not.
 
-**Last commit:** `port: restore the previous download behavior like go-rod`
-(Phase 37; `git log -1` for the hash).
+**Last commit:** `port: default input mac mode and macCommands like go-rod`
+(Phase 38; `git log -1` for the hash).
 
-**Gates (2026-11-19, after Phase 37):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (673 examples, 0 failures) · parity checks pass
+**Gates (2026-11-19, after Phase 38):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (675 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -38,13 +38,14 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      geometry (30), `Element.Wait*` + `visible?` (31), lookup probes /
      `NotFoundSleeper` (32), `wait_interactable` (33), launcher shutdown (34),
      `ElementsByJS` error types (35), hijack bodies (36), `WaitDownload`
-     restore (37).
+     restore (37), input mac mode (38).
    - Not swept yet: `hijack.go` router/headers (`HijackRouter`, `HandleAuth`),
      `query.go` (`Search`,
      `WaitElementsMoreThan`, `Pages#find*`),
      `browser.go` (`Pages`, `Page`, `Cookies`, `Close`),
-     `page_eval.go` + `lib/js/` helpers, `input/` (keyboard, mouse, touch),
-     `dev_helpers.go`, `states.go`, `element.go` beyond the wait helpers
+     `page_eval.go` + `lib/js/` helpers, `input/` beyond the keymap
+     (keyboard/mouse semantics, `KeyActions`), `dev_helpers.go`, `states.go`,
+     `element.go` beyond the wait helpers
      (`shape`/`interactable` fallbacks, `canvas_to_image`, `select_text`).
    - Known leads already spotted but not yet fixed (verify each against Go
      before changing anything — some may be deliberate): none open; the
@@ -1315,6 +1316,25 @@ lost that configuration after every download.
       `Browser.downloadProgress`, where go waits on the Page-domain events.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (673 examples, 0 failures), `make check-go-*` pass.
+
+### Phase 38 — Input mac mode and `macCommands` parity ✅
+
+go-rod's `IsMac` is `runtime.GOOS == "darwin"` and `Key.Encode` looks editing
+commands up with `macCommands[info.Key]` (`lib/input/mac_comands.go:5`,
+`keyboard.go:108-111`). The port defaulted `mac?` to `false` on every platform
+and carried a single `ArrowDown` row, so on macOS no editing command was ever
+emitted and the other reachable keys lost theirs.
+
+- [x] Red-green `spec/input_keymap_spec.cr`: `mac?` must default to the host OS
+      (red: `false` on darwin), and `ArrowUp`/`ArrowLeft`/`ArrowRight`/`Escape`/
+      `F5`/`Delete`/`Home`/`End`/`PageUp`/`PageDown` must carry go's command
+      (red: `nil`), while character keys such as `Enter` (`"\r"`) and `KeyA`
+      (`"a"`) stay command-less because go's table keys cannot match them.
+- [x] `src/rod/util/input/input.cr`: `@@is_mac` is initialised from
+      `flag?(:darwin)`, and `MAC_COMMANDS` is go's reachable subset verbatim
+      (the combination rows are documented as unreachable in go).
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (675 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

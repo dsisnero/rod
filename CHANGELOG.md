@@ -32,6 +32,14 @@ below describe the Crystal port, not upstream changes.
 
 ### Changed
 
+- `Rod::Input.mac?` defaults to the host OS, like go-rod's
+  `var IsMac = runtime.GOOS == "darwin"` (`lib/input/mac_comands.go:5`), and
+  `MAC_COMMANDS` carries every row go's `macCommands` can actually reach
+  (`ArrowUp`/`ArrowDown`/`ArrowLeft`/`ArrowRight`, `Escape`, `F5`, `Delete`,
+  `Home`, `End`, `PageUp`, `PageDown`). go looks the table up by
+  `Key.Info().Key` alone (`keyboard.go:108-111`), so its playwright-style
+  combination keys ("Meta+KeyA", "Shift+Enter", …) can never match and are not
+  ported.
 - `Browser#wait_download` restores the download behavior that was active before
   the call, like go-rod's `has := b.LoadState("", &oldDownloadBehavior)` /
   `oldDownloadBehavior.Call(b)` (`browser.go:504-538`), and only falls back to

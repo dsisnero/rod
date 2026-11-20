@@ -88,6 +88,45 @@ describe Rod::Input do
     numpad_down.location.should be_nil
   end
 
+  it "defaults mac mode to the host OS like go's IsMac" do
+    {% if flag?(:darwin) %}
+      # go: `var IsMac = runtime.GOOS == "darwin"` (`mac_comands.go:5`).
+      Rod::Input.mac?.should be_true
+    {% else %}
+      Rod::Input.mac?.should be_false
+    {% end %}
+  end
+
+  it "emits go's mac commands for the keys its table can match" do
+    old = Rod::Input.mac?
+    begin
+      Rod::Input.mac = true
+      {
+        Rod::Input::ARROW_UP    => ["moveUp"],
+        Rod::Input::ARROW_DOWN  => ["moveDown"],
+        Rod::Input::ARROW_LEFT  => ["moveLeft"],
+        Rod::Input::ARROW_RIGHT => ["moveRight"],
+        Rod::Input::ESCAPE      => ["cancelOperation"],
+        Rod::Input::F5          => ["complete"],
+        Rod::Input::DELETE      => ["deleteForward"],
+        Rod::Input::HOME        => ["scrollToBeginningOfDocument"],
+        Rod::Input::END         => ["scrollToEndOfDocument"],
+        Rod::Input::PAGE_UP     => ["scrollPageUp"],
+        Rod::Input::PAGE_DOWN   => ["scrollPageDown"],
+      }.each do |key, expected|
+        Rod::Input.encode(key, Cdp::Input::KeyDown, 0).commands.should eq(expected)
+      end
+
+      # go looks the table up by `Info().Key` alone (`keyboard.go:108-111`), so
+      # keys whose `Key` is a character (Enter is "\r", KeyA is "a") can never
+      # match the playwright-style "Meta+KeyA"/"Shift+Enter" entries.
+      Rod::Input.encode(Rod::Input::ENTER, Cdp::Input::KeyDown, 0).commands.should be_nil
+      Rod::Input.encode(Rod::Input::KEY_A, Cdp::Input::KeyDown, 0).commands.should be_nil
+    ensure
+      Rod::Input.mac = old
+    end
+  end
+
   it "emits mac command list for ArrowDown when mac mode is enabled" do
     old = Rod::Input.mac?
     begin

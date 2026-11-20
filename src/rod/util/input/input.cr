@@ -23,7 +23,12 @@ module Rod::Input
   @@key_map = {} of Key => KeyInfo
   @@key_map_shifted = {} of Key => KeyInfo
   @@key_shifted_map = {} of Key => Key
-  @@is_mac = false
+  # go: `var IsMac = runtime.GOOS == "darwin"` (`mac_comands.go:5`).
+  {% if flag?(:darwin) %}
+    @@is_mac = true
+  {% else %}
+    @@is_mac = false
+  {% end %}
 
   # Mac toggles whether mac editing commands are emitted.
   def self.mac? : Bool
@@ -34,8 +39,22 @@ module Rod::Input
     @@is_mac = value
   end
 
+  # Mac editing commands, like go-rod's `macCommands` (`mac_comands.go`).
+  # Go looks them up by `Key.Info().Key` alone (`keyboard.go:108-111`), so its
+  # playwright-style combination keys ("Meta+KeyA", "Shift+Enter", …) can never
+  # match — the one-entry-per-key rows below are the reachable subset, verbatim.
   MAC_COMMANDS = {
-    "ArrowDown" => ["moveDown"],
+    "ArrowUp"    => ["moveUp"],
+    "ArrowDown"  => ["moveDown"],
+    "ArrowLeft"  => ["moveLeft"],
+    "ArrowRight" => ["moveRight"],
+    "Escape"     => ["cancelOperation"],
+    "F5"         => ["complete"],
+    "Delete"     => ["deleteForward"],
+    "Home"       => ["scrollToBeginningOfDocument"],
+    "End"        => ["scrollToEndOfDocument"],
+    "PageUp"     => ["scrollPageUp"],
+    "PageDown"   => ["scrollPageDown"],
   } of String => Array(String)
 
   # Add key to key map
