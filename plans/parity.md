@@ -3,21 +3,24 @@
 **Source of truth**: `vendor/rod` (go-rod) at `d38c753`
 **Target**: Crystal port under `src/`, specs under `spec/`
 **Language**: `go` · **Manifests**: `plans/inventory/go_*`
-**Last evaluated**: 2026-11-19
+**Last evaluated**: 2026-11-20
 
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
 green, and the last feature commit is Phase 43 (event waits keep caller-enabled
-domains; live `TestHandleAuth`). A new session can start with
-`make lint && make test` to confirm the baseline and then pick an item from
-**Next up**.
+domains; live `TestHandleAuth`).
+
+To confirm the baseline in a new session: `make format && make lint` (seconds),
+then `make test` (~1m45s). Before a full run, clear stray headless browsers left
+by an aborted run — `pgrep -f "rod/user-data" | xargs -r kill -9`; they push the
+live specs into their documented load flake (see Gotchas).
 
 Phases 23-43 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
-not by reading the ledger. The audit queue in Next up item 1 records what has
-already been swept and what has not.
+not by reading the ledger. Next up item 1 records what cannot be re-derived from
+the ledger: which areas were swept and which leads are still open.
 
 **Last commit:** `port: keep caller-enabled domains across event waits like go-rod`
 (Phase 43; `git log -1` for the hash).
@@ -30,28 +33,54 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
 
 **Next up:**
 
-1. **[code, red-green] Next parity phase — audit queue.** Pick one unswept area,
-   diff it against `vendor/rod`, and land one feature-sized red-green commit
-   (spec first, then the fix, then gates + this file + `CHANGELOG.md`).
-   - Already swept: context/cancellation (Phases 23, 26), event hub (24),
-     launcher/manager (21, 25, 29), error types + `errors.Is` (27, 28), quad
-     geometry (30), `Element.Wait*` + `visible?` (31), lookup probes /
-     `NotFoundSleeper` (32), `wait_interactable` (33), launcher shutdown (34),
-     `ElementsByJS` error types (35), hijack bodies (36), `WaitDownload`
-     restore (37), input mac mode (38), `Pages#find` misses (39),
-     `LoadResponse` bodies (40), `SelectAllText` (41, issue `rod.004`),
-     `HandleAuth` domain state (42), event-wait domain state (43).
-   - Not swept yet: `hijack.go` router (`HijackRouter#add/remove/stop`),
-     `query.go` (`Search`, `WaitElementsMoreThan`),
-     `browser.go` (`Pages`, `Page`, `Cookies`, `Close`),
-     `page_eval.go` + `lib/js/` helpers, `input/` beyond the keymap
-     (keyboard/mouse semantics, `KeyActions`), `dev_helpers.go`, `states.go`,
-     `element.go` beyond the wait helpers
-     (`shape`/`interactable` fallbacks, `canvas_to_image`, `select_text`).
-   - Known leads already spotted but not yet fixed (verify each against Go
-     before changing anything — some may be deliberate): the
-     `Launcher#kill` lead landed in Phase 34, and its process-group half is
-     blocked on Crystal's `Process` API (see Gotchas).
+1. **[code, red-green] Next parity phase.** Pick one candidate below, diff it
+   against `vendor/rod`, and land one feature-sized red-green commit: the
+   upstream (or equivalent characterization) spec first, then the fix, then
+   gates + this file + `CHANGELOG.md` + the ledger rows. Porting the *upstream*
+   test first matters: Phase 43 found that the stub-only `TestHandleAuth` had
+   hidden a `Fetch domain is not enabled` bug in `handle_auth`.
+   - Candidate leads, roughly easiest-first, each already verified to exist:
+     a. `Page#screenshot(full_page: true)` restores the viewport from the
+        page-local `@viewport_state`; go reads the browser state map
+        (`oldView := ...; set := p.LoadState(&oldView)`, `page.go:437-471`), so a
+        viewport applied through raw CDP is not restored.
+     b. `Element#frame` builds the iframe page with the *element's* `ctx` and
+        `sleeper`; go uses `el.page.ctx`/`el.page.sleeper` (`element.go` `Frame`).
+     c. `Element#parents` hand-writes JS and makes the selector optional; go is
+        `evalHelper(js.Parents, selector)` with a required selector
+        (`query.go:516-518`).
+     d. `Element#element`/`element_x`/`element_r` hand-write JS with
+        `/* rod.element */`-style markers instead of `js.Element`/`js.ElementX`/
+        `js.ElementR` (`query.go:487-499`). Behaviourally equivalent today;
+        switching to the helpers also exercises `ensure_js_helper` caching.
+     e. `HijackRouter#add/remove/stop` against `hijack.go:113-192` (go's `Add`
+        returns the `Fetch.enable` error; `Remove` rebuilds patterns *without*
+        the resource type).
+     f. `query.go`: `Search` (`DOM.performSearch` retry, iframe/shadow search,
+        `SearchResult#get/release`) and `WaitElementsMoreThan` (go passes `Eval`,
+        i.e. by-value *and* by-promise).
+     g. `browser.go`: `Pages`, `Page`, `Cookies`, `Close`. Audited so far and
+        matched — re-check `Browser#page`'s close-on-error path and `Pages`
+        ordering before starting.
+     h. `page_eval.go`: `evaluate` backoff, per-JS-context helper cache,
+        `object_to_json`, `release`.
+     i. `dev_helpers.go`: `try_trace_req` network tracing
+        (`TraceTypeWaitRequests`), `ExposeHelpers`, `Overlay`.
+     j. `states.go`: `Browser#load_state`/`Page#load_state` report presence but do
+        not copy the stored params into the request (go's reflective
+        `reflect.Value.Set`). Crystal's generated request types are structs, so
+        this needs a design decision, not a straight port (see Phase 37).
+   - Already swept, do not re-audit: context/cancellation (23, 26), event hub
+     (24), launcher/manager (21, 25, 29, 34), error types + `errors.Is` (27, 28),
+     quad geometry (30), `Element.Wait*` + `visible?` (31), lookup probes /
+     `NotFoundSleeper` (32), `wait_interactable` (33), `ElementsByJS` errors (35),
+     hijack bodies (36), `WaitDownload` restore (37), input mac mode (38),
+     `Pages#find` (39), `LoadResponse` bodies (40), `SelectAllText` (41),
+     `HandleAuth` + event-wait domain state (42, 43).
+   - Verified equal, no work needed: all 32 `lib/js` helper definitions are
+     byte-identical to `vendor/rod/lib/js/helper.go` (checked programmatically in
+     Phase 39 — don't re-audit them), and the keyboard/mouse/touch event payloads
+     match `input.go` + `Key.Encode` (Phase 38).
 2. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
    parity scripts instead of the repo's copied ones (whose `tree-sitter` branch
    is a placeholder), and decide curated-status preservation. Native tree-sitter
@@ -121,6 +150,14 @@ browser profiles out of `./temp`: on the exFAT checkout Chrome's AppleDouble
 `Launcher#cleanup` silently leaves the profile behind (use `Dir.tempdir`). The
 same sidecars break naive directory traversals: `strip_first_dir` has to ignore
 `._*`/`.DS_Store` or a managed download leaves `bin_path` dangling (Phase 22).
+A live spec that starts a CDP flow in a detached fiber (`spawn { ... }`) must
+await it before the example ends (e.g. `done.receive`), otherwise the pooled
+browser can go back with a domain still enabled and the next example's
+navigations stall — that is what made `spec/live_browser_pool_spec.cr` fail
+after the live auth test was added (Phase 43). A stub-only upstream test can hide
+a whole broken path: `TestHandleAuth` was "ported" against stubs while
+`handle_auth` could never complete a real challenge (`Fetch domain is not
+enabled`); port the live test first.
 
 **Porting traps found while auditing** (each cost a phase; check them when a Go
 symbol "already exists" but misbehaves):
