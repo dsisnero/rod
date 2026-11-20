@@ -8,26 +8,25 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 47 (`Element#parents` runs go's
-`js.Parents` helper with a required selector, which also fixed a ported-but-broken
-path).
+green, and the last feature commit is Phase 48 (`Element#get_xpath` evaluates the
+helper on the element, which fixed another ported-but-broken path).
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~1m45s). Before a full run, clear stray headless browsers left
 by an aborted run — `pgrep -f "rod/user-data" | xargs -r kill -9`; they push the
 live specs into their documented load flake (see Gotchas).
 
-Phases 23-47 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-48 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. Next up item 1 records what cannot be re-derived from
 the ledger: which areas were swept and which leads are still open.
 
-**Last commit:** `port: walk element ancestors through the js.Parents helper`
-(Phase 47; `git log -1` for the hash).
+**Last commit:** `port: evaluate the xpath helper on the element`
+(Phase 48; `git log -1` for the hash).
 
-**Gates (2026-11-20, after Phase 47):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (697 examples, 0 failures) · parity checks pass
+**Gates (2026-11-20, after Phase 48):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (700 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -165,6 +164,11 @@ symbol "already exists" but misbehaves):
   because of it (Phase 27). Name the error: `raise ex`.
 - `abs` on geometric sums hides winding order: Go's `DOMQuad.Area` is signed and
   `OnePointInside` filters on `Area() >= 1` (Phase 30).
+- A stub spec that only asserts *recorded options* proves nothing about real
+  calls: `Element#parents` (Phase 47) and `Element#get_xpath` (Phase 48) both
+  "passed" while answering `[]`/`"/"` for every real page. When a method runs JS
+  that uses `this`, check that it goes through the element's `evaluate`/`wait`
+  (which bind `this`) and not `@page.evaluate` — and cover it with a live spec.
 
 This is a curated feature roadmap, not a generated dump. Generated manifests
 (`go_source_parity.tsv`, `go_test_parity.tsv`) are reference snapshots;
@@ -1609,6 +1613,36 @@ options of the page stub.
       the old script answered `[]`.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (697 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 48 — `Element#get_xpath` evaluates on the element again ✅
+
+`Element#get_xpath` ran its helper on the page (`@page.evaluate(opts)`), while go
+evaluates it on the element (`el.Evaluate(evalHelper(js.GetXPath, optimized))`,
+`element.go:747-754`) and `Element.Evaluate` binds `this` to the element's remote
+object (`element.go:733-735`). With `this` unbound the helper took the document
+branch, so **every element answered `/`** — another ported-but-broken path whose
+only coverage was a stub asserting the recorded options.
+
+- [x] Red-green: `spec/element_xpath_parity_spec.cr` drives a live page and
+      expects `/html/body/div/span` and, optimized, `//*[@id='leaf']`, plus
+      scoping when a same-tag sibling is appended. All three answered `/` before
+      the fix.
+- [x] `src/rod/element.cr`: `get_xpath` calls the element's `evaluate(opts)`
+      (i.e. `@page.context(@ctx).evaluate(opts.this(@object))`) instead of
+      `@page.evaluate(opts)`.
+- [x] `spec/element_spec.cr`: the stub page overrides `context` to keep capturing
+      and the spec now asserts the element's remote object is `this`, so the
+      regression is caught without a browser too.
+- [x] Swept the remaining `@page.evaluate`/`@page.eval_helper` call sites in
+      `element.cr`: every other one already goes through the element's
+      `evaluate`/`wait`, which bind `this`; `dev_helpers.cr`'s mouse tracer is
+      page-scoped by design.
+- [x] Ledger: `element.go::method::Element.GetXPath` records the element-scoped
+      evaluation and why the page-level call failed.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (700 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

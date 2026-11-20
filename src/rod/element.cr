@@ -598,10 +598,15 @@ module Rod
     end
 
     # GetXPath returns the xpath of the element.
+    #
+    # go evaluates the helper on the element (`el.Evaluate(evalHelper(
+    # js.GetXPath, optimized))`, `element.go:747-754`), so the element's remote
+    # object is `this`. Running it on the page left `this` unbound and every
+    # element answered "/".
     def get_xpath(optimized : Bool = false) : String
       opts = @page.eval_helper(Rod::JS::GET_XPATH, optimized)
       opts.by_value = true
-      res = @page.evaluate(opts)
+      res = evaluate(opts)
       res.value.try(&.as_s?) || ""
     end
 

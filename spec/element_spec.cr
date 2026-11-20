@@ -587,6 +587,10 @@ private class GetXPathPage < Rod::Page
     super(Rod::Browser.new, Rod::TargetID.new("target-id"))
   end
 
+  def context(ctx : Rod::Context) : Rod::Page
+    self
+  end
+
   def evaluate(opts : Rod::EvalOptions) : Cdp::Runtime::RemoteObject
     @last_eval_opts = opts
     if ex = @eval_error
@@ -970,7 +974,11 @@ describe Rod::Element do
       element = StubElement.new(page)
 
       element.get_xpath(true).should eq("/html/body/form/textarea")
-      page.last_eval_opts.not_nil!.js_args[1].should eq(true)
+      opts = page.last_eval_opts.not_nil!
+      opts.js_args[1].should eq(true)
+      # go runs the helper on the element (`el.Evaluate(...)`, `element.go:747-754`),
+      # so the element's remote object must be `this`.
+      opts.this_obj.should eq(element.object)
 
       element.get_xpath(false).should eq("/html/body/form/textarea")
       page.last_eval_opts.not_nil!.js_args[1].should eq(false)

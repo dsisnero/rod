@@ -178,6 +178,10 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Element#get_xpath` evaluates go's `js.GetXPath` helper on the element, like
+  `el.Evaluate(evalHelper(js.GetXPath, optimized))` (`element.go:747-754`). It
+  ran the helper on the page, leaving `this` unbound, so every element answered
+  `/`; `get_xpath(true)` now also returns the `//*[@id='...']` form again.
 - `Element#parents` works again: it ran its own script straight on the page
   without binding `this` to the element, so a real call always answered an empty
   list (the stub-only spec only checked the recorded options). It now runs go's
