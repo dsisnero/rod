@@ -8,22 +8,22 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 35 (`ElementsByJS` reports go's
-`ExpectElementsError`). A new session can start with
+green, and the last feature commit is Phase 36 (hijack bodies follow go's
+`JSONBody`/`Body`). A new session can start with
 `make lint && make test` to confirm the baseline and then pick an item from
 **Next up**.
 
-Phases 23-35 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-36 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. The audit queue in Next up item 1 records what has
 already been swept and what has not.
 
-**Last commit:** `port: report ElementsByJS errors like go's ExpectElementsError`
-(Phase 35; `git log -1` for the hash).
+**Last commit:** `port: read hijack bodies like go's JSONBody/Body`
+(Phase 36; `git log -1` for the hash).
 
-**Gates (2026-11-19, after Phase 35):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (669 examples, 0 failures) · parity checks pass
+**Gates (2026-11-19, after Phase 36):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (672 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -37,8 +37,9 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      launcher/manager (21, 25, 29), error types + `errors.Is` (27, 28), quad
      geometry (30), `Element.Wait*` + `visible?` (31), lookup probes /
      `NotFoundSleeper` (32), `wait_interactable` (33), launcher shutdown (34),
-     `ElementsByJS` error types (35).
-   - Not swept yet: `hijack.go` / `HijackRouter`, `query.go` (`Search`,
+     `ElementsByJS` error types (35), hijack bodies (36).
+   - Not swept yet: `hijack.go` router/headers (`HijackRouter`, `HandleAuth`),
+     `query.go` (`Search`,
      `WaitElementsMoreThan`, `Pages#find*`),
      `browser.go` (`Pages`, `Page`, `Cookies`, `Close`, `WaitDownload`),
      `page_eval.go` + `lib/js/` helpers, `input/` (keyboard, mouse, touch),
@@ -1259,6 +1260,35 @@ entry without a `value` was silently skipped.
       accessor case.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (669 examples, 0 failures), `make check-go-*` pass.
+
+### Phase 36 — Hijack bodies follow go's `JSONBody`/`Body` ✅
+
+go-rod's `HijackRequest.JSONBody` is `gson.NewFrom(ctx.Body())`
+(`hijack.go:290-292`), which answers a null JSON when the body is not JSON, and
+`HijackResponse.Body` is `string(ctx.payload.Body)` (`hijack.go:340-343`), so the
+payload is the only source of truth. The port called `JSON.parse` directly (any
+plain-text POST raised `JSON::ParseException` inside the handler fiber, which
+`TestHijack` would have hit with `g.True(ctx.Request.JSONBody().Nil())`), and
+kept a parallel `@body_text` field that a `payload=` replacement could leave
+stale.
+
+- [x] Red-green `spec/hijack_parity_spec.cr`: a non-JSON, empty and nil body
+      answer a null JSON while `[1,2]` and `{"k":"v"}` still parse (red:
+      `JSON::ParseException`), and a body written straight to
+      `payload.body` is visible through `response.body` (red: `""`).
+- [x] `src/rod/hijack.cr`: `json_body` rescues `JSON::ParseException` into
+      `JSON::Any.new(nil)`; `HijackResponse#body` base64-decodes `payload.body`
+      (falling back to the raw string when it is not base64) and `set_body` only
+      writes the payload, so `@body_text` is gone.
+- [x] `spec/live_browser_parity_spec.cr`: the `TestHijack` port now also asserts
+      go's `ctx.Request.JSONBody().Nil()` for the fixture's plain `"a"` POST.
+- [x] Accepted divergences recorded here: `HijackResponse#set_header` matches
+      header names case-insensitively (go's exact-name index appends a duplicate
+      entry for a differently-cased name, which the port avoids), and
+      `HijackRequest#set_context` is a no-op because Crystal's `HTTP::Request`
+      has no context to carry.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (672 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

@@ -285,9 +285,12 @@ module Rod
       @event.request.post_data || ""
     end
 
-    # JSONBody of the request.
+    # JSONBody of the request, like go's `gson.NewFrom` (`hijack.go:290-292`):
+    # a body that is not valid JSON answers a null JSON instead of raising.
     def json_body : JSON::Any
       JSON.parse(body)
+    rescue JSON::ParseException
+      JSON::Any.new(nil)
     end
 
     # Returns the underlying HTTP::Request instance that will be used to send the request.
@@ -337,15 +340,23 @@ module Rod
     property payload : Cdp::Fetch::FulfillRequest
     property raw_response : HTTP::Client::Response?
     property fail : Cdp::Fetch::FailRequest
-    @body_text : String?
 
     def initialize(@payload : Cdp::Fetch::FulfillRequest, @fail : Cdp::Fetch::FailRequest)
-      @body_text = nil
     end
 
-    # Body of the payload.
+    # Body of the payload, like go's `Body() { return string(ctx.payload.Body) }`
+    # (`hijack.go:340-343`). The protocol carries the body base64-encoded, which
+    # is what `set_body` stores, so the payload stays the single source of truth.
     def body : String
-      @body_text || ""
+      raw = @payload.body
+      return "" unless raw
+
+      begin
+        Base64.decode_string(raw)
+      rescue Base64::Error
+        # A body the caller wrote directly that is not base64 round-trips as is.
+        raw
+      end
     end
 
     # Headers returns the clone of response headers.
@@ -431,7 +442,6 @@ module Rod
              else
                obj.to_json
              end
-      @body_text = text
       @payload.body = Base64.strict_encode(text.to_slice)
       self
     end

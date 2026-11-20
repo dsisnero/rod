@@ -149,6 +149,17 @@ describe "Hijack parity" do
     request_body_text(request.req).should eq(%({"text":"test"}))
   end
 
+  it "answers a null json body for a non-JSON request like go's gson.NewFrom" do
+    # go's TestHijack asserts `ctx.Request.JSONBody().Nil()` for the fixture's
+    # plain "a" body: `gson.NewFrom` answers a null JSON instead of failing.
+    make_hijack_request(body: "a").json_body.raw.should be_nil
+    make_hijack_request(body: "").json_body.raw.should be_nil
+    make_hijack_request(body: nil).json_body.raw.should be_nil
+
+    make_hijack_request(body: %([1,2])).json_body.as_a.size.should eq(2)
+    make_hijack_request.json_body["k"].as_s.should eq("v")
+  end
+
   it "marks document resource requests as navigation" do
     request = make_hijack_request(resource_type: Cdp::Network::ResourceTypeDocument)
     request.navigation?.should be_true
@@ -176,6 +187,14 @@ describe "Hijack parity" do
 
     response.body = {"text" => "test"}
     response.body.should eq(%({"text":"test"}))
+  end
+
+  it "reads the response body from the payload like go's HijackResponse.Body" do
+    response = make_hijack_response
+    # go keeps a single source of truth: `Body() { return string(ctx.payload.Body) }`.
+    response.payload.body = Base64.strict_encode("raw")
+
+    response.body.should eq("raw")
   end
 
   it "matches TestHijackMockWholeResponseEmptyBody payload semantics" do

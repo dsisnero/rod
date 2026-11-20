@@ -32,6 +32,13 @@ below describe the Crystal port, not upstream changes.
 
 ### Changed
 
+- `HijackRequest#json_body` answers a null `JSON::Any` for a body that is not
+  valid JSON, like go's `gson.NewFrom` (`hijack.go:290-292`); it used to raise
+  `JSON::ParseException`, so a hijack handler that inspected a plain-text POST
+  body blew up. `HijackResponse#body` now decodes `payload.body`, so the payload
+  is the single source of truth like go's `string(ctx.payload.Body)`
+  (`hijack.go:340-343`) instead of a parallel `@body_text` field that a
+  `payload=` replacement could leave stale.
 - `Page#elements_by_js` reports go-rod's `ExpectElementsError`
   (`query.go:206-246`) instead of a plain `Exception`: a non-array result, an
   array entry that is not a DOM node, and a property without a value (an
@@ -130,6 +137,10 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `ctx.request.json_body` raised `JSON::ParseException` inside a hijack handler
+  for any non-JSON request body (the common plain-text POST), aborting the
+  handler fiber; go-rod's `JSONBody()` answers a null JSON there, and so does
+  the port now.
 - `Element#elements_by_js` silently skipped array entries without a `value`
   instead of reporting `ExpectElementsError`, so a page whose lookup returned a
   getter produced a short element list rather than an error.

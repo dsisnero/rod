@@ -1429,6 +1429,8 @@ describe "live browser parity" do
       begin
         router.add("#{base}/a", Cdp::Network::ResourceTypeXHR, ->(ctx : Rod::Hijack) do
           req = ctx.request
+          # go: `g.True(ctx.Request.JSONBody().Nil())` — the fixture posts a plain "a".
+          req.json_body.raw.should be_nil
           req.req.headers["Test"] = "header"
           req.body = "test"
           req.body = 123
