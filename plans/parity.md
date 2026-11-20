@@ -8,25 +8,25 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 48 (`Element#get_xpath` evaluates the
-helper on the element, which fixed another ported-but-broken path).
+green, and the last feature commit is Phase 49 (quad geometry now has a single
+implementation, guarded by an equivalence spec).
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~1m45s). Before a full run, clear stray headless browsers left
 by an aborted run — `pgrep -f "rod/user-data" | xargs -r kill -9`; they push the
 live specs into their documented load flake (see Gotchas).
 
-Phases 23-48 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-49 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. Next up item 1 records what cannot be re-derived from
 the ledger: which areas were swept and which leads are still open.
 
-**Last commit:** `port: evaluate the xpath helper on the element`
-(Phase 48; `git log -1` for the hash).
+**Last commit:** `refactor: delegate quad geometry to the Cdp::DOM helpers`
+(Phase 49; `git log -1` for the hash).
 
-**Gates (2026-11-20, after Phase 48):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (700 examples, 0 failures) · parity checks pass
+**Gates (2026-11-20, after Phase 49):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (704 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -97,11 +97,9 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
 5. **[optional cleanup]** The repo tracks built binaries (`rod`, `bin/pdlgen*`,
    `pdlgen*`), so local builds keep showing up as modified files. Decide whether
    to untrack them.
-6. **[optional cleanup]** Quad geometry exists twice: `Rod::Util::Quad`
-   (`src/rod/util/quad.cr`, used by `Element#interactable`) and the generated
-   `Cdp::DOM` helpers (`area`/`center`/`box`/`one_point_inside`). Phase 30 had to
-   fix both. Either delegate the hand-written module to `Cdp::DOM` or add a spec
-   asserting the two agree.
+6. **[done]** Quad geometry dedupe — landed as Phase 49: `Rod::Util::Quad`
+   delegates to the generated `Cdp::DOM` helpers and
+   `spec/quad_util_equivalence_spec.cr` keeps them honest.
 7. **[optional follow-up]** `spec/cdp_client_parity_spec.cr` and
    `spec/launcher_parity_spec.cr` still launch their own browsers. That is
    deliberate — they exercise the CDP client and the launcher itself
@@ -1643,6 +1641,30 @@ only coverage was a stub asserting the recorded options.
       evaluation and why the page-level call failed.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (700 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 49 — one quad-geometry implementation ✅
+
+Quad geometry existed twice: `Rod::Util::Quad` (used by `Element#interactable`,
+`#hover`, `#move_mouse_out`, `#screenshot`) re-implemented the shoelace area,
+vertex average, first-quad-with-area and bounding box that the generated
+`Cdp::DOM` helpers already carry as the port of go's `DOMQuad` patch methods
+(`lib/proto/a_patch.go:70-120`). Phase 30 had to fix the same bug in both copies
+when they drifted.
+
+- [x] Characterization first: `spec/quad_util_equivalence_spec.cr` pins the util
+      module against the generated helpers over whole-number, sub-pixel,
+      counter-clockwise, go-fixture, degenerate and sliver quads, plus the
+      multi-quad box and "first quad with area >= 1" rules. It passed before the
+      change — the two copies agree today — so this phase is a refactor plus a
+      guard, not a bug fix (unlike Phases 47/48).
+- [x] `src/rod/util/quad.cr` now delegates `len`/`each`/`center`/`area`/
+      `one_point_inside`/`box` to `::Cdp::DOM` (the `::` prefix is required:
+      inside `Rod::Util`, bare `Cdp` does not resolve to the top-level module) and
+      only adapts the result types to `Rod::Point`/tuples.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (704 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

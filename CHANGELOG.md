@@ -32,6 +32,13 @@ below describe the Crystal port, not upstream changes.
 
 ### Changed
 
+- Quad geometry has a single implementation again: `Rod::Util::Quad` delegates
+  `len`/`each`/`center`/`area`/`one_point_inside`/`box` to the generated
+  `Cdp::DOM` helpers (the port of go's `DOMQuad` patch methods) instead of
+  repeating the math for `Element#interactable`, `#hover`, `#move_mouse_out` and
+  `#screenshot`. `spec/quad_util_equivalence_spec.cr` pins the two against each
+  other over whole-number, sub-pixel, counter-clockwise, degenerate and sliver
+  quads, so a future fix cannot land in only one copy (Phase 30 had to fix both).
 - `Element#element`, `#element_x`, `#element_r`, `#elements` and `#elements_x`
   now run go-rod's shared `lib/js` helpers through `eval_helper` instead of
   hand-written scripts (`query.go:487-499`). The visible fix is `element_r`: its
