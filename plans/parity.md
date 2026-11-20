@@ -8,22 +8,22 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 34 (launcher shutdown:
-SIGKILL-only `Kill` and unconditional `Cleanup`). A new session can start with
+green, and the last feature commit is Phase 35 (`ElementsByJS` reports go's
+`ExpectElementsError`). A new session can start with
 `make lint && make test` to confirm the baseline and then pick an item from
 **Next up**.
 
-Phases 23-34 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-35 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. The audit queue in Next up item 1 records what has
 already been swept and what has not.
 
-**Last commit:** `port: shut the launcher down like go's Kill/Cleanup`
-(Phase 34; `git log -1` for the hash).
+**Last commit:** `port: report ElementsByJS errors like go's ExpectElementsError`
+(Phase 35; `git log -1` for the hash).
 
-**Gates (2026-11-19, after Phase 34):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (666 examples, 0 failures) · parity checks pass
+**Gates (2026-11-19, after Phase 35):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (669 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -36,9 +36,10 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    - Already swept: context/cancellation (Phases 23, 26), event hub (24),
      launcher/manager (21, 25, 29), error types + `errors.Is` (27, 28), quad
      geometry (30), `Element.Wait*` + `visible?` (31), lookup probes /
-     `NotFoundSleeper` (32), `wait_interactable` (33).
+     `NotFoundSleeper` (32), `wait_interactable` (33), launcher shutdown (34),
+     `ElementsByJS` error types (35).
    - Not swept yet: `hijack.go` / `HijackRouter`, `query.go` (`Search`,
-     `WaitElementsMoreThan`, `Pages#find*`, the `ElementsByJS` error types),
+     `WaitElementsMoreThan`, `Pages#find*`),
      `browser.go` (`Pages`, `Page`, `Cookies`, `Close`, `WaitDownload`),
      `page_eval.go` + `lib/js/` helpers, `input/` (keyboard, mouse, touch),
      `dev_helpers.go`, `states.go`, `element.go` beyond the wait helpers
@@ -1234,6 +1235,30 @@ profile removal when the keep flag was set.
       orphaned helpers are why a killed run can leave headless browsers behind.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (666 examples, 0 failures), `make check-go-*` pass.
+
+### Phase 35 — `ElementsByJS` reports go's `ExpectElementsError` ✅
+
+go-rod's `Page.ElementsByJS` (`query.go:206-246`) returns
+`&ExpectElementsError{res}` when the evaluated value is not an array, and
+`&ExpectElementsError{val}` for an array entry that is not a DOM node — reading
+`val.Subtype` unconditionally, so an accessor descriptor (no value) fails too.
+Both errors carry the offending remote object so callers can match them with
+`errors.Is`. The port raised plain `Exception`s with descriptive messages,
+`ExpectElementsError` was never constructed anywhere in `src/`, and an array
+entry without a `value` was silently skipped.
+
+- [x] Red-green `spec/page_elements_query_parity_spec.cr` (stub) and
+      `spec/query_elements_error_parity_spec.cr` (live): non-array result,
+      non-node entry, and a property without a value all raise
+      `ExpectElementsError` carrying that object; the array is still released;
+      the success path still maps nodes to elements.
+- [x] `src/rod/page.cr`: the three cases raise `ExpectElementsError.new(...)`
+      (`query.go:212-235`) instead of anonymous exceptions.
+- [x] `src/rod/error.cr`: `ExpectElementsError` takes a nilable remote object and
+      renders it as `null`, like go's `RuntimeRemoteObject.String` for the
+      accessor case.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (669 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

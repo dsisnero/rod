@@ -32,6 +32,13 @@ below describe the Crystal port, not upstream changes.
 
 ### Changed
 
+- `Page#elements_by_js` reports go-rod's `ExpectElementsError`
+  (`query.go:206-246`) instead of a plain `Exception`: a non-array result, an
+  array entry that is not a DOM node, and a property without a value (an
+  accessor descriptor) all raise it while carrying the offending remote object,
+  so `Rod.is?(err, Rod::ExpectElementsError)` matches. `ExpectElementsError`
+  accepts a nil object and renders it as `null`, like go's
+  `RuntimeRemoteObject.String`.
 - `Launcher#kill` now sends only `SIGKILL`, to the process group and to the pid,
   exactly like go-rod's `Launcher.Kill` (`killGroup` + `p.Kill()`,
   `lib/launcher/launcher.go:544-558`, `os_unix.go:12-14`); the extra `SIGTERM`
@@ -123,6 +130,9 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Element#elements_by_js` silently skipped array entries without a `value`
+  instead of reporting `ExpectElementsError`, so a page whose lookup returned a
+  getter produced a short element list rather than an error.
 - `element.wait_interactable` gave up after a private 5 s deadline with the
   `CoveredError` it was retrying, even when the page or element context allowed
   more time (a modal or overlay that lifts after five seconds failed). It now

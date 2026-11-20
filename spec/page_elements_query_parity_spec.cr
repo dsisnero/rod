@@ -96,17 +96,21 @@ describe "page elements query parity" do
     page.release_calls.should eq(1)
   end
 
-  it "elements_by_js raises when js does not return an array object" do
+  it "elements_by_js raises go's ExpectElementsError when js does not return an array" do
     page = PageElementsByJSValueStub.new
     page.eval_result = Cdp::Runtime::RemoteObject.from_json(%({"type":"number","value":1}))
 
-    expect_raises(Exception, /did not return an array/) do
+    # go: `if res.Subtype != array { return nil, &ExpectElementsError{res} }`
+    # (`query.go:212-214`).
+    err = expect_raises(Rod::ExpectElementsError) do
       page.elements_by_js(Rod::EvalOptions.new(js: "() => 1"))
     end
+    err.message.as(String).should contain("expect js to return an array of elements")
+    err.remote_object.not_nil!.type.should eq("number")
     page.release_calls.should eq(0)
   end
 
-  it "elements_by_js raises when array item is not a DOM node and still releases array" do
+  it "elements_by_js raises go's ExpectElementsError when an array item is not a DOM node" do
     page = PageElementsByJSValueStub.new
     page.get_properties_payload = %({
       "result":[
@@ -115,9 +119,29 @@ describe "page elements query parity" do
       ]
     })
 
-    expect_raises(Exception, /Expected DOM node/) do
+    err = expect_raises(Rod::ExpectElementsError) do
       page.elements_by_js(Rod::EvalOptions.new(js: "() => [1]"))
     end
+    # go carries the offending value (`&ExpectElementsError{val}`, `query.go:233-235`)
+    # and the array is still released by the defer.
+    err.remote_object.not_nil!.value.not_nil!.raw.should eq(1)
+    page.release_calls.should eq(1)
+  end
+
+  it "elements_by_js raises go's ExpectElementsError for a property without a value" do
+    page = PageElementsByJSValueStub.new
+    # An accessor descriptor has no `value`; go compares `val.Subtype` and fails.
+    page.get_properties_payload = %({
+      "result":[
+        {"name":"0","get":{"type":"function","objectId":"getter-1"},"configurable":true,"enumerable":true},
+        {"name":"length","value":{"type":"number","value":1},"configurable":true,"enumerable":true}
+      ]
+    })
+
+    err = expect_raises(Rod::ExpectElementsError) do
+      page.elements_by_js(Rod::EvalOptions.new(js: "() => [1]"))
+    end
+    err.message.as(String).should contain("but got: null")
     page.release_calls.should eq(1)
   end
 

@@ -58,12 +58,16 @@ module Rod
     end
   end
 
-  # ExpectElementsError is raised when JavaScript returns a non-array of elements.
+  # ExpectElementsError is raised when JavaScript returns a non-array of
+  # elements, or an array entry that is not a DOM node. go-rod carries the
+  # offending remote object (`query.go:212-235`), which can be nil for an
+  # accessor property, so the message renders it as `null` like go's
+  # `RuntimeRemoteObject.String`.
   class ExpectElementsError < RodError
-    property remote_object : Cdp::Runtime::RemoteObject
+    property remote_object : Cdp::Runtime::RemoteObject?
 
-    def initialize(@remote_object : Cdp::Runtime::RemoteObject)
-      super("expect js to return an array of elements, but got: #{@remote_object.to_json}")
+    def initialize(@remote_object : Cdp::Runtime::RemoteObject? = nil)
+      super("expect js to return an array of elements, but got: #{@remote_object.try(&.to_json) || "null"}")
     end
 
     def is?(err : Exception.class) : Bool

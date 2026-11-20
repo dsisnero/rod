@@ -1804,6 +1804,10 @@ module Rod
     end
 
     # elements_by_js returns the elements from the return value of the js.
+    # A non-array result, an array entry that is not a DOM node, or a property
+    # without a value all report go-rod's `ExpectElementsError` carrying the
+    # offending remote object (`query.go:206-246`); the array is released either
+    # way, like go's `defer p.Release(res)`.
     def elements_by_js(opts : EvalOptions) : Elements
       # Evaluate with by_object to get remote object reference
       eval_opts = opts.by_object
@@ -1811,7 +1815,7 @@ module Rod
 
       # Ensure result is an array
       unless res.subtype == "array"
-        raise "JavaScript did not return an array (subtype: #{res.subtype})"
+        raise ExpectElementsError.new(res)
       end
 
       object_id = res.object_id
@@ -1839,13 +1843,11 @@ module Rod
           # Skip __proto__ and length properties
           next if prop.name == "__proto__" || prop.name == "length"
 
-          # Ensure we have a value
+          # Ensure we have a DOM node; go reads `val.Subtype` unconditionally,
+          # so an accessor property (no value) is an expect-elements error too.
           value = prop.value
-          next unless value
-
-          # Ensure it's a DOM node
-          unless value.subtype == "node"
-            raise "Expected DOM node but got subtype: #{value.subtype}"
+          unless value && value.subtype == "node"
+            raise ExpectElementsError.new(value)
           end
 
           # Create element from remote object
