@@ -8,22 +8,22 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 32 (lookup probes through
-`NotFoundSleeper`). A new session can start with
+green, and the last feature commit is Phase 33 (`wait_interactable` through the
+element context and sleeper). A new session can start with
 `make lint && make test` to confirm the baseline and then pick an item from
 **Next up**.
 
-Phases 23-32 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-33 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. The audit queue in Next up item 1 records what has
 already been swept and what has not.
 
-**Last commit:** `port: probe lookups with NotFoundSleeper like go-rod`
-(Phase 32; `git log -1` for the hash).
+**Last commit:** `port: wait for interactable through the element sleeper like go-rod`
+(Phase 33; `git log -1` for the hash).
 
-**Gates (2026-11-19, after Phase 32):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (657 examples, 0 failures) · parity checks pass
+**Gates (2026-11-19, after Phase 33):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (662 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -36,12 +36,13 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    - Already swept: context/cancellation (Phases 23, 26), event hub (24),
      launcher/manager (21, 25, 29), error types + `errors.Is` (27, 28), quad
      geometry (30), `Element.Wait*` + `visible?` (31), lookup probes /
-     `NotFoundSleeper` (32).
+     `NotFoundSleeper` (32), `wait_interactable` (33).
    - Not swept yet: `hijack.go` / `HijackRouter`, `query.go` (`Search`,
      `WaitElementsMoreThan`, `Pages#find*`, the `ElementsByJS` error types),
      `browser.go` (`Pages`, `Page`, `Cookies`, `Close`, `WaitDownload`),
      `page_eval.go` + `lib/js/` helpers, `input/` (keyboard, mouse, touch),
-     `dev_helpers.go`, `states.go`, `element.go` beyond the wait helpers.
+     `dev_helpers.go`, `states.go`, `element.go` beyond the wait helpers
+     (`shape`/`interactable` fallbacks, `canvas_to_image`, `select_text`).
    - Known leads already spotted but not yet fixed (verify each against Go
      before changing anything — some may be deliberate):
      `Launcher#kill` signals TERM+KILL to the process group *and* the pid where
@@ -1181,6 +1182,29 @@ be installed through `Page#sleeper` at all.
       `ElementFromObject`.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (657 examples, 0 failures), `make check-go-*` pass.
+
+### Phase 33 — `wait_interactable` retries like go's `Element.WaitInteractable` ✅
+
+go-rod's `WaitInteractable` is `utils.Retry(el.ctx, el.sleeper(), ...)`
+(`element.go:587-606`): it scrolls the element into view, calls `Interactable()`,
+retries only on `CoveredError`, and stops on any other error or when the context
+or sleeper gives up. The port wrapped the same retry in its own deadline
+(`timeout_remaining(5s)`), so a modal that lifts after five seconds surfaced the
+`CoveredError` instead of waiting, and `wait_interactable` was the last wait
+helper with an invented `timeout` argument.
+
+- [x] Red-green `spec/element_wait_interactable_parity_spec.cr`: a button under
+      an overlay that jumps away after 5.6 s (red: `CoveredError` at 5.0 s),
+      the fast uncover path, the element deadline
+      (`DeadlineExceededError`) and a `CountSleeper` (`MaxSleepCountError`).
+- [x] `src/rod/element.cr`: `wait_interactable` lost the `timeout` argument and
+      the deadline bookkeeping; it is `Utils.retry(@ctx, @sleeper.call)` with
+      `CoveredError` as the only retry case.
+- [x] `spec/element_spec.cr`: the stub and the retry spec use the new
+      signature, and a new case pins that a non-covered error stops the wait
+      after one `interactable` call.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (662 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

@@ -255,8 +255,7 @@ private class HoverFlowStubElement < StubElement
   property wait_interactable_error : Exception? = nil
   property hover_point = Rod::Point.new(11.0, 22.0)
 
-  def wait_interactable(timeout : Time::Span = 5.seconds) : Rod::Point
-    _ = timeout
+  def wait_interactable : Rod::Point
     @wait_interactable_calls += 1
     if ex = @wait_interactable_error
       raise ex
@@ -300,8 +299,7 @@ private class TapFlowStubElement < StubElement
     end
   end
 
-  def wait_interactable(timeout : Time::Span = 5.seconds) : Rod::Point
-    _ = timeout
+  def wait_interactable : Rod::Point
     @wait_interactable_calls += 1
     if ex = @wait_interactable_error
       raise ex
@@ -347,11 +345,15 @@ end
 private class WaitInteractableStubElement < StubElement
   property failures_left = 0
   property interactable_calls = 0
+  property interactable_error : Exception? = nil
   property resolved_point = Rod::Point.new(9.0, 11.0)
   property cover_element : Rod::Element?
 
   def interactable : Rod::Point
     @interactable_calls += 1
+    if ex = @interactable_error
+      raise ex
+    end
     if @failures_left > 0
       @failures_left -= 1
       raise Rod::CoveredError.new(@cover_element || self)
@@ -1157,9 +1159,19 @@ describe Rod::Element do
       element.failures_left = 1
       element.cover_element = StubElement.new(page)
 
-      point = element.wait_interactable(300.milliseconds)
+      point = element.wait_interactable
       point.should eq(Rod::Point.new(9.0, 11.0))
       element.interactable_calls.should eq(2)
+    end
+
+    it "wait_interactable stops on a non-covered error like go's Retry" do
+      page = Rod::Page.new(Rod::Browser.new, Rod::TargetID.new("target-id"))
+      element = WaitInteractableStubElement.new(page)
+      element.interactable_error = Rod::InvisibleShapeError.new(element)
+
+      expect_raises(Rod::InvisibleShapeError) { element.wait_interactable }
+      # go returns `true, err` for anything but a CoveredError, so no retry.
+      element.interactable_calls.should eq(1)
     end
   end
 

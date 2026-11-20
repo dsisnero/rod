@@ -454,38 +454,21 @@ module Rod
       pt
     end
 
-    # WaitInteractable waits for the element to become interactable.
+    # WaitInteractable waits for the element to become interactable, like
+    # go-rod's `utils.Retry(el.ctx, el.sleeper(), ...)` (`element.go:587-606`):
+    # only a covered element retries, any other error stops the wait, and the
+    # element context and sleeper decide when to give up.
     # Returns a point inside the element that can be used for interaction.
-    def wait_interactable(timeout : Time::Span = 5.seconds) : Point
+    def wait_interactable : Point
       cleanup = try_trace(Rod::TraceTypeWait, "interactable")
       begin
-        if @ctx.cancelled?
-          raise(@ctx.err || ContextCanceledError.new("context cancelled"))
-        end
-
-        effective_timeout = @ctx.timeout_remaining(timeout)
-        if effective_timeout <= Time::Span::ZERO
-          raise TimeoutError.new("Timeout waiting for interactable (context deadline exceeded)")
-        end
-
-        deadline = Time.instant + effective_timeout
         out : Point? = nil
         err = Rod::Util::Utils.retry(@ctx, @sleeper.call) do
           scroll_into_view
           out = interactable
           {true, nil}
         rescue ex : CoveredError
-          if Time.instant >= deadline
-            {true, ex}
-          else
-            {false, nil}
-          end
-        rescue ex : RodError
-          if Time.instant >= deadline
-            {true, ex}
-          else
-            {true, ex}
-          end
+          {false, nil}
         rescue ex
           {true, ex}
         end

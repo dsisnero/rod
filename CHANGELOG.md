@@ -32,6 +32,12 @@ below describe the Crystal port, not upstream changes.
 
 ### Changed
 
+- `Element#wait_interactable` takes no `timeout` argument and is now
+  `utils.Retry(el.ctx, el.sleeper(), ...)` like go-rod's `WaitInteractable`
+  (`element.go:587-606`): only a `CoveredError` retries, any other error stops
+  the wait, and the element/page context and chained sleeper decide how long it
+  keeps trying. The private 5 s deadline is gone, so a slow overlay no longer
+  surfaces a `CoveredError` after five seconds.
 - Lookup probes follow go-rod's `NotFoundSleeper` split between "look once" and
   "wait for it": `Page#has`/`has_x`/`has_r` (`query.go:105-138`),
   `Element#element_by_js` (`query.go:501-508`) and every `RaceContext` branch
@@ -110,6 +116,12 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `element.wait_interactable` gave up after a private 5 s deadline with the
+  `CoveredError` it was retrying, even when the page or element context allowed
+  more time (a modal or overlay that lifts after five seconds failed). It now
+  keeps retrying while the element is covered, and surfaces the context's
+  `DeadlineExceededError` or the sleeper's error when the budget runs out —
+  the same stop conditions as go-rod's `utils.Retry`.
 - `page.has("#missing")` blocked for the whole 5 s query timeout instead of
   answering `false` on the first attempt, `element.has("#missing")` never
   returned at all (an `Element#timeout` did not apply because the lookup ran on
