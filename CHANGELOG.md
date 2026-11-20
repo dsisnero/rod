@@ -178,6 +178,11 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Element#frame` keeps the page's panic handler, so `must_*` on an iframe page
+  reaches the handler installed with `Page#with_panic`/`set_panic_handler`, like
+  go's `Element.Frame` (which copies `*el.page`, `element.go:458-471`). The
+  iframe page is still a fresh `Page` with its own JS context, the element's
+  sleeper and the page's `ctx`.
 - `Browser#wait_event_typed` (and therefore `Browser#wait_event`, `Page#wait_event`
   and everything built on it) re-enabled the event's domain with
   `Domain.enable` and always disabled it in its cleanup, ignoring the browser

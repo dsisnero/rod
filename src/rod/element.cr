@@ -860,9 +860,12 @@ module Rod
       node = describe(1, false)
       frame_id = node.frame_id || ""
 
-      # Clone page with new frame ID
+      # Clone page with new frame ID. go copies `*el.page` and then replaces the
+      # frame id, JS context, element and sleeper (`element.go:458-471`), so the
+      # clone keeps the page's panic function; carry it over explicitly.
       session_id = @page.session_id.try { |sid| SessionID.new(sid) }
       clone = Page.new(@page.browser, @page.target_id, session_id, FrameID.new(frame_id), @page.ctx, @sleeper, self)
+      clone.e_handler = @page.e_handler
       clone
     end
 

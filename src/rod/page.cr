@@ -291,6 +291,10 @@ module Rod
       @e = handler
     end
 
+    protected def e_handler : EFunc?
+      @e
+    end
+
     protected def js_ctx_id_cache=(id : String?) : String?
       # Go assigns a fresh `new(...)` pointer to the clone (`element.go:466`,
       # `page.go:943`), so the clone must not keep sharing the parent's cache.

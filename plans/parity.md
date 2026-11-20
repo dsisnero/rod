@@ -8,25 +8,25 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 45 (element queries run go's shared
-`lib/js` helpers, which fixed `element_r`'s `/pattern/flags` handling).
+green, and the last feature commit is Phase 46 (`Element#frame` now carries the
+page's panic handler into the iframe page).
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~1m45s). Before a full run, clear stray headless browsers left
 by an aborted run — `pgrep -f "rod/user-data" | xargs -r kill -9`; they push the
 live specs into their documented load flake (see Gotchas).
 
-Phases 23-45 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-46 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. Next up item 1 records what cannot be re-derived from
 the ledger: which areas were swept and which leads are still open.
 
-**Last commit:** `port: run element queries through go's js helpers`
-(Phase 45; `git log -1` for the hash).
+**Last commit:** `port: keep the page panic handler on iframe pages`
+(Phase 46; `git log -1` for the hash).
 
-**Gates (2026-11-20, after Phase 45):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (693 examples, 0 failures) · parity checks pass
+**Gates (2026-11-20, after Phase 46):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (694 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -40,11 +40,8 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    test first matters: Phase 43 found that the stub-only `TestHandleAuth` had
    hidden a `Fetch domain is not enabled` bug in `handle_auth`.
    - Candidate leads, roughly easiest-first, each already verified to exist:
-     a. `Element#frame` (`element.go:458-471`): re-audited in Phase 45 — the clone
-        already takes the page's `ctx` and the element's `sleeper`, like go. What
-        go's struct copy still carries and a fresh `Page` does not is the panic
-        handler (`e`), so an iframe page from a `with_panic`/`set_panic_handler`
-        page raises on `must_*` instead of calling the handler.
+     a. ~~`Element#frame` panic handler~~ — landed as Phase 46 (the clone now
+        carries the page's `e`, like go's struct copy).
      b. `Element#parents` hand-writes JS and makes the selector optional; go is
         `evalHelper(js.Parents, selector)` with a required selector
         (`query.go:516-518`).
@@ -1558,6 +1555,33 @@ string to `new RegExp(...)` and matched nothing.
       run; `Element.ElementR` also points at the new live spec.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (693 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 46 — `Element#frame` keeps the page's panic handler ✅
+
+go's `Element.Frame` clones the page by struct assignment (`clone := *el.page`,
+`element.go:458-471`), then replaces only the frame id, the JS context id, the
+element and the sleeper — so the iframe page keeps the page's panic function
+(`e`). The port built a fresh `Page`, so `frame.must_*` raised without ever
+calling the handler the page had installed (`must.go:34-40`).
+
+- [x] Red-green: `spec/element_frame_panic_parity_spec.cr` installs a handler on
+      the page, takes the frame of a stubbed iframe element and expects a failing
+      `must_element` on the frame to reach that handler. It counted 0 calls
+      before the fix and 1 after.
+- [x] `src/rod/element.cr`: `Element#frame` copies `@page.e_handler` onto the
+      clone. `src/rod/page.cr` gained the protected `e_handler` reader next to
+      the writer `with_panic`/`set_panic_handler` already used.
+- [x] Frame clone fields re-audited against go: frame id, element, element
+      sleeper, page ctx and panic handler all match; a fresh JS context is kept
+      (`element.go:466`). go's struct copy additionally shares the `helpers`
+      cache, `sessionCancel` and the event hub — left as-is because no ported
+      behaviour depends on the sharing; re-open if one does.
+- [x] Ledger: `element.go::method::Element.Frame` records what the clone
+      inherits.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (694 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

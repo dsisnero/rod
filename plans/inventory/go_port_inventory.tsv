@@ -100,7 +100,7 @@ element.go::method::Element.Equal	method	ported	src/rod/element.cr,spec/element_
 element.go::method::Element.Eval	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
 element.go::method::Element.Evaluate	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
 element.go::method::Element.Focus	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
-element.go::method::Element.Frame	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
+element.go::method::Element.Frame	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr,spec/element_frame_panic_parity_spec.cr	element.go:458-471; the iframe page keeps the element's sleeper, the page's ctx and panic handler, and a fresh JS context like go's struct copy
 element.go::method::Element.GetSessionID	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
 element.go::method::Element.GetXPath	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
 element.go::method::Element.HTML	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
