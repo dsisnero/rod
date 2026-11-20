@@ -365,6 +365,23 @@ private class WaitInteractableStubElement < StubElement
   end
 end
 
+private class EvalRecordingPage < Rod::Page
+  property last_eval_opts : Rod::EvalOptions? = nil
+
+  def initialize
+    super(Rod::Browser.new, Rod::TargetID.new("target-id"))
+  end
+
+  def context(ctx : Rod::Context) : Rod::Page
+    self
+  end
+
+  def evaluate(opts : Rod::EvalOptions) : Cdp::Runtime::RemoteObject
+    @last_eval_opts = opts
+    Cdp::Runtime::RemoteObject.from_json(%({"type":"undefined"}))
+  end
+end
+
 private class WaitElementPage < Rod::Page
   property waited_opts : Rod::EvalOptions? = nil
   property wait_calls = 0
@@ -976,16 +993,29 @@ describe Rod::Element do
     end
   end
 
-  describe "#select_text" do
-    it "uses input value regex + setSelectionRange behavior" do
-      page = Rod::Page.new(Rod::Browser.new, Rod::TargetID.new("target-id"))
+  describe "#select_text/#select_all_text" do
+    it "evaluates go's js.SelectText helper as a user gesture" do
+      page = EvalRecordingPage.new
       element = StubElement.new(page)
 
       element.select_text("foo")
 
-      element.last_js.not_nil!.should contain("this.value.match")
-      element.last_js.not_nil!.should contain("setSelectionRange")
-      element.last_args.should eq(["foo"] of Rod::EvalOptions::JsArg)
+      opts = page.last_eval_opts.not_nil!
+      opts.js.should contain("/* selectText:")
+      opts.js_args.last.should eq("foo")
+      opts.user_gesture?.should be_true
+    end
+
+    it "evaluates go's js.SelectAllText helper as a user gesture" do
+      page = EvalRecordingPage.new
+      element = StubElement.new(page)
+
+      element.select_all_text
+
+      opts = page.last_eval_opts.not_nil!
+      # go: `el.Evaluate(evalHelper(js.SelectAllText).ByUser())` (`element.go:252`).
+      opts.js.should contain("/* selectAllText:")
+      opts.user_gesture?.should be_true
     end
   end
 

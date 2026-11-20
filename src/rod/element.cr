@@ -192,14 +192,9 @@ module Rod
 
       begin
         focus
-        evaluate(<<-JS, regex)
-          (regex) => {
-            const match = this.value.match(new RegExp(regex));
-            if (match) {
-              this.setSelectionRange(match.index, match.index + match[0].length);
-            }
-          }
-        JS
+        # go evaluates the shared helper as a user gesture (`element.go:228-239`):
+        # `function(e){e=this.value.match(new RegExp(e));e&&this.setSelectionRange(...)}`.
+        evaluate(@page.eval_helper(Rod::JS::SELECT_TEXT, regex).by_user)
       ensure
         cleanup.call
       end
@@ -213,13 +208,11 @@ module Rod
 
       begin
         focus
-        evaluate("() => {
-            const sel = window.getSelection();
-            const range = document.createRange();
-            range.selectNodeContents(this);
-            sel.removeAllRanges();
-            sel.addRange(range);
-        }")
+        # A document range cannot select `<input>`/`<textarea>` contents, which
+        # keep their selection in `selectionStart`/`selectionEnd`. go evaluates
+        # `js.SelectAllText` (`function(){this.select()}`) as a user gesture
+        # (`element.go:241-254`), so the following InsertText replaces the value.
+        evaluate(@page.eval_helper(Rod::JS::SELECT_ALL_TEXT).by_user)
       ensure
         cleanup.call
       end

@@ -159,6 +159,15 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Element#select_all_text` selected a **document** range
+  (`window.getSelection()` + `range.selectNodeContents`), which cannot select
+  `<input>`/`<textarea>` contents — those keep their selection in
+  `selectionStart`/`selectionEnd` — so `select_all_text` + `input` appended
+  instead of replacing (`"hi"` → `"hello therehi"`, and clearing a field was
+  impossible). It now evaluates go-rod's `js.SelectAllText`
+  (`function(){this.select()}`) as a user gesture like `element.go:241-254`, and
+  `Element#select_text` uses `js.SelectText` the same way (`element.go:228-239`).
+  Reported as `temp/issues/rod.004.md`.
 - `ctx.request.json_body` raised `JSON::ParseException` inside a hijack handler
   for any non-JSON request body (the common plain-text POST), aborting the
   handler fiber; go-rod's `JSONBody()` answers a null JSON there, and so does

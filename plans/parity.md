@@ -8,22 +8,22 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 40 (`Hijack.LoadResponse` honours
-`loadBody`). A new session can start with
+green, and the last feature commit is Phase 41 (`SelectAllText` selects field
+contents, issue `rod.004`). A new session can start with
 `make lint && make test` to confirm the baseline and then pick an item from
 **Next up**.
 
-Phases 23-40 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-41 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. The audit queue in Next up item 1 records what has
 already been swept and what has not.
 
-**Last commit:** `port: keep LoadResponse bodies unread unless asked, like go-rod`
-(Phase 40; `git log -1` for the hash).
+**Last commit:** `port: select field contents in select_all_text like go-rod`
+(Phase 41; `git log -1` for the hash).
 
-**Gates (2026-11-19, after Phase 40):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (677 examples, 0 failures) · parity checks pass
+**Gates (2026-11-19, after Phase 41):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (682 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -39,7 +39,7 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      `NotFoundSleeper` (32), `wait_interactable` (33), launcher shutdown (34),
      `ElementsByJS` error types (35), hijack bodies (36), `WaitDownload`
      restore (37), input mac mode (38), `Pages#find` misses (39),
-     `LoadResponse` bodies (40).
+     `LoadResponse` bodies (40), `SelectAllText` (41, issue `rod.004`).
    - Not swept yet: `hijack.go` router/headers (`HijackRouter#add/remove/stop`,
      `Browser#handle_auth`),
      `query.go` (`Search`, `WaitElementsMoreThan`),
@@ -1372,6 +1372,34 @@ everything anyway — a hijack handler proxying a large file paid for it.
       `res.body_io.gets_to_end` when `load_body` is set.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (677 examples, 0 failures), `make check-go-*` pass.
+
+### Phase 41 — `SelectAllText` selects field contents (issue `rod.004`) ✅
+
+`temp/issues/rod.004.md` reported that `Element#select_all_text` selected a
+document range (`window.getSelection()` + `range.selectNodeContents`) instead of
+go-rod's `js.SelectAllText` (`function(){this.select()}`). Document ranges do not
+cover `<input>`/`<textarea>` contents — those live in
+`selectionStart`/`selectionEnd` — so nothing was selected and the following
+`InsertText` prepended: `"hi"` became `"hello therehi"`, and clearing a field was
+impossible. The shard already shipped the correct helper; the method just never
+called it. `Element#select_text` had the same gap in shape (hand-written JS, no
+user gesture).
+
+- [x] Verified against `vendor/rod`: `SelectAllText` is
+      `el.Evaluate(evalHelper(js.SelectAllText).ByUser())` (`element.go:241-254`)
+      and `SelectText` is `evalHelper(js.SelectText, regex).ByUser()`
+      (`element.go:228-239`).
+- [x] Red-green `spec/element_select_all_text_parity_spec.cr` (live): a field
+      with `value="hi"` must read `"hello there"` after
+      `select_all_text` + `input` (red: `"hello therehi"`), a textarea must read
+      `"new"` (red: `"newold"`), and `selectionEnd` must be `3` (red: `0`); the
+      `select_text` case keeps its expectations as a guard.
+- [x] `src/rod/element.cr`: both methods evaluate the shared helpers with
+      `by_user`; the hand-written selection JS is gone.
+- [x] `spec/element_spec.cr`: the unit case now pins the helper (`/* selectText:`,
+      `/* selectAllText:`) and the user-gesture flag instead of the inline JS.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (682 examples, 0 failures), `make check-go-*` pass.
 
 ---
 
