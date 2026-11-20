@@ -1082,19 +1082,16 @@ describe Rod::Element do
       element.parent.should be_nil
     end
 
-    it "returns parents and supports optional selector filtering" do
+    it "runs go's js.Parents helper with the required selector" do
       page = ElementsPage.new
       page.next_elements = Rod::Elements.new([StubElement.new(page)] of Rod::Element)
       element = StubElement.new(page)
 
-      with_selector = element.parents(".row")
-      with_selector.size.should eq(1)
-      page.last_eval_opts.not_nil!.js.should contain("while (elem = elem.parentElement)")
-      page.last_eval_opts.not_nil!.js_args.should eq([JSON.parse(%(".row"))] of Rod::EvalOptions::JsArg)
-
-      without_selector = element.parents
-      without_selector.size.should eq(1)
-      page.last_eval_opts.not_nil!.js_args.should eq([] of Rod::EvalOptions::JsArg)
+      element.parents(".row").size.should eq(1)
+      opts = page.last_eval_opts.not_nil!
+      # go: `el.ElementsByJS(evalHelper(js.Parents, selector))` (`query.go:516-518`).
+      opts.js.should contain("this.parentElement")
+      assert_js_helper(opts, "parents", [JSON.parse(%(".row"))])
     end
 
     it "returns next/previous sibling or nil when not found" do

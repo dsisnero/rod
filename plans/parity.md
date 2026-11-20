@@ -8,25 +8,26 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 46 (`Element#frame` now carries the
-page's panic handler into the iframe page).
+green, and the last feature commit is Phase 47 (`Element#parents` runs go's
+`js.Parents` helper with a required selector, which also fixed a ported-but-broken
+path).
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~1m45s). Before a full run, clear stray headless browsers left
 by an aborted run — `pgrep -f "rod/user-data" | xargs -r kill -9`; they push the
 live specs into their documented load flake (see Gotchas).
 
-Phases 23-46 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-47 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. Next up item 1 records what cannot be re-derived from
 the ledger: which areas were swept and which leads are still open.
 
-**Last commit:** `port: keep the page panic handler on iframe pages`
-(Phase 46; `git log -1` for the hash).
+**Last commit:** `port: walk element ancestors through the js.Parents helper`
+(Phase 47; `git log -1` for the hash).
 
-**Gates (2026-11-20, after Phase 46):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (694 examples, 0 failures) · parity checks pass
+**Gates (2026-11-20, after Phase 47):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (697 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -42,9 +43,8 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    - Candidate leads, roughly easiest-first, each already verified to exist:
      a. ~~`Element#frame` panic handler~~ — landed as Phase 46 (the clone now
         carries the page's `e`, like go's struct copy).
-     b. `Element#parents` hand-writes JS and makes the selector optional; go is
-        `evalHelper(js.Parents, selector)` with a required selector
-        (`query.go:516-518`).
+     b. ~~`Element#parents`~~ — landed as Phase 47. It was worse than the drift
+        suggested: the script ran unbound and always answered `[]`.
      c. ~~`Element#element`/`element_x`/`element_r` hand-write JS~~ — landed as
         Phase 45. Not behaviourally equivalent after all: `element_r` did not
         understand the `/pattern/flags` form (`js.ElementR`, helper.go:40-44).
@@ -1582,6 +1582,33 @@ calling the handler the page had installed (`must.go:34-40`).
       inherits.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (694 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 47 — `Element#parents` walks the receiver's ancestors again ✅
+
+`Element#parents` was reported `ported` but did not work: it hand-wrote the walk
+and ran it straight on the page (`@page.elements_by_js(opts)`) without binding
+`this` to the element, so in real use `this` was the global object, the walk
+never started and the method answered an empty list. go calls
+`el.ElementsByJS(evalHelper(js.Parents, selector))` (`query.go:516-518`) with a
+**required** selector. The stub-only spec hid it by asserting the recorded
+options of the page stub.
+
+- [x] Red-green: `spec/element_parents_parity_spec.cr` drives a live page with
+      nested `div`s and expects `leaf.parents("div")` → `["middle", "outer"]`,
+      selector filtering, and no self-report. All three answered `[]`/`0` before
+      the fix.
+- [x] `src/rod/element.cr`: `parents(selector : String)` is now required and runs
+      `elements_by_js(@page.eval_helper(Rod::JS::PARENTS, selector))`, which binds
+      `this` and goes through the page context like go. The non-go optional
+      `selector : String?` overload is gone (`must_parents` already required it).
+- [x] `spec/element_spec.cr`: the stubbed spec asserts the `parents` helper is the
+      first JS argument instead of the old pinned script.
+- [x] Ledger: `query.go::method::Element.Parents` records the helper path and why
+      the old script answered `[]`.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (697 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

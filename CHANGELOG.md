@@ -178,6 +178,13 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Element#parents` works again: it ran its own script straight on the page
+  without binding `this` to the element, so a real call always answered an empty
+  list (the stub-only spec only checked the recorded options). It now runs go's
+  `js.Parents` helper with the selector go requires
+  (`query.go:516-518`), so `parents(selector)` returns the matching ancestors,
+  nearest first. The non-go `parents` overload without a selector is gone
+  (`must_parents` already required one).
 - `Element#frame` keeps the page's panic handler, so `must_*` on an iframe page
   reaches the handler installed with `Page#with_panic`/`set_panic_handler`, like
   go's `Element.Frame` (which copies `*el.page`, `element.go:458-471`). The

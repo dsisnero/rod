@@ -909,24 +909,9 @@ module Rod
       end
     end
 
-    # Get ancestor elements, optionally filtered by selector.
-    def parents(selector : String? = nil) : Elements
-      js = <<-JS
-        function(selector) {
-          let parents = [];
-          let elem = this;
-          while (elem = elem.parentElement) {
-            parents.push(elem);
-          }
-          if (selector) {
-            return parents.filter(el => el.matches(selector));
-          }
-          return parents;
-        }
-        JS
-      js_args = selector ? [::JSON::Any.new(selector)] of EvalOptions::JsArg : [] of EvalOptions::JsArg
-      opts = EvalOptions.new(js: js, js_args: js_args)
-      @page.elements_by_js(opts)
+    # Get ancestor elements that match the selector, nearest first.
+    def parents(selector : String) : Elements
+      elements_by_js(@page.eval_helper(Rod::JS::PARENTS, selector))
     end
 
     # Get next sibling element, or nil if none.
