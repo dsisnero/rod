@@ -8,20 +8,22 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is `c4ee24d` (Phase 30, signed quad area). A
-new session can start with `make lint && make test` to confirm the baseline and
-then pick an item from **Next up**.
+green, and the last feature commit is Phase 31 (`Element.Wait*` retries
+through the page sleeper). A new session can start with
+`make lint && make test` to confirm the baseline and then pick an item from
+**Next up**.
 
-Phases 23-30 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-31 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. The audit queue in Next up item 1 records what has
 already been swept and what has not.
 
-**Last commit:** `c4ee24d port: keep the signed quad area like go's DOMQuad.Area`
+**Last commit:** `port: retry Element.Wait* through the page sleeper like go-rod`
+(Phase 31; `git log -1` for the hash).
 
-**Gates (2026-11-19, after Phase 30):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (643 examples, 0 failures) · parity checks pass
+**Gates (2026-11-19, after Phase 31):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (649 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -33,19 +35,16 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    (spec first, then the fix, then gates + this file + `CHANGELOG.md`).
    - Already swept: context/cancellation (Phases 23, 26), event hub (24),
      launcher/manager (21, 25, 29), error types + `errors.Is` (27, 28), quad
-     geometry (30).
+     geometry (30), `Element.Wait*` + `visible?` (31).
    - Not swept yet: `hijack.go` / `HijackRouter`, `query.go`
      (`Search`, `ElementByJS`, `WaitElementsMoreThan`, the query-branch retry),
      `browser.go` (`Pages`, `Page`, `Cookies`, `Close`, `WaitDownload`),
      `page_eval.go` + `lib/js/` helpers, `input/` (keyboard, mouse, touch),
-     `dev_helpers.go`, `message.go`/`states.go`.
+     `dev_helpers.go`, `states.go`, `element.go` beyond the wait helpers.
    - Known leads already spotted but not yet fixed (verify each against Go
      before changing anything — some may be deliberate):
-     `Element#wait_visible`/`wait_enabled`/`wait_writable`/`wait_invisible` poll
-     through a private `wait_for(timeout)` instead of Go's
-     `Element#wait(evalHelper(js.Visible))` + page sleeper; `Launcher#kill`
-     signals TERM+KILL to the process group *and* the pid where Go sends only
-     `SIGKILL` to the group.
+     `Launcher#kill` signals TERM+KILL to the process group *and* the pid where
+     Go sends only `SIGKILL` to the group.
 2. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
    parity scripts instead of the repo's copied ones (whose `tree-sitter` branch
    is a placeholder), and decide curated-status preservation. Native tree-sitter
@@ -101,7 +100,11 @@ Chrome itself drop connections mid-example, which looks like a port bug. On
 2026-11-17 three `chiasmus` runs from another checkout kept the load average
 above 12 for hours; a full suite then took 12 minutes and
 `TestScrollScreenshot` exhausted its compositor retries even though it passes in
-isolation. Re-run before blaming a change. Keep
+isolation. Re-run before blaming a change. A killed or aborted spec run can also
+leave its headless browsers behind (`pgrep -f "rod/user-data"`); they keep the
+machine busy, and `TestScrollScreenshot` then fails with `-32000 Unable to
+capture screenshot` even on a pristine tree — `pgrep -f "rod/user-data" | xargs
+kill` clears them. Keep
 browser profiles out of `./temp`: on the exFAT checkout Chrome's AppleDouble
 `._*` sidecars appear in `readdir` but `FileUtils.rm_rf` cannot unlink them, so
 `Launcher#cleanup` silently leaves the profile behind (use `Dir.tempdir`). The
@@ -1106,6 +1109,36 @@ still produced a center point.
       touches the winding case Go never tested explicitly.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (643 examples, 0 failures), `make check-go-*` pass.
+
+### Phase 31 — `Element.Wait*` retries through the page sleeper ✅
+
+go-rod's wait helpers are one-liners over `Element.Wait` (`element.go:608-636`):
+`WaitVisible`/`WaitInvisible` pass `evalHelper(js.Visible)`/`evalHelper(js.Invisible)`,
+`WaitEnabled`/`WaitWritable` pass `Eval('() => !this.disabled')`/`Eval('() => !this.readonly')`,
+and `Wait` retries through `page.Context(el.ctx).Sleeper(el.sleeper).Wait(...)`, so
+the context deadline and the chained sleeper decide when to stop. The port polled a
+private `wait_for(timeout)` loop instead (fixed 5 s deadline, 10 ms sleep,
+`Rod::TimeoutError`), ignoring both, and `visible?` used its own JS (`opacity`
+check, no client-rect check) rather than `js.Visible`.
+
+- [x] Red-green `spec/element_wait_parity_spec.cr`: ports of `TestWaitInvisible`,
+      `TestWaitEnabled` and `TestWaitWritable` on the pooled browser, plus
+      "matches go's js.Visible for opacity and zero-size elements" (red:
+      `opacity:0` reported invisible while a zero-size fixed box reported
+      visible), "retries wait_visible through the element sleeper like go's
+      Element.Wait" (red: `Rod::TimeoutError` after 5 s instead of
+      `MaxSleepCountError`) and "surfaces the context deadline from
+      wait_visible" (go: `DeadlineExceededError`).
+- [x] `src/rod/element.cr`: the four helpers lost their `timeout` argument (go has
+      none), delegate to `Element#wait`, and `private wait_for` is gone.
+      `visible?` now evaluates `eval_helper(JS::VISIBLE)`, so the predicate and
+      the wait agree again.
+- [x] `spec/element_spec.cr`: unit coverage asserts each helper's `Page#wait`
+      call, the `this` binding and the exact JS predicate (`/* visible:`,
+      `/* invisible:`, `() => !this.disabled`, `() => !this.readonly`); the stub
+      overrides dropped the removed `timeout` parameter.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (649 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

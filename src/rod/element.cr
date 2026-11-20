@@ -565,17 +565,9 @@ module Rod
       end
     end
 
-    # Check if element is visible
+    # Check if element is visible, using go-rod's `js.Visible` helper.
     def visible? : Bool
-      result = evaluate(<<-JS
-        () => {
-          const style = window.getComputedStyle(this);
-          return style.display !== 'none' &&
-                 style.visibility !== 'hidden' &&
-                 style.opacity !== '0';
-        }
-        JS
-      )
+      result = evaluate(@page.eval_helper(Rod::JS::VISIBLE))
       result.value.try(&.as_bool?) || false
     end
 
@@ -701,43 +693,40 @@ module Rod
     end
 
     # Wait for element to be visible
-    def wait_visible(timeout : Time::Span = 5.seconds) : Nil
+    def wait_visible : Nil
       cleanup = try_trace(Rod::TraceTypeWait, "visible")
       begin
-        wait_for(timeout) { visible? }
+        wait(@page.eval_helper(Rod::JS::VISIBLE))
       ensure
         cleanup.call
       end
     end
 
     # Wait for element to be enabled
-    def wait_enabled(timeout : Time::Span = 5.seconds) : Nil
+    def wait_enabled : Nil
       cleanup = try_trace(Rod::TraceTypeWait, "enabled")
       begin
-        wait_for(timeout) { enabled? }
+        wait(@page.eval_opts("() => !this.disabled").by_promise)
       ensure
         cleanup.call
       end
     end
 
     # Wait until the element is writable (not readonly).
-    def wait_writable(timeout : Time::Span = 5.seconds) : Nil
+    def wait_writable : Nil
       cleanup = try_trace(Rod::TraceTypeWait, "writable")
       begin
-        wait_for(timeout) do
-          result = evaluate("() => !this.readonly")
-          result.value.try(&.as_bool?) || false
-        end
+        wait(@page.eval_opts("() => !this.readonly").by_promise)
       ensure
         cleanup.call
       end
     end
 
     # Wait for element to be invisible
-    def wait_invisible(timeout : Time::Span = 5.seconds) : Nil
+    def wait_invisible : Nil
       cleanup = try_trace(Rod::TraceTypeWait, "invisible")
       begin
-        wait_for(timeout) { !visible? }
+        wait(@page.eval_helper(Rod::JS::INVISIBLE))
       ensure
         cleanup.call
       end
@@ -1002,40 +991,6 @@ module Rod
     # Call CDP method
     def call(context : HTTP::Client::Context?, session_id : String?, method : String, params : JSON::Any) : Bytes
       @page.call(context, session_id, method, params)
-    end
-
-    private def wait_for(timeout : Time::Span = 5.seconds, &block : -> Bool) : Nil
-      # Check context cancellation before starting
-      if @ctx.cancelled?
-        if err = @ctx.err
-          raise err
-        end
-        raise ContextCanceledError.new("context cancelled")
-      end
-
-      # Calculate effective timeout considering context deadline
-      effective_timeout = @ctx.timeout_remaining(timeout)
-      if effective_timeout <= Time::Span::ZERO
-        raise TimeoutError.new("Timeout waiting for condition (context deadline exceeded)")
-      end
-
-      start_time = Time.instant
-      until block.call
-        # Check context cancellation each iteration
-        if @ctx.cancelled?
-          if err = @ctx.err
-            raise err
-          end
-          raise ContextCanceledError.new("context cancelled")
-        end
-
-        elapsed = Time.instant - start_time
-        if elapsed > effective_timeout
-          raise TimeoutError.new("Timeout waiting for condition")
-        end
-
-        sleep(10.milliseconds)
-      end
     end
   end
 

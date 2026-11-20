@@ -32,6 +32,15 @@ below describe the Crystal port, not upstream changes.
 
 ### Changed
 
+- `Element#wait_visible`, `Element#wait_enabled`, `Element#wait_writable` and
+  `Element#wait_invisible` now take no timeout argument and delegate to
+  `Element#wait`/`Page#wait`, like go-rod's
+  `Wait(evalHelper(js.Visible))` family (`element.go:608-636`). The page or
+  element context and the chained `sleeper` decide how long and how often the
+  predicate is retried; the port's private `wait_for(timeout)` poll loop (fixed
+  5s deadline, 10 ms poll, `Rod::TimeoutError`) is gone. `visible?` answers
+  go-rod's `js.Visible` (`element.go:501`): display, visibility and a non-empty
+  client rect, with no `opacity` check.
 - `Rod::NotFoundError` (the port's lookup miss) now derives from
   `Rod::ElementNotFoundError`, which also moved next to `RodError` in
   `src/rod/types.cr`. Every element lookup therefore raises an
@@ -88,6 +97,15 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Element#wait_visible`, `wait_enabled`, `wait_writable` and `wait_invisible`
+  ignored the page/element timeout and the chained sleeper: an element that
+  became visible after 6 seconds failed under `page.timeout(30.seconds)`, and
+  `CountSleeper`/`MaxSleepCountError` never fired. They now surface the
+  context's `DeadlineExceededError` (Go's `context.DeadlineExceeded`) and the
+  sleeper's error, exactly like `utils.Retry` does for go-rod's `Element.Wait`.
+- `Element#visible?` disagreed with `js.Visible`: it treated `opacity: 0` as
+  invisible and a zero-size box as visible, so `wait_visible` could hang or
+  return early where go-rod would not.
 - `Cdp::DOM.area` and `Rod::Util::Quad.area` return the signed shoelace area like
   go-rod's `DOMQuad.Area` (`lib/proto/a_patch.go:90-100`) instead of its absolute
   value, so `one_point_inside` skips clockwise-wound quads exactly like

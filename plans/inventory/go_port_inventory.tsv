@@ -129,16 +129,16 @@ element.go::method::Element.String	method	ported	src/rod/element.cr,spec/element
 element.go::method::Element.Tap	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
 element.go::method::Element.Text	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
 element.go::method::Element.Type	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
-element.go::method::Element.Visible	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
+element.go::method::Element.Visible	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr,spec/element_wait_parity_spec.cr	visible predicate and wait helpers use go's js.Visible/js.Invisible
 element.go::method::Element.Wait	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
-element.go::method::Element.WaitEnabled	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
+element.go::method::Element.WaitEnabled	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr,spec/element_wait_parity_spec.cr	wait helpers retry through Element#wait/page.Sleeper like go
 element.go::method::Element.WaitInteractable	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
-element.go::method::Element.WaitInvisible	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
+element.go::method::Element.WaitInvisible	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr,spec/element_wait_parity_spec.cr	wait helpers retry through Element#wait/page.Sleeper like go
 element.go::method::Element.WaitLoad	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
 element.go::method::Element.WaitStable	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
 element.go::method::Element.WaitStableRAF	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
-element.go::method::Element.WaitVisible	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
-element.go::method::Element.WaitWritable	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
+element.go::method::Element.WaitVisible	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr,spec/element_wait_parity_spec.cr	wait helpers retry through Element#wait/page.Sleeper like go
+element.go::method::Element.WaitWritable	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr,spec/element_wait_parity_spec.cr	wait helpers retry through Element#wait/page.Sleeper like go
 element.go::struct::Element	struct	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
 element_test.go::test::TestAttribute	test	ported	spec/element_spec.cr	attribute getter nil/value parity covered
 element_test.go::test::TestBackgroundImage	test	ported	spec/element_spec.cr,spec/live_browser_parity_spec.cr	background-image URL extraction, error paths, and live fixture byte-size parity covered
@@ -188,12 +188,12 @@ element_test.go::test::TestShadowDOM	test	ported	spec/live_browser_parity_spec.c
 element_test.go::test::TestShapeInIframe	test	ported	spec/live_browser_parity_spec.cr	verified iframe shape one-point-inside coordinate parity against upstream deltas
 element_test.go::test::TestTap	test	ported	spec/live_browser_parity_spec.cr	verified iPad emulation + touch fixture tap side-effect (tapped=true) in real browser
 element_test.go::test::TestUseReleasedElement	test	ported	spec/live_browser_parity_spec.cr	verified click fails after element release and manual runtime release in real browser
-element_test.go::test::TestWaitEnabled	test	ported	spec/element_spec.cr	wait_enabled polling parity covered
+element_test.go::test::TestWaitEnabled	test	ported	spec/element_spec.cr,spec/element_wait_parity_spec.cr	live click.html button wait_enabled parity covered
 element_test.go::test::TestWaitInteractable	test	ported	spec/element_spec.cr	wait_interactable retries interactability errors until success parity covered
-element_test.go::test::TestWaitInvisible	test	ported	spec/element_spec.cr	wait_invisible polling parity covered
+element_test.go::test::TestWaitInvisible	test	ported	spec/element_spec.cr,spec/element_wait_parity_spec.cr	live click.html removed/visibility-hidden wait_invisible parity covered
 element_test.go::test::TestWaitStable	test	ported	spec/live_browser_parity_spec.cr	verified wait_stable blocks until fixture animation class removal
 element_test.go::test::TestWaitStableRAP	test	ported	spec/live_browser_parity_spec.cr	verified wait_stable_raf blocks until fixture animation class removal
-element_test.go::test::TestWaitWritable	test	ported	spec/element_spec.cr	wait_writable readonly predicate parity covered
+element_test.go::test::TestWaitWritable	test	ported	spec/element_spec.cr,spec/element_wait_parity_spec.cr	live input.html input wait_writable parity covered
 error.go::func::NotFoundSleeper	func	ported	src/rod/error.cr,spec/error_spec.cr,spec/page_navigation_error_parity_spec.cr	error type/is/unwrap parity covered
 error.go::method::CoveredError.Error	method	ported	src/rod/error.cr,spec/error_spec.cr,spec/page_navigation_error_parity_spec.cr	error type/is/unwrap parity covered
 error.go::method::CoveredError.Is	method	ported	src/rod/error.cr,spec/error_spec.cr,spec/page_navigation_error_parity_spec.cr	error type/is/unwrap parity covered

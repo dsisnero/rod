@@ -114,11 +114,11 @@ private class InputStubElement < StubElement
     @focus_called = true
   end
 
-  def wait_enabled(timeout : Time::Span = 5.seconds) : Nil
+  def wait_enabled : Nil
     @wait_enabled_calls += 1
   end
 
-  def wait_writable(timeout : Time::Span = 5.seconds) : Nil
+  def wait_writable : Nil
     @wait_writable_calls += 1
   end
 end
@@ -242,8 +242,7 @@ private class ClickFlowStubElement < StubElement
     end
   end
 
-  def wait_enabled(timeout : Time::Span = 5.seconds) : Nil
-    _ = timeout
+  def wait_enabled : Nil
     @wait_enabled_calls += 1
     if ex = @wait_enabled_error
       raise ex
@@ -294,8 +293,7 @@ private class TapFlowStubElement < StubElement
     end
   end
 
-  def wait_enabled(timeout : Time::Span = 5.seconds) : Nil
-    _ = timeout
+  def wait_enabled : Nil
     @wait_enabled_calls += 1
     if ex = @wait_enabled_error
       raise ex
@@ -367,6 +365,7 @@ end
 
 private class WaitElementPage < Rod::Page
   property waited_opts : Rod::EvalOptions? = nil
+  property wait_calls = 0
 
   def initialize
     super(Rod::Browser.new, Rod::TargetID.new("target-id"))
@@ -381,6 +380,7 @@ private class WaitElementPage < Rod::Page
   end
 
   def wait(opts : Rod::EvalOptions) : Nil
+    @wait_calls += 1
     @waited_opts = opts
   end
 end
@@ -510,8 +510,7 @@ private class StableStubElement < StubElement
   property shape_error : Exception? = nil
   @last_shape = Cdp::DOM::GetContentQuadsResult.new([] of Cdp::DOM::Quad)
 
-  def wait_visible(timeout : Time::Span = 5.seconds) : Nil
-    _ = timeout
+  def wait_visible : Nil
     @wait_visible_calls += 1
   end
 
@@ -1164,14 +1163,29 @@ describe Rod::Element do
     end
   end
 
-  describe "#wait_writable" do
-    it "waits until readonly is false" do
-      page = Rod::Page.new(Rod::Browser.new, Rod::TargetID.new("target-id"))
+  describe "#wait_visible/#wait_invisible" do
+    it "wait_visible waits through the page with go's js.Visible helper" do
+      page = WaitElementPage.new
       element = StubElement.new(page)
-      element.eval_result = true
 
-      element.wait_writable
-      element.last_js.should eq("() => !this.readonly")
+      element.wait_visible
+
+      page.wait_calls.should eq(1)
+      waited = page.waited_opts.not_nil!
+      waited.this_obj.should eq(element.object)
+      waited.js.should contain("/* visible:")
+    end
+
+    it "wait_invisible waits through the page with go's js.Invisible helper" do
+      page = WaitElementPage.new
+      element = StubElement.new(page)
+
+      element.wait_invisible
+
+      page.wait_calls.should eq(1)
+      waited = page.waited_opts.not_nil!
+      waited.this_obj.should eq(element.object)
+      waited.js.should contain("/* invisible:")
     end
   end
 
@@ -1382,23 +1396,31 @@ describe Rod::Element do
     end
   end
 
-  describe "#wait_enabled/#wait_invisible" do
-    it "wait_enabled polls until enabled" do
-      page = Rod::Page.new(Rod::Browser.new, Rod::TargetID.new("target-id"))
+  describe "#wait_enabled/#wait_writable" do
+    it "wait_enabled waits through the page with go's disabled check" do
+      page = WaitElementPage.new
       element = StubElement.new(page)
-      element.next_eval_values = [JSON.parse("false"), JSON.parse("true")]
 
-      element.wait_enabled(200.milliseconds)
-      element.last_js.should eq("() => !this.disabled")
+      element.wait_enabled
+
+      page.wait_calls.should eq(1)
+      waited = page.waited_opts.not_nil!
+      waited.this_obj.should eq(element.object)
+      waited.js.should eq("() => !this.disabled")
+      waited.await_promise?.should be_true
     end
 
-    it "wait_invisible polls until visible becomes false" do
-      page = Rod::Page.new(Rod::Browser.new, Rod::TargetID.new("target-id"))
+    it "wait_writable waits through the page with go's readonly check" do
+      page = WaitElementPage.new
       element = StubElement.new(page)
-      element.next_eval_values = [JSON.parse("true"), JSON.parse("false")]
 
-      element.wait_invisible(200.milliseconds)
-      element.last_js.not_nil!.should contain("window.getComputedStyle")
+      element.wait_writable
+
+      page.wait_calls.should eq(1)
+      waited = page.waited_opts.not_nil!
+      waited.this_obj.should eq(element.object)
+      waited.js.should eq("() => !this.readonly")
+      waited.await_promise?.should be_true
     end
   end
 
