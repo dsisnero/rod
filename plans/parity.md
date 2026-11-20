@@ -8,25 +8,25 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 44 (`LoadState` copies the stored
-params; full-page screenshots restore the browser-state viewport).
+green, and the last feature commit is Phase 45 (element queries run go's shared
+`lib/js` helpers, which fixed `element_r`'s `/pattern/flags` handling).
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~1m45s). Before a full run, clear stray headless browsers left
 by an aborted run — `pgrep -f "rod/user-data" | xargs -r kill -9`; they push the
 live specs into their documented load flake (see Gotchas).
 
-Phases 23-44 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-45 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. Next up item 1 records what cannot be re-derived from
 the ledger: which areas were swept and which leads are still open.
 
-**Last commit:** `port: read LoadState params and restore the browser viewport`
-(Phase 44; `git log -1` for the hash).
+**Last commit:** `port: run element queries through go's js helpers`
+(Phase 45; `git log -1` for the hash).
 
-**Gates (2026-11-20, after Phase 44):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (690 examples, 0 failures) · parity checks pass
+**Gates (2026-11-20, after Phase 45):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (693 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -40,18 +40,21 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    test first matters: Phase 43 found that the stub-only `TestHandleAuth` had
    hidden a `Fetch domain is not enabled` bug in `handle_auth`.
    - Candidate leads, roughly easiest-first, each already verified to exist:
-     a. `Element#frame` builds the iframe page with the *element's* `ctx` and
-        `sleeper`; go uses `el.page.ctx`/`el.page.sleeper` (`element.go` `Frame`).
+     a. `Element#frame` (`element.go:458-471`): re-audited in Phase 45 — the clone
+        already takes the page's `ctx` and the element's `sleeper`, like go. What
+        go's struct copy still carries and a fresh `Page` does not is the panic
+        handler (`e`), so an iframe page from a `with_panic`/`set_panic_handler`
+        page raises on `must_*` instead of calling the handler.
      b. `Element#parents` hand-writes JS and makes the selector optional; go is
         `evalHelper(js.Parents, selector)` with a required selector
         (`query.go:516-518`).
-     c. `Element#element`/`element_x`/`element_r` hand-write JS with
-        `/* rod.element */`-style markers instead of `js.Element`/`js.ElementX`/
-        `js.ElementR` (`query.go:487-499`). Behaviourally equivalent today;
-        switching to the helpers also exercises `ensure_js_helper` caching.
-     d. `HijackRouter#add/remove/stop` against `hijack.go:113-192` (go's `Add`
-        returns the `Fetch.enable` error; `Remove` rebuilds patterns *without*
-        the resource type).
+     c. ~~`Element#element`/`element_x`/`element_r` hand-write JS~~ — landed as
+        Phase 45. Not behaviourally equivalent after all: `element_r` did not
+        understand the `/pattern/flags` form (`js.ElementR`, helper.go:40-44).
+     d. ~~`HijackRouter#add/remove/stop`~~ — verified equal in Phase 45: `Add`
+        appends the pattern with its resource type and re-enables, `Remove`
+        rebuilds patterns without the resource type, `Stop` disables
+        (`hijack.go:113-192`); only the error style differs (Crystal raises).
      e. `query.go`: `Search` (`DOM.performSearch` retry, iframe/shadow search,
         `SearchResult#get/release`) and `WaitElementsMoreThan` (go passes `Eval`,
         i.e. by-value *and* by-promise).
@@ -1529,6 +1532,32 @@ argument loses the assignments (Crystal copies structs at call boundaries).
       (690 examples, 0 failures), `make check-go-*` pass.
 
 ---
+
+### Phase 45 — element queries run go's shared `lib/js` helpers ✅
+
+`Element#element`/`#element_x`/`#element_r`/`#elements`/`#elements_x` hand-wrote
+their own scripts (`this.querySelector(...)`, `document.evaluate(...)`,
+`new RegExp(regex)`), while go routes the same calls through `evalHelper` and the
+shared helpers (`query.go:487-499`). The drift was behavioural, not cosmetic:
+`js.ElementR` parses its regex argument like a JavaScript literal
+(`vendor/rod/lib/js/helper.go:40-44`), so `element_r("span", "/hello/i")` builds
+`new RegExp("hello", "i")` in go, while the hand-written path handed the raw
+string to `new RegExp(...)` and matched nothing.
+
+- [x] Red-green: `spec/element_regex_query_parity_spec.cr` drives a live page and
+      expects `/hello/i` and `/GOODBYE/i` to match case-insensitively, plain
+      patterns to stay case sensitive, and the search to stay scoped to the
+      receiver. The flag example answered `ElementNotFoundError` before the fix.
+- [x] `src/rod/element.cr`: the five element-scoped queries now call
+      `@page.eval_helper(Rod::JS::ELEMENT | ELEMENT_X | ELEMENT_R | ELEMENTS |
+      ELEMENTS_X, ...)`, and `elements`/`elements_x` go through the element's own
+      `elements_by_js` (go's `el.ElementsByJS` → `el.page.Context(el.ctx)`).
+      `spec/element_spec.cr` now asserts the helper function is the first JS
+      argument instead of a pinned script string.
+- [x] Ledger: the five `query.go::method::Element.*` rows name the helper they
+      run; `Element.ElementR` also points at the new live spec.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (693 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

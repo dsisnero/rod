@@ -869,52 +869,31 @@ module Rod
     # Find single child element by CSS selector.
     # Raises NotFoundError if element not found.
     def element(selector : String) : Element
-      opts = EvalOptions.new(
-        js: "/* rod.element */ function(selector) { return this.querySelector(selector) }",
-        js_args: [::JSON::Any.new(selector)] of EvalOptions::JsArg
-      )
-      element_by_js(opts)
+      element_by_js(@page.eval_helper(Rod::JS::ELEMENT, selector))
     end
 
     # Find single child element by XPath selector.
     # Raises NotFoundError if element not found.
     def element_x(xpath : String) : Element
-      opts = EvalOptions.new(
-        js: "function(xpath) { return document.evaluate(xpath, this, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue }",
-        js_args: [::JSON::Any.new(xpath)] of EvalOptions::JsArg
-      )
-      element_by_js(opts)
+      element_by_js(@page.eval_helper(Rod::JS::ELEMENT_X, xpath))
     end
 
     # Find single child element by CSS selector with text matching regex.
     # Raises NotFoundError if element not found.
     def element_r(selector : String, regex : String) : Element
-      opts = EvalOptions.new(
-        js: "function(selector, regex) { const els = this.querySelectorAll(selector); const re = new RegExp(regex); for (const el of els) { if (re.test(el.textContent || el.innerText || '')) return el; } return null; }",
-        js_args: [::JSON::Any.new(selector), ::JSON::Any.new(regex)] of EvalOptions::JsArg
-      )
-      element_by_js(opts)
+      element_by_js(@page.eval_helper(Rod::JS::ELEMENT_R, selector, regex))
     end
 
     # Find all child elements matching CSS selector.
     # Returns empty Elements if none found.
     def elements(selector : String) : Elements
-      opts = EvalOptions.new(
-        js: "/* rod.elements */ function(selector) { return Array.from(this.querySelectorAll(selector)) }",
-        js_args: [::JSON::Any.new(selector)] of EvalOptions::JsArg,
-        this_obj: @object
-      )
-      @page.elements_by_js(opts)
+      elements_by_js(@page.eval_helper(Rod::JS::ELEMENTS, selector))
     end
 
     # Find all child elements matching XPath selector.
     # Returns empty Elements if none found.
     def elements_x(xpath : String) : Elements
-      opts = EvalOptions.new(
-        js: "function(xpath) { const out = []; const it = document.evaluate(xpath, this, null, XPathResult.ORDERED_NODE_ITERATOR_TYPE, null); let n; while (n = it.iterateNext()) out.push(n); return out; }",
-        js_args: [::JSON::Any.new(xpath)] of EvalOptions::JsArg
-      )
-      @page.elements_by_js(opts)
+      elements_by_js(@page.eval_helper(Rod::JS::ELEMENTS_X, xpath))
     end
 
     # Get parent element, or nil if no parent.

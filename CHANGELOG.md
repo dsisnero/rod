@@ -32,6 +32,14 @@ below describe the Crystal port, not upstream changes.
 
 ### Changed
 
+- `Element#element`, `#element_x`, `#element_r`, `#elements` and `#elements_x`
+  now run go-rod's shared `lib/js` helpers through `eval_helper` instead of
+  hand-written scripts (`query.go:487-499`). The visible fix is `element_r`: its
+  regex argument is parsed like a JavaScript literal, so `element_r("span",
+  "/hello/i")` builds `new RegExp("hello", "i")` and matches case-insensitively,
+  where the raw-string form matched nothing (`lib/js/helper.go:40-44`). Element
+  scoped `elements`/`elements_x` also go through `Element#elements_by_js`, i.e.
+  go's `el.page.Context(el.ctx)` path.
 - `Browser#load_state`/`Page#load_state` load the stored CDP params like go-rod's
   reflective `LoadState` (`states.go:43-52`), and `Page#screenshot(full_page:
   true)` restores the viewport from the browser state map (`page.go:437-471`)

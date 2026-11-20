@@ -1,5 +1,15 @@
 require "./spec_helper"
 
+# Element queries must run go-rod's shared `lib/js` helpers (`query.go:487-499`)
+# rather than ad-hoc scripts, so a stub captures the helper function as the first
+# JS argument, with the query arguments after it.
+private def assert_js_helper(opts : Rod::EvalOptions, name : String, args : Array(JSON::Any)) : Nil
+  fn = opts.js_args.first
+  fn.should be_a(Rod::JS::Function)
+  fn.as(Rod::JS::Function).name.should eq(name)
+  opts.js_args[1..].should eq(args.map { |arg| arg.as(Rod::EvalOptions::JsArg) })
+end
+
 private class StubElement < Rod::Element
   property? eval_result : Bool = false
   property eval_error : Exception? = nil
@@ -59,6 +69,10 @@ private class ElementsPage < Rod::Page
 
   def initialize
     super(Rod::Browser.new, Rod::TargetID.new("target-id"))
+  end
+
+  def context(ctx : Rod::Context) : Rod::Page
+    self
   end
 
   def elements_by_js(opts : Rod::EvalOptions) : Rod::Elements
@@ -983,7 +997,7 @@ describe Rod::Element do
       element.element(".item").should eq(child)
       opts = element.last_eval_opts.not_nil!
       opts.js.should contain("querySelector")
-      opts.js_args.should eq([JSON.parse(%(".item"))] of Rod::EvalOptions::JsArg)
+      assert_js_helper(opts, "element", [JSON.parse(%(".item"))])
     end
 
     it "raises NotFoundError when element not found" do
@@ -1029,7 +1043,7 @@ describe Rod::Element do
       result.size.should eq(1)
       opts = page.last_eval_opts.not_nil!
       opts.js.should contain("querySelectorAll")
-      opts.js_args.should eq([JSON.parse(%(".row"))] of Rod::EvalOptions::JsArg)
+      assert_js_helper(opts, "elements", [JSON.parse(%(".row"))])
     end
 
     it "returns empty Elements when none found" do
@@ -1050,7 +1064,7 @@ describe Rod::Element do
       result.size.should eq(2)
       opts = page.last_eval_opts.not_nil!
       opts.js.should contain("document.evaluate")
-      opts.js_args.should eq([JSON.parse(%("./button"))] of Rod::EvalOptions::JsArg)
+      assert_js_helper(opts, "elementsX", [JSON.parse(%("./button"))])
     end
   end
 
@@ -1111,7 +1125,7 @@ describe Rod::Element do
       element.element_x("//div").should eq(child)
       opts = element.last_eval_opts.not_nil!
       opts.js.should contain("document.evaluate")
-      opts.js_args.should eq([JSON.parse(%("//div"))] of Rod::EvalOptions::JsArg)
+      assert_js_helper(opts, "elementX", [JSON.parse(%("//div"))])
     end
 
     it "raises NotFoundError when element not found" do
@@ -1131,7 +1145,7 @@ describe Rod::Element do
       element.element_r("div", "foo").should eq(child)
       opts = element.last_eval_opts.not_nil!
       opts.js.should contain("new RegExp")
-      opts.js_args.should eq([JSON.parse(%("div")), JSON.parse(%("foo"))] of Rod::EvalOptions::JsArg)
+      assert_js_helper(opts, "elementR", [JSON.parse(%("div")), JSON.parse(%("foo"))])
     end
 
     it "raises NotFoundError when element not found" do
