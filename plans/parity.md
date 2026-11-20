@@ -8,22 +8,22 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 42 (`HandleAuth` restores the Fetch
-domain). A new session can start with
+green, and the last feature commit is Phase 43 (event waits keep caller-enabled
+domains; live `TestHandleAuth`). A new session can start with
 `make lint && make test` to confirm the baseline and then pick an item from
 **Next up**.
 
-Phases 23-42 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-43 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. The audit queue in Next up item 1 records what has
 already been swept and what has not.
 
-**Last commit:** `port: restore the fetch domain after HandleAuth like go-rod`
-(Phase 42; `git log -1` for the hash).
+**Last commit:** `port: keep caller-enabled domains across event waits like go-rod`
+(Phase 43; `git log -1` for the hash).
 
-**Gates (2026-11-19, after Phase 42):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (683 examples, 0 failures) · parity checks pass
+**Gates (2026-11-20, after Phase 43):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (685 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -40,7 +40,7 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      `ElementsByJS` error types (35), hijack bodies (36), `WaitDownload`
      restore (37), input mac mode (38), `Pages#find` misses (39),
      `LoadResponse` bodies (40), `SelectAllText` (41, issue `rod.004`),
-     `HandleAuth` domain state (42).
+     `HandleAuth` domain state (42), event-wait domain state (43).
    - Not swept yet: `hijack.go` router (`HijackRouter#add/remove/stop`),
      `query.go` (`Search`, `WaitElementsMoreThan`),
      `browser.go` (`Pages`, `Page`, `Cookies`, `Close`),
@@ -49,9 +49,7 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      `element.go` beyond the wait helpers
      (`shape`/`interactable` fallbacks, `canvas_to_image`, `select_text`).
    - Known leads already spotted but not yet fixed (verify each against Go
-     before changing anything — some may be deliberate): the live
-     `hijack_test.go::test::TestHandleAuth` port is still missing (the stub spec
-     covers the fetch-auth flow, not a real 401 challenge); the
+     before changing anything — some may be deliberate): the
      `Launcher#kill` lead landed in Phase 34, and its process-group half is
      blocked on Crystal's `Process` API (see Gotchas).
 2. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
@@ -1427,6 +1425,39 @@ router that was running before `handle_auth`.
       before it can replace the stub — see **Next up**.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (683 examples, 0 failures), `make check-go-*` pass.
+
+### Phase 43 — event waits keep caller-enabled domains (live `TestHandleAuth`) ✅
+
+Porting the live `hijack_test.go::test::TestHandleAuth` exposed a pre-existing
+bug rather than a fixture problem: `Browser#wait_event_typed` re-enabled the
+event's domain and **always** disabled it in its cleanup, ignoring the browser
+state map — go-rod's `eachEvent` uses `b.EnableDomain(sessionID, enable)`
+(`browser.go:355-375`), which only enables the domain when it is off and only
+restores it then. Inside `handle_auth` that meant the paused-request wait tore
+Fetch back down, so `Fetch.continueRequest` failed with
+`-32000 Fetch domain is not enabled` and every live basic-auth challenge ended
+as `net::ERR_INVALID_AUTH_CREDENTIALS`.
+
+- [x] Red-green: the live `spec/browser_handle_auth_parity_spec.cr` challenge
+      flow (server returns 401 + `WWW-Authenticate`, credentials must come back
+      as `a:b`) failed with that CDP error before the fix and passes now — the
+      initial attempt was misread as a fixture bug and reverted in Phase 42.
+- [x] `spec/browser_each_event_parity_spec.cr`: a `wait_event_typed` on a domain
+      the caller already enabled must issue neither `Domain.enable` nor
+      `Domain.disable` (red: both were sent).
+- [x] `src/rod/browser.cr`: `wait_event_typed` consults
+      `StateKey(browser_context, session, "<Domain>.enable")` and only enables
+      and restores when the domain was off, matching go's `EnableDomain`.
+- [x] The live auth example awaits its `handle_auth` fiber before releasing the
+      page (`done.receive`), so the pooled browser never goes back with Fetch
+      still enabled and later examples' navigations do not stall.
+- [x] `spec/live_browser_pool_spec.cr` compares the launch count *after* the
+      first borrow instead of `launches_before + 1`: the old form only passed
+      when the pool happened to be cold, and failed with `Expected: 8 got: 7`
+      (zero new launches, i.e. the sharing it wants) once an earlier example had
+      left a warm browser in the free list.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (685 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

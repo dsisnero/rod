@@ -124,4 +124,28 @@ describe "browser each_event parity" do
     got = browser.wait_event_typed(Cdp::Browser::DownloadWillBeginEvent, Rod::SessionID.new("sid-match")).call
     got.guid.should eq("guid-s")
   end
+
+  it "keeps a caller-enabled domain alone like go's eachEvent EnableDomain" do
+    events = Channel(Rod::Message).new(1)
+    browser = EachEventStubBrowser.new(events)
+
+    payload = Cdp::Browser::DownloadWillBeginEvent.new(
+      frame_id: "frame-1",
+      guid: "guid-d",
+      url: "https://example.test/file",
+      suggested_filename: "file.txt"
+    )
+    events.send(Rod::Message.new(nil, payload.proto_event, JSON.parse(payload.to_json)))
+
+    # HandleAuth enables the domain with `handleAuthRequests: true` first; the
+    # wait must not re-enable it (which would drop that flag), and its cleanup
+    # must not disable it either (`browser.go:355-375`).
+    browser.set_state(nil, "Browser.enable", JSON.parse(%({"enabled":true})))
+    browser.method_calls.clear
+
+    browser.wait_event_typed(Cdp::Browser::DownloadWillBeginEvent).call
+
+    browser.method_calls.should_not contain("Browser.enable")
+    browser.method_calls.should_not contain("Browser.disable")
+  end
 end

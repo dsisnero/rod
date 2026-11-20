@@ -104,3 +104,44 @@ describe "browser handle_auth parity" do
     browser.method_calls.should contain("Fetch.enable")
   end
 end
+
+describe "browser handle_auth live parity" do
+  it "answers a basic auth challenge like go-rod's TestHandleAuth" do
+    server = HTTP::Server.new do |ctx|
+      if ctx.request.path != "/a"
+        # go-rod's fixture server answers everything else (e.g. the favicon
+        # request) without a challenge, so the single-shot auth flow is not
+        # consumed by it.
+        ctx.response.print("")
+      elsif userinfo = ctx.request.headers["Authorization"]?
+        user, password = Base64.decode_string(userinfo.split(' ').last? || "").split(':', 2)
+        ctx.response.content_type = "text/html; charset=utf-8"
+        ctx.response.print("<p>#{user}:#{password}</p>")
+      else
+        ctx.response.headers["WWW-Authenticate"] = %(Basic realm="web")
+        ctx.response.status_code = 401
+      end
+    end
+    addr = server.bind_tcp("127.0.0.1", 0)
+    spawn { server.listen }
+
+    begin
+      RodSpec.with_live_browser do |browser|
+        wait = browser.handle_auth("a", "b")
+        done = Channel(Exception?).new(1)
+        spawn { done.send(wait.call) }
+
+        page = browser.must_page("http://127.0.0.1:#{addr.port}/a")
+        page.must_element("p").must_text.should eq("a:b")
+
+        # Wait for the fetch-auth cleanup to restore the domain before the
+        # browser goes back to the pool, otherwise a later example inherits an
+        # enabled Fetch domain and its navigations stall.
+        done.receive.should be_nil
+        page.must_close
+      end
+    ensure
+      server.close
+    end
+  end
+end

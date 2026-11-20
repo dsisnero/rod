@@ -144,16 +144,18 @@ describe "live browser pool" do
   it "shares one browser between the live examples that use the harness" do
     next unless RodSpec.chrome_available?
 
-    launches_before = RodSpec.live_browser_pool.launches
     first : Rod::Browser? = nil
     second : Rod::Browser? = nil
 
     RodSpec.with_live_browser { |browser| first = browser }
+    launches_after_first = RodSpec.live_browser_pool.launches
     RodSpec.with_live_browser { |browser| second = browser }
 
     # go-rod's `setup` hands every example the same pool slot, so a second
-    # borrow must not launch another browser.
-    RodSpec.live_browser_pool.launches.should eq(launches_before + 1)
+    # borrow must not launch another browser. Comparing against the launch count
+    # right after the first borrow keeps the check independent of whether the
+    # pool was already warm when the example started.
+    RodSpec.live_browser_pool.launches.should eq(launches_after_first)
     first.not_nil!.same?(second.not_nil!).should be_true
   end
 

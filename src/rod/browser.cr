@@ -634,12 +634,24 @@ module Rod
     end
 
     # WaitEventTyped waits for the next event once and returns the matched event payload.
+    # Like go-rod's `eachEvent`, the domain is enabled only when it is not
+    # already on and restored afterwards (`b.EnableDomain(sessionID, enable)`),
+    # so waiting for an event never tears down or reconfigures a domain the
+    # caller enabled — `HandleAuth` depends on that for
+    # `Fetch.enable(handleAuthRequests: true)` (`browser.go:355-375`).
     def wait_event_typed(event_class : T.class, session_id : SessionID? = nil) : Proc(T) forall T
       domain, _ = Cdp.parse_method_name(event_class.proto_event)
-      begin
-        call(nil, session_id.try(&.value), domain + ".enable", JSON::Any.new({} of String => JSON::Any))
-      rescue
-        # Some domains don't require explicit enabling.
+      enable_name = domain + ".enable"
+      was_enabled = @states_lock.synchronize do
+        @states.has_key?(StateKey.new(@browser_context_id, session_id, enable_name))
+      end
+
+      unless was_enabled
+        begin
+          call(nil, session_id.try(&.value), enable_name, JSON::Any.new({} of String => JSON::Any))
+        rescue
+          # Some domains don't require explicit enabling.
+        end
       end
 
       browser, cancel = with_cancel
@@ -661,10 +673,12 @@ module Rod
           end
         ensure
           cancel.call
-          begin
-            call(nil, session_id.try(&.value), domain + ".disable", JSON::Any.new({} of String => JSON::Any))
-          rescue
-            # Best-effort cleanup.
+          unless was_enabled
+            begin
+              call(nil, session_id.try(&.value), domain + ".disable", JSON::Any.new({} of String => JSON::Any))
+            rescue
+              # Best-effort cleanup.
+            end
           end
         end
       end

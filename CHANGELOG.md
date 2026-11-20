@@ -159,6 +159,20 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Browser#wait_event_typed` (and therefore `Browser#wait_event`, `Page#wait_event`
+  and everything built on it) re-enabled the event's domain with
+  `Domain.enable` and always disabled it in its cleanup, ignoring the browser
+  state map. go-rod's `eachEvent` uses `b.EnableDomain(sessionID, enable)`
+  (`browser.go:355-375`), so waiting for an event never reconfigures or tears
+  down a domain the caller enabled. In practice `handle_auth` could never
+  complete a live basic-auth challenge: the paused-request wait disabled Fetch
+  again, and `Fetch.continueRequest` failed with `Fetch domain is not enabled`
+  (surfaced by the newly ported live `TestHandleAuth`).
+- The live `TestHandleAuth` example now awaits its auth fiber before releasing
+  the page, so a pooled browser is never handed on with the Fetch domain still
+  enabled, and `spec/live_browser_pool_spec.cr` asserts that a re-borrow adds no
+  launch relative to the first borrow (the previous `launches_before + 1` form
+  only passed on a cold pool).
 - `Browser#handle_auth` tore the Fetch domain down and always disabled it when
   the auth wait finished, so a hijack router enabled before the call stopped
   intercepting afterwards. It now uses `disable_domain`/`enable_domain` like
