@@ -88,6 +88,40 @@ describe "browser wait_download parity" do
     second["behavior"].as_s.should eq("default")
   end
 
+  it "restores the previous download behavior like go's WaitDownload LoadState" do
+    events = Channel(Rod::Message).new(2)
+    start = Cdp::Browser::DownloadWillBeginEvent.new(
+      frame_id: "frame-1",
+      guid: "guid-1",
+      url: "https://example.test/file",
+      suggested_filename: "file.txt"
+    )
+    done = Cdp::Browser::DownloadProgressEvent.new(
+      guid: "guid-1",
+      total_bytes: 100.0,
+      received_bytes: 100.0,
+      state: Cdp::Browser::DownloadProgressStateCompleted,
+      file_path: "/tmp/downloads/guid-1"
+    )
+    events.send(Rod::Message.new(nil, start.proto_event, JSON.parse(start.to_json)))
+    events.send(Rod::Message.new(nil, done.proto_event, JSON.parse(done.to_json)))
+
+    browser = WaitDownloadBrowser.new(events)
+    # A previous caller already set another behavior on this browser; go reads
+    # it back with `b.LoadState("", &oldDownloadBehavior)` (`browser.go:505-531`)
+    # and re-applies it instead of forcing `default`.
+    browser.set_state(nil, "Browser.setDownloadBehavior", JSON.parse(%({"behavior":"allowAndName","downloadPath":"/previous","eventsEnabled":true})))
+
+    browser.wait_download("/tmp/downloads").call
+
+    indices = browser.methods.each_index.select { |i| browser.methods[i] == "Browser.setDownloadBehavior" }.to_a
+    indices.size.should eq(2)
+    browser.params[indices[0]]["downloadPath"].as_s.should eq("/tmp/downloads")
+    restored = browser.params[indices[1]]
+    restored["behavior"].as_s.should eq("allowAndName")
+    restored["downloadPath"].as_s.should eq("/previous")
+  end
+
   it "returns nil when context is already canceled (Go TestWaitDownloadCancel parity)" do
     browser = CancelWaitDownloadBrowser.new
     wait = browser.wait_download("/tmp/downloads")

@@ -32,6 +32,11 @@ below describe the Crystal port, not upstream changes.
 
 ### Changed
 
+- `Browser#wait_download` restores the download behavior that was active before
+  the call, like go-rod's `has := b.LoadState("", &oldDownloadBehavior)` /
+  `oldDownloadBehavior.Call(b)` (`browser.go:504-538`), and only falls back to
+  `default` when there was none. A browser already configured with
+  `allowAndName` (or `deny`) keeps that configuration instead of being reset.
 - `HijackRequest#json_body` answers a null `JSON::Any` for a body that is not
   valid JSON, like go's `gson.NewFrom` (`hijack.go:290-292`); it used to raise
   `JSON::ParseException`, so a hijack handler that inspected a plain-text POST

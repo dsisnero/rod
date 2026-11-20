@@ -295,7 +295,15 @@ module Rod
 
     # WaitDownload waits for a matching completed download and returns metadata.
     # It enables download events so `Browser.download*` CDP events are emitted.
+    # WaitDownload returns a wait function that resolves with the download info
+    # once the download completes, like go-rod's `Browser.WaitDownload`
+    # (`browser.go:504-538`). The download behavior that was active before the
+    # call is restored afterwards, not blindly reset to `default`.
     def wait_download(dir : String) : Proc(Cdp::Browser::DownloadWillBeginEvent?)
+      # go reads the current behavior back with
+      # `has := b.LoadState("", &oldDownloadBehavior)` and re-applies it later.
+      previous = saved_state("Browser.setDownloadBehavior")
+
       Cdp::Browser::SetDownloadBehavior.new(
         Cdp::Browser::SetDownloadBehaviorBehaviorAllowAndName,
         @browser_context_id.try(&.value),
@@ -330,14 +338,40 @@ module Rod
           wait.call
           start_event
         ensure
-          Cdp::Browser::SetDownloadBehavior.new(
-            Cdp::Browser::SetDownloadBehaviorBehaviorDefault,
-            @browser_context_id.try(&.value),
-            nil,
-            nil
-          ).call(self)
+          restore_download_behavior(previous)
         end
       end
+    end
+
+    # saved_state returns the params recorded for a browser-level method, if any.
+    # go's `LoadState` copies them back into the request object; Crystal's
+    # generated request types are structs, so callers that need the payload read
+    # the JSON here.
+    private def saved_state(method_name : String) : JSON::Any?
+      key = StateKey.new(@browser_context_id, nil, method_name)
+      @states_lock.synchronize { @states[key]? }
+    end
+
+    # restore_download_behavior re-applies the behavior that was saved before
+    # `wait_download`, like go's `oldDownloadBehavior.Call(b)`, and falls back to
+    # `default` when there was none (`browser.go:522-532`).
+    private def restore_download_behavior(previous : JSON::Any?) : Nil
+      if previous
+        begin
+          Cdp::Browser::SetDownloadBehavior.from_json(previous.to_json).call(self)
+          return
+        rescue
+          # A stored payload we cannot rebuild falls back to `default` instead of
+          # masking the download result.
+        end
+      end
+
+      Cdp::Browser::SetDownloadBehavior.new(
+        Cdp::Browser::SetDownloadBehaviorBehaviorDefault,
+        @browser_context_id.try(&.value),
+        nil,
+        nil
+      ).call(self)
     end
 
     # Version info of the browser.

@@ -8,22 +8,22 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 36 (hijack bodies follow go's
-`JSONBody`/`Body`). A new session can start with
+green, and the last feature commit is Phase 37 (`WaitDownload` restores the
+previous download behavior). A new session can start with
 `make lint && make test` to confirm the baseline and then pick an item from
 **Next up**.
 
-Phases 23-36 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-37 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. The audit queue in Next up item 1 records what has
 already been swept and what has not.
 
-**Last commit:** `port: read hijack bodies like go's JSONBody/Body`
-(Phase 36; `git log -1` for the hash).
+**Last commit:** `port: restore the previous download behavior like go-rod`
+(Phase 37; `git log -1` for the hash).
 
-**Gates (2026-11-19, after Phase 36):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (672 examples, 0 failures) · parity checks pass
+**Gates (2026-11-19, after Phase 37):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (673 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -37,11 +37,12 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      launcher/manager (21, 25, 29), error types + `errors.Is` (27, 28), quad
      geometry (30), `Element.Wait*` + `visible?` (31), lookup probes /
      `NotFoundSleeper` (32), `wait_interactable` (33), launcher shutdown (34),
-     `ElementsByJS` error types (35), hijack bodies (36).
+     `ElementsByJS` error types (35), hijack bodies (36), `WaitDownload`
+     restore (37).
    - Not swept yet: `hijack.go` router/headers (`HijackRouter`, `HandleAuth`),
      `query.go` (`Search`,
      `WaitElementsMoreThan`, `Pages#find*`),
-     `browser.go` (`Pages`, `Page`, `Cookies`, `Close`, `WaitDownload`),
+     `browser.go` (`Pages`, `Page`, `Cookies`, `Close`),
      `page_eval.go` + `lib/js/` helpers, `input/` (keyboard, mouse, touch),
      `dev_helpers.go`, `states.go`, `element.go` beyond the wait helpers
      (`shape`/`interactable` fallbacks, `canvas_to_image`, `select_text`).
@@ -1289,6 +1290,31 @@ stale.
       has no context to carry.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (672 examples, 0 failures), `make check-go-*` pass.
+
+### Phase 37 — `WaitDownload` restores the previous behavior ✅
+
+go-rod's `Browser.WaitDownload` (`browser.go:504-538`) reads the current download
+behavior back with `has := b.LoadState("", &oldDownloadBehavior)`, sets
+`allowAndName` for the download directory, and on completion re-applies the saved
+behavior (`oldDownloadBehavior.Call(b)`) or `default` when there was none. The
+port always forced `default`, so a browser configured with `allowAndName`/`deny`
+lost that configuration after every download.
+
+- [x] Red-green `spec/browser_wait_download_parity_spec.cr`: a browser whose
+      stored state is `allowAndName`/`/previous` must get it back after the wait
+      (red: `default`), while the existing no-previous-state case still asserts
+      the `default` fallback.
+- [x] `src/rod/browser.cr`: `wait_download` captures the stored
+      `Browser.setDownloadBehavior` payload, and `restore_download_behavior`
+      rebuilds it through `from_json` (Crystal request types are structs, so the
+      payload is read from the state store rather than mutated into the request
+      like go's reflective `LoadState`), falling back to `default` when the
+      payload is absent or unrebuildable.
+- [x] Accepted divergence noted: the port enables Browser-domain download events
+      (`eventsEnabled: true`) because it waits on `Browser.downloadWillBegin`/
+      `Browser.downloadProgress`, where go waits on the Page-domain events.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (673 examples, 0 failures), `make check-go-*` pass.
 
 ---
 
