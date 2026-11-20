@@ -449,7 +449,7 @@ lib/launcher/launcher.go::func::NewUserMode	func	ported	src/rod/lib/launcher.cr,
 lib/launcher/launcher.go::method::Launcher.AlwaysOpenPDFExternally	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
 lib/launcher/launcher.go::method::Launcher.Append	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
 lib/launcher/launcher.go::method::Launcher.Bin	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
-lib/launcher/launcher.go::method::Launcher.Cleanup	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
+lib/launcher/launcher.go::method::Launcher.Cleanup	method	ported	src/rod/util/launcher.cr,spec/launcher_parity_spec.cr,spec/launcher_shutdown_parity_spec.cr	waits for exit then removes the user-data-dir unconditionally like launcher.go:560-566
 lib/launcher/launcher.go::method::Launcher.Context	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
 lib/launcher/launcher.go::method::Launcher.Delete	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
 lib/launcher/launcher.go::method::Launcher.Devtools	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
@@ -461,7 +461,7 @@ lib/launcher/launcher.go::method::Launcher.Has	method	ported	src/rod/lib/launche
 lib/launcher/launcher.go::method::Launcher.Headless	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
 lib/launcher/launcher.go::method::Launcher.HeadlessNew	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
 lib/launcher/launcher.go::method::Launcher.IgnoreCerts	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
-lib/launcher/launcher.go::method::Launcher.Kill	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
+lib/launcher/launcher.go::method::Launcher.Kill	method	ported	src/rod/util/launcher.cr,spec/launcher_parity_spec.cr,spec/launcher_shutdown_parity_spec.cr	SIGKILL to the group and the pid only, 1s pre-sleep and pid==0 guard like launcher.go:544-558
 lib/launcher/launcher.go::method::Launcher.Launch	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
 lib/launcher/launcher.go::method::Launcher.Leakless	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered
 lib/launcher/launcher.go::method::Launcher.Logger	method	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered; logger(io) tees the browser's stdout/stderr (go's io.MultiWriter(l.logger, l.parser)) and the launcher itself never logs
@@ -492,7 +492,7 @@ lib/launcher/launcher_test.go::test::TestIgnoreCerts_InvalidCert	test	ported	spe
 lib/launcher/launcher_test.go::test::TestLaunch	test	ported	spec/launcher_parity_spec.cr	live launcher launch/ws-url resolution parity covered alongside existing resolve/new_managed/set error branches
 lib/launcher/launcher_test.go::test::TestLaunchErr	test	ported	spec/launcher_parity_spec.cr	missing-bin panic branches, client_header/set parser paths, and xvfb smoke launch branch are covered
 lib/launcher/launcher_test.go::test::TestLaunchMultiTimes	test	ported	spec/launcher_parity_spec.cr	already launched reuse error covered
-lib/launcher/launcher_test.go::test::TestLaunchUserMode	test	ported	spec/launcher_parity_spec.cr	user-mode defaults/arg formatting and live fixed-port launch URL parity covered
+lib/launcher/launcher_test.go::test::TestLaunchUserMode	test	ported	spec/launcher_parity_spec.cr,spec/launcher_shutdown_parity_spec.cr	user-mode defaults/arg formatting, live fixed-port launch URL, and the empty-kill guard parity covered
 lib/launcher/launcher_test.go::test::TestProfileDir	test	ported	spec/launcher_parity_spec.cr	profile preferences write path covered
 lib/launcher/launcher_test.go::test::TestUserModeErr	test	ported	spec/launcher_parity_spec.cr	direct parity spec now asserts user-mode launch errors for not-exists and echo bins
 lib/launcher/manager.go::const::HeaderName	const	ported	src/rod/lib/launcher.cr,spec/launcher_parity_spec.cr	launcher API parity covered

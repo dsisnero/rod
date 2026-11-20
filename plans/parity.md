@@ -8,22 +8,22 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 33 (`wait_interactable` through the
-element context and sleeper). A new session can start with
+green, and the last feature commit is Phase 34 (launcher shutdown:
+SIGKILL-only `Kill` and unconditional `Cleanup`). A new session can start with
 `make lint && make test` to confirm the baseline and then pick an item from
 **Next up**.
 
-Phases 23-33 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-34 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. The audit queue in Next up item 1 records what has
 already been swept and what has not.
 
-**Last commit:** `port: wait for interactable through the element sleeper like go-rod`
-(Phase 33; `git log -1` for the hash).
+**Last commit:** `port: shut the launcher down like go's Kill/Cleanup`
+(Phase 34; `git log -1` for the hash).
 
-**Gates (2026-11-19, after Phase 33):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (662 examples, 0 failures) · parity checks pass
+**Gates (2026-11-19, after Phase 34):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (666 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -44,9 +44,9 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      `dev_helpers.go`, `states.go`, `element.go` beyond the wait helpers
      (`shape`/`interactable` fallbacks, `canvas_to_image`, `select_text`).
    - Known leads already spotted but not yet fixed (verify each against Go
-     before changing anything — some may be deliberate):
-     `Launcher#kill` signals TERM+KILL to the process group *and* the pid where
-     Go sends only `SIGKILL` to the group.
+     before changing anything — some may be deliberate): none open; the
+     `Launcher#kill` lead landed in Phase 34, and its process-group half is
+     blocked on Crystal's `Process` API (see Gotchas).
 2. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
    parity scripts instead of the repo's copied ones (whose `tree-sitter` branch
    is a placeholder), and decide curated-status preservation. Native tree-sitter
@@ -93,6 +93,10 @@ inventory rows are `skipped` and `spec/cdp_legacy_proto_parity_spec.cr` is gone.
 The upstream Go suite panics in its leak detector unless
 `GODEBUG=tracebackancestors=1000` is exported. The checkout is on exFAT, so a
 generation emits `._*` AppleDouble sidecars — strip them before counting files.
+`Launcher#kill` cannot reap Chrome's children: go-rod starts the browser with
+`Setpgid: true` so `killGroup(-pid)` reaches them, while Crystal's `Process` has
+no `setpgid`, so only the browser pid is signalled. That is why leftover
+headless browsers need the manual `pgrep -f "rod/user-data" | xargs kill` above.
 `Launcher#launch` has no timeout on purpose: a browser that never prints a
 DevTools URL now waits until the process exits or the context cancels, exactly
 like go-rod, so a wedged browser hangs instead of failing fast. Do not run
@@ -1205,6 +1209,31 @@ helper with an invented `timeout` argument.
       after one `interactable` call.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (662 examples, 0 failures), `make check-go-*` pass.
+
+### Phase 34 — Launcher shutdown matches `Launcher.Kill`/`Cleanup` ✅
+
+go-rod's launcher shutdown (`lib/launcher/launcher.go:544-566`, `os_unix.go:12-14`)
+sleeps one second, returns when the PID is 0, then sends **SIGKILL** to the
+process group (`killGroup`) and SIGKILL to the pid (`p.Kill()`) — never SIGTERM
+— and `Cleanup` waits for the browser to exit and removes the `user-data-dir`
+unconditionally; `--rod-keep-user-data-dir` is the Manager's concern
+(`manager.go:200-208`). The port sent TERM before every KILL and skipped the
+profile removal when the keep flag was set.
+
+- [x] Red-green `spec/launcher_shutdown_parity_spec.cr`: a recording launcher
+      pins the exact signal set (`[{KILL, -pid}, {KILL, pid}]`, red: four
+      TERM/KILL pairs), the `pid == 0` guard, a real process that must die, and
+      a profile that must be removed even with the keep flag (red: kept).
+- [x] `src/rod/util/launcher.cr`: `kill` sends only `SIGKILL`, through a small
+      `private def signal(sig, pid)` seam that ignores "already exited" errors
+      like go's `_ = syscall.Kill(...)`; `cleanup` drops the keep-flag check.
+- [x] Known limitation (recorded under Gotchas): go-rod starts the browser with
+      `Setpgid: true`, so `killGroup(-pid)` reaches Chrome's children. Crystal's
+      `Process` has no `setpgid`, so the group signal only lands when the
+      browser already leads a group and the per-pid SIGKILL is what reaps it —
+      orphaned helpers are why a killed run can leave headless browsers behind.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (666 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

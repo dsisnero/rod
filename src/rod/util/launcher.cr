@@ -982,35 +982,48 @@ module Rod::Util::Launcher
       @pid
     end
 
-    # Kill the browser process.
+    # Kill the browser process, like go-rod's `Launcher.Kill`
+    # (`lib/launcher/launcher.go:544-558`): `killGroup` sends SIGKILL to the
+    # process group and `p.Kill()` sends SIGKILL to the pid itself.
+    # go-rod sends no SIGTERM, so a browser that traps it never gets a chance to
+    # run the handler.
     def kill : Nil
       # Give browser time to start children processes
       sleep 1.second
 
-      return if @pid == 0
+      return if @pid == 0 # avoid killing the current process
 
-      # Try to kill process group
       {% if flag?(:unix) %}
-        # On Unix, negative PID kills process group
-        Process.signal(Signal::TERM, -@pid) rescue nil
-        Process.signal(Signal::KILL, -@pid) rescue nil
-        # Go parity: also kill the browser PID directly as a fallback.
-        Process.signal(Signal::TERM, @pid) rescue nil
-        Process.signal(Signal::KILL, @pid) rescue nil
+        # go-rod starts the browser with `Setpgid: true` (`os_unix.go:25`), so
+        # `-pid` is its own group. Crystal's `Process` has no `setpgid`, so the
+        # group signal only lands when the browser already leads a group; the
+        # per-pid signal below is what reaps it.
+        signal(Signal::KILL, -@pid)
+        signal(Signal::KILL, @pid)
       {% else %}
-        # On Windows, positive PID kills process
-        Process.signal(Signal::TERM, @pid) rescue nil
-        Process.signal(Signal::KILL, @pid) rescue nil
+        # go's Windows `killGroup` terminates the process, then `p.Kill()` runs
+        # the same `TerminateProcess` on the pid.
+        signal(Signal::KILL, @pid)
       {% end %}
     end
 
-    # Cleanup wait until the Browser exits and remove user data dir.
+    # signal sends `sig` to `pid`, ignoring the errors `kill` cannot act on
+    # (go-rod ignores them too: `_ = syscall.Kill(...)` and `_ = p.Kill()`).
+    # It is also the seam the specs use to see what `kill` actually sends.
+    private def signal(sig : Signal, pid : Int32) : Nil
+      Process.signal(sig, pid)
+    rescue
+      # A browser that already exited is not an error here.
+    end
+
+    # Cleanup wait until the Browser exits and remove user data dir, like
+    # go-rod's `Launcher.Cleanup` (`lib/launcher/launcher.go:560-566`).
+    # go-rod's launcher always removes the profile: `--rod-keep-user-data-dir`
+    # is honoured by the Manager (`manager.go:200-208`), not by `Cleanup`.
     def cleanup : Nil
       @exit.try(&.receive?)
       dir = get(Flags::USER_DATA_DIR)
-      if dir && !has(Flags::KEEP_USER_DATA_DIR)
-        FileUtils.rm_rf(dir) if Dir.exists?(dir)
-      end
+      FileUtils.rm_rf(dir) if dir
     end
 
     private def setup_user_preferences : Nil

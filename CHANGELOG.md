@@ -32,6 +32,13 @@ below describe the Crystal port, not upstream changes.
 
 ### Changed
 
+- `Launcher#kill` now sends only `SIGKILL`, to the process group and to the pid,
+  exactly like go-rod's `Launcher.Kill` (`killGroup` + `p.Kill()`,
+  `lib/launcher/launcher.go:544-558`, `os_unix.go:12-14`); the extra `SIGTERM`
+  the port sent first is gone. `Launcher#cleanup` also removes the
+  `user-data-dir` unconditionally, like `Launcher.Cleanup`
+  (`launcher.go:560-566`) — `--rod-keep-user-data-dir` is honoured by
+  `Manager.cleanup` (`manager.go:200-208`), which the port already does.
 - `Element#wait_interactable` takes no `timeout` argument and is now
   `utils.Retry(el.ctx, el.sleeper(), ...)` like go-rod's `WaitInteractable`
   (`element.go:587-606`): only a `CoveredError` retries, any other error stops
