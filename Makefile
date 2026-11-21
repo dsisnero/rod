@@ -4,6 +4,14 @@
 
 GO_PORT_SOURCE_DIR ?= vendor/rod
 
+# Pin the Crystal compiler cache to this workspace. Crystal writes one
+# `crystal-run-<program>.tmp` per program name into the cache directory, so with
+# the shared default (`~/.cache/crystal`) a concurrent `crystal spec` from a
+# different checkout overwrites `crystal-run-spec.tmp` and the next run here
+# executes that checkout's example list (seen once as `../dataframe/spec/...`
+# inside this repo's run). `.crystal-cache/` is git-ignored.
+export CRYSTAL_CACHE_DIR := $(CURDIR)/.crystal-cache
+
 # CDP protocol vintage for `make generate-crystal`. Empty means "upstream
 # latest" (`--latest`), which is not reproducible; set the versions to pin a
 # generation, e.g. `make generate-crystal CDP_CHROMIUM=160.0.8168.1`.
@@ -29,7 +37,7 @@ lint:
 	ameba
 
 test:
-	crystal spec
+	crystal spec spec
 
 # Gate: the committed src/cdp must still be exactly what the pinned protocol
 # generates (Chromium CDP_CHROMIUM / V8 CDP_V8).

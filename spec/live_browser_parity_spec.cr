@@ -658,6 +658,45 @@ describe "live browser parity" do
     end
   end
 
+  # go's `TestPageExpose` (`page_eval_test.go:97-140`): round-trip calls through
+  # the runtime binding (including two at once), survival across a reload, then
+  # `stop()` twice (the second one panics in go) and a reload that must leave the
+  # exposed function unbound.
+  it "matches TestPageExpose behavior with real browser" do
+    with_live_browser do |browser|
+      page = browser.must_page("about:blank")
+      page.must_wait_load
+
+      stop = page.must_expose("exposedFunc", ->(payload : JSON::Any) { {payload["k"], nil} })
+
+      results = Channel(String).new(2)
+      {"a", "b"}.each do |key|
+        spawn do
+          value = page.must_eval("() => exposedFunc({k: '#{key}'})").as_s
+          results.send(value)
+        rescue ex
+          results.send("error: #{ex.message}")
+        end
+      end
+      [results.receive, results.receive].sort.should eq(["a", "b"])
+
+      page.must_reload
+      page.must_wait_load
+      page.must_eval("() => exposedFunc({k: 'ok'})").as_s.should eq("ok")
+
+      stop.call
+
+      # go: `g.Panic(func() { stop() })` — the script/binding are already gone.
+      expect_raises(Exception) { stop.call }
+
+      page.must_reload
+      page.must_wait_load
+      expect_raises(Rod::EvalError) { page.must_eval("() => exposedFunc()") }
+
+      page.must_close
+    end
+  end
+
   it "matches TestCanvasToImage behavior with real browser" do
     with_live_browser do |browser|
       page = browser.must_page(fixture_url("canvas.html"))

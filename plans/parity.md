@@ -8,25 +8,25 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 52 (trace overlays are drawn *and*
-removed like go's dev helpers).
+green, and the last feature commit is Phase 54 (`ScrollScreenshot` omits the
+`false` capture flags like go's `omitempty`, so the ported example passes again).
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~1m45s). Before a full run, clear stray headless browsers left
 by an aborted run — `pgrep -f "rod/user-data" | xargs -r kill -9`; they push the
 live specs into their documented load flake (see Gotchas).
 
-Phases 23-52 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-54 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. Next up item 1 records what cannot be re-derived from
 the ledger: which areas were swept and which leads are still open.
 
-**Last commit:** `port: remove dev-helper trace overlays like go-rod`
-(Phase 52; `git log -1` for the hash).
+**Last commit:** `port: listen for expose bindings and omit false capture flags`
+(Phases 53-54; `git log -1` for the hash).
 
-**Gates (2026-11-20, after Phase 52):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (711 examples, 0 failures) · parity checks pass
+**Gates (2026-11-20, after Phase 54):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (715 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -59,8 +59,19 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      f. `browser.go`: `Pages`, `Page`, `Cookies`, `Close`. Audited so far and
         matched — re-check `Browser#page`'s close-on-error path and `Pages`
         ordering before starting.
-     g. `page_eval.go`: `evaluate` backoff, per-JS-context helper cache,
-        `object_to_json`, `release`.
+     i. **[class of bug, Phase 54]** Generated request fields are `Bool?`
+        (omitted when nil) while go's proto fields are `bool` with
+        `json:",omitempty"`. Passing an explicit `false` is therefore *not*
+        equivalent to go whenever CDP's default for that field is `true`.
+        `fromSurface` was one (Phase 54). Sweep `src/rod` for other
+        `field: false` arguments and check the field's CDP default, starting with
+        `Emulation.setDeviceMetricsOverride`, `Page.printToPDF`,
+        `Runtime.callFunctionOn` and `Network.*` toggles.
+     g. ~~`page_eval.go`~~ — audited in Phase 53: the JS-context helper cache,
+        `object_to_json`, `Evaluate`'s ctx-not-found retry and `Release` match go
+        (`Page#release` deliberately skips the CDP call when the object has no
+        id; go sends it and lets Chrome error). `Expose` was *broken* — see the
+        phase — and now runs its binding listener like go.
      h. ~~`dev_helpers.go`~~ — audited in Phase 52: `ExposeHelpers` matches go,
         and `Overlay`/`try_trace_req` now draw *and* remove their overlays
         (`dev_helpers.go:114-131`, `157-195`, `198-211`).
@@ -74,7 +85,8 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      full-page screenshot viewport restore (44), element queries + `parents`
      (45, 47), iframe panic handler (46), `quad` dedupe (49), generation gate
      (50), `Search` + `ScrollIntoView`/`Focus`/`Blur`/`WaitRepaint` root rule
-     (51), dev-helper overlays + wait-requests trace (52).
+     (51), dev-helper overlays + wait-requests trace (52), `Expose`/`MustExpose`
+     (53), `ScrollScreenshot` capture flags (54).
    - Verified equal, no work needed: all 32 `lib/js` helper definitions are
      byte-identical to `vendor/rod/lib/js/helper.go` (checked programmatically in
      Phase 39 — don't re-audit them), and the keyboard/mouse/touch event payloads
@@ -193,7 +205,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 94 files, 711 examples, 0 failures (2026-11-20, Chromium `160.0.8168.1`) |
+| Crystal specs | 94 files, 715 examples, 0 failures (2026-11-20, Chromium `160.0.8168.1`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -1762,6 +1774,70 @@ the port leaked one overlay div per traced operation, plus `elementOverlay`'s
       raises in Crystal) to remove it.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (711 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 53 — `Page#expose` listens for its binding ✅
+
+Candidate (g) (`page_eval.go`) is mostly equal, but its ledger row for
+`TestPageExpose` cited only stub specs of the *error* paths. Porting the upstream
+*live* test found a broken feature: `expose` builds `each_event`'s **wait**
+function and only called it inside `stop`, so nothing listened for
+`Runtime.bindingCalled`. Calling an exposed function hung until the context
+deadline (the JS promise never resolved) and `stop` blocked forever in the
+listener loop. go starts it with `go p.EachEvent(...)` (`page_eval.go:214`).
+
+- [x] Red-green, live: `spec/live_browser_parity_spec.cr` ports `TestPageExpose`
+      — expose a function, call it twice concurrently after a reload, then
+      `stop()` (a second `stop()` must fail) and reload so the function is
+      unbound. It hung (>3 min, aborted) before the fix and passes in ~0.6 s now.
+- [x] Red-green, stub: `spec/page_eval_parity_spec.cr` asserts `must_expose`
+      exists with expose's function shape. It did not compile before the fix:
+      `must_expose` declared `Proc(JSON::Any, JSON::Any)` but handed it to
+      `expose`, and `Rod::Page`'s `method_missing` reported the overload mismatch
+      as `undefined method 'must_expose'`.
+- [x] `src/rod/page.cr`: the listener runs in a fiber on the expose context and
+      is torn down by cancelling that context; `stop` follows go's order (remove
+      the new-document script, `Runtime.removeBinding`, then `cancel`); the
+      callback eval runs on the expose context like go's `p.Evaluate`; `expose`
+      accepts a nil function like go's `Expose(name, nil)`.
+- [x] `src/rod/must.cr`: `must_expose` takes expose's tuple-returning proc and a
+      nilable one, wrapping `stop` errors through the panic hook like go's
+      `p.e(s())` (`must.go:479-484`).
+- [x] Spec hygiene: `make test` runs `crystal spec spec` with
+      `CRYSTAL_CACHE_DIR` pinned to the git-ignored `.crystal-cache/`, so a
+      concurrent run from another checkout cannot make this repo execute that
+      checkout's example list (it happened once: `../dataframe/spec/...`).
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (715 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 54 — `ScrollScreenshot` capture flags match go's `omitempty` ✅
+
+The Phase 53 gate run failed `TestScrollScreenshot` with
+`-32000 Unable to capture screenshot`, deterministically (HEAD failed too, so it
+was not the change under test). go's own `TestScrollScreenshot` passed on the
+same machine, so the requests differed: the port sent `"fromSurface": false`
+with a `clip`, and go does not — its proto field is
+`FromSurface bool` with `json:"fromSurface,omitempty"`
+(`vendor/rod/lib/proto/page.go:1745-1746`), so the `FromSurface: false` literal in
+`ScrollScreenshot` is dropped and CDP keeps its documented default (`true`).
+Chrome rejects `fromSurface: false` for clipped captures.
+
+- [x] Red-green: `spec/screenshot_spec.cr` captures the `Page.captureScreenshot`
+      payload and asserts `fromSurface`/`captureBeyondViewport`/`optimizeForSpeed`
+      are absent (the first two failed before the fix); the live
+      `TestScrollScreenshot` example went from a deterministic
+      `-32000 Unable to capture screenshot` to passing in ~6 s.
+- [x] `src/rod/page.cr`: the scroll loop builds the request with format, quality
+      and clip only, exactly what go puts on the wire.
+- [x] The same commit pins `CRYSTAL_CACHE_DIR` to the git-ignored
+      `.crystal-cache/` and runs `make test` as `crystal spec spec`, so a
+      concurrent run from another checkout cannot make this repo execute that
+      checkout's examples (it did once: `../dataframe/spec/...`).
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (715 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

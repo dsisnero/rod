@@ -219,6 +219,34 @@ describe Rod::Page do
     viewports.last["mobile"].as_bool.should be_true
   end
 
+  # go's `PageCaptureScreenshot.FromSurface` is `bool` with
+  # `json:"fromSurface,omitempty"` (`vendor/rod/lib/proto/page.go:1745-1746`), so
+  # the literal `FromSurface: false` in `ScrollScreenshot` is dropped from the
+  # request and CDP falls back to its documented default (`true`). Sending
+  # `fromSurface: false` with a `clip` makes Chrome answer
+  # `-32000 Unable to capture screenshot`.
+  it "#scroll_screenshot omits fromSurface like go's omitempty" do
+    page = ScreenshotStubPage.new
+    page.set_response("Page.getLayoutMetrics", %({
+      "layoutViewport":{"pageX":0,"pageY":0,"clientWidth":100,"clientHeight":100},
+      "visualViewport":{"offsetX":0.0,"offsetY":0.0,"pageX":0.0,"pageY":0.0,"clientWidth":100.0,"clientHeight":100.0,"scale":1.0},
+      "contentSize":{"x":0.0,"y":0.0,"width":100.0,"height":80.0},
+      "cssLayoutViewport":{"pageX":0,"pageY":0,"clientWidth":100,"clientHeight":100},
+      "cssVisualViewport":{"offsetX":0.0,"offsetY":0.0,"pageX":0.0,"pageY":0.0,"clientWidth":100.0,"clientHeight":100.0,"scale":1.0},
+      "cssContentSize":{"x":0.0,"y":0.0,"width":100.0,"height":80.0}
+    }))
+    page.set_response("Page.captureScreenshot", %({"data":"c2Nyb2xs"}))
+
+    page.scroll_screenshot(Rod::ScrollScreenshotOptions.new(format: "jpeg"))
+
+    capture = page.payloads["Page.captureScreenshot"].first
+    ((capture.as_h?.try(&.has_key?("fromSurface"))) || false).should be_false
+    ((capture.as_h?.try(&.has_key?("captureBeyondViewport"))) || false).should be_false
+    ((capture.as_h?.try(&.has_key?("optimizeForSpeed"))) || false).should be_false
+    # content is shorter than the viewport, so the single clip is the content
+    capture["clip"]["height"].as_f.should eq(80.0)
+  end
+
   it "#scroll_screenshot returns scroll screenshot data" do
     page = ScreenshotStubPage.new
     metrics = %({

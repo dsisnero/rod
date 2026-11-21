@@ -282,4 +282,38 @@ describe Rod::Page do
     browser.methods.should contain("Page.removeScriptToEvaluateOnNewDocument")
     browser.methods.should contain("Runtime.removeBinding")
   end
+
+  # go's `MustExpose` takes the same `func(gson.JSON) (interface{}, error)` as
+  # `Expose` and accepts nil (`must.go:479-484`; `TestPageExpose` passes nil for
+  # its error paths). The port's wrapper declared `Proc(JSON::Any, JSON::Any)`
+  # and handed it to `expose`, so no call ever type-checked — and because `Page`
+  # defines `method_missing`, the mismatch surfaced as a bogus
+  # "undefined method 'must_expose'" instead of a type error.
+  it "#must_expose takes expose's function shape and accepts a nil function" do
+    browser = ExposeStubBrowser.new
+    page = ExposeStubPage.new(browser)
+
+    stop = page.must_expose("exposedFunc", ->(payload : JSON::Any) { {payload, nil} })
+    browser.methods.should contain("Runtime.addBinding")
+    browser.methods.should contain("Page.addScriptToEvaluateOnNewDocument")
+
+    stop.call
+    browser.methods.should contain("Page.removeScriptToEvaluateOnNewDocument")
+    browser.methods.should contain("Runtime.removeBinding")
+
+    nil_stop = page.must_expose("exposedFunc", nil)
+    nil_stop.call
+    browser.methods.count("Page.removeScriptToEvaluateOnNewDocument").should eq(2)
+  end
+
+  it "#expose accepts a nil function like go" do
+    browser = ExposeStubBrowser.new
+    page = ExposeStubPage.new(browser)
+
+    stop = page.expose("exposedFunc", nil)
+    browser.methods.should contain("Runtime.addBinding")
+
+    stop.call
+    browser.methods.should contain("Runtime.removeBinding")
+  end
 end

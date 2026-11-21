@@ -485,8 +485,9 @@ module Rod
       must_try { eval_on_new_document(js) }
     end
 
-    # MustExpose is similar to expose.
-    def must_expose(name : String, fn : Proc(::JSON::Any, ::JSON::Any)) : Proc(Nil)
+    # MustExpose is similar to expose. It takes the same function shape and
+    # accepts nil like go's `MustExpose` (`must.go:479-484`).
+    def must_expose(name : String, fn : Proc(::JSON::Any, Tuple(::JSON::Any?, ::JSON::Any?))?) : Proc(Nil)
       s = must_try { expose(name, fn) }
       -> { must_try { s.call } }
     end

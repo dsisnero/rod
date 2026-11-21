@@ -35,8 +35,40 @@ below describe the Crystal port, not upstream changes.
   shared JS-context state (`docs/testing.md`, `docs/architecture.md`,
   `docs/development.md`, `docs/resuming.md`).
 
+### Fixed
+
+- `Page#scroll_screenshot` no longer sends `fromSurface: false`: go marks that
+  field `json:"fromSurface,omitempty"` (`vendor/rod/lib/proto/page.go:1745-1746`),
+  so the `FromSurface: false` literal in `ScrollScreenshot` never reaches the
+  browser and CDP keeps its documented default (`true`). The port transmitted the
+  literal, and Chrome answers `-32000 Unable to capture screenshot` for a clipped
+  capture with `fromSurface: false` — the ported `TestScrollScreenshot` example
+  failed deterministically because of it. `captureBeyondViewport` and
+  `optimizeForSpeed` are omitted too, matching go's wire request.
+- `Page#expose` works: the `Runtime.bindingCalled` listener is now started in a
+  fiber, like go's `go p.EachEvent(...)` (`page_eval.go:214`). The port passed
+  `each_event`'s *wait* function to `stop()` instead of running it, so an exposed
+  function never received its callback — `page.eval("() => exposedFunc(...)")`
+  hung until the context deadline — and `stop()` blocked forever in the listener
+  loop. `stop` now also follows go's order (remove the new-document script,
+  `Runtime.removeBinding`, then cancel the listener context via `defer cancel()`,
+  `page_eval.go:203-212`). Ported go's live `TestPageExpose`: two concurrent
+  calls, survival across a reload, a second `stop()` that fails, and a reload
+  that leaves the function unbound.
+- `Page#must_expose` is usable: it took a `Proc(JSON::Any, JSON::Any)` that never
+  matched `expose`'s tuple-returning proc, so it never type-checked — and because
+  `Rod::Page` defines `method_missing`, the mismatch was reported as
+  `undefined method 'must_expose'` instead of a type error. It now takes the same
+  function shape as `expose`, which also accepts a `nil` function like go's
+  `Expose(name, nil)` (`page_eval.go:186`, `must.go:479-484`).
+
 ### Changed
 
+- `make test` now runs `crystal spec spec` with `CRYSTAL_CACHE_DIR` pinned to the
+  git-ignored `.crystal-cache/`: Crystal names the spec binary
+  `crystal-run-spec.tmp` inside the cache directory, so with the shared default
+  cache a concurrent run from another checkout could make this repo execute that
+  checkout's examples.
 - Trace overlays are removed when the traced operation ends, like go-rod:
   `Page#overlay` and `Element#overlay` return a remove function that runs
   `js.removeOverlay` with the same id (`dev_helpers.go:114-131`, `198-211`),

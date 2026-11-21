@@ -7,8 +7,17 @@ Run all of these before committing:
 ```bash
 make format   # crystal tool format --check src spec examples bin
 make lint     # ameba --fix, then ameba
-make test     # crystal spec
+make test     # crystal spec spec
 ```
+
+`make test` runs this workspace's `spec/` directory and pins
+`CRYSTAL_CACHE_DIR` to the git-ignored `.crystal-cache/` (see the Makefile): the
+default cache is shared machine-wide and names the spec binary
+`crystal-run-spec.tmp`, so a concurrent run from another checkout can otherwise
+make this repo execute *that* checkout's examples. Calling `crystal spec`
+directly bypasses the pin; export
+`CRYSTAL_CACHE_DIR="$PWD/.crystal-cache"` if you run it while other checkouts are
+active.
 
 ## Targeted specs
 

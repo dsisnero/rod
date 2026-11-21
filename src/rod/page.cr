@@ -1303,13 +1303,17 @@ module Rod
           end
         end
 
+        # go's `PageCaptureScreenshot` marks `fromSurface`, `captureBeyondViewport`
+        # and `optimizeForSpeed` with `omitempty`
+        # (`vendor/rod/lib/proto/page.go:1745-1752`), so the `false` literals in
+        # `ScrollScreenshot` never reach the browser and CDP keeps its documented
+        # defaults (notably `fromSurface: true`). Sending `fromSurface: false`
+        # together with a `clip` makes Chrome answer
+        # `-32000 Unable to capture screenshot`.
         req = Cdp::Page::CaptureScreenshot.new(
           format: opt.format,
           quality: opt.quality.try &.to_i64,
-          clip: clip,
-          from_surface: false,
-          capture_beyond_viewport: false,
-          optimize_for_speed: false
+          clip: clip
         )
         shot = req.call(self)
         box = ::Rod::Util::Utils::Rect.new(0, 0, clip.width.round.to_i, clip.height.round.to_i)
@@ -1633,7 +1637,10 @@ module Rod
     # Expose fn to the page's window object with the name. The exposure survives reloads.
     # Call stop to unbind the fn.
     # The fn should return a tuple of [result, error] where error is nil on success.
-    def expose(name : String, fn : Proc(::JSON::Any, Tuple(::JSON::Any?, ::JSON::Any?))) : Proc(Nil)
+    # A nil fn is allowed like go's `Expose(name, nil)` (`page_eval.go:186`): the
+    # binding is installed and removed with the script, but calling the exposed
+    # function fails (go panics from the nil call).
+    def expose(name : String, fn : Proc(::JSON::Any, Tuple(::JSON::Any?, ::JSON::Any?))?) : Proc(Nil)
       # Generate random binding name
       bind = "_" + ::Rod::Util::Utils.rand_string(8)
 
@@ -1665,12 +1672,16 @@ module Rod
       code = "(#{expose_func_def})(\"#{name}\", \"#{bind}\")"
       remove_script = eval_on_new_document(code)
 
-      # Create cancellable page context
+      # Create cancellable page context, like go's `p, cancel := p.WithCancel()`
+      # (`page_eval.go:201`).
       ctx, cancel_ctx = @ctx.with_cancel
       exposed_page = self.context(ctx)
 
-      # Set up event listener for binding calls
-      stop_listener = browser.context(@ctx).each_event(@session_id, {
+      # Listen for binding calls. `each_event` returns a *wait* function, so it
+      # has to run in a fiber: go starts it with `go p.EachEvent(...)`
+      # (`page_eval.go:214`). The listener is torn down by cancelling the expose
+      # context, which closes its event subscription.
+      listener = browser.context(ctx).each_event(@session_id, {
         "Runtime.bindingCalled" => Browser::CallbackInfo.new(
           ::Cdp::Runtime::BindingCalledEvent,
           ->(event : Cdp::Event, session_id : SessionID?) do
@@ -1682,7 +1693,9 @@ module Rod
               cb_name = payload_json["cb"].as_s? || ""
 
               # Call user function
-              result, err = fn.call(req)
+              handler = fn
+              raise Rod::RodError.new("expose: no function bound to '#{name}'") unless handler
+              result, err = handler.call(req)
 
               # Call back to JavaScript with result or error
               js_code = "(res, err) => #{cb_name}(res, err)"
@@ -1695,9 +1708,10 @@ module Rod
                 await_promise: true
               )
 
-              # Evaluate callback (ignore errors)
+              # Evaluate the callback on the expose context and ignore errors,
+              # like go's `_, _ = p.Evaluate(Eval(code, res, err))`.
               begin
-                evaluate(eval_opts)
+                exposed_page.evaluate(eval_opts)
               rescue ex
                 # Log or ignore callback errors
               end
@@ -1706,21 +1720,19 @@ module Rod
           end
         ),
       })
+      spawn { listener.call }
 
-      # Return stop function
+      # Return stop function, in go's order: remove the script, unbind, then
+      # cancel the listener context (`defer cancel()`, `page_eval.go:203-212`).
       -> do
-        # Cancel context
-        cancel_ctx.call
+        begin
+          remove_script.call
 
-        # Stop event listener
-        stop_listener.try(&.call)
-
-        # Remove script
-        remove_script.call
-
-        # Remove binding
-        remove_binding_req = ::Cdp::Runtime::RemoveBinding.new(name: bind)
-        remove_binding_req.call(exposed_page)
+          remove_binding_req = ::Cdp::Runtime::RemoveBinding.new(name: bind)
+          remove_binding_req.call(exposed_page)
+        ensure
+          cancel_ctx.call
+        end
       end
     end
 
