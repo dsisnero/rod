@@ -154,7 +154,7 @@ module Rod
       begin
         hover
         wait_enabled
-        @page.mouse.click(button, click_count)
+        @page.context(@ctx).mouse.click(button, click_count)
       ensure
         cleanup.call
       end
@@ -168,7 +168,7 @@ module Rod
         scroll_into_view
         wait_enabled
         pt = wait_interactable
-        @page.touch.tap(pt.x, pt.y)
+        @page.context(@ctx).touch.tap(pt.x, pt.y)
       ensure
         cleanup.call
       end
@@ -178,14 +178,14 @@ module Rod
     # Before the action, it will try to scroll to the element and focus on it.
     def type(*keys : Input::Key) : Nil
       focus
-      @page.keyboard.type(*keys)
+      @page.context(@ctx).keyboard.type(*keys)
     end
 
     # KeyActions is similar with Page.KeyActions.
     # Before the action, it will try to scroll to the element and focus on it.
     def key_actions : Keyboard::KeyActions
       focus
-      @page.keyboard.key_actions
+      @page.context(@ctx).keyboard.key_actions
     end
 
     # SelectText selects the text that matches the regular expression.
@@ -296,7 +296,7 @@ module Rod
     # Before the action, it will try to scroll to the element and wait until it's interactable.
     def hover : Nil
       pt = wait_interactable
-      @page.mouse.move_to(pt)
+      @page.context(@ctx).mouse.move_to(pt)
     end
 
     # MoveMouseOut of the current element.
@@ -357,7 +357,7 @@ module Rod
       opts.format = format
       opts.quality = quality == 0 ? nil : quality.to_i64
 
-      bin = @page.screenshot(false, opts)
+      bin = @page.context(@ctx).screenshot(false, opts)
 
       shape_result = shape
       if box_tuple = Rod::Util::Quad.box(shape_result.quads)
@@ -519,7 +519,7 @@ module Rod
 
       insert_error : Exception? = nil
       begin
-        @page.insert_text(text)
+        @page.context(@ctx).insert_text(text)
       rescue ex
         insert_error = ex
       end
@@ -743,7 +743,7 @@ module Rod
         js_args: js_args,
         user_gesture: false
       )
-      @page.evaluate(opts)
+      @page.context(@ctx).evaluate(opts)
     end
 
     # Eval is a shortcut for evaluate with AwaitPromise enabled.

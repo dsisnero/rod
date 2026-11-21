@@ -8,25 +8,25 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 55 (`Runtime.callFunctionOn` omits
-false flags like go's `omitempty`).
+green, and the last feature commit is Phase 56 (element operations run in the
+element's own context, like go's `el.page.Context(el.ctx)`).
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~1m45s). Before a full run, clear stray headless browsers left
 by an aborted run — `pgrep -f "rod/user-data" | xargs -r kill -9`; they push the
 live specs into their documented load flake (see Gotchas).
 
-Phases 23-55 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-56 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. Next up item 1 records what cannot be re-derived from
 the ledger: which areas were swept and which leads are still open.
 
-**Last commit:** `port: omit false eval flags like go's omitempty` (Phase 55;
-`git log -1` for the hash).
+**Last commit:** `port: run element operations in the element's context`
+(Phase 56; `git log -1` for the hash).
 
-**Gates (2026-11-20, after Phase 55):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (717 examples, 0 failures) · parity checks pass
+**Gates (2026-11-20, after Phase 56):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (723 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -41,6 +41,13 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    + `CHANGELOG.md` + the ledger rows. Porting the *upstream* test first matters:
    Phase 43 found that the stub-only `TestHandleAuth` had hidden a
    `Fetch domain is not enabled` bug in `handle_auth`.
+   - Candidates already verified and closed in Phase 56, do not re-audit:
+     the element context class (8 call sites fixed in 56, see the phase),
+     `RaceContext#do` (probe-with-`NotFoundSleeper`, winner sleeper, callback
+     error and retry all match `query.go:429-455`), `SplicePngVertical`'s box
+     placement (go writes at `x` rather than `x - start.X`, but go never passes
+     a box — `ScrollScreenshot` always leaves it nil — so the port keeps the
+     packed layout and should not "fix" it without an upstream case).
    - Candidates already verified and closed in Phase 55, do not re-audit:
      `browser.go` `Page`/`Pages` (close-on-error path and ordering match),
      `Browser#page`'s positional `CreateTarget` args (field order matches), the
@@ -1848,6 +1855,42 @@ the helper-registration requests, where go sends nothing.
       entries byte-equal to `src/rod/util/devices.cr`).
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (717 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 56 — Element operations run in the element's context ✅
+
+go-rod re-contexts the page for element operations:
+`el.page.Context(el.ctx)` appears **15 times** in `element.go` (lines 88-734) —
+`Mouse.MoveTo`/`Click`, `Touch.Tap`, `Keyboard.Type`, `KeyActions`, `InsertText`,
+`ElementFromPoint`, `ElementFromObject`, `WaitRepaint`, `Wait`, `GetResource` ×2,
+`Screenshot`, `Release`, `Evaluate`. The port already re-contexted 7 of them
+(interactable's `element_from_point`, `wait`, `wait_repaint`, `resource`,
+`background_image`, `release`, `element_from_object`), but **8 still went straight
+to `@page`**: `click`, `hover`, `tap`, `type`, `key_actions`, `input`'s
+`insert_text`, `screenshot` and `evaluate`. An element cloned by
+`Element#timeout`/`Element#context` therefore ignored its own deadline for every
+input action, screenshot and JS evaluation.
+
+- [x] Red-green `spec/element_context_parity_spec.cr` (new): a recording page
+      stub plus a spy mouse/keyboard/touch, and an element stub with
+      `scroll_into_view`/`wait_*`/`shape` faked, asserts every one of the eight
+      paths runs with the *element's* context (six examples: evaluate, click +
+      hover, type + key actions, tap, input, screenshot). All six failed before
+      the fix; the screenshot case drives a cancelled element context and
+      expects `ContextCanceledError`.
+- [x] `src/rod/element.cr`: the eight call sites now use `@page.context(@ctx)`,
+      matching go's pattern. `move_mouse_out` deliberately stays on `@page` —
+      go's `MoveMouseOut` is the one site that does *not* re-context
+      (`element.go:656-664`).
+- [x] `spec/element_spec.cr`: `ScreenshotStubPage` records its calls through a
+      shared array, because `Page#context(ctx)` dups the page and an `Int32`
+      counter would be lost on the clone.
+- [x] Note on the cached input objects: go's `Page.Mouse`/`Keyboard`/`Touch` are
+      lazily created (`newMouse()`), so a cloned page that has not built them yet
+      binds them to the clone — the port's `@mouse ||=` behaves identically.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (723 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

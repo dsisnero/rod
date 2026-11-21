@@ -487,17 +487,23 @@ private class EvalCapturePage < Rod::Page
 end
 
 private class ScreenshotStubPage < Rod::Page
-  property screenshot_calls = 0
+  # `Element#screenshot` re-contexts the page like go (`el.page.Context(el.ctx)`),
+  # which dups this stub, so the call log has to be a shared object.
+  getter screenshot_contexts = [] of Rod::Context
   property screenshot_error : Exception? = nil
 
   def initialize
     super(Rod::Browser.new, Rod::TargetID.new("target-id"))
   end
 
+  def screenshot_calls : Int32
+    @screenshot_contexts.size
+  end
+
   def screenshot(full_page : Bool = false, req : Cdp::Page::CaptureScreenshot? = nil) : Bytes
     _ = full_page
     _ = req
-    @screenshot_calls += 1
+    @screenshot_contexts << get_context
     if ex = @screenshot_error
       raise ex
     end

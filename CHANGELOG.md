@@ -37,6 +37,12 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- Element operations run in the element's own context, like go-rod's
+  `el.page.Context(el.ctx)` (`element.go:88-734`): `click`, `hover`, `tap`,
+  `type`, `key_actions`, `input`'s `insert_text`, `screenshot` and `evaluate`
+  used the page's context, so an element cloned by `Element#timeout` or
+  `Element#context` ignored its own deadline for those calls. `move_mouse_out`
+  keeps using the page directly, matching go's one non-re-contexted site.
 - `Page#evaluate` (and every helper-registration request) omits `false` flags
   from `Runtime.callFunctionOn` instead of sending them, matching go's proto
   fields (`bool` + `json:",omitempty"`). Same class as the Phase 54
