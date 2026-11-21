@@ -44,6 +44,19 @@ private class WaitLoadErrorPage < Rod::Page
   end
 end
 
+private class EvalRecordPage < Rod::Page
+  property last_eval_opts : Rod::EvalOptions? = nil
+
+  def initialize
+    super(Rod::Browser.new, Rod::TargetID.new("record-target"))
+  end
+
+  def evaluate(opts : Rod::EvalOptions) : Cdp::Runtime::RemoteObject
+    @last_eval_opts = opts
+    Cdp::Runtime::RemoteObject.from_json(%({"type":"undefined"}))
+  end
+end
+
 private class SessionErrorBrowser < Rod::Browser
   def call(context : HTTP::Client::Context?, session_id : String?, method : String, params : JSON::Any) : Bytes
     _ = context
@@ -68,6 +81,35 @@ describe "page misc parity" do
     page.eval_error = Exception.new("runtime call failed")
 
     expect_raises(Exception, /runtime call failed/) { page.wait_load }
+  end
+
+  # go evaluates the repaint promise on the root page because an iframe does not
+  # trigger `requestAnimationFrame` (`page.go:849-853`); the frame's own context
+  # answers after a long throttle delay, which used to hang `WaitStableRAF`.
+  it "wait_repaint evaluates on the root page, not the iframe" do
+    root = EvalRecordPage.new
+    frame_el = Rod::Element.new(
+      Cdp::Runtime::RemoteObject.from_json(%({"type":"object","objectId":"frame-1","description":"iframe"})),
+      root
+    )
+    frame = Rod::Page.new(root.browser, Rod::TargetID.new("frame-target"))
+    frame.element = frame_el
+    # `Element#frame` copies the page's root onto the frame clone.
+    frame.root = root
+
+    frame.wait_repaint
+
+    opts = root.last_eval_opts.not_nil!
+    opts.js.should contain("requestAnimationFrame")
+    opts.await_promise?.should be_true
+  end
+
+  it "keeps the root page across context and JS-context clones" do
+    root = Rod::Page.new(Rod::Browser.new, Rod::TargetID.new("root-target"))
+    root.root = root
+
+    root.context(root.get_context).root_page.should be(root)
+    root.dup.root_page.should be(root)
   end
 
   it "page_from_session returns page that propagates session-not-found errors" do

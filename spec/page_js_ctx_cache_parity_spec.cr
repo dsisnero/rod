@@ -64,6 +64,9 @@ describe "page js context cache parity" do
     browser = JsCtxStubBrowser.new
     root = JsCtxStubPage.new(browser)
     frame = JsCtxStubPage.new(browser, frame_id: "frame-2", element: js_ctx_iframe_element(root))
+    # `Element#frame` copies the page's root onto the frame clone, like go's
+    # struct copy (`page.go:297`, `element.go:464-468`).
+    frame.root = root
 
     frame.iframe?.should be_true
 

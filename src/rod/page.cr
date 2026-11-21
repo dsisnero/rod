@@ -228,6 +228,7 @@ module Rod
     @dom_lock = Mutex.new
 
     property browser : Browser
+    property root : Page?
     property target_id : TargetID
     property session_id : SessionID?
     property frame_id : FrameID?
@@ -244,11 +245,13 @@ module Rod
       !@element.nil?
     end
 
-    # RootPage returns the top-level page for this target/frame chain.
+    # RootPage returns the top-level page of this target/frame chain, like go's
+    # `Page.root` (`page.go:297`). A page created from a target is its own root;
+    # a frame clone inherits its page's root, and a JS-context clone (`Page#dup`
+    # from `ElementFromObject`, `page.go:941-945`) keeps the same root even when
+    # the element lives in another frame's context.
     def root_page : Page
-      iframe_el = @element
-      return self unless iframe_el
-      iframe_el.page.root_page
+      @root || self
     end
 
     # MouseOffset returns the accumulated top-left offset of this page's frame
@@ -1091,8 +1094,11 @@ module Rod
     end
 
     # WaitRepaint waits until the next repaint.
+    # go evaluates on the root page because an iframe does not trigger
+    # `requestAnimationFrame` (`page.go:849-853`), which matters for
+    # `WaitStableRAF` on elements inside nested frames (`element.go:556-583`).
     def wait_repaint : Nil
-      evaluate("() => new Promise(r => requestAnimationFrame(r))")
+      root_page.eval("() => new Promise(r => requestAnimationFrame(r))")
     end
 
     # CaptureDOMSnapshot returns a DOM snapshot for stability checks.

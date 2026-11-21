@@ -217,7 +217,9 @@ module Rod
     # PageFromSession creates a page from session id.
     def page_from_session(session_id : SessionID) : Page
       page_ctx, _cancel = @ctx.with_cancel
-      Page.new(self, TargetID.new(""), session_id, nil, page_ctx, @sleeper)
+      page = Page.new(self, TargetID.new(""), session_id, nil, page_ctx, @sleeper)
+      page.root = page
+      page
     end
 
     # PageFromTarget gets or creates a Page instance.
@@ -233,6 +235,7 @@ module Rod
         sid = SessionID.new(attach.session_id)
         page_ctx, cancel = @ctx.with_cancel
         page = Page.new(self, target_id, sid, FrameID.new(target_id.value), page_ctx, @sleeper)
+        page.root = page
         page.init_events(cancel)
         # Match Go rod: enable Page domain for newly attached pages to avoid
         # agent-not-enabled behavior for page-scoped commands.

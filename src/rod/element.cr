@@ -119,7 +119,7 @@ module Rod
     # Focus sets focus on the specified element.
     def focus : Nil
       scroll_into_view
-      evaluate("() => this.focus()")
+      evaluate(EvalOptions.new(js: "() => this.focus()", by_value: true, user_gesture: true))
     end
 
     # Scroll into view
@@ -128,6 +128,10 @@ module Rod
       @page.browser.try_slow_motion
 
       begin
+        # go waits for the element's shape to stop changing across two repaints
+        # before scrolling (`element.go:68-78` + `WaitStableRAF`).
+        wait_stable_raf
+
         object_id = @object.object_id
         raise "Element has no object ID" unless object_id
 
@@ -220,7 +224,7 @@ module Rod
 
     # Blur removes focus from the element.
     def blur : Nil
-      evaluate("() => this.blur()")
+      evaluate(EvalOptions.new(js: "() => this.blur()", by_value: true, user_gesture: true))
     end
 
     # InputTime focuses on the element and inputs time to it.
@@ -320,11 +324,6 @@ module Rod
         backend_node_id: nil,
         object_id: object_id
       ).call(@page)
-    end
-
-    # ScrollIntoView scrolls the element into viewport.
-    def scroll_into_view : Nil
-      evaluate("() => this.scrollIntoView({behavior: 'instant', block: 'center', inline: 'center'})")
     end
 
     # CanvasToImage gets image data of a canvas element.
@@ -871,6 +870,8 @@ module Rod
       session_id = @page.session_id.try { |sid| SessionID.new(sid) }
       clone = Page.new(@page.browser, @page.target_id, session_id, FrameID.new(frame_id), @page.ctx, @sleeper, self)
       clone.e_handler = @page.e_handler
+      # go copies `*el.page`, so the frame keeps that page's root (`page.go:297`).
+      clone.root = @page.root_page
       clone
     end
 

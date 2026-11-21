@@ -37,6 +37,22 @@ below describe the Crystal port, not upstream changes.
 
 ### Changed
 
+- `Element#scroll_into_view` follows go's `ScrollIntoView` (`element.go:68-78`):
+  it waits for a stable repaint (`WaitStableRAF`) and then scrolls with
+  `DOM.scrollIntoViewIfNeeded`. A second, later definition of the method had
+  silently replaced that path with a plain `this.scrollIntoView(...)` eval, so
+  the DOM call, the repaint wait and the trace/slow-motion hooks never ran.
+  `Element#focus` and `Element#blur` now run as user gestures like go's
+  `Eval(...).ByUser()` (`element.go:56-64`, `332-335`).
+- `Page#wait_repaint` evaluates the `requestAnimationFrame` promise on the
+  **root** page like go (`page.go:849-853`, "iframe doesn't trigger
+  requestAnimationFrame"). `Page#root_page` now follows go's `Page.root`: a page
+  created for a target is its own root, a frame clone inherits its page's root,
+  and a JS-context clone keeps it. Before, the root was re-derived by walking
+  `@element`, which answered the page itself for elements found by
+  `Page#search` inside an iframe — `ScrollIntoView` on them then blocked forever
+  on a throttled frame. The trace overlay helper used the same name with a
+  one-level walk; it now draws on the real root (`dev_helpers.go:114-124`).
 - Quad geometry has a single implementation again: `Rod::Util::Quad` delegates
   `len`/`each`/`center`/`area`/`one_point_inside`/`box` to the generated
   `Cdp::DOM` helpers (the port of go's `DOMQuad` patch methods) instead of

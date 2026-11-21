@@ -8,25 +8,26 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 50 (`make check-generate-crystal`
-proves `src/cdp` still matches the pinned generation).
+green, and the last feature commit is Phase 51 (`ScrollIntoView` waits for a
+stable root repaint before the DOM scroll, and `root_page` follows go's
+`Page.root`).
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~1m45s). Before a full run, clear stray headless browsers left
 by an aborted run — `pgrep -f "rod/user-data" | xargs -r kill -9`; they push the
 live specs into their documented load flake (see Gotchas).
 
-Phases 23-50 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-51 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. Next up item 1 records what cannot be re-derived from
 the ledger: which areas were swept and which leads are still open.
 
-**Last commit:** `build: gate src/cdp against the pinned generation`
-(Phase 50; `git log -1` for the hash).
+**Last commit:** `port: wait for the root repaint before scrolling an element`
+(Phase 51; `git log -1` for the hash).
 
-**Gates (2026-11-20, after Phase 49):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (704 examples, 0 failures) · parity checks pass
+**Gates (2026-11-20, after Phase 51):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (708 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -51,9 +52,11 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
         appends the pattern with its resource type and re-enables, `Remove`
         rebuilds patterns without the resource type, `Stop` disables
         (`hijack.go:113-192`); only the error style differs (Crystal raises).
-     e. `query.go`: `Search` (`DOM.performSearch` retry, iframe/shadow search,
-        `SearchResult#get/release`) and `WaitElementsMoreThan` (go passes `Eval`,
-        i.e. by-value *and* by-promise).
+     e. ~~`query.go`: `Search`~~ — audited in Phase 51 and verified equal
+        (`DOM.performSearch` retry, zero-node refresh, iframe/shadow search, and
+        `WaitElementsMoreThan`'s by-value `Eval`); the JS-context clone that
+        `Search` produces for iframe hits did expose the `root_page` bug fixed
+        there.
      f. `browser.go`: `Pages`, `Page`, `Cookies`, `Close`. Audited so far and
         matched — re-check `Browser#page`'s close-on-error path and `Pages`
         ordering before starting.
@@ -68,7 +71,10 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      hijack bodies (36), `WaitDownload` restore (37), input mac mode (38),
      `Pages#find` (39), `LoadResponse` bodies (40), `SelectAllText` (41),
      `HandleAuth` + event-wait domain state (42, 43), `LoadState` params +
-     full-page screenshot viewport restore (44).
+     full-page screenshot viewport restore (44), element queries + `parents`
+     (45, 47), iframe panic handler (46), `quad` dedupe (49), generation gate
+     (50), `Search` + `ScrollIntoView`/`Focus`/`Blur`/`WaitRepaint` root rule
+     (51).
    - Verified equal, no work needed: all 32 `lib/js` helper definitions are
      byte-identical to `vendor/rod/lib/js/helper.go` (checked programmatically in
      Phase 39 — don't re-audit them), and the keyboard/mouse/touch event payloads
@@ -179,7 +185,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 94 files, 690 examples, 0 failures (2026-11-20, Chromium `160.0.8168.1`) |
+| Crystal specs | 94 files, 708 examples, 0 failures (2026-11-20, Chromium `160.0.8168.1`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -1682,6 +1688,48 @@ Phase 30 had to edit a template *and* its generated file together.
 - [x] `docs/generation.md` documents the gate and its network requirement.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (704 examples, 0 failures), `make check-go-*` pass.
+
+### Phase 51 — `ScrollIntoView` waits for the root repaint ✅
+
+The `query.go` lead (candidate e) came back clean, but the element it returns for
+an iframe hit is a JS-context clone, and that clone exposed two older drifts:
+
+- `Element#scroll_into_view` was defined **twice** in `src/rod/element.cr`. The
+  later, JS-only definition (`this.scrollIntoView({behavior: 'instant', ...})`)
+  silently replaced the faithful one, so go's repaint wait, the
+  `DOM.scrollIntoViewIfNeeded` call and the trace/slow-motion hooks never ran.
+  The existing `#scroll_into_view` spec passed vacuously because its stub element
+  overrode the string `evaluate` overload the JS version used.
+- `Page#wait_repaint` evaluated the `requestAnimationFrame` promise on the frame
+  itself. go evaluates it on `p.root` with the comment "iframe doesn't trigger
+  requestAnimationFrame" (`page.go:849-853`), and the port re-derived the root by
+  walking `@element` — which answers the page itself for a JS-context clone, so
+  `WaitStableRAF` on an element found by `Page#search` inside an iframe blocked
+  forever on a throttled frame (measured: `setTimeout` resolved, `rAF` did not).
+
+- [x] Red-green, live: the ported `TestSearchIframes`/`TestSearchIframesAfterReload`
+      and `TestIframes` examples hung (>2 min, aborted) once `ScrollIntoView`
+      waited for a repaint; they pass in 0.8 s / 0.4 s now.
+- [x] Red-green, unit: `spec/element_spec.cr` asserts the CDP sequence
+      (`DOM.getContentQuads` then `DOM.scrollIntoViewIfNeeded` with the element
+      object id) — the vacuous version let the JS scroll through its stub.
+- [x] `spec/element_spec.cr` `#focus/#blur`: both run as user gestures
+      (`EvalOptions#user_gesture?`), like go's `Eval(...).ByUser()`.
+- [x] `spec/page_misc_parity_spec.cr`: `wait_repaint` evaluates on the root page,
+      and `root_page` survives `context`/`dup` clones.
+- [x] `src/rod/page.cr`: `Page#root` follows go — set to the page itself in
+      `Browser#page_from_target`/`#page_from_session`, inherited by
+      `Element#frame` and by every `dup`/`context` clone; `root_page` reads it.
+      `src/rod/dev_helpers.cr` had a private `root_page` walking only one level;
+      it is gone, so trace overlays draw on the real root
+      (`dev_helpers.go:114-124`).
+- [x] `src/rod/element.cr`: duplicate `scroll_into_view` removed, the remaining
+      one waits `wait_stable_raf` then calls `DOM.scrollIntoViewIfNeeded`;
+      `focus`/`blur` pass `user_gesture: true`.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (708 examples, 0 failures), `make check-go-*` pass.
+
+---
 
 ---
 

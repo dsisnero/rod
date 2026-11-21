@@ -168,6 +168,16 @@ private class InteractableStubElement < StubElement
     @quad_payload
   end
 
+  # The real `scroll_into_view` waits for a stable repaint through CDP
+  # (`element.go:68-78`); these screenshot examples only care about what
+  # `Element#screenshot` does after scrolling, and `#scroll_into_view` has its
+  # own CDP-level example.
+  def scroll_into_view : Nil
+    if ex = @eval_error
+      raise ex
+    end
+  end
+
   def contains_element(target : Rod::Element) : Bool
     _ = target
     @contains_target
@@ -287,6 +297,14 @@ private class TypeFlowStubElement < StubElement
     if ex = @focus_error
       raise ex
     end
+  end
+end
+
+private class FocusFlowElement < StubElement
+  property scroll_calls = 0
+
+  def scroll_into_view : Nil
+    @scroll_calls += 1
   end
 end
 
@@ -845,18 +863,44 @@ describe Rod::Element do
       element.disabled?.should be_false
     end
 
-    it "blur/equal evaluate expected javascript" do
+    it "equal evaluates expected javascript" do
       page = Rod::Page.new(Rod::Browser.new, Rod::TargetID.new("target-id"))
       element = StubElement.new(page)
       target = StubElement.new(page)
-
-      element.blur
-      element.last_js.should eq("() => this.blur()")
 
       element.eval_result = true
       element.equal(target).should be_true
       element.last_js.should eq("(elm) => this === elm")
       element.last_args.should eq([target.object] of Rod::EvalOptions::JsArg)
+    end
+  end
+
+  describe "#focus/#blur" do
+    # go runs both as user gestures: `Eval(`() => this.focus()`).ByUser()`
+    # (`element.go:56-64`) and `Eval("() => this.blur()").ByUser()`
+    # (`element.go:332-335`).
+    it "focuses after scrolling into view, as a user gesture" do
+      page = EvalRecordingPage.new
+      element = FocusFlowElement.new(page)
+
+      element.focus
+
+      element.scroll_calls.should eq(1)
+      opts = page.last_eval_opts.not_nil!
+      opts.js.should eq("() => this.focus()")
+      opts.user_gesture?.should be_true
+      opts.by_value?.should be_true
+    end
+
+    it "blurs as a user gesture" do
+      page = EvalRecordingPage.new
+      element = FocusFlowElement.new(page)
+
+      element.blur
+
+      opts = page.last_eval_opts.not_nil!
+      opts.js.should eq("() => this.blur()")
+      opts.user_gesture?.should be_true
     end
   end
 
@@ -902,12 +946,25 @@ describe Rod::Element do
   end
 
   describe "#scroll_into_view" do
-    it "uses DOM.scrollIntoViewIfNeeded CDP method" do
+    # go waits for a stable repaint and then scrolls through the DOM domain
+    # (`element.go:68-78` + `WaitStableRAF` at `element.go:556-583`). A plain
+    # `this.scrollIntoView(...)` eval skips both, so assert the CDP traffic.
+    it "waits for a stable RAF then scrolls with DOM.scrollIntoViewIfNeeded" do
       page = CdpStubPage.new
+      page.set_response("Runtime.evaluate", %({"result":{"type":"object","objectId":"window-1"}}))
+      page.set_response("Runtime.callFunctionOn", %({"result":{"type":"object","objectId":"fn-1","value":true}}))
+      page.set_response("DOM.getContentQuads", %({"quads":[]}))
       page.set_response("DOM.scrollIntoViewIfNeeded", %({}))
-      element = StubElement.new(page)
+      element = Rod::Element.new(
+        Cdp::Runtime::RemoteObject.from_json(%({"type":"object","objectId":"obj-1","description":"div"})),
+        page
+      )
 
       element.scroll_into_view
+
+      page.method_calls.should contain("DOM.getContentQuads")
+      page.method_calls.should contain("DOM.scrollIntoViewIfNeeded")
+      page.method_params["DOM.scrollIntoViewIfNeeded"]["objectId"].as_s.should eq("obj-1")
     end
   end
 
@@ -1018,7 +1075,9 @@ describe Rod::Element do
   describe "#select_text/#select_all_text" do
     it "evaluates go's js.SelectText helper as a user gesture" do
       page = EvalRecordingPage.new
-      element = StubElement.new(page)
+      # `select_text` focuses first (`element.go:225-236`), so keep the scroll
+      # probe out of the CDP stub and leave the eval to the page recorder.
+      element = FocusFlowElement.new(page)
 
       element.select_text("foo")
 
@@ -1030,7 +1089,7 @@ describe Rod::Element do
 
     it "evaluates go's js.SelectAllText helper as a user gesture" do
       page = EvalRecordingPage.new
-      element = StubElement.new(page)
+      element = FocusFlowElement.new(page)
 
       element.select_all_text
 

@@ -231,14 +231,6 @@ module Rod
         end
       end
     end
-
-    private def root_page : Page
-      if el = @element
-        el.page
-      else
-        self
-      end
-    end
   end
 
   class Element
