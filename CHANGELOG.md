@@ -37,6 +37,10 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Page#evaluate` (and every helper-registration request) omits `false` flags
+  from `Runtime.callFunctionOn` instead of sending them, matching go's proto
+  fields (`bool` + `json:",omitempty"`). Same class as the Phase 54
+  `fromSurface` fix: CDP defaults now apply whenever an option is not set.
 - `Page#scroll_screenshot` no longer sends `fromSurface: false`: go marks that
   field `json:"fromSurface,omitempty"` (`vendor/rod/lib/proto/page.go:1745-1746`),
   so the `FromSurface: false` literal in `ScrollScreenshot` never reaches the

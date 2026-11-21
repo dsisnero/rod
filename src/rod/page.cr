@@ -2029,13 +2029,17 @@ module Rod
       args = format_args(opts)
       target_object_id = opts.this_obj.try(&.object_id) || get_js_ctx_id
 
+      # go's proto fields are plain `bool` with `json:",omitempty"`, so a false
+      # option is omitted from the payload instead of being sent as `false`
+      # (same class as Phase 54's `fromSurface`). `CallFunctionOn` models them as
+      # `Bool?` with `emit_null: false`, so pass nil for false.
       req = ::Cdp::Runtime::CallFunctionOn.new(
         function_declaration: opts.format_to_js_func,
         object_id: target_object_id,
         arguments: args,
-        await_promise: opts.await_promise?,
-        return_by_value: opts.by_value?,
-        user_gesture: opts.user_gesture?,
+        await_promise: opts.await_promise? ? true : nil,
+        return_by_value: opts.by_value? ? true : nil,
+        user_gesture: opts.user_gesture? ? true : nil,
         silent: nil,
         generate_preview: nil,
         execution_context_id: nil,
@@ -2157,7 +2161,7 @@ module Rod
         object_id: object_id,
         arguments: nil,
         silent: nil,
-        return_by_value: false,
+        return_by_value: nil,
         generate_preview: nil,
         user_gesture: nil,
         await_promise: nil,
@@ -2280,8 +2284,8 @@ module Rod
           function_declaration: JS::FUNCTIONS.definition,
           object_id: js_ctx_id,
           arguments: nil,
-          await_promise: false,
-          return_by_value: false
+          await_promise: nil,
+          return_by_value: nil
         )
         res = req.call(self)
         if ex = res.exception_details
@@ -2308,8 +2312,8 @@ module Rod
         function_declaration: create_js,
         object_id: js_ctx_id,
         arguments: [::Cdp::Runtime::CallArgument.new(object_id: root_id)],
-        await_promise: false,
-        return_by_value: false
+        await_promise: nil,
+        return_by_value: nil
       )
       res = req.call(self)
       if ex = res.exception_details

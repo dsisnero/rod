@@ -8,73 +8,55 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 54 (`ScrollScreenshot` omits the
-`false` capture flags like go's `omitempty`, so the ported example passes again).
+green, and the last feature commit is Phase 55 (`Runtime.callFunctionOn` omits
+false flags like go's `omitempty`).
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~1m45s). Before a full run, clear stray headless browsers left
 by an aborted run — `pgrep -f "rod/user-data" | xargs -r kill -9`; they push the
 live specs into their documented load flake (see Gotchas).
 
-Phases 23-54 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-55 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. Next up item 1 records what cannot be re-derived from
 the ledger: which areas were swept and which leads are still open.
 
-**Last commit:** `port: listen for expose bindings and omit false capture flags`
-(Phases 53-54; `git log -1` for the hash).
+**Last commit:** `port: omit false eval flags like go's omitempty` (Phase 55;
+`git log -1` for the hash).
 
-**Gates (2026-11-20, after Phase 54):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (715 examples, 0 failures) · parity checks pass
+**Gates (2026-11-20, after Phase 55):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (717 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
 
 **Next up:**
 
-1. **[code, red-green] Next parity phase.** Pick one candidate below, diff it
-   against `vendor/rod`, and land one feature-sized red-green commit: the
-   upstream (or equivalent characterization) spec first, then the fix, then
-   gates + this file + `CHANGELOG.md` + the ledger rows. Porting the *upstream*
-   test first matters: Phase 43 found that the stub-only `TestHandleAuth` had
-   hidden a `Fetch domain is not enabled` bug in `handle_auth`.
-   - Candidate leads, roughly easiest-first, each already verified to exist:
-     a. ~~`Element#frame` panic handler~~ — landed as Phase 46 (the clone now
-        carries the page's `e`, like go's struct copy).
-     b. ~~`Element#parents`~~ — landed as Phase 47. It was worse than the drift
-        suggested: the script ran unbound and always answered `[]`.
-     c. ~~`Element#element`/`element_x`/`element_r` hand-write JS~~ — landed as
-        Phase 45. Not behaviourally equivalent after all: `element_r` did not
-        understand the `/pattern/flags` form (`js.ElementR`, helper.go:40-44).
-     d. ~~`HijackRouter#add/remove/stop`~~ — verified equal in Phase 45: `Add`
-        appends the pattern with its resource type and re-enables, `Remove`
-        rebuilds patterns without the resource type, `Stop` disables
-        (`hijack.go:113-192`); only the error style differs (Crystal raises).
-     e. ~~`query.go`: `Search`~~ — audited in Phase 51 and verified equal
-        (`DOM.performSearch` retry, zero-node refresh, iframe/shadow search, and
-        `WaitElementsMoreThan`'s by-value `Eval`); the JS-context clone that
-        `Search` produces for iframe hits did expose the `root_page` bug fixed
-        there.
-     f. `browser.go`: `Pages`, `Page`, `Cookies`, `Close`. Audited so far and
-        matched — re-check `Browser#page`'s close-on-error path and `Pages`
-        ordering before starting.
-     i. **[class of bug, Phase 54]** Generated request fields are `Bool?`
-        (omitted when nil) while go's proto fields are `bool` with
-        `json:",omitempty"`. Passing an explicit `false` is therefore *not*
-        equivalent to go whenever CDP's default for that field is `true`.
-        `fromSurface` was one (Phase 54). Sweep `src/rod` for other
-        `field: false` arguments and check the field's CDP default, starting with
-        `Emulation.setDeviceMetricsOverride`, `Page.printToPDF`,
-        `Runtime.callFunctionOn` and `Network.*` toggles.
-     g. ~~`page_eval.go`~~ — audited in Phase 53: the JS-context helper cache,
-        `object_to_json`, `Evaluate`'s ctx-not-found retry and `Release` match go
-        (`Page#release` deliberately skips the CDP call when the object has no
-        id; go sends it and lets Chrome error). `Expose` was *broken* — see the
-        phase — and now runs its binding listener like go.
-     h. ~~`dev_helpers.go`~~ — audited in Phase 52: `ExposeHelpers` matches go,
-        and `Overlay`/`try_trace_req` now draw *and* remove their overlays
-        (`dev_helpers.go:114-131`, `157-195`, `198-211`).
+1. **[code, red-green] Next parity phase.** The audit queue is empty as of Phase
+   55 — every candidate lead has been verified and closed. Start a new sweep:
+   pick a `vendor/rod` file nobody has diffed yet, compare behaviour (not the
+   ledger), and land one feature-sized red-green commit: the upstream (or
+   equivalent characterization) spec first, then the fix, then gates + this file
+   + `CHANGELOG.md` + the ledger rows. Porting the *upstream* test first matters:
+   Phase 43 found that the stub-only `TestHandleAuth` had hidden a
+   `Fetch domain is not enabled` bug in `handle_auth`.
+   - Candidates already verified and closed in Phase 55, do not re-audit:
+     `browser.go` `Page`/`Pages` (close-on-error path and ordering match),
+     `Browser#page`'s positional `CreateTarget` args (field order matches), the
+     four CDP fields documented as "Defaults to true" (`fromSurface` fixed in 54;
+     `fetchRelatives`, `allowUnsafeEvalBlockedByCSP`, `automaticPresenceSimulation`
+     are never constructed by `src/rod`, and `setTouchEmulationEnabled`'s
+     `enabled` / `setLifecycleEventsEnabled`'s `enabled` are required fields), the
+     `Runtime.callFunctionOn` false flags (fixed in 55), and the 36-entry
+     `lib/devices/list.go` table (all fields byte-equal to `src/rod/util/devices.cr`).
+   - Unexplored surfaces with plausible drift, roughly easiest-first:
+     `lib/utils` `EscapeGoString`/`RandString`/`AbsolutePaths`/`FormatCLIArgs`
+     edge cases, `element.go` `Screenshot`/`CanvasToImage` box maths,
+     `page.go` `EachEvent`/`EachEvent` macro semantics, `browser.go`
+     `WaitDownload`/`Cookies` request shapes, `query.go` `RaceContext`,
+     `input.go` `Key.Encode` for modifiers, `utils/imageutil.go`
+     `SplicePngVertical` (pixel placement, not just dimensions).
    - Already swept, do not re-audit: context/cancellation (23, 26), event hub
      (24), launcher/manager (21, 25, 29, 34), error types + `errors.Is` (27, 28),
      quad geometry (30), `Element.Wait*` + `visible?` (31), lookup probes /
@@ -1838,6 +1820,34 @@ Chrome rejects `fromSurface: false` for clipped captures.
       checkout's examples (it did once: `../dataframe/spec/...`).
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (715 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 55 — Eval requests omit false flags like go's `omitempty` ✅
+
+Same class as Phase 54, one request further: go's `RuntimeCallFunctionOn` fields
+are `bool` with `json:",omitempty"` (`vendor/rod/lib/proto/runtime.go`), so
+`ReturnByValue: false` / `AwaitPromise: false` / `UserGesture: false` never reach
+the wire. `Page#evaluate_internal` mapped `EvalOptions`' plain `Bool`s straight
+into the `Bool?` proto fields, so the port always sent all three — including in
+the helper-registration requests, where go sends nothing.
+
+- [x] Red-green `spec/eval_request_payload_parity_spec.cr` (new): captures the
+      `Runtime.callFunctionOn` payload from `Page#evaluate` and asserts the three
+      false flags are absent while `returnByValue: true` is present (red: all
+      three present as `false`), plus the inverse case (all three `true` when the
+      options ask for them; red: `returnByValue` present as `false`).
+- [x] `src/rod/page.cr`: `evaluate_internal` passes `nil` for false options, and
+      the three helper-building requests (`() => window`, `functions`, per-helper
+      factory) stop sending explicit `false`.
+- [x] This closes the last CDP-default lead from Phase 54: only four proto fields
+      document "Defaults to true", and `src/rod` constructs none of them with an
+      explicit `false` (verified: `fromSurface` was the only one, fixed in 54).
+      Phase 55 also closed the `browser.go` lead (`Page`/`Pages` close-on-error
+      and ordering match) and the devices table (`lib/devices/list.go`, all 36
+      entries byte-equal to `src/rod/util/devices.cr`).
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (717 examples, 0 failures), `make check-go-*` pass.
 
 ---
 
