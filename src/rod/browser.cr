@@ -381,16 +381,30 @@ module Rod
     end
 
     # EnableDomain and returns a restore function to restore previous state.
+    # EnableDomain enables the domain and returns a restore function for the
+    # previous state (`states.go:60-73`): nothing is sent when the state registry
+    # already has the domain enabled, and the restore is then a no-op.
     def enable_domain(session_id : SessionID?, req : Cdp::Request) : Proc(Nil)
-      key = StateKey.new(@browser_context_id, session_id, req.proto_req)
+      enable_domain_by_name(session_id, req.proto_req, JSON.parse(req.to_json))
+    end
+
+    # EnableDomainByName is `#enable_domain` for callers that only carry the
+    # method name -- go resolves one with `proto.GetType(domain + ".enable")`,
+    # which the port does not have (`browser.go:364-371`).
+    def enable_domain_by_name(
+      session_id : SessionID?,
+      method_name : String,
+      params : JSON::Any = JSON::Any.new({} of String => JSON::Any),
+    ) : Proc(Nil)
+      key = StateKey.new(@browser_context_id, session_id, method_name)
       enabled = @states_lock.synchronize { @states.has_key?(key) }
       unless enabled
         # Call enable request
-        call(nil, session_id.try(&.value), req.proto_req, JSON.parse(req.to_json))
+        call(nil, session_id.try(&.value), method_name, params)
       end
       -> {
         unless enabled
-          domain, _ = Cdp.parse_method_name(req.proto_req)
+          domain, _ = Cdp.parse_method_name(method_name)
           call(nil, session_id.try(&.value), domain + ".disable", JSON::Any.new(nil))
         end
       }
@@ -534,8 +548,10 @@ module Rod
       callbacks.each_key do |event_name|
         domain, _ = Cdp.parse_method_name(event_name)
         begin
-          call(nil, session_id.try(&.value), domain + ".enable", JSON::Any.new({} of String => JSON::Any))
-          restores << -> { call(nil, session_id.try(&.value), domain + ".disable", JSON::Any.new({} of String => JSON::Any)) }
+          # go enables through `EnableDomain`, so a domain someone else already
+          # enabled is neither re-enabled nor disabled when this wait ends
+          # (`browser.go:364-371`).
+          restores << enable_domain_by_name(session_id, domain + ".enable")
         rescue
           # Some domains may not support explicit enable/disable.
         end
@@ -648,17 +664,11 @@ module Rod
     # `Fetch.enable(handleAuthRequests: true)` (`browser.go:355-375`).
     def wait_event_typed(event_class : T.class, session_id : SessionID? = nil) : Proc(T) forall T
       domain, _ = Cdp.parse_method_name(event_class.proto_event)
-      enable_name = domain + ".enable"
-      was_enabled = @states_lock.synchronize do
-        @states.has_key?(StateKey.new(@browser_context_id, session_id, enable_name))
-      end
-
-      unless was_enabled
-        begin
-          call(nil, session_id.try(&.value), enable_name, JSON::Any.new({} of String => JSON::Any))
-        rescue
-          # Some domains don't require explicit enabling.
-        end
+      restore = begin
+        enable_domain_by_name(session_id, domain + ".enable")
+      rescue
+        # Some domains don't require explicit enabling.
+        -> { }
       end
 
       browser, cancel = with_cancel
@@ -680,12 +690,10 @@ module Rod
           end
         ensure
           cancel.call
-          unless was_enabled
-            begin
-              call(nil, session_id.try(&.value), domain + ".disable", JSON::Any.new({} of String => JSON::Any))
-            rescue
-              # Best-effort cleanup.
-            end
+          begin
+            restore.call
+          rescue
+            # Best-effort cleanup.
           end
         end
       end

@@ -8,25 +8,26 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 56 (element operations run in the
-element's own context, like go's `el.page.Context(el.ctx)`).
+green, and the last feature commit is Phase 57 (`each_event` enables event
+domains through `EnableDomain`, so it no longer disables a domain someone else
+enabled).
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~1m45s). Before a full run, clear stray headless browsers left
 by an aborted run — `pgrep -f "rod/user-data" | xargs -r kill -9`; they push the
 live specs into their documented load flake (see Gotchas).
 
-Phases 23-56 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-57 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. Next up item 1 records what cannot be re-derived from
 the ledger: which areas were swept and which leads are still open.
 
-**Last commit:** `port: run element operations in the element's context`
-(Phase 56; `git log -1` for the hash).
+**Last commit:** `port: restore event domains like go's EnableDomain`
+(Phase 57; `git log -1` for the hash).
 
-**Gates (2026-11-20, after Phase 56):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (723 examples, 0 failures) · parity checks pass
+**Gates (2026-11-20, after Phase 57):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (725 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -41,6 +42,11 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    + `CHANGELOG.md` + the ledger rows. Porting the *upstream* test first matters:
    Phase 43 found that the stub-only `TestHandleAuth` had hidden a
    `Fetch domain is not enabled` bug in `handle_auth`.
+   - Candidates already verified and closed in Phase 57, do not re-audit:
+     `EachEvent`/`WaitEvent` domain enablement (fixed in 57),
+     `Browser.GetCookies`/`SetCookies` (`Storage.getCookies`/`setCookies` with
+     `browserContextID`, and a nil cookie list clears them, like `browser.go:480-498`),
+     `WaitDownload`'s behavior save/restore (`load_state` + `restore_download_behavior`).
    - Candidates already verified and closed in Phase 56, do not re-audit:
      the element context class (8 call sites fixed in 56, see the phase),
      `RaceContext#do` (probe-with-`NotFoundSleeper`, winner sleeper, callback
@@ -1891,6 +1897,33 @@ input action, screenshot and JS evaluation.
       binds them to the clone — the port's `@mouse ||=` behaves identically.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (723 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 57 — Event waits restore domains through `EnableDomain` ✅
+
+go's `eachEvent` enables the callback's domains through `Browser.EnableDomain`
+(`browser.go:364-371`), which consults the state registry (`states.go:60-73`): if
+the domain is already enabled it sends nothing, and its restore function is a
+no-op. The port called `*.enable`/`*.disable` directly, so a wait that ended
+**disabled a domain someone else had enabled** — e.g. `page.enable_domain(Network)`
+followed by `wait_request_idle` left `Network` off, silently killing network
+events for every later wait.
+
+- [x] Red-green `spec/each_event_domain_parity_spec.cr` (new):
+      `Browser#enable_domain(Network)` (restore still held) then an `each_event`
+      wait on `Network` events with an already-cancelled context, so its restores
+      run inside the example. Red before the fix:
+      `["Network.enable", "Network.disable"]` recorded; green now: neither. A
+      second example pins the normal path (nobody else enabled it → both calls
+      happen).
+- [x] `src/rod/browser.cr`: new `Browser#enable_domain_by_name(session_id,
+      method_name, params)` holds the state-aware enable/restore logic and
+      `#enable_domain` delegates to it. `each_event` uses it, and
+      `wait_event_typed` drops its own copy of the same logic (Phase 35 had fixed
+      `WaitEvent` inline; both now share one primitive).
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (725 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

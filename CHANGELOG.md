@@ -37,6 +37,11 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- Event waits (`Browser#each_event`, and therefore `Page#each_event`,
+  `wait_request_idle`, `wait_stable` and `WaitDownload`) enable their CDP domains
+  through `Browser#enable_domain`, like go's `EnableDomain` (`states.go:60-73`).
+  Previously a wait that ended disabled a domain another caller had enabled and
+  still needed, silently stopping its events.
 - Element operations run in the element's own context, like go-rod's
   `el.page.Context(el.ctx)` (`element.go:88-734`): `click`, `hover`, `tap`,
   `type`, `key_actions`, `input`'s `insert_text`, `screenshot` and `evaluate`
