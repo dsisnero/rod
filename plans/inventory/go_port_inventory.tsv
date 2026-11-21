@@ -5421,7 +5421,7 @@ page.go::method::Page.AddScriptTag	method	ported	src/rod/page.cr,spec/page_setti
 page.go::method::Page.AddStyleTag	method	ported	src/rod/page.cr,spec/page_settings_parity_spec.cr,spec/page_wait_parity_spec.cr,spec/page_misc_parity_spec.cr,spec/page_eval_parity_spec.cr,spec/live_browser_parity_spec.cr	page API parity covered
 page.go::method::Page.Browser	method	ported	src/rod/page.cr,spec/page_settings_parity_spec.cr,spec/page_wait_parity_spec.cr,spec/page_misc_parity_spec.cr,spec/page_eval_parity_spec.cr,spec/live_browser_parity_spec.cr	page API parity covered
 page.go::method::Page.Call	method	ported	src/rod/page.cr,spec/page_settings_parity_spec.cr,spec/page_wait_parity_spec.cr,spec/page_misc_parity_spec.cr,spec/page_eval_parity_spec.cr,spec/live_browser_parity_spec.cr	page API parity covered
-page.go::method::Page.CaptureDOMSnapshot	method	ported	src/rod/page.cr,spec/page_settings_parity_spec.cr,spec/page_wait_parity_spec.cr,spec/page_misc_parity_spec.cr,spec/page_eval_parity_spec.cr,spec/live_browser_parity_spec.cr	page API parity covered
+page.go::method::Page.CaptureDOMSnapshot	method	ported	src/rod/page.cr,spec/page_dom_snapshot_parity_spec.cr,spec/page_settings_parity_spec.cr	calls DOMSnapshot.enable like go and sends go's four include flags (Phase 60)
 page.go::method::Page.Close	method	ported	src/rod/page.cr,spec/page_settings_parity_spec.cr,spec/page_wait_parity_spec.cr,spec/page_misc_parity_spec.cr,spec/page_eval_parity_spec.cr,spec/live_browser_parity_spec.cr	page API parity covered
 page.go::method::Page.Cookies	method	ported	src/rod/page.cr,spec/page_settings_parity_spec.cr,spec/page_wait_parity_spec.cr,spec/page_misc_parity_spec.cr,spec/page_eval_parity_spec.cr,spec/live_browser_parity_spec.cr	page API parity covered
 page.go::method::Page.EachEvent	method	ported	src/rod/page.cr,spec/page_settings_parity_spec.cr,spec/page_wait_parity_spec.cr,spec/page_misc_parity_spec.cr,spec/page_eval_parity_spec.cr,spec/live_browser_parity_spec.cr	page API parity covered
@@ -5512,7 +5512,7 @@ page_test.go::test::TestPageActionAfterClose	test	ported	spec/live_browser_parit
 page_test.go::test::TestPageActivate	test	ported	spec/page_settings_parity_spec.cr	activate target call parity covered
 page_test.go::test::TestPageAddScriptTag	test	ported	spec/page_settings_parity_spec.cr	add_script_tag helper wiring plus stable idempotency key semantics and dedupe guard behavior parity covered
 page_test.go::test::TestPageAddStyleTag	test	ported	spec/page_settings_parity_spec.cr	add_style_tag helper wiring plus stable idempotency key semantics and dedupe guard behavior parity covered
-page_test.go::test::TestPageCaptureDOMSnapshot	test	ported	spec/page_settings_parity_spec.cr	capture_domsnapshot call path plus CDP error and timeout-context propagation parity covered
+page_test.go::test::TestPageCaptureDOMSnapshot	test	ported	spec/page_dom_snapshot_parity_spec.cr,spec/page_settings_parity_spec.cr	live port of the upstream test plus payload flags and timeout clone (Phase 60)
 page_test.go::test::TestPageCloseCancel	test	ported	spec/page_settings_parity_spec.cr	close canceled dialog parity covered
 page_test.go::test::TestPageCloseErr	test	ported	spec/page_settings_parity_spec.cr	page.close error propagation (including generic close failure) and close-not-attached retry behavior parity covered
 page_test.go::test::TestPageCloseWhenNotAttached	test	ported	spec/page_settings_parity_spec.cr	close retries not-attached-active-page parity covered

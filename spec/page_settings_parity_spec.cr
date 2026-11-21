@@ -505,6 +505,37 @@ describe Rod::Page do
       browser.method_calls.should contain("DOMSnapshot.captureSnapshot")
     end
 
+    it "capture_dom_snapshot enables the domain and sends go's include flags" do
+      browser = SettingsStubBrowser.new
+      browser.responses["DOMSnapshot.captureSnapshot"] = %({"documents":[],"strings":[]})
+      page = SettingsStubPage.new(browser)
+
+      page.capture_dom_snapshot
+
+      enable_at = browser.method_calls.index("DOMSnapshot.enable")
+      capture_at = browser.method_calls.index("DOMSnapshot.captureSnapshot")
+      enable_at.should_not be_nil
+      capture_at.should_not be_nil
+      enable_at.not_nil!.should be < capture_at.not_nil!
+
+      params = browser.method_params["DOMSnapshot.captureSnapshot"].as_h
+      params["computedStyles"].as_a.should be_empty
+      params["includePaintOrder"].as_bool.should be_true
+      params["includeDOMRects"].as_bool.should be_true
+      params["includeBlendedBackgroundColors"].as_bool.should be_true
+      params["includeTextColorOpacities"].as_bool.should be_true
+    end
+
+    it "capture_dom_snapshot ignores DOMSnapshot.enable errors like go's `_ =`" do
+      browser = SettingsStubBrowser.new
+      browser.failures["DOMSnapshot.enable"] = [Exception.new("enable failed")]
+      browser.responses["DOMSnapshot.captureSnapshot"] = %({"documents":[],"strings":[]})
+      page = SettingsStubPage.new(browser)
+
+      page.capture_dom_snapshot.strings.should eq([] of String)
+      browser.method_calls.should contain("DOMSnapshot.captureSnapshot")
+    end
+
     it "capture_domsnapshot propagates capture errors" do
       browser = SettingsStubBrowser.new
       browser.failures["DOMSnapshot.captureSnapshot"] = [Exception.new("capture domsnapshot failed")]

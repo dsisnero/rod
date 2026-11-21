@@ -1108,12 +1108,23 @@ module Rod
 
     # CaptureDOMSnapshot returns a DOM snapshot for stability checks.
     def capture_dom_snapshot : Cdp::DOMSnapshot::CaptureSnapshotResult
+      # go-rod ignores the enable error (`_ = proto.DOMSnapshotEnable{}.Call(p)`,
+      # `page.go:601`) and asks for every optional table, so the snapshot carries
+      # paint orders, DOM rects, blended background colors and text opacities
+      # (`page.go:603-609`). The proto fields are `Bool?` here, so pass `true`
+      # explicitly: a `nil` omits the flag and Chrome answers an empty table.
+      begin
+        Cdp::DOMSnapshot::Enable.new.call(self)
+      rescue
+        # Go parity: the enable failure is discarded.
+      end
+
       Cdp::DOMSnapshot::CaptureSnapshot.new(
         computed_styles: [] of String,
-        include_paint_order: nil,
-        include_dom_rects: nil,
-        include_blended_background_colors: nil,
-        include_text_color_opacities: nil
+        include_paint_order: true,
+        include_dom_rects: true,
+        include_blended_background_colors: true,
+        include_text_color_opacities: true
       ).call(self)
     end
 

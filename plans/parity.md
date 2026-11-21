@@ -3,32 +3,35 @@
 **Source of truth**: `vendor/rod` (go-rod) at `d38c753`
 **Target**: Crystal port under `src/`, specs under `spec/`
 **Language**: `go` · **Manifests**: `plans/inventory/go_*`
-**Last evaluated**: 2026-11-20
+**Last evaluated**: 2026-11-21
 
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 59 (`Element#input` dispatches its
-change events with go's `js.InputEvent` helper as a user gesture; the upstream
-`TestSetDocumentContent` is now ported as a guard, and the last Phase 2 ledger
-bullet is closed).
+green, and the last feature commit is Phase 60 (`Page#capture_dom_snapshot` now
+enables `DOMSnapshot` and sends go's four include flags; the upstream
+`TestPageCaptureDOMSnapshot` is ported live instead of against stubs).
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
-then `make test` (~1m45s). Before a full run, clear stray headless browsers left
+then `make test` (~2m). Before a full run, clear stray headless browsers left
 by an aborted run — `pgrep -f "rod/user-data" | xargs -r kill -9`; they push the
-live specs into their documented load flake (see Gotchas).
+live specs into their documented load flake (see Gotchas). Do not run any other
+browser work (a scratch `crystal run`, another checkout's specs) while `make
+test` runs: it fails `spec/launcher_launch_parity_spec.cr:18`,
+`spec/live_browser_parity_spec.cr:1464` and `spec/live_browser_pool_spec.cr:144`
+on a busy machine, none of which are real failures.
 
-Phases 23-59 all came from *auditing `vendor/rod` area by area*: both ledgers
+Phases 23-60 all came from *auditing `vendor/rod` area by area*: both ledgers
 are 100% `ported` (inventory 5607/54/15, tests 297 with four upstream `t.Skip`s),
 so new work has to be found by comparing behaviour. Next up item 1 keeps the
-recipes that found those 37 phases, plus the list of areas already swept, so a
+recipes that found those 38 phases, plus the list of areas already swept, so a
 fresh session can pick up without re-deriving any of it.
 
-**Last commit:** `port: dispatch input events with go's InputEvent helper`
-(Phase 59; `git log -1` for the hash).
+**Last commit:** `port: request go's DOM snapshot include flags`
+(Phase 60; `git log -1` for the hash).
 
-**Gates (2026-11-20, after Phase 59):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (731 examples, 0 failures) · parity checks pass
+**Gates (2026-11-21, after Phase 60):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (735 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -56,7 +59,9 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      accessors and helpers).
    - **Payload round-trip.** Record a CDP request with a stub client and compare
      its bytes with what Go's `gson`/`encoding/json` would emit; that is how the
-     `fromSurface`/`callFunctionOn` bugs were found.
+     `fromSurface`/`callFunctionOn` bugs were found, and Phase 60 (`CaptureDOMSnapshot`
+     silently dropping go's four `include*` flags, plus its discarded
+     `DOMSnapshot.enable` call).
    - **Swept so far, do not re-audit:** context/cancellation (23, 26), event hub
      (24), launcher/manager (21, 25, 29, 34), error types (27, 28), quad geometry
      (30, 49), `Element.Wait*` (31), lookup probes (32), `wait_interactable` (33),
@@ -68,7 +73,8 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      capture flags (54), `browser.go` `Page`/`Pages`/cookies/devices table (55),
      element context (56), `EachEvent`/`WaitEvent` (57), `SetExtraHeaders` /
      `HandleDialog` (58), `Element#input` + `set_document_content` +
-     `cleanupStates` + `reload`/`close` (59). All 32 `lib/js` helpers are
+     `cleanupStates` + `reload`/`close` (59), `CaptureDOMSnapshot` + every
+     `*: true` proto flag in `vendor/rod/*.go` (60). All 32 `lib/js` helpers are
      byte-identical (Phase 39) and `Key.Encode` payloads match (Phase 38).
 2. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
    parity scripts instead of the repo's copied ones (whose `tree-sitter` branch
@@ -104,7 +110,7 @@ authority):
 
 1. red-green: the new spec fails for the intended reason before the fix (stash
    the src change and watch it fail, or write the spec first);
-2. `make format`, `make lint`, `make test` (~1m45s, 731 examples) and
+2. `make format`, `make lint`, `make test` (~2m15s, 735 examples) and
    `make check-go-port-inventory` / `check-go-source-parity` /
    `check-go-test-parity`;
 3. `plans/parity.md`: new Phase entry + **Where we are** + **Next up** updated;
@@ -209,7 +215,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 94 files, 715 examples, 0 failures (2026-11-20, Chromium `160.0.8168.1`) |
+| Crystal specs | 105 files, 735 examples, 0 failures (2026-11-21, Chromium `160.0.8168.1`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -1970,6 +1976,48 @@ events, and a dialog handled while someone held the Page domain disabled it).
       `FetchDisable` unconditionally (`hijack.go:189-192`), so the port matches.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (729 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 60 — `CaptureDOMSnapshot` sends go's include flags and enables the domain ✅
+
+`Page.CaptureDOMSnapshot` first calls `proto.DOMSnapshotEnable{}.Call(p)` and
+discards the error (`_ =`, `page.go:601`), then asks for every optional table:
+`includePaintOrder`, `includeDOMRects`, `includeBlendedBackgroundColors` and
+`includeTextColorOpacities` are all `true` (`page.go:603-609`). The port called
+`DOMSnapshot.captureSnapshot` alone and passed `nil` for all four, so every
+optional table came back absent: no `paintOrders`, no
+`offsetRects`/`scrollRects`/`clientRects`, no `blendedBackgroundColors`, no
+`textColorOpacities`. Nothing caught it because the only coverage was a stub.
+
+`TestPageCaptureDOMSnapshot` (`page_test.go:511-523`) was marked `ported` against
+stub examples, and its upstream assertion is a *kind* check, not a value check:
+`g.Is(domSnapshot.Strings, []string{})` compares `reflect.Kind` only
+(`got/assertions.go:292-318`), so it passes for any slice — which is how a stub
+could stand in for it. This is the "stub-only upstream test hides a broken path"
+trap again (Phases 43/47/51/52).
+
+- [x] Red-green `spec/page_dom_snapshot_parity_spec.cr` (new, live): ports the
+      upstream test onto `fixtures/click.html` and asserts the layout data go
+      asks for (`paint_orders.size == bounds.size`, the three rect tables,
+      blended colors, text opacities). Red before the fix
+      (`offset_rects` nil), green after. The second example keeps go's timeout
+      half (1 s timeout clone, `utils.Sleep(1)`, `DeadlineExceeded`), which the
+      port raises as `Rod::ContextTimeoutError`.
+- [x] `spec/page_settings_parity_spec.cr`: payload round-trip examples — the
+      stub records `DOMSnapshot.enable` before `DOMSnapshot.captureSnapshot`, the
+      four include flags are `true` on the wire, and an `enable` failure is
+      discarded like go's `_ =`.
+- [x] `src/rod/page.cr`: `capture_dom_snapshot` enables the domain in a
+      `begin/rescue` (go discards the error) and passes the four flags as `true`
+      — `nil` would omit them, because the generated `Bool?` fields are
+      `emit_null: false` (Phase 55's rule, applied to `include*` flags).
+- [x] Divergence noted: `dom_diff_ratio` returns `0.0` when the current string
+      table is empty, where go computes `1 - 0/0` (`NaN`, `page.go:810`) and
+      never satisfies `df <= diff`. The guard avoids an unbounded
+      `WaitDOMStable`; it only triggers on a page whose shared string table is
+      empty, which a real document never produces.
+- [x] Gates: `make format`, `make lint`, full `make test`, `make check-go-*`.
 
 ---
 

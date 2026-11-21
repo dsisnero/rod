@@ -37,6 +37,13 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Page#capture_dom_snapshot` sends go's DOM snapshot include flags and enables
+  the domain first. It passed `nil` for `includePaintOrder`, `includeDOMRects`,
+  `includeBlendedBackgroundColors` and `includeTextColorOpacities`, so Chrome
+  answered without `paintOrders`, `offsetRects`/`scrollRects`/`clientRects`,
+  `blendedBackgroundColors` or `textColorOpacities` — data go's
+  `CaptureDOMSnapshot` (`page.go:600-614`) always requests — and it skipped the
+  discarded `DOMSnapshot.enable` call (`_ =`, `page.go:601`).
 - `Element#input` dispatches the synthetic `input`/`change` events with go's
   shared `js.InputEvent` helper **as a user gesture**
   (`evaluate(evalHelper(js.InputEvent).ByUser())`, `element.go:278`). It ran a
