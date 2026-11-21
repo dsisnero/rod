@@ -69,6 +69,45 @@ private class TraceOverlayStubPage < Rod::Page
   end
 end
 
+private class OverlayRecordPage < Rod::Page
+  getter evals = [] of Rod::EvalOptions
+
+  def initialize(browser : Rod::Browser = Rod::Browser.new)
+    super(browser, Rod::TargetID.new("overlay-target"))
+  end
+
+  def evaluate(opts : Rod::EvalOptions) : Cdp::Runtime::RemoteObject
+    @evals << opts
+    Cdp::Runtime::RemoteObject.from_json(%({"type":"undefined"}))
+  end
+end
+
+private def helper_name(opts : Rod::EvalOptions) : String?
+  opts.js_args.first.as?(Rod::JS::Function).try(&.name)
+end
+
+# `eval_helper` keeps String/Float args as Crystal values and JSON-encodes the
+# rest, so a helper argument can be either shape.
+private def arg_string(arg : Rod::EvalOptions::JsArg?) : String?
+  case arg
+  when String    then arg
+  when JSON::Any then arg.as_s?
+  end
+end
+
+private def eval_id(opts : Rod::EvalOptions) : String?
+  arg_string(opts.js_args[1]?)
+end
+
+private def wait_for_overlay_removal(page : OverlayRecordPage) : Nil
+  deadline = Time.instant + 2.seconds
+  while Time.instant < deadline
+    return if page.evals.any? { |opts| helper_name(opts) == "removeOverlay" }
+
+    sleep 5.milliseconds
+  end
+end
+
 describe "Dev helpers parity" do
   it "formats trace type labels as [type]" do
     Rod.trace_type_label(Rod::TraceTypeInput).should eq("[input]")
@@ -191,5 +230,73 @@ describe "Dev helpers parity" do
     page.overlay_calls.should eq(1)
     page.overlay_messages.last.should contain("[input]")
     page.overlay_messages.last.should contain("left click")
+  end
+
+  # go draws with `js.Overlay` on `p.root` and returns a remove func that runs
+  # `js.RemoveOverlay` with the same id (`dev_helpers.go:114-131`); the port used
+  # to leave the overlay in the DOM forever.
+  it "page overlay draws on the root page and remove deletes it" do
+    page = OverlayRecordPage.new
+
+    remove = page.overlay(1.0, 2.0, 3.0, 4.0, "msg")
+
+    page.evals.size.should eq(1)
+    draw = page.evals[0]
+    helper_name(draw).should eq("overlay")
+    draw.await_promise?.should be_true
+    id = eval_id(draw).not_nil!
+
+    remove.call
+
+    page.evals.size.should eq(2)
+    removal = page.evals[1]
+    helper_name(removal).should eq("removeOverlay")
+    eval_id(removal).should eq(id)
+  end
+
+  it "element overlay draws on the element and remove deletes it" do
+    page = OverlayRecordPage.new
+    element = Rod::Element.new(
+      Cdp::Runtime::RemoteObject.from_json(%({"type":"object","objectId":"el-1","description":"div"})),
+      page
+    )
+
+    remove = element.overlay("msg")
+
+    page.evals.size.should eq(1)
+    draw = page.evals[0]
+    helper_name(draw).should eq("elementOverlay")
+    draw.this_obj.not_nil!.object_id.should eq("el-1")
+    id = eval_id(draw).not_nil!
+
+    remove.call
+
+    page.evals.size.should eq(2)
+    removal = page.evals[1]
+    helper_name(removal).should eq("removeOverlay")
+    eval_id(removal).should eq(id)
+    removal.this_obj.not_nil!.object_id.should eq("el-1")
+  end
+
+  # go logs the request trace and draws its overlay, then removes it when the
+  # page context ends (`dev_helpers.go:157-195`).
+  it "wait-requests trace draws an overlay and removes it on page cancel" do
+    browser = Rod::Browser.new
+    browser.trace(true)
+    page = OverlayRecordPage.new(browser)
+    ctx, cancel = page.get_context.with_cancel
+    page = page.context(ctx)
+
+    update = page.try_trace_req(["*.js"], [] of String)
+    update.call({"a" => "b"})
+
+    drawn = page.evals.select { |opts| helper_name(opts) == "overlay" }
+    drawn.size.should eq(1)
+    arg_string(drawn.first.js_args[6]?).to_s.should contain("*.js")
+
+    cancel.call
+    wait_for_overlay_removal(page)
+
+    page.evals.any? { |opts| helper_name(opts) == "removeOverlay" }.should be_true
   end
 end

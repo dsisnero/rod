@@ -151,9 +151,19 @@ module Rod
       begin
         root_page.evaluate(root_page.eval_helper(JS::OVERLAY, id, left, top, width, height, msg).by_promise)
       rescue
+        # Drawing is best-effort like go's `_, _ = p.root.Evaluate(...)`.
       end
-      # Best-effort tracing: avoid teardown eval to prevent instability on some runtimes.
-      -> { }
+
+      # go returns a remove func that deletes the overlay from the DOM
+      # (`dev_helpers.go:126-130`), so a finished traced operation leaves
+      # nothing behind; removal is best-effort too.
+      -> { remove_overlay(id) }
+    end
+
+    private def remove_overlay(id : String) : Nil
+      root_page.evaluate(root_page.eval_helper(JS::REMOVE_OVERLAY, id))
+    rescue
+      # go ignores the removal error (`_, _ = p.root.Evaluate(...)`).
     end
 
     def try_trace(typ : TraceType, *msg) : Proc(Nil)
@@ -196,13 +206,19 @@ module Rod
       else
         @browser.logger.info { rendered.join(" ") }
       end
+      cleanup = overlay(0.0, 0.0, 500.0, 0.0, meta.to_json)
       ch = Channel(Hash(String, String)).new
 
       spawn do
         wait_list = {} of String => String
         loop do
-          break if @ctx.done.closed?
           select
+          when @ctx.done.receive?
+            # go's tracer removes the overlay when the page context ends
+            # (`dev_helpers.go:183-186`). `receive?` because a closed channel is
+            # an immediately-ready branch in Go but raises in Crystal.
+            cleanup.call
+            break
           when list = ch.receive?
             break unless list
             wait_list = list
@@ -239,9 +255,18 @@ module Rod
       begin
         evaluate(@page.eval_helper(JS::ELEMENT_OVERLAY, id, msg).by_promise)
       rescue
+        # Drawing is best-effort like go's `_, _ = el.Evaluate(...)`.
       end
-      # Best-effort tracing: avoid teardown eval to prevent instability on some runtimes.
-      -> { }
+
+      # go's remove func deletes the overlay through the element's own document
+      # (`dev_helpers.go:206-210`).
+      -> { remove_overlay(id) }
+    end
+
+    private def remove_overlay(id : String) : Nil
+      evaluate(@page.eval_helper(JS::REMOVE_OVERLAY, id))
+    rescue
+      # go ignores the removal error (`_, _ = el.Evaluate(...)`).
     end
 
     def try_trace(typ : TraceType, *msg) : Proc(Nil)

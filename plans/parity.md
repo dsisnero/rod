@@ -8,26 +8,25 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 51 (`ScrollIntoView` waits for a
-stable root repaint before the DOM scroll, and `root_page` follows go's
-`Page.root`).
+green, and the last feature commit is Phase 52 (trace overlays are drawn *and*
+removed like go's dev helpers).
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~1m45s). Before a full run, clear stray headless browsers left
 by an aborted run — `pgrep -f "rod/user-data" | xargs -r kill -9`; they push the
 live specs into their documented load flake (see Gotchas).
 
-Phases 23-51 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-52 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. Next up item 1 records what cannot be re-derived from
 the ledger: which areas were swept and which leads are still open.
 
-**Last commit:** `port: wait for the root repaint before scrolling an element`
-(Phase 51; `git log -1` for the hash).
+**Last commit:** `port: remove dev-helper trace overlays like go-rod`
+(Phase 52; `git log -1` for the hash).
 
-**Gates (2026-11-20, after Phase 51):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (708 examples, 0 failures) · parity checks pass
+**Gates (2026-11-20, after Phase 52):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (711 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -62,8 +61,9 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
         ordering before starting.
      g. `page_eval.go`: `evaluate` backoff, per-JS-context helper cache,
         `object_to_json`, `release`.
-     h. `dev_helpers.go`: `try_trace_req` network tracing
-        (`TraceTypeWaitRequests`), `ExposeHelpers`, `Overlay`.
+     h. ~~`dev_helpers.go`~~ — audited in Phase 52: `ExposeHelpers` matches go,
+        and `Overlay`/`try_trace_req` now draw *and* remove their overlays
+        (`dev_helpers.go:114-131`, `157-195`, `198-211`).
    - Already swept, do not re-audit: context/cancellation (23, 26), event hub
      (24), launcher/manager (21, 25, 29, 34), error types + `errors.Is` (27, 28),
      quad geometry (30), `Element.Wait*` + `visible?` (31), lookup probes /
@@ -74,7 +74,7 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      full-page screenshot viewport restore (44), element queries + `parents`
      (45, 47), iframe panic handler (46), `quad` dedupe (49), generation gate
      (50), `Search` + `ScrollIntoView`/`Focus`/`Blur`/`WaitRepaint` root rule
-     (51).
+     (51), dev-helper overlays + wait-requests trace (52).
    - Verified equal, no work needed: all 32 `lib/js` helper definitions are
      byte-identical to `vendor/rod/lib/js/helper.go` (checked programmatically in
      Phase 39 — don't re-audit them), and the keyboard/mouse/touch event payloads
@@ -150,7 +150,15 @@ navigations stall — that is what made `spec/live_browser_pool_spec.cr` fail
 after the live auth test was added (Phase 43). A stub-only upstream test can hide
 a whole broken path: `TestHandleAuth` was "ported" against stubs while
 `handle_auth` could never complete a real challenge (`Fetch domain is not
-enabled`); port the live test first.
+enabled`); port the live test first. A *vacuous* stub-only test hides one just as
+well: Phase 51's `#scroll_into_view` example passed for months because its stub
+element overrode the exact `evaluate` overload the buggy path used, and Phase
+52's overlay examples stubbed `overlay` itself, so the missing removal was never
+exercised. Assert the CDP traffic (or the returned helper), not just that no
+exception was raised. Two concurrent `crystal spec` runs on this machine can
+also make a run report a foreign example list (once: `4458 examples` in 24 s
+including `../dataframe/spec/...`) because they share the Crystal cache binary;
+re-run before reading numbers into a count.
 
 **Porting traps found while auditing** (each cost a phase; check them when a Go
 symbol "already exists" but misbehaves):
@@ -185,7 +193,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 94 files, 708 examples, 0 failures (2026-11-20, Chromium `160.0.8168.1`) |
+| Crystal specs | 94 files, 711 examples, 0 failures (2026-11-20, Chromium `160.0.8168.1`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -1728,6 +1736,32 @@ an iframe hit is a JS-context clone, and that clone exposed two older drifts:
       `focus`/`blur` pass `user_gesture: true`.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (708 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 52 — dev-helper trace overlays are drawn and removed ✅
+
+Auditing `dev_helpers.go` (candidate h) showed `ExposeHelpers` matches go but the
+trace overlays did not: `Page#overlay` and `Element#overlay` returned an empty
+proc ("avoid teardown eval"), and `try_trace_req` never drew its overlay at all.
+go returns a remove function that evaluates `js.RemoveOverlay` with the same id
+(`dev_helpers.go:114-131`, `198-211`) and its tracer goroutine removes the
+wait-requests overlay when the page context ends (`dev_helpers.go:157-195`), so
+the port leaked one overlay div per traced operation, plus `elementOverlay`'s
+100 ms reposition timer (which keeps firing against the stale div).
+
+- [x] Red-green: `spec/dev_helpers_parity_spec.cr` asserts the draw and remove
+      evals for `Page#overlay` (on `root_page`), `Element#overlay` (on the
+      element) and `try_trace_req` (draw for includes/excludes, remove after the
+      page context is cancelled). All three failed before the fix: the remove
+      evals did not exist and `try_trace_req` drew nothing.
+- [x] `src/rod/dev_helpers.cr`: both overlays now return `-> { remove_overlay(id) }`,
+      a best-effort `js.removeOverlay` eval like go's `_, _ =`; `try_trace_req`
+      draws with the includes/excludes payload and its fiber selects on
+      `@ctx.done.receive?` (a closed channel is immediately ready in Go but
+      raises in Crystal) to remove it.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (711 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

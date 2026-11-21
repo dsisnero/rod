@@ -77,9 +77,9 @@ dev_helpers.go::const::TraceTypeWait	const	ported	src/rod/dev_helpers.cr,spec/de
 dev_helpers.go::const::TraceTypeWaitRequests	const	ported	src/rod/dev_helpers.cr,spec/dev_helpers_parity_spec.cr,spec/live_browser_parity_spec.cr	dev helpers API parity covered
 dev_helpers.go::const::TraceTypeWaitRequestsIdle	const	ported	src/rod/dev_helpers.cr,spec/dev_helpers_parity_spec.cr,spec/live_browser_parity_spec.cr	dev helpers API parity covered
 dev_helpers.go::method::Browser.ServeMonitor	method	ported	src/rod/dev_helpers.cr,spec/dev_helpers_parity_spec.cr,spec/live_browser_parity_spec.cr	dev helpers API parity covered
-dev_helpers.go::method::Element.Overlay	method	ported	src/rod/dev_helpers.cr,spec/dev_helpers_parity_spec.cr,spec/live_browser_parity_spec.cr	dev helpers API parity covered
+dev_helpers.go::method::Element.Overlay	method	ported	src/rod/dev_helpers.cr,spec/dev_helpers_parity_spec.cr,spec/live_browser_parity_spec.cr	draws js.elementOverlay on the element and returns a remove func running js.removeOverlay like go (dev_helpers.go:198-211)
 dev_helpers.go::method::Page.ExposeHelpers	method	ported	src/rod/dev_helpers.cr,spec/dev_helpers_parity_spec.cr,spec/live_browser_parity_spec.cr	dev helpers API parity covered
-dev_helpers.go::method::Page.Overlay	method	ported	src/rod/dev_helpers.cr,spec/dev_helpers_parity_spec.cr,spec/live_browser_parity_spec.cr	dev helpers API parity covered; draws on Page#root_page like go's p.root (dev_helpers.go:114-124)
+dev_helpers.go::method::Page.Overlay	method	ported	src/rod/dev_helpers.cr,spec/dev_helpers_parity_spec.cr,spec/live_browser_parity_spec.cr	draws js.overlay on Page#root_page and returns a remove func running js.removeOverlay like go (dev_helpers.go:114-131)
 dev_helpers.go::method::TraceType.String	method	ported	src/rod/dev_helpers.cr,spec/dev_helpers_parity_spec.cr,spec/live_browser_parity_spec.cr	dev helpers API parity covered
 dev_helpers.go::type::TraceType	type	ported	src/rod/dev_helpers.cr,spec/dev_helpers_parity_spec.cr,spec/live_browser_parity_spec.cr	dev helpers API parity covered
 dev_helpers_test.go::test::TestExposeHelpers	test	ported	spec/dev_helpers_parity_spec.cr	expose_helpers injects window.rod helpers with js.ElementR dependency parity covered

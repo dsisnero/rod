@@ -37,6 +37,14 @@ below describe the Crystal port, not upstream changes.
 
 ### Changed
 
+- Trace overlays are removed when the traced operation ends, like go-rod:
+  `Page#overlay` and `Element#overlay` return a remove function that runs
+  `js.removeOverlay` with the same id (`dev_helpers.go:114-131`, `198-211`),
+  instead of a no-op that left the overlay div (and `elementOverlay`'s 100 ms
+  reposition timer) in the page for the rest of the session. `try_trace_req`
+  (the `wait requests` trace used by `Page#wait_request_idle`) draws its
+  includes/excludes overlay and deletes it when the page context ends, like go's
+  tracer goroutine (`dev_helpers.go:157-195`).
 - `Element#scroll_into_view` follows go's `ScrollIntoView` (`element.go:68-78`):
   it waits for a stable repaint (`WaitStableRAF`) and then scrolls with
   `DOM.scrollIntoViewIfNeeded`. A second, later definition of the method had
