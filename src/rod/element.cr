@@ -525,12 +525,10 @@ module Rod
       end
 
       begin
-        evaluate(<<-JS)
-          () => {
-            this.dispatchEvent(new Event("input", { bubbles: true }));
-            this.dispatchEvent(new Event("change", { bubbles: true }));
-          }
-        JS
+        # go reuses the shared helper as a user gesture and ignores its error:
+        # `_, _ = el.Evaluate(evalHelper(js.InputEvent).ByUser())`
+        # (`element.go:278`).
+        evaluate(@page.eval_helper(Rod::JS::INPUT_EVENT).by_user)
       rescue
         # Match Go behavior: ignore synthetic event errors.
       end

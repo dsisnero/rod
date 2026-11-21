@@ -8,26 +8,27 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 58 (`Page#extra_headers` and
-`Page#handle_dialog` enable/restore their domains through `EnableDomain`, so they
-no longer disable a domain someone else enabled).
+green, and the last feature commit is Phase 59 (`Element#input` dispatches its
+change events with go's `js.InputEvent` helper as a user gesture; the upstream
+`TestSetDocumentContent` is now ported as a guard, and the last Phase 2 ledger
+bullet is closed).
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~1m45s). Before a full run, clear stray headless browsers left
 by an aborted run — `pgrep -f "rod/user-data" | xargs -r kill -9`; they push the
 live specs into their documented load flake (see Gotchas).
 
-Phases 23-58 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-59 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. Next up item 1 records what cannot be re-derived from
 the ledger: which areas were swept and which leads are still open.
 
-**Last commit:** `port: enable page domains through EnableDomain`
-(Phase 58; `git log -1` for the hash).
+**Last commit:** `port: dispatch input events with go's InputEvent helper`
+(Phase 59; `git log -1` for the hash).
 
-**Gates (2026-11-20, after Phase 58):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (729 examples, 0 failures) · parity checks pass
+**Gates (2026-11-20, after Phase 59):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (731 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -42,6 +43,13 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    + `CHANGELOG.md` + the ledger rows. Porting the *upstream* test first matters:
    Phase 43 found that the stub-only `TestHandleAuth` had hidden a
    `Fetch domain is not enabled` bug in `handle_auth`.
+   - Candidates already verified and closed in Phase 59, do not re-audit:
+     `Element#input` (fixed in 59), `Page#set_document_content` (now guarded by a
+     ported upstream test), `Page#cleanupStates` (no-op upstream, ledger row
+     closed), `Element#move_along`/`Mouse.MoveLinear` (loop shape and final
+     `move_to` match `input.go:255-268`), `Page#reload`/`#close` ordering
+     (subscribe-before-trigger, `ErrNotAttachedToActivePage` retry, dialog result
+     handling).
    - Candidates already verified and closed in Phase 58, do not re-audit:
      `Page.SetExtraHeaders`/`Page.HandleDialog` domain enablement (fixed in 58),
      `HijackRouter#stop`'s unconditional `FetchDisable` (go does the same,
@@ -327,9 +335,13 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       canceled (Go `if success { cleanupStates() }`).
 - [x] Red-green TDD: spec failed before the change, green after. Full suite
       `571 examples, 0 failures`.
-- [ ] Close the `states.go::method::Page.cleanupStates` ledger row — the row is
-      absent from `go_port_inventory.tsv` (tree-sitter-only discovery); covered
-      by the Phase 1 manifest reconciliation.
+- [x] Close the `states.go::method::Page.cleanupStates` ledger row — done in
+      Phase 59 without waiting for the tooling migration: go's `cleanupStates`
+      deletes a `sync.Map` entry keyed by the bare `TargetID` (`states.go:117-119`)
+      and nothing upstream ever stores under that key (`Browser.set` stores
+      `stateKey` structs), so it is a no-op; the row is now recorded as
+      `intentional_divergence` naming the port's equivalent
+      (`Browser#remove_cached_page`).
 
 ### Phase 3 — Per-page detach / event lifecycle verification ✅
 - [x] Ported Go `Page.initEvents` as `Page#init_events` (`src/rod/page.cr:331`),
@@ -1962,6 +1974,37 @@ events, and a dialog handled while someone held the Page domain disabled it).
       `FetchDisable` unconditionally (`hijack.go:189-192`), so the port matches.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (729 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 59 — Input events use go's `js.InputEvent` helper as a user gesture ✅
+
+`Element.Input` ends with `_, _ = el.Evaluate(evalHelper(js.InputEvent).ByUser())`
+(`element.go:278`). The port hand-wrote the same two `dispatchEvent` calls inline
+and *without* `.by_user`, so the `input`/`change` events were dispatched outside a
+user gesture and the shared helper (byte-identical in `src/rod/util/js.cr` since
+Phase 39) was never reused.
+
+- [x] Red-green `spec/element_input_parity_spec.cr` (new): a page stub records the
+      `EvalOptions` of the dispatch; red before the fix
+      (`user_gesture? == false`, no `inputEvent` helper argument), green after.
+- [x] `src/rod/element.cr`: the dispatch is
+      `evaluate(@page.eval_helper(Rod::JS::INPUT_EVENT).by_user)`, still wrapped in
+      the `rescue` that mirrors go's `_, _ =`.
+- [x] `spec/element_spec.cr`: the two `#input` examples now assert the recorded
+      dispatch options (helper name + user gesture) instead of matching the
+      hand-written JavaScript text, which also stops them passing when the
+      dispatch silently fails.
+- [x] Ported upstream `TestSetDocumentContent` as
+      `spec/page_document_content_parity_spec.cr`: it was already green (Chrome
+      does the work), so it is a characterization guard for the document-swap
+      path rather than a bug fix — recorded here so the next session does not
+      mistake it for an untested area.
+- [x] Closed the last Phase 2 bullet: `Page.cleanupStates` (see the Phase 2
+      checklist) is a no-op upstream, so the ledger row is now
+      `intentional_divergence` (inventory: 11 documented divergences).
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (731 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

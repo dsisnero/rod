@@ -37,6 +37,10 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Element#input` dispatches the synthetic `input`/`change` events with go's
+  shared `js.InputEvent` helper **as a user gesture**
+  (`evaluate(evalHelper(js.InputEvent).ByUser())`, `element.go:278`). It ran a
+  hand-written copy of the same JavaScript without a user gesture.
 - `Page#extra_headers` and `Page#handle_dialog` enable and restore their CDP
   domains through `Page#enable_domain`, like go's `Page.EnableDomain`
   (`page.go:139-147`, `613-631`). They previously enabled and disabled

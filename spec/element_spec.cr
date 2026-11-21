@@ -123,9 +123,17 @@ private class InputStubElement < StubElement
   property focus_called = false
   property wait_enabled_calls = 0
   property wait_writable_calls = 0
+  property dispatch_opts : Rod::EvalOptions? = nil
 
   def focus : Nil
     @focus_called = true
+  end
+
+  # The dispatch goes through the `EvalOptions` overload, which records the
+  # helper and the user-gesture flag.
+  def evaluate(opts : Rod::EvalOptions) : Cdp::Runtime::RemoteObject
+    @dispatch_opts = opts
+    Cdp::Runtime::RemoteObject.from_json(%({"type":"boolean","value":true}))
   end
 
   def wait_enabled : Nil
@@ -1589,8 +1597,9 @@ describe Rod::Element do
       element.wait_enabled_calls.should eq(1)
       element.wait_writable_calls.should eq(1)
       page.inserted_texts.should eq(["abc"])
-      element.last_js.not_nil!.should contain("dispatchEvent(new Event(\"input\"")
-      element.last_js.not_nil!.should_not contain("this.select()")
+      dispatch = element.dispatch_opts.not_nil!
+      dispatch.user_gesture?.should be_true
+      dispatch.js_args.first.as(Rod::JS::Function).name.should eq("inputEvent")
     end
 
     it "still dispatches events when insert_text fails and re-raises insert error" do
@@ -1599,7 +1608,7 @@ describe Rod::Element do
       element = InputStubElement.new(page)
 
       expect_raises(Exception, "insert failed") { element.input("abc") }
-      element.last_js.not_nil!.should contain("dispatchEvent(new Event(\"change\"")
+      element.dispatch_opts.should_not be_nil
     end
   end
 
