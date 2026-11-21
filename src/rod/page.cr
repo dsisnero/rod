@@ -2225,6 +2225,15 @@ module Rod
       fid = @frame_id.try(&.value)
       return nil unless fid
 
+      # go keeps an iframe's backing element on the *parent* page: `Element.Frame`
+      # copies `el.page` and assigns `clone.element = el` (`element.go:458-471`),
+      # and every object-based element is built through `ElementFromObject`,
+      # which resolves the object's JS context on the page that builds it
+      # (`page.go:928-954`). This page's context is the content document, not the
+      # document that owns the `<iframe>` node, so building the refreshed element
+      # with `self` would inject helpers into the wrong JS world.
+      owner = @element.try(&.page) || self
+
       root_id = document_root
       node_ids = ::Cdp::DOM::QuerySelectorAll.new(root_id, "iframe").call(self).node_ids
 
@@ -2237,7 +2246,7 @@ module Rod
             object_group: nil,
             execution_context_id: nil
           ).call(self)
-          candidate = Element.new(resolved.object, self, @ctx, @sleeper)
+          candidate = owner.element_from_object(resolved.object)
           described = candidate.describe(1, false)
           return candidate if described.frame_id == fid
         rescue

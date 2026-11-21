@@ -8,10 +8,11 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 62 (element CDP requests — `describe`,
-`shape`, `scroll_into_view`, `set_files` and the shadow-root node resolution — run
-in the element's context like go's `Element.Call`/`Contextable`, and the shadow
-root is built through `element_from_object`).
+green, and the last feature commit is Phase 63 (`refresh_iframe_element` rebuilds
+a stale iframe element on the parent page through `ElementFromObject`, so its
+helpers land in the parent's JS world). The element-context audit that started in
+Phase 56 is now complete: the explicit `Context(el.ctx)` sites (56), the implicit
+`Call(el)`/`Contextable` sites (62) and the iframe refresh (63) all match Go.
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~2m30s). Before a full run, clear stray headless browsers left
@@ -22,17 +23,17 @@ test` runs: it fails `spec/launcher_launch_parity_spec.cr:18`,
 `spec/live_browser_parity_spec.cr:1464` and `spec/live_browser_pool_spec.cr:144`
 on a busy machine, none of which are real failures.
 
-Phases 23-62 all came from *auditing `vendor/rod` area by area*: both ledgers
+Phases 23-63 all came from *auditing `vendor/rod` area by area*: both ledgers
 are 100% `ported` (inventory 5607/54/15, tests 297 with four upstream `t.Skip`s),
 so new work has to be found by comparing behaviour. Next up item 1 keeps the
-recipes that found those 40 phases, plus the list of areas already swept, so a
+recipes that found those 41 phases, plus the list of areas already swept, so a
 fresh session can pick up without re-deriving any of it.
 
-**Last commit:** `port: run element CDP requests in the element's context`
-(Phase 62; `git log -1` for the hash).
+**Last commit:** `port: keep the iframe element on the parent page when refreshed`
+(Phase 63; `git log -1` for the hash).
 
-**Gates (2026-11-21, after Phase 62):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (741 examples, 0 failures) · parity checks pass
+**Gates (2026-11-21, after Phase 63):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (742 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -78,17 +79,9 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      `cleanupStates` + `reload`/`close` (59), `CaptureDOMSnapshot` + every
      `*: true` proto flag in `vendor/rod/*.go` (60), every `evalHelper(js.X)`
      call site / all 33 `lib/js` helpers (39, 59, 61), element CDP requests /
-     `Element.Call` + `Contextable` (56, 62). `Key.Encode` payloads match
-     (Phase 38).
-2. **[code, small] `refresh_iframe_element` bypasses `element_from_object`.**
-   `src/rod/page.cr` builds the iframe element with
-   `Element.new(resolved.object, self, @ctx, @sleeper)`, so it skips the
-   `js_ctx_id_by_object_id` clone that every other object-based element gets
-   (`page.go:928-954`). The context and sleeper it passes match go; only the
-   JS-context resolution differs. Verify against an iframe whose JS context is
-   not the page's before changing it (a stale-node retry path, so a wrong fix
-   hides in the retry).
-3. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
+     `Element.Call` + `Contextable` + the iframe-element refresh (56, 62, 63).
+     `Key.Encode` payloads match (Phase 38).
+2. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
    parity scripts instead of the repo's copied ones (whose `tree-sitter` branch
    is a placeholder), and decide curated-status preservation. Native tree-sitter
    discovery already works via the verified Chiasmus toolchain, but its
@@ -97,21 +90,21 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    gate stays `PORT_PARSER=regex` until a reviewed id migration lands. (The last
    Phase 2 checklist bullet, `Page.cleanupStates`, is closed in Phase 59, so this
    is now tooling-only work.)
-4. **[verify] Upstream Go suite flakiness:** `github.com/go-rod/rod` failed
+3. **[verify] Upstream Go suite flakiness:** `github.com/go-rod/rod` failed
    `TestPageElements` and `Example_basic` on 2026-11-17 while the other eight
    packages passed. Re-run before reading anything into a failure — these are
    browser-timing issues in the vendored project, not port gaps. Run with
    `GODEBUG=tracebackancestors=1000`.
-5. **[verify] Generation no-op gate:** `make check-generate-crystal` regenerates
+4. **[verify] Generation no-op gate:** `make check-generate-crystal` regenerates
    the pinned vintage (`CDP_CHROMIUM=160.0.8168.1`, `CDP_V8=16.0.61`) into
    `temp/cdp_generated/` and diffs it against `src/cdp`; it passes with a warm
    cache and needs network on a cold one (PDL files come from googlesource.com).
    Re-run it after any template edit — Phase 30 and 59 both hand-edited generated
    output alongside its template.
-6. **[optional cleanup]** The repo tracks built binaries (`rod`, `bin/pdlgen*`,
+5. **[optional cleanup]** The repo tracks built binaries (`rod`, `bin/pdlgen*`,
    `pdlgen*`), so local builds keep showing up as modified files. Decide whether
    to untrack them.
-7. **[optional follow-up]** `spec/cdp_client_parity_spec.cr` and
+6. **[optional follow-up]** `spec/cdp_client_parity_spec.cr` and
    `spec/launcher_parity_spec.cr` still launch their own browsers. That is
    deliberate — they exercise the CDP client and the launcher itself
    (`TestLaunchClient`, `Browser.close` handling) — so only revisit it if a
@@ -122,7 +115,7 @@ authority):
 
 1. red-green: the new spec fails for the intended reason before the fix (stash
    the src change and watch it fail, or write the spec first);
-2. `make format`, `make lint`, `make test` (~2m30s, 741 examples) and
+2. `make format`, `make lint`, `make test` (~2m30s, 742 examples) and
    `make check-go-port-inventory` / `check-go-source-parity` /
    `check-go-test-parity`;
 3. `plans/parity.md`: new Phase entry + **Where we are** + **Next up** updated;
@@ -227,7 +220,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 106 files, 741 examples, 0 failures (2026-11-21, Chromium `158.0.8127.37`) |
+| Crystal specs | 107 files, 742 examples, 0 failures (2026-11-21, Chromium `158.0.8127.37`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -1999,6 +1992,40 @@ events, and a dialog handled while someone held the Page domain disabled it).
       `FetchDisable` unconditionally (`hijack.go:189-192`), so the port matches.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (729 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 63 — The iframe element refresh keeps the parent page's JS context ✅
+
+`refresh_iframe_element` (Crystal-internal, `page.cr:2224-2249`) re-finds the
+`<iframe>` node after Chrome answers a stale-node error while an iframe page
+resolves its JS context. It built the replacement with
+`Element.new(object, self, @ctx, @sleeper)`, i.e. on the *iframe* page.
+
+go keeps an iframe's backing element on the **parent** page: `Element.Frame`
+copies `el.page` and assigns `clone.element = el` (`element.go:458-471`), and
+every object-based element is created by `ElementFromObject`, which resolves the
+object's JS context on the page that builds it (`page.go:928-954`). Building it
+on the iframe page means `ensure_js_helper` creates `functions` in the content
+document's JS world while the element's object handle belongs to the parent
+document — the helper object and the `this` object end up in different worlds.
+
+- [x] Red-green `spec/page_iframe_element_refresh_parity_spec.cr` (new): a stub
+      browser answers the first `DOM.describeNode` (objectId `iframe-el`) with
+      go's stale-node phrasing, then serves the refresh (`DOM.getDocument`,
+      `DOM.querySelectorAll`, `DOM.resolveNode`) and the retried content-document
+      resolution. Red before: `page.element` was the iframe page, and no
+      `Runtime.evaluate` (the parent's `window` probe from
+      `ElementFromObject`) appeared in the traffic. Green after: the refreshed
+      element is owned by the parent page and keeps object id
+      `refreshed-iframe`, and the eval still resolves the iframe's own context
+      (`iframe-window`).
+- [x] `src/rod/page.cr`: `refresh_iframe_element` builds the candidate with
+      `owner.element_from_object(resolved.object)` where `owner` is
+      `@element.try(&.page)` (the parent page) with a `self` fallback; the DOM
+      queries keep running on the page whose node went stale.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (742 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

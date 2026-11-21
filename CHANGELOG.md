@@ -37,6 +37,14 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- The iframe element refresh keeps the parent page's JS context: when Chrome
+  answers a stale-node error while an iframe page resolves its JS context,
+  `refresh_iframe_element` now rebuilds the `<iframe>` element through
+  `ElementFromObject` on the page that owns it (`@element.page`) instead of on
+  the iframe page. An iframe's backing element lives in the parent document
+  (go's `Element.Frame` copies `el.page`, `element.go:458-471`), so building it
+  on the iframe page put the element's object handle and its injected `lib/js`
+  helpers in different JS worlds.
 - Element CDP requests run in the element's context, like go-rod's
   `proto.X{...}.Call(el)` (`lib/proto/a_interface.go:50-57`): `Element` is now a
   `Cdp::Client` (as it is a `proto.Client` in go) and `#describe`, `#shape`,
