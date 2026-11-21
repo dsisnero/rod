@@ -10,7 +10,7 @@ require "base64"
 
 module Rod
   # Element represents a DOM element.
-  class Element
+  class Element < ::Cdp::Client
     include ::Cdp::Contextable
     include ::Cdp::Sessionable
 
@@ -135,12 +135,13 @@ module Rod
         object_id = @object.object_id
         raise "Element has no object ID" unless object_id
 
+        # `proto.DOMScrollIntoViewIfNeeded{...}.Call(el)` (`element.go:77`).
         ::Cdp::DOM::ScrollIntoViewIfNeeded.new(
           node_id: nil,
           backend_node_id: nil,
           object_id: object_id,
           rect: nil
-        ).call(@page)
+        ).call(self)
       ensure
         cleanup.call
       end
@@ -290,11 +291,13 @@ module Rod
     def shape : ::Cdp::DOM::GetContentQuadsResult
       object_id = @object.object_id
       raise "Element has no object ID" unless object_id
+      # `proto.DOMGetContentQuads{...}.Call(el)` (`element.go:201-203`): the
+      # element is the CDP client, so it supplies the context and session.
       ::Cdp::DOM::GetContentQuads.new(
         node_id: nil,
         backend_node_id: nil,
         object_id: object_id
-      ).call(@page)
+      ).call(self)
     end
 
     # CanvasToImage gets image data of a canvas element.
@@ -537,7 +540,8 @@ module Rod
       begin
         object_id = @object.object_id
         raise "Element has no object ID" unless object_id
-        ::Cdp::DOM::SetFileInputFiles.new(files: abs_paths, object_id: object_id, node_id: nil, backend_node_id: nil).call(@page)
+        # `proto.DOMSetFileInputFiles{...}.Call(el)` (`element.go:410-420`).
+        ::Cdp::DOM::SetFileInputFiles.new(files: abs_paths, object_id: object_id, node_id: nil, backend_node_id: nil).call(self)
       ensure
         cleanup.call
       end
@@ -798,8 +802,11 @@ module Rod
         depth: depth.to_i64,
         pierce: pierce
       )
-      result = req.call(@page)
-      result.node
+      # go passes the element as the CDP client (`proto.DOMDescribeNode{...}.Call(el)`,
+      # `element.go:425-434`) and `proto.call` takes the context from
+      # `Element.GetContext()` (`lib/proto/a_interface.go:50-57`), so an
+      # `Element#timeout`/`#context` clone covers this request too.
+      req.call(self).node
     end
 
     # ShadowRoot returns the shadow root of this element.
@@ -818,8 +825,12 @@ module Rod
         object_group: nil,
         execution_context_id: nil
       )
-      result = req.call(@page)
-      Element.new(result.object, @page, @page.ctx, @page.sleeper)
+      # `proto.DOMResolveNode{...}.Call(el)` (`element.go:448-451`), then go
+      # builds the element from `el.page.Context(el.ctx)` (`element.go:456`), so
+      # the shadow root carries the element's context and gets the same JS-context
+      # resolution as every other object-based element.
+      result = req.call(self)
+      @page.context(@ctx).element_from_object(result.object)
     end
 
     # Frame creates a page instance that represents the iframe.
@@ -904,7 +915,9 @@ module Rod
       end
     end
 
-    # Call CDP method
+    # Call implements `Cdp::Client` like go's `Element.Call` (`element.go:723-725`):
+    # the element itself is the CDP client for its own requests, so `Cdp.call`
+    # picks up `#context` and `#session_id` from it.
     def call(context : HTTP::Client::Context?, session_id : String?, method : String, params : JSON::Any) : Bytes
       @page.call(context, session_id, method, params)
     end

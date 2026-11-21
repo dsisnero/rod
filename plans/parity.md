@@ -8,13 +8,13 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 61 (`Element#input_time`,
-`#input_color` and `#contains_element` now evaluate the shared `lib/js` helpers;
-`input_time` regained go's user gesture, and every helper in `src/rod/util/js.cr`
-is now wired).
+green, and the last feature commit is Phase 62 (element CDP requests — `describe`,
+`shape`, `scroll_into_view`, `set_files` and the shadow-root node resolution — run
+in the element's context like go's `Element.Call`/`Contextable`, and the shadow
+root is built through `element_from_object`).
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
-then `make test` (~2m). Before a full run, clear stray headless browsers left
+then `make test` (~2m30s). Before a full run, clear stray headless browsers left
 by an aborted run — `pgrep -f "rod/user-data" | xargs -r kill -9`; they push the
 live specs into their documented load flake (see Gotchas). Do not run any other
 browser work (a scratch `crystal run`, another checkout's specs) while `make
@@ -22,17 +22,17 @@ test` runs: it fails `spec/launcher_launch_parity_spec.cr:18`,
 `spec/live_browser_parity_spec.cr:1464` and `spec/live_browser_pool_spec.cr:144`
 on a busy machine, none of which are real failures.
 
-Phases 23-61 all came from *auditing `vendor/rod` area by area*: both ledgers
+Phases 23-62 all came from *auditing `vendor/rod` area by area*: both ledgers
 are 100% `ported` (inventory 5607/54/15, tests 297 with four upstream `t.Skip`s),
 so new work has to be found by comparing behaviour. Next up item 1 keeps the
-recipes that found those 39 phases, plus the list of areas already swept, so a
+recipes that found those 40 phases, plus the list of areas already swept, so a
 fresh session can pick up without re-deriving any of it.
 
-**Last commit:** `port: evaluate the shared js helpers for time/color/contains`
-(Phase 61; `git log -1` for the hash).
+**Last commit:** `port: run element CDP requests in the element's context`
+(Phase 62; `git log -1` for the hash).
 
-**Gates (2026-11-21, after Phase 61):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (739 examples, 0 failures) · parity checks pass
+**Gates (2026-11-21, after Phase 62):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (741 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -48,9 +48,10 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    - **Class sweep.** Pick one Go construct and grep both trees for it:
      `defer <restore>()`, `select {`, `Unwrap()`, `<domain>.enable`,
      `Context(el.ctx)`, `gson.Int(0)`, `json:\",omitempty\"`,
-     `evalHelper(js.X)`, `EnableDomain(`. Phases 23/24 (closed channels), 27/28
-     (`Unwrap`/`errors.Is`), 54/55 (`bool` + `omitempty`), 56 (`Context(el.ctx)`),
-     57/58 (`EnableDomain`) and 59 (helper vs hand-written JS) all came from it.
+     `evalHelper(js.X)`, `EnableDomain(`, `.Call(el)`. Phases 23/24 (closed
+     channels), 27/28 (`Unwrap`/`errors.Is`), 54/55 (`bool` + `omitempty`), 56
+     (`Context(el.ctx)`), 57/58 (`EnableDomain`), 59 (helper vs hand-written JS)
+     and 62 (`Contextable`, i.e. `.Call(el)` vs `.call(@page)`) all came from it.
    - **Ported-test audit.** For every `vendor/rod/*_test.go` function, check the
      Crystal spec drives the same path. Stub-only ports hide real bugs: Phase 43
      (`TestHandleAuth` -> `Fetch domain is not enabled`), Phase 47
@@ -76,9 +77,18 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      `HandleDialog` (58), `Element#input` + `set_document_content` +
      `cleanupStates` + `reload`/`close` (59), `CaptureDOMSnapshot` + every
      `*: true` proto flag in `vendor/rod/*.go` (60), every `evalHelper(js.X)`
-     call site / all 33 `lib/js` helpers (39, 59, 61). `Key.Encode` payloads
-     match (Phase 38).
-2. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
+     call site / all 33 `lib/js` helpers (39, 59, 61), element CDP requests /
+     `Element.Call` + `Contextable` (56, 62). `Key.Encode` payloads match
+     (Phase 38).
+2. **[code, small] `refresh_iframe_element` bypasses `element_from_object`.**
+   `src/rod/page.cr` builds the iframe element with
+   `Element.new(resolved.object, self, @ctx, @sleeper)`, so it skips the
+   `js_ctx_id_by_object_id` clone that every other object-based element gets
+   (`page.go:928-954`). The context and sleeper it passes match go; only the
+   JS-context resolution differs. Verify against an iframe whose JS context is
+   not the page's before changing it (a stale-node retry path, so a wrong fix
+   hides in the retry).
+3. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
    parity scripts instead of the repo's copied ones (whose `tree-sitter` branch
    is a placeholder), and decide curated-status preservation. Native tree-sitter
    discovery already works via the verified Chiasmus toolchain, but its
@@ -87,21 +97,21 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    gate stays `PORT_PARSER=regex` until a reviewed id migration lands. (The last
    Phase 2 checklist bullet, `Page.cleanupStates`, is closed in Phase 59, so this
    is now tooling-only work.)
-3. **[verify] Upstream Go suite flakiness:** `github.com/go-rod/rod` failed
+4. **[verify] Upstream Go suite flakiness:** `github.com/go-rod/rod` failed
    `TestPageElements` and `Example_basic` on 2026-11-17 while the other eight
    packages passed. Re-run before reading anything into a failure — these are
    browser-timing issues in the vendored project, not port gaps. Run with
    `GODEBUG=tracebackancestors=1000`.
-4. **[verify] Generation no-op gate:** `make check-generate-crystal` regenerates
+5. **[verify] Generation no-op gate:** `make check-generate-crystal` regenerates
    the pinned vintage (`CDP_CHROMIUM=160.0.8168.1`, `CDP_V8=16.0.61`) into
    `temp/cdp_generated/` and diffs it against `src/cdp`; it passes with a warm
    cache and needs network on a cold one (PDL files come from googlesource.com).
    Re-run it after any template edit — Phase 30 and 59 both hand-edited generated
    output alongside its template.
-5. **[optional cleanup]** The repo tracks built binaries (`rod`, `bin/pdlgen*`,
+6. **[optional cleanup]** The repo tracks built binaries (`rod`, `bin/pdlgen*`,
    `pdlgen*`), so local builds keep showing up as modified files. Decide whether
    to untrack them.
-6. **[optional follow-up]** `spec/cdp_client_parity_spec.cr` and
+7. **[optional follow-up]** `spec/cdp_client_parity_spec.cr` and
    `spec/launcher_parity_spec.cr` still launch their own browsers. That is
    deliberate — they exercise the CDP client and the launcher itself
    (`TestLaunchClient`, `Browser.close` handling) — so only revisit it if a
@@ -112,7 +122,7 @@ authority):
 
 1. red-green: the new spec fails for the intended reason before the fix (stash
    the src change and watch it fail, or write the spec first);
-2. `make format`, `make lint`, `make test` (~2m30s, 739 examples) and
+2. `make format`, `make lint`, `make test` (~2m30s, 741 examples) and
    `make check-go-port-inventory` / `check-go-source-parity` /
    `check-go-test-parity`;
 3. `plans/parity.md`: new Phase entry + **Where we are** + **Next up** updated;
@@ -217,7 +227,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 105 files, 739 examples, 0 failures (2026-11-21, Chromium `160.0.8168.1`) |
+| Crystal specs | 106 files, 741 examples, 0 failures (2026-11-21, Chromium `158.0.8127.37`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -1264,7 +1274,8 @@ be installed through `Page#sleeper` at all.
       sleeper.
 - [x] Elements built by `element_from_object` (and `elements_by_js`,
       `refresh_iframe_element`, `Element#shadow_root`) inherit the page's `ctx`
-      and `sleeper`.
+      and `sleeper`. (Corrected in Phase 62: go hands `Element#shadow_root` the
+      *element's* `ctx` via `el.page.Context(el.ctx)`.)
 - [x] `spec/query_has_parity_spec.cr` and `spec/query_race_parity_spec.cr`
       compare the returned clone's `object` (go returns `e.Sleeper(...)` too) and
       assert the chained sleeper; `spec/page_elements_query_parity_spec.cr`
@@ -1988,6 +1999,49 @@ events, and a dialog handled while someone held the Page domain disabled it).
       `FetchDisable` unconditionally (`hijack.go:189-192`), so the port matches.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (729 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 62 — Element CDP requests run in the element's context ✅
+
+Phase 56 fixed the 15 explicit `el.page.Context(el.ctx)` sites in `element.go`,
+but go-rod has a second, implicit path: `proto.X{...}.Call(el)` passes the element
+as the CDP client, and `proto.call` takes the context from
+`Element.GetContext()` and the session from `Element.GetSessionID()`
+(`lib/proto/a_interface.go:50-57`, `context.go:104-106`, `element.go:40-42`).
+Every element request therefore honours an `Element#timeout`/`#context` clone.
+
+The port called five of those with `@page`, so a cloned element's deadline never
+applied:
+
+| method | go (`vendor/rod/element.go`) | port before |
+|---|---|---|
+| `Describe` | `DOMDescribeNode{...}.Call(el)` (`425-434`) | `req.call(@page)` |
+| `Shape` | `DOMGetContentQuads{...}.Call(el)` (`201-203`) | `.call(@page)` |
+| `ScrollIntoView` | `DOMScrollIntoViewIfNeeded{...}.Call(el)` (`77`) | `.call(@page)` |
+| `SetFiles` | `DOMSetFileInputFiles{...}.Call(el)` (`410-420`) | `.call(@page)` |
+| `ShadowRoot` node | `DOMResolveNode{...}.Call(el)` (`448-451`) | `.call(@page)` |
+
+The shadow root had a second bug: go builds it with
+`el.page.Context(el.ctx).ElementFromObject(shadowNode.Object)` (`element.go:456`),
+while the port used `Element.new(object, @page, @page.ctx, ...)`. That also
+corrects the Phase 32 checklist claim that `Element#shadow_root` inherits the
+*page's* ctx.
+
+- [x] Red-green `spec/element_shadow_root_parity_spec.cr` (new, live): the shadow
+      root answers queries while the element's context is live and stops after
+      `cancel` (red before: the clone carried the page ctx). A second example
+      cancels an element's context and asserts `describe`, `shape` and
+      `set_files` raise `ContextCanceledError` (red before: `describe` answered
+      normally); both first prove the same calls succeed on a live context.
+- [x] `src/rod/element.cr`: `Element < ::Cdp::Client` (like go's `proto.Client`
+      implementation, matching `Browser`/`Page`), so `.call(self)` carries
+      `#context` and `#session_id`; the five sites above now pass the element.
+      `describe` keeps returning `req.call(self).node`.
+- [x] `spec/element_spec.cr`: the `#shadow_root` example drives a cancelled
+      element context and asserts `shadow.ctx` is the receiver's context.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (741 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

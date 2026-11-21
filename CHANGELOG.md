@@ -37,6 +37,17 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- Element CDP requests run in the element's context, like go-rod's
+  `proto.X{...}.Call(el)` (`lib/proto/a_interface.go:50-57`): `Element` is now a
+  `Cdp::Client` (as it is a `proto.Client` in go) and `#describe`, `#shape`,
+  `#scroll_into_view`, `#set_files` and `#shadow_root`'s node resolution pass the
+  element as the client instead of the page. An `Element#timeout`/`#context`
+  clone's deadline and cancellation now reach those requests.
+- `Element#shadow_root` builds the returned element through
+  `el.page.Context(el.ctx).ElementFromObject(...)` like go (`element.go:456`),
+  so the shadow root carries the receiver's context and gets the same JS-context
+  resolution as every other object-based element. It was built with the page's
+  context, so a cloned element's deadline never applied to the shadow root.
 - `Element#input_time`, `Element#input_color` and `Element#contains_element`
   evaluate go's shared `lib/js` helpers (`js.InputTime`, `js.InputColor`,
   `js.ContainsElement`) instead of hand-copied JavaScript

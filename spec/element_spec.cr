@@ -1021,10 +1021,21 @@ describe Rod::Element do
         "DOM.resolveNode",
         %({"object":{"type":"object","objectId":"shadow-1","description":"#shadow-root"}})
       )
+      # go returns `el.page.Context(el.ctx).ElementFromObject(shadowNode.Object)`
+      # (`element.go:456`), so the shadow root resolves its JS context the same
+      # way every other object-based element does.
+      page.set_response("Runtime.callFunctionOn", %({"result":{"type":"object","objectId":"window-obj"}}))
+      page.set_response("Runtime.evaluate", %({"result":{"type":"object","objectId":"window-obj"}}))
       element = StubElement.new(page)
 
-      shadow = element.shadow_root
+      ctx, cancel = element.ctx.with_cancel
+      shadow = element.context(ctx).shadow_root
+
       shadow.object.object_id.should eq("shadow-1")
+      # The receiver's context travels with the shadow root.
+      shadow.ctx.should be(ctx)
+      page.method_calls.should contain("Runtime.callFunctionOn")
+      cancel.call
     end
 
     it "raises NoShadowRootError when no shadow root" do
