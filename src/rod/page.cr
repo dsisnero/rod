@@ -685,10 +685,12 @@ module Rod
         i += 2
       end
 
-      Cdp::Network::Enable.new(nil, nil, nil, nil, nil).call(self)
+      # go returns `p.EnableDomain(&proto.NetworkEnable{})` as the cleanup
+      # (`page.go:139-147`), so the domain is only enabled when nobody else has
+      # it and only disabled by whoever enabled it.
+      restore = enable_domain(Cdp::Network::Enable.new(nil, nil, nil, nil, nil))
       Cdp::Network::SetExtraHTTPHeaders.new(JSON::Any.new(headers)).call(self)
-
-      -> { Cdp::Network::Disable.new.call(self) }
+      restore
     end
 
     # ameba:disable Naming/AccessorMethodName
@@ -721,7 +723,10 @@ module Rod
     # HandleDialog accepts or dismisses the next JavaScript initiated dialog.
     # Returns wait and handle callbacks.
     def handle_dialog : Tuple(Proc(Cdp::Page::JavascriptDialogOpeningEvent), Proc(Cdp::Page::HandleJavaScriptDialog, Nil))
-      Cdp::Page::Enable.new(nil).call(self)
+      # go keeps the restore from `p.EnableDomain(&proto.PageEnable{})` and calls
+      # it when the dialog is handled (`page.go:613-631`), so the domain is only
+      # disabled by whoever enabled it.
+      restore = enable_domain(Cdp::Page::Enable.new(nil))
       wait = browser.context(@ctx).wait_event_typed(Cdp::Page::JavascriptDialogOpeningEvent, @session_id)
 
       {
@@ -730,7 +735,7 @@ module Rod
           begin
             h.call(self)
           ensure
-            Cdp::Page::Disable.new.call(self)
+            restore.call
           end
         end,
       }

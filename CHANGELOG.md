@@ -37,6 +37,11 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Page#extra_headers` and `Page#handle_dialog` enable and restore their CDP
+  domains through `Page#enable_domain`, like go's `Page.EnableDomain`
+  (`page.go:139-147`, `613-631`). They previously enabled and disabled
+  unconditionally, so they turned Network or Page off for a caller that had
+  enabled the domain and still needed it.
 - Event waits (`Browser#each_event`, and therefore `Page#each_event`,
   `wait_request_idle`, `wait_stable` and `WaitDownload`) enable their CDP domains
   through `Browser#enable_domain`, like go's `EnableDomain` (`states.go:60-73`).

@@ -63,9 +63,21 @@ private class DialogStubBrowser < Rod::Browser
   property dialog_event : Cdp::Page::JavascriptDialogOpeningEvent? = nil
   property file_event : Cdp::Page::FileChooserOpenedEvent? = nil
   property waited_proto_events : Array(String) = [] of String
+  # `Page#enable_domain` calls the browser, not the page (like go's
+  # `Page.EnableDomain` -> `Browser.EnableDomain`), so record both levels in the
+  # page's list.
+  property sink : Array(String)? = nil
 
   def context(ctx : Rod::Context) : Rod::Browser
     self
+  end
+
+  def call(context : HTTP::Client::Context?, session_id : String?, method : String, params : JSON::Any) : Bytes
+    _ = context
+    _ = session_id
+    _ = params
+    @sink.try(&.<< method)
+    %({}).to_slice
   end
 
   def wait_event_typed(event_class : T.class, session_id : Rod::SessionID? = nil) : Proc(T) forall T
@@ -101,6 +113,7 @@ private class DialogStubPage < Rod::Page
 
   def initialize(browser : Rod::Browser)
     super(browser, Rod::TargetID.new("target-id"), Rod::SessionID.new("session-1"))
+    browser.as(DialogStubBrowser).sink = @method_calls
   end
 
   def fail_once(method : String, ex : Exception) : Nil

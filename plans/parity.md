@@ -8,26 +8,26 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 57 (`each_event` enables event
-domains through `EnableDomain`, so it no longer disables a domain someone else
-enabled).
+green, and the last feature commit is Phase 58 (`Page#extra_headers` and
+`Page#handle_dialog` enable/restore their domains through `EnableDomain`, so they
+no longer disable a domain someone else enabled).
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~1m45s). Before a full run, clear stray headless browsers left
 by an aborted run — `pgrep -f "rod/user-data" | xargs -r kill -9`; they push the
 live specs into their documented load flake (see Gotchas).
 
-Phases 23-57 all came from *auditing `vendor/rod` area by area*: the ledger
+Phases 23-58 all came from *auditing `vendor/rod` area by area*: the ledger
 reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
 `intentional_divergence`), so new work has to be found by comparing behaviour,
 not by reading the ledger. Next up item 1 records what cannot be re-derived from
 the ledger: which areas were swept and which leads are still open.
 
-**Last commit:** `port: restore event domains like go's EnableDomain`
-(Phase 57; `git log -1` for the hash).
+**Last commit:** `port: enable page domains through EnableDomain`
+(Phase 58; `git log -1` for the hash).
 
-**Gates (2026-11-20, after Phase 57):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (725 examples, 0 failures) · parity checks pass
+**Gates (2026-11-20, after Phase 58):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (729 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -42,6 +42,11 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    + `CHANGELOG.md` + the ledger rows. Porting the *upstream* test first matters:
    Phase 43 found that the stub-only `TestHandleAuth` had hidden a
    `Fetch domain is not enabled` bug in `handle_auth`.
+   - Candidates already verified and closed in Phase 58, do not re-audit:
+     `Page.SetExtraHeaders`/`Page.HandleDialog` domain enablement (fixed in 58),
+     `HijackRouter#stop`'s unconditional `FetchDisable` (go does the same,
+     `hijack.go:189-192`), `Utils.FormatCLIArgs`/`EscapeGoString`/`RandString`/
+     `AbsolutePaths` (byte-equal to `lib/utils/utils.go:104-350`).
    - Candidates already verified and closed in Phase 57, do not re-audit:
      `EachEvent`/`WaitEvent` domain enablement (fixed in 57),
      `Browser.GetCookies`/`SetCookies` (`Storage.getCookies`/`setCookies` with
@@ -1924,6 +1929,39 @@ events for every later wait.
       `WaitEvent` inline; both now share one primitive).
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (725 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 58 — Page domain enablement goes through `EnableDomain` ✅
+
+Two more sites of the Phase 57 class, both in `page.go`:
+
+- `Page.SetExtraHeaders` returns `p.EnableDomain(&proto.NetworkEnable{})` as its
+  cleanup (`page.go:139-147`).
+- `Page.HandleDialog` keeps the restore from `p.EnableDomain(&proto.PageEnable{})`
+  and calls it when the dialog is handled (`page.go:613-631`).
+
+The port called `Network.enable`/`Network.disable` and `Page.enable`/`Page.disable`
+unconditionally, so both turned the domain off for whoever had enabled it before
+(e.g. `page.enable_domain(Network)` followed by `set_extra_headers` killed network
+events, and a dialog handled while someone held the Page domain disabled it).
+
+- [x] Red-green `spec/page_extra_headers_domain_parity_spec.cr` (new): a
+      recording client shows `["Network.enable", "Network.setExtraHTTPHeaders",
+      "Network.disable"]` before the fix and only
+      `Network.setExtraHTTPHeaders` after it when the domain was already on;
+      `["Page.enable", "Page.handleJavaScriptDialog", "Page.disable"]` versus
+      only `Page.handleJavaScriptDialog` for `handle_dialog`. Two companion
+      examples pin the normal path (nobody else enabled it → enable and disable).
+- [x] `src/rod/page.cr`: both methods use `Page#enable_domain` (which is
+      `browser.context(@ctx).enable_domain(@session_id, ...)`, like
+      `Page.EnableDomain` in `states.go:108-110`) and return/call its restore.
+- [x] `spec/page_wait_parity_spec.cr`: `DialogStubBrowser` records through the
+      page's list, because the enable now goes through the browser (as in go).
+      `HijackRouter#stop` is *not* in this class — go's `Stop` calls
+      `FetchDisable` unconditionally (`hijack.go:189-192`), so the port matches.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (729 examples, 0 failures), `make check-go-*` pass.
 
 ---
 
