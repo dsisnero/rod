@@ -8,9 +8,10 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 60 (`Page#capture_dom_snapshot` now
-enables `DOMSnapshot` and sends go's four include flags; the upstream
-`TestPageCaptureDOMSnapshot` is ported live instead of against stubs).
+green, and the last feature commit is Phase 61 (`Element#input_time`,
+`#input_color` and `#contains_element` now evaluate the shared `lib/js` helpers;
+`input_time` regained go's user gesture, and every helper in `src/rod/util/js.cr`
+is now wired).
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~2m). Before a full run, clear stray headless browsers left
@@ -21,17 +22,17 @@ test` runs: it fails `spec/launcher_launch_parity_spec.cr:18`,
 `spec/live_browser_parity_spec.cr:1464` and `spec/live_browser_pool_spec.cr:144`
 on a busy machine, none of which are real failures.
 
-Phases 23-60 all came from *auditing `vendor/rod` area by area*: both ledgers
+Phases 23-61 all came from *auditing `vendor/rod` area by area*: both ledgers
 are 100% `ported` (inventory 5607/54/15, tests 297 with four upstream `t.Skip`s),
 so new work has to be found by comparing behaviour. Next up item 1 keeps the
-recipes that found those 38 phases, plus the list of areas already swept, so a
+recipes that found those 39 phases, plus the list of areas already swept, so a
 fresh session can pick up without re-deriving any of it.
 
-**Last commit:** `port: request go's DOM snapshot include flags`
-(Phase 60; `git log -1` for the hash).
+**Last commit:** `port: evaluate the shared js helpers for time/color/contains`
+(Phase 61; `git log -1` for the hash).
 
-**Gates (2026-11-21, after Phase 60):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (735 examples, 0 failures) · parity checks pass
+**Gates (2026-11-21, after Phase 61):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (739 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -74,8 +75,9 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      element context (56), `EachEvent`/`WaitEvent` (57), `SetExtraHeaders` /
      `HandleDialog` (58), `Element#input` + `set_document_content` +
      `cleanupStates` + `reload`/`close` (59), `CaptureDOMSnapshot` + every
-     `*: true` proto flag in `vendor/rod/*.go` (60). All 32 `lib/js` helpers are
-     byte-identical (Phase 39) and `Key.Encode` payloads match (Phase 38).
+     `*: true` proto flag in `vendor/rod/*.go` (60), every `evalHelper(js.X)`
+     call site / all 33 `lib/js` helpers (39, 59, 61). `Key.Encode` payloads
+     match (Phase 38).
 2. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
    parity scripts instead of the repo's copied ones (whose `tree-sitter` branch
    is a placeholder), and decide curated-status preservation. Native tree-sitter
@@ -110,7 +112,7 @@ authority):
 
 1. red-green: the new spec fails for the intended reason before the fix (stash
    the src change and watch it fail, or write the spec first);
-2. `make format`, `make lint`, `make test` (~2m15s, 735 examples) and
+2. `make format`, `make lint`, `make test` (~2m30s, 739 examples) and
    `make check-go-port-inventory` / `check-go-source-parity` /
    `check-go-test-parity`;
 3. `plans/parity.md`: new Phase entry + **Where we are** + **Next up** updated;
@@ -215,7 +217,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 105 files, 735 examples, 0 failures (2026-11-21, Chromium `160.0.8168.1`) |
+| Crystal specs | 105 files, 739 examples, 0 failures (2026-11-21, Chromium `160.0.8168.1`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -290,6 +292,16 @@ genuine minor gap**. Full list:
   port has its own generator (`src/pdlgen/`) and no Docker release script.
   Recorded as `intentional_divergence` in `go_port_inventory.tsv` (Phase 4),
   not ported.
+- go-rod sends `Network.setUserAgentOverride` from `Page.SetUserAgent` /
+  `devices.Device.UserAgentEmulation` (`page.go:150-157`), but Chromium's
+  protocol marks that command `redirect Emulation`
+  (`third_party/blink/public/devtools_protocol/domains/Network.pdl` at
+  `160.0.8168.1`, line 1225) and `src/pdlgen` drops redirected commands
+  (`src/pdlgen/cli.cr:322-325`), so no `Cdp::Network::SetUserAgentOverride`
+  binding exists. The port calls `Cdp::Emulation::SetUserAgentOverride` — the
+  command the alias redirects to, with identical parameters (verified live on
+  Chrome 158: both set `navigator.userAgent`). Do not "fix" this back to the
+  Network domain; it would have to be hand-written outside `src/cdp`.
 
 ---
 
@@ -1976,6 +1988,46 @@ events, and a dialog handled while someone held the Page domain disabled it).
       `FetchDisable` unconditionally (`hijack.go:189-192`), so the port matches.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (729 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 61 — Every `lib/js` helper call site reuses the shared definition ✅
+
+`element.go` evaluates the shared helpers through `evalHelper(js.X)`, which
+registers the definition plus its dependencies (`functions.inputEvent`) and runs
+it with the element bound as `this`. `Element#input` was fixed in Phase 59; three
+sites still hand-copied the JavaScript, and one of them dropped a flag:
+
+- `Element.InputTime` → `el.Evaluate(evalHelper(js.InputTime, t.UnixNano()/1e6).ByUser())`
+  (`element.go:294-304`). The port hand-wrote an equivalent arrow function
+  **without `.by_user`**, so entering a time ran outside a user gesture.
+- `Element.InputColor` → `el.Evaluate(evalHelper(js.InputColor, color))`
+  (`element.go:315-327`).
+- `Element.ContainsElement` → `el.Evaluate(evalHelper(js.ContainsElement, target.Object))`
+  (`element.go:473-480`); the port hand-wrote the same loop.
+
+With these three, all 33 helpers in `src/rod/util/js.cr` are either used directly
+or exist only as a dependency, so the helper layer is fully wired
+(`CONTAINS_ELEMENT`, `INPUT_TIME`, `INPUT_COLOR` were the last unused ones).
+
+- [x] Red-green `spec/element_input_parity_spec.cr`: three new stub examples
+      assert the recorded `EvalOptions` — the helper name (`inputTime`,
+      `inputColor`, `containsElement`), the argument (`t.to_unix_ms`, the color,
+      the target's `RemoteObject`), and the gesture flag (only `inputTime` is a
+      user gesture, matching go). Red before the fix (`js_args.first` was a
+      hand-written JS string / remote object).
+- [x] `spec/element_spec.cr`: the `#input_time`, `#input_color` and
+      `#contains_element` examples now assert the recorded helper call instead of
+      matching the hand-written JavaScript text (the Phase 59 treatment), which
+      also stops them passing when the helper call silently misbehaves. Added
+      `HelperEvalStubElement` to record `evaluate(opts)`.
+- [x] `spec/element_input_parity_spec.cr`: live example on a documented page —
+      `input_time` on `<input type="date">` sets `value` to `2024-01-02`,
+      `input_color` sets `#ff0000`, and `contains_element` answers
+      true/true/false for kid/self/parent. This is what proves the helper
+      dependency graph (`functions.inputEvent`) and the `this` binding work on a
+      real page, not just against a stub.
+- [x] Gates: `make format`, `make lint`, full `make test`, `make check-go-*`.
 
 ---
 

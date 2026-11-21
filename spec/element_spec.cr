@@ -316,6 +316,18 @@ private class FocusFlowElement < StubElement
   end
 end
 
+# Records the `EvalOptions` of a shared-helper call (`evaluate(opts)`), which is
+# how go-rod runs every `evalHelper(js.X)` site, and answers `helper_result`.
+private class HelperEvalStubElement < StubElement
+  property helper_opts : Rod::EvalOptions? = nil
+  property? helper_result : Bool = false
+
+  def evaluate(opts : Rod::EvalOptions) : Cdp::Runtime::RemoteObject
+    @helper_opts = opts
+    Cdp::Runtime::RemoteObject.from_json(%({"type":"boolean","value":#{@helper_result}}))
+  end
+end
+
 private class TapFlowStubElement < StubElement
   property scroll_calls = 0
   property wait_enabled_calls = 0
@@ -946,16 +958,20 @@ describe Rod::Element do
   end
 
   describe "#contains_element" do
-    it "checks if target is equal or inside element" do
+    it "checks if target is equal or inside element with go's containsElement helper" do
       page = Rod::Page.new(Rod::Browser.new, Rod::TargetID.new("target-id"))
-      root = StubElement.new(page)
+      root = HelperEvalStubElement.new(page)
       target = StubElement.new(page)
-      root.eval_result = true
+      root.helper_result = true
 
       root.contains_element(target).should be_true
-      root.last_js.not_nil!.should contain("for (var elem = target; elem != null; elem = elem.parentElement)")
-      root.last_args.size.should eq(1)
-      root.last_args[0].should eq(target.object)
+
+      opts = root.helper_opts.not_nil!
+      # go: `el.Evaluate(evalHelper(js.ContainsElement, target.Object))`
+      # (`element.go:474-479`).
+      opts.js_args.first.as(Rod::JS::Function).name.should eq("containsElement")
+      opts.js_args[1].as(Cdp::Runtime::RemoteObject).object_id.should eq("obj-1")
+      opts.user_gesture?.should be_false
     end
   end
 
@@ -1613,22 +1629,26 @@ describe Rod::Element do
   end
 
   describe "#input_time" do
-    it "waits writable and applies Go inputTime formatter logic" do
+    it "waits writable and inputs go's js.InputTime helper as a user gesture" do
       page = InputPage.new
       element = InputStubElement.new(page)
+      t = Time.utc(2024, 1, 2, 3, 4, 5)
 
-      element.input_time(Time.utc(2024, 1, 2, 3, 4, 5))
+      element.input_time(t)
 
       element.wait_enabled_calls.should eq(1)
       element.wait_writable_calls.should eq(1)
-      element.last_js.not_nil!.should contain("switch (this.type)")
-      element.last_args.size.should eq(1)
-      element.last_args[0].should be_a(Int64)
+      dispatch = element.dispatch_opts.not_nil!
+      # go: `el.Evaluate(evalHelper(js.InputTime, t.UnixNano()/1e6).ByUser())`
+      # (`element.go:303`).
+      dispatch.js_args.first.as(Rod::JS::Function).name.should eq("inputTime")
+      dispatch.js_args[1].should eq(t.to_unix_ms)
+      dispatch.user_gesture?.should be_true
     end
   end
 
   describe "#input_color" do
-    it "waits writable and dispatches input/change events" do
+    it "waits writable and inputs go's js.InputColor helper" do
       page = InputPage.new
       element = InputStubElement.new(page)
 
@@ -1636,8 +1656,11 @@ describe Rod::Element do
 
       element.wait_enabled_calls.should eq(1)
       element.wait_writable_calls.should eq(1)
-      element.last_args.should eq(["#abcdef"] of Rod::EvalOptions::JsArg)
-      element.last_js.not_nil!.should contain("dispatchEvent(new Event(\"input\"")
+      dispatch = element.dispatch_opts.not_nil!
+      # go: `el.Evaluate(evalHelper(js.InputColor, color))` (`element.go:325`).
+      dispatch.js_args.first.as(Rod::JS::Function).name.should eq("inputColor")
+      dispatch.js_args[1].should eq("#abcdef")
+      dispatch.user_gesture?.should be_false
     end
   end
 

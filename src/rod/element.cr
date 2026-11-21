@@ -236,36 +236,11 @@ module Rod
         focus
         wait_enabled
         wait_writable
-        timestamp_ms = t.to_unix_ms
-        evaluate(<<-JS, timestamp_ms)
-        (timestampMs) => {
-          const time = new Date(timestampMs);
-          const pad = (n) => n.toString().padStart(2, "0");
-          const year = time.getFullYear();
-          const month = pad(time.getMonth() + 1);
-          const day = pad(time.getDate());
-          const hour = pad(time.getHours());
-          const minute = pad(time.getMinutes());
-
-          switch (this.type) {
-            case "date":
-              this.value = `${year}-${month}-${day}`;
-              break;
-            case "datetime-local":
-              this.value = `${year}-${month}-${day}T${hour}:${minute}`;
-              break;
-            case "month":
-              this.value = `${year}-${month}`;
-              break;
-            case "time":
-              this.value = `${hour}:${minute}`;
-              break;
-          }
-
-          this.dispatchEvent(new Event("input", { bubbles: true }));
-          this.dispatchEvent(new Event("change", { bubbles: true }));
-        }
-        JS
+        # go evaluates the shared helper as a user gesture
+        # (`el.Evaluate(evalHelper(js.InputTime, t.UnixNano()/1e6).ByUser())`,
+        # `element.go:294-304`); the helper dispatches input/change through
+        # `functions.inputEvent`.
+        evaluate(@page.eval_helper(Rod::JS::INPUT_TIME, t.to_unix_ms).by_user)
       ensure
         cleanup.call
       end
@@ -280,13 +255,9 @@ module Rod
         focus
         wait_enabled
         wait_writable
-        evaluate(<<-JS, color)
-          (newColor) => {
-            this.value = `${newColor}`;
-            this.dispatchEvent(new Event("input", { bubbles: true }));
-            this.dispatchEvent(new Event("change", { bubbles: true }));
-          }
-        JS
+        # go evaluates the shared helper, without a user gesture
+        # (`el.Evaluate(evalHelper(js.InputColor, color))`, `element.go:315-327`).
+        evaluate(@page.eval_helper(Rod::JS::INPUT_COLOR, color))
       ensure
         cleanup.call
       end
@@ -806,15 +777,10 @@ module Rod
 
     # ContainsElement check if the target is equal or inside the element.
     def contains_element(target : Element) : Bool
-      js = <<-JS
-        function(target) {
-          for (var elem = target; elem != null; elem = elem.parentElement) {
-            if (elem === this) return true;
-          }
-          return false;
-        }
-      JS
-      result = evaluate(js, target.object)
+      # go evaluates the shared helper with the target's remote object
+      # (`el.Evaluate(evalHelper(js.ContainsElement, target.Object))`,
+      # `element.go:473-480`).
+      result = evaluate(@page.eval_helper(Rod::JS::CONTAINS_ELEMENT, target.object))
       result.value.try(&.as_bool?) || false
     end
 

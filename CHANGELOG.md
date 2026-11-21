@@ -37,6 +37,12 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Element#input_time`, `Element#input_color` and `Element#contains_element`
+  evaluate go's shared `lib/js` helpers (`js.InputTime`, `js.InputColor`,
+  `js.ContainsElement`) instead of hand-copied JavaScript
+  (`element.go:303`, `325`, `475`). `input_time` regains the user gesture go
+  marks it with (`... .ByUser()`); all 33 helpers in `src/rod/util/js.cr` are now
+  wired, so a helper edit can no longer leave a stale inline copy behind.
 - `Page#capture_dom_snapshot` sends go's DOM snapshot include flags and enables
   the domain first. It passed `nil` for `includePaintOrder`, `includeDOMRects`,
   `includeBlendedBackgroundColors` and `includeTextColorOpacities`, so Chrome
