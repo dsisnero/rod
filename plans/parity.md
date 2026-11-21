@@ -18,11 +18,11 @@ then `make test` (~1m45s). Before a full run, clear stray headless browsers left
 by an aborted run — `pgrep -f "rod/user-data" | xargs -r kill -9`; they push the
 live specs into their documented load flake (see Gotchas).
 
-Phases 23-59 all came from *auditing `vendor/rod` area by area*: the ledger
-reports 100% `ported` (5607 `ported`, 54 `skipped`, 14
-`intentional_divergence`), so new work has to be found by comparing behaviour,
-not by reading the ledger. Next up item 1 records what cannot be re-derived from
-the ledger: which areas were swept and which leads are still open.
+Phases 23-59 all came from *auditing `vendor/rod` area by area*: both ledgers
+are 100% `ported` (inventory 5607/54/15, tests 297 with four upstream `t.Skip`s),
+so new work has to be found by comparing behaviour. Next up item 1 keeps the
+recipes that found those 37 phases, plus the list of areas already swept, so a
+fresh session can pick up without re-deriving any of it.
 
 **Last commit:** `port: dispatch input events with go's InputEvent helper`
 (Phase 59; `git log -1` for the hash).
@@ -35,99 +35,84 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
 
 **Next up:**
 
-1. **[code, red-green] Next parity phase.** The audit queue is empty as of Phase
-   55 — every candidate lead has been verified and closed. Start a new sweep:
-   pick a `vendor/rod` file nobody has diffed yet, compare behaviour (not the
-   ledger), and land one feature-sized red-green commit: the upstream (or
-   equivalent characterization) spec first, then the fix, then gates + this file
-   + `CHANGELOG.md` + the ledger rows. Porting the *upstream* test first matters:
-   Phase 43 found that the stub-only `TestHandleAuth` had hidden a
-   `Fetch domain is not enabled` bug in `handle_auth`.
-   - Candidates already verified and closed in Phase 59, do not re-audit:
-     `Element#input` (fixed in 59), `Page#set_document_content` (now guarded by a
-     ported upstream test), `Page#cleanupStates` (no-op upstream, ledger row
-     closed), `Element#move_along`/`Mouse.MoveLinear` (loop shape and final
-     `move_to` match `input.go:255-268`), `Page#reload`/`#close` ordering
-     (subscribe-before-trigger, `ErrNotAttachedToActivePage` retry, dialog result
-     handling).
-   - Candidates already verified and closed in Phase 58, do not re-audit:
-     `Page.SetExtraHeaders`/`Page.HandleDialog` domain enablement (fixed in 58),
-     `HijackRouter#stop`'s unconditional `FetchDisable` (go does the same,
-     `hijack.go:189-192`), `Utils.FormatCLIArgs`/`EscapeGoString`/`RandString`/
-     `AbsolutePaths` (byte-equal to `lib/utils/utils.go:104-350`).
-   - Candidates already verified and closed in Phase 57, do not re-audit:
-     `EachEvent`/`WaitEvent` domain enablement (fixed in 57),
-     `Browser.GetCookies`/`SetCookies` (`Storage.getCookies`/`setCookies` with
-     `browserContextID`, and a nil cookie list clears them, like `browser.go:480-498`),
-     `WaitDownload`'s behavior save/restore (`load_state` + `restore_download_behavior`).
-   - Candidates already verified and closed in Phase 56, do not re-audit:
-     the element context class (8 call sites fixed in 56, see the phase),
-     `RaceContext#do` (probe-with-`NotFoundSleeper`, winner sleeper, callback
-     error and retry all match `query.go:429-455`), `SplicePngVertical`'s box
-     placement (go writes at `x` rather than `x - start.X`, but go never passes
-     a box — `ScrollScreenshot` always leaves it nil — so the port keeps the
-     packed layout and should not "fix" it without an upstream case).
-   - Candidates already verified and closed in Phase 55, do not re-audit:
-     `browser.go` `Page`/`Pages` (close-on-error path and ordering match),
-     `Browser#page`'s positional `CreateTarget` args (field order matches), the
-     four CDP fields documented as "Defaults to true" (`fromSurface` fixed in 54;
-     `fetchRelatives`, `allowUnsafeEvalBlockedByCSP`, `automaticPresenceSimulation`
-     are never constructed by `src/rod`, and `setTouchEmulationEnabled`'s
-     `enabled` / `setLifecycleEventsEnabled`'s `enabled` are required fields), the
-     `Runtime.callFunctionOn` false flags (fixed in 55), and the 36-entry
-     `lib/devices/list.go` table (all fields byte-equal to `src/rod/util/devices.cr`).
-   - Unexplored surfaces with plausible drift, roughly easiest-first:
-     `lib/utils` `EscapeGoString`/`RandString`/`AbsolutePaths`/`FormatCLIArgs`
-     edge cases, `element.go` `Screenshot`/`CanvasToImage` box maths,
-     `page.go` `EachEvent`/`EachEvent` macro semantics, `browser.go`
-     `WaitDownload`/`Cookies` request shapes, `query.go` `RaceContext`,
-     `input.go` `Key.Encode` for modifiers, `utils/imageutil.go`
-     `SplicePngVertical` (pixel placement, not just dimensions).
-   - Already swept, do not re-audit: context/cancellation (23, 26), event hub
-     (24), launcher/manager (21, 25, 29, 34), error types + `errors.Is` (27, 28),
-     quad geometry (30), `Element.Wait*` + `visible?` (31), lookup probes /
-     `NotFoundSleeper` (32), `wait_interactable` (33), `ElementsByJS` errors (35),
-     hijack bodies (36), `WaitDownload` restore (37), input mac mode (38),
-     `Pages#find` (39), `LoadResponse` bodies (40), `SelectAllText` (41),
-     `HandleAuth` + event-wait domain state (42, 43), `LoadState` params +
-     full-page screenshot viewport restore (44), element queries + `parents`
-     (45, 47), iframe panic handler (46), `quad` dedupe (49), generation gate
-     (50), `Search` + `ScrollIntoView`/`Focus`/`Blur`/`WaitRepaint` root rule
-     (51), dev-helper overlays + wait-requests trace (52), `Expose`/`MustExpose`
-     (53), `ScrollScreenshot` capture flags (54).
-   - Verified equal, no work needed: all 32 `lib/js` helper definitions are
-     byte-identical to `vendor/rod/lib/js/helper.go` (checked programmatically in
-     Phase 39 — don't re-audit them), and the keyboard/mouse/touch event payloads
-     match `input.go` + `Key.Encode` (Phase 38).
+1. **[code, red-green] Next parity phase — the audit queue is empty; use these
+   recipes.** Both ledgers are 100% `ported` (inventory: 5607 `ported` / 54
+   `skipped` / 15 `intentional_divergence`; tests: 297 `ported`, the only four
+   `N/A` rows are upstream `t.Skip`s), so the next phase comes from a behaviour
+   diff, not from a missing symbol. Each recipe below produced at least one
+   Phase; they are ranked by hit rate:
+   - **Class sweep.** Pick one Go construct and grep both trees for it:
+     `defer <restore>()`, `select {`, `Unwrap()`, `<domain>.enable`,
+     `Context(el.ctx)`, `gson.Int(0)`, `json:\",omitempty\"`,
+     `evalHelper(js.X)`, `EnableDomain(`. Phases 23/24 (closed channels), 27/28
+     (`Unwrap`/`errors.Is`), 54/55 (`bool` + `omitempty`), 56 (`Context(el.ctx)`),
+     57/58 (`EnableDomain`) and 59 (helper vs hand-written JS) all came from it.
+   - **Ported-test audit.** For every `vendor/rod/*_test.go` function, check the
+     Crystal spec drives the same path. Stub-only ports hide real bugs: Phase 43
+     (`TestHandleAuth` -> `Fetch domain is not enabled`), Phase 47
+     (`Element#parents` always answered `[]`).
+   - **Untested-method audit.** `def`s in `src/rod/**` that no spec names are
+     cheap leads (98 of 453 at Phase 55; most are `must_*` wrappers, the rest are
+     accessors and helpers).
+   - **Payload round-trip.** Record a CDP request with a stub client and compare
+     its bytes with what Go's `gson`/`encoding/json` would emit; that is how the
+     `fromSurface`/`callFunctionOn` bugs were found.
+   - **Swept so far, do not re-audit:** context/cancellation (23, 26), event hub
+     (24), launcher/manager (21, 25, 29, 34), error types (27, 28), quad geometry
+     (30, 49), `Element.Wait*` (31), lookup probes (32), `wait_interactable` (33),
+     `ElementsByJS` (35), hijack (36), `WaitDownload` (37), input mac mode (38),
+     `Pages#find` (39), `LoadResponse` (40), `SelectAllText` (41), `HandleAuth`
+     (42, 43), `LoadState` + screenshot viewport (44), element queries +
+     `parents` (45, 47), iframe panic handler (46), generation gate (50),
+     `Search` + root-repaint rule (51), dev-helper overlays (52), `Expose` (53),
+     capture flags (54), `browser.go` `Page`/`Pages`/cookies/devices table (55),
+     element context (56), `EachEvent`/`WaitEvent` (57), `SetExtraHeaders` /
+     `HandleDialog` (58), `Element#input` + `set_document_content` +
+     `cleanupStates` + `reload`/`close` (59). All 32 `lib/js` helpers are
+     byte-identical (Phase 39) and `Key.Encode` payloads match (Phase 38).
 2. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
    parity scripts instead of the repo's copied ones (whose `tree-sitter` branch
    is a placeholder), and decide curated-status preservation. Native tree-sitter
    discovery already works via the verified Chiasmus toolchain, but its
    vocabulary (`class`/`function`/`definition.*` plus merged `const`/`type`
    declarations) cannot be mapped onto the curated ids by a kind rename, so the
-   gate stays `PORT_PARSER=regex` until a reviewed id migration lands. It also
-   closes the `states.go::method::Page.cleanupStates` ledger row (the only
-   Phase 2 bullet still open).
+   gate stays `PORT_PARSER=regex` until a reviewed id migration lands. (The last
+   Phase 2 checklist bullet, `Page.cleanupStates`, is closed in Phase 59, so this
+   is now tooling-only work.)
 3. **[verify] Upstream Go suite flakiness:** `github.com/go-rod/rod` failed
    `TestPageElements` and `Example_basic` on 2026-11-17 while the other eight
    packages passed. Re-run before reading anything into a failure — these are
    browser-timing issues in the vendored project, not port gaps. Run with
    `GODEBUG=tracebackancestors=1000`.
-4. **[done]** Generation no-op check — landed as Phase 50:
-   `make check-generate-crystal` regenerates the pinned vintage into
-   `temp/cdp_generated/` and diffs it against `src/cdp`; the pinned run is a
-   no-op. It needs network on a cold cache (PDL files come from googlesource.com).
+4. **[verify] Generation no-op gate:** `make check-generate-crystal` regenerates
+   the pinned vintage (`CDP_CHROMIUM=160.0.8168.1`, `CDP_V8=16.0.61`) into
+   `temp/cdp_generated/` and diffs it against `src/cdp`; it passes with a warm
+   cache and needs network on a cold one (PDL files come from googlesource.com).
+   Re-run it after any template edit — Phase 30 and 59 both hand-edited generated
+   output alongside its template.
 5. **[optional cleanup]** The repo tracks built binaries (`rod`, `bin/pdlgen*`,
    `pdlgen*`), so local builds keep showing up as modified files. Decide whether
    to untrack them.
-6. **[done]** Quad geometry dedupe — landed as Phase 49: `Rod::Util::Quad`
-   delegates to the generated `Cdp::DOM` helpers and
-   `spec/quad_util_equivalence_spec.cr` keeps them honest.
-7. **[optional follow-up]** `spec/cdp_client_parity_spec.cr` and
+6. **[optional follow-up]** `spec/cdp_client_parity_spec.cr` and
    `spec/launcher_parity_spec.cr` still launch their own browsers. That is
    deliberate — they exercise the CDP client and the launcher itself
    (`TestLaunchClient`, `Browser.close` handling) — so only revisit it if a
    future spec needs a pooled page on top of its own client.
+
+**Loop checklist** — what "done" means for every phase (AGENTS.md is the
+authority):
+
+1. red-green: the new spec fails for the intended reason before the fix (stash
+   the src change and watch it fail, or write the spec first);
+2. `make format`, `make lint`, `make test` (~1m45s, 731 examples) and
+   `make check-go-port-inventory` / `check-go-source-parity` /
+   `check-go-test-parity`;
+3. `plans/parity.md`: new Phase entry + **Where we are** + **Next up** updated;
+4. `CHANGELOG.md` `Unreleased` entry (`Added`/`Changed`/`Fixed`);
+5. ledger rows the change touched (`crystal_refs` / notes), or an
+   `intentional_divergence` row when the port deliberately differs;
+6. one `port: ...` commit (what changed, divergences, gate results, upstream
+   `d38c753`) and `git push` — never leave a finished phase for the next loop.
 
 **Gotchas:** the 63 tree-sitter "missing" items and the 3422 kind-rename
 "stale" rows are tooling vocabulary drift, not port gaps — see Phase 1 and the
@@ -198,6 +183,17 @@ symbol "already exists" but misbehaves):
   "passed" while answering `[]`/`"/"` for every real page. When a method runs JS
   that uses `this`, check that it goes through the element's `evaluate`/`wait`
   (which bind `this`) and not `@page.evaluate` — and cover it with a live spec.
+- Enabling a CDP domain is state, not a call: go's `EnableDomain`
+  (`states.go:60-73`) skips `*.enable` when the registry already has it and makes
+  the restore a no-op. Unconditional `enable`/`disable` pairs disable a domain
+  someone else still needs (Phases 57 and 58).
+- Go options are `bool`/`int` with `json:",omitempty"`, so a zero never reaches
+  the wire. The port's proto fields are `Bool?`, so passing an explicit `false`
+  breaks any field whose CDP default is `true` (`fromSurface`, Phase 54) and
+  sends noise elsewhere (`callFunctionOn`, Phase 55).
+- Element operations run in the element's context (`el.page.Context(el.ctx)`,
+  15 sites in `element.go`). A method that calls `@page.x` directly ignores an
+  `Element#timeout`/`#context` clone (Phase 56).
 
 This is a curated feature roadmap, not a generated dump. Generated manifests
 (`go_source_parity.tsv`, `go_test_parity.tsv`) are reference snapshots;
