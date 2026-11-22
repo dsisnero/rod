@@ -586,6 +586,10 @@ module Rod
 
     # WaitEvent waits for the next event for one time. It will also load the data into the event object.
     def wait_event(e : Cdp::Event) : Proc(Nil)
+      # go defers `p.tryTrace(TraceTypeWait, "event", e.ProtoEvent())()`
+      # (`page.go:688-691`): the span is logged here and the overlay removed
+      # before the wait is returned.
+      try_trace(Rod::TraceTypeWait, "event", e.proto_event).call
       browser.context(@ctx).wait_event(e, @session_id)
     end
 
@@ -780,10 +784,17 @@ module Rod
       })
 
       -> do
-        wait.call
-        id = target_id
-        raise "target ID not captured from Target.targetCreated event" unless id
-        b.page_from_target(id)
+        # go defers the span inside the returned closure (`page.go:661-665`), so
+        # it is logged when the wait is called.
+        cleanup = try_trace(Rod::TraceTypeWait, "wait open")
+        begin
+          wait.call
+          id = target_id
+          raise "target ID not captured from Target.targetCreated event" unless id
+          b.page_from_target(id)
+        ensure
+          cleanup.call
+        end
       end
     end
 
@@ -804,9 +815,12 @@ module Rod
       })
 
       -> do
+        # go defers the span inside the returned closure (`page.go:702-705`).
+        cleanup = try_trace(Rod::TraceTypeWait, "navigation", name)
         begin
           wait.call
         ensure
+          cleanup.call
           begin
             Cdp::Page::SetLifecycleEventsEnabled.new(enabled: false).call(self)
           rescue
@@ -823,6 +837,11 @@ module Rod
       excludes : Array(String)? = nil,
       exclude_types : Array(Cdp::Network::ResourceType)? = nil,
     ) : Proc(Nil)
+      # go defers `p.tryTrace(TraceTypeWait, "request-idle")()` (`page.go:718`);
+      # the wait proc is returned synchronously, so the span is logged (and its
+      # overlay removed) as soon as the helper runs.
+      try_trace(Rod::TraceTypeWait, "request-idle").call
+
       exclude_types ||= [
         Cdp::Network::ResourceTypeWebSocket,
         Cdp::Network::ResourceTypeEventSource,
@@ -1180,16 +1199,22 @@ module Rod
 
     # WaitDOMStable waits until the DOM diff is <= diff for d duration.
     def wait_dom_stable(d : Time::Span, diff : Float64) : Nil
-      dom_snapshot = capture_dom_snapshot
+      # go defers the span over the whole body (`page.go:783-817`).
+      cleanup = try_trace(Rod::TraceTypeWait, "dom-stable")
+      begin
+        dom_snapshot = capture_dom_snapshot
 
-      loop do
-        wait_duration(d)
-        current = capture_dom_snapshot
+        loop do
+          wait_duration(d)
+          current = capture_dom_snapshot
 
-        dom_diff = dom_diff_ratio(dom_snapshot.strings, current.strings)
-        break if dom_diff <= diff
+          dom_diff = dom_diff_ratio(dom_snapshot.strings, current.strings)
+          break if dom_diff <= diff
 
-        dom_snapshot = current
+          dom_snapshot = current
+        end
+      ensure
+        cleanup.call
       end
     end
 
@@ -1200,37 +1225,43 @@ module Rod
 
     # WaitStable waits until the page is stable for d duration.
     def wait_stable(d : Time::Span) : Nil
-      error = Channel(Exception?).new(3)
+      # go defers the span over the whole body (`page.go:820-839`).
+      cleanup = try_trace(Rod::TraceTypeWait, "stable")
+      begin
+        error = Channel(Exception?).new(3)
 
-      spawn do
-        wait_load
-        error.send(nil)
-      rescue ex
-        error.send(ex)
-      end
-
-      spawn do
-        wait_request_idle(d).call
-        error.send(nil)
-      rescue ex
-        error.send(ex)
-      end
-
-      spawn do
-        wait_dom_stable(d, 0.0)
-        error.send(nil)
-      rescue ex
-        error.send(ex)
-      end
-
-      first_error : Exception? = nil
-      3.times do
-        if ex = error.receive
-          first_error ||= ex
+        spawn do
+          wait_load
+          error.send(nil)
+        rescue ex
+          error.send(ex)
         end
-      end
 
-      raise first_error if first_error
+        spawn do
+          wait_request_idle(d).call
+          error.send(nil)
+        rescue ex
+          error.send(ex)
+        end
+
+        spawn do
+          wait_dom_stable(d, 0.0)
+          error.send(nil)
+        rescue ex
+          error.send(ex)
+        end
+
+        first_error : Exception? = nil
+        3.times do
+          if ex = error.receive
+            first_error ||= ex
+          end
+        end
+
+        raise first_error if first_error
+      ensure
+        cleanup.call
+      end
     end
 
     private def wait_duration(duration : Time::Span) : Nil

@@ -37,6 +37,13 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Browser#trace(true)` now emits go's spans for the page waits: `wait open`,
+  `event <protoEvent>`, `navigation <name>`, `request-idle`, `dom-stable` and
+  `stable` (`page.go:661-705`, `718`, `784`, `822`), each placed where go's
+  `defer p.tryTrace(...)` sits — at helper entry for the synchronous waits and
+  inside the returned closure for `WaitOpen`/`WaitNavigation`. `Element#wait` no
+  longer invents a span go does not have (`element.go:608-610`), so all 31
+  upstream trace sites match.
 - `Element#screenshot` builds `Page.captureScreenshot` like go's struct literal
   (`element.go:681-684`): the `quality` is always transmitted, even `0`, because
   go's `gson.Int` returns a non-nil pointer and the `omitempty` tag therefore

@@ -641,13 +641,10 @@ module Rod
     end
 
     # Wait until the js returns true with this element bound as `this`.
+    # go's `Element.Wait` has no trace span (`element.go:608-610`); only the
+    # `Wait*` wrappers add one, so this method stays silent.
     def wait(opts : EvalOptions) : Nil
-      cleanup = try_trace(Rod::TraceTypeWait, opts.to_s)
-      begin
-        @page.context(@ctx).sleeper(@sleeper).wait(opts.this(@object))
-      ensure
-        cleanup.call
-      end
+      @page.context(@ctx).sleeper(@sleeper).wait(opts.this(@object))
     end
 
     # Wait for element to be visible

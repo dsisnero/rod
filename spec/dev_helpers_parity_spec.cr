@@ -69,6 +69,72 @@ private class TraceOverlayStubPage < Rod::Page
   end
 end
 
+private class WaitTraceStubBrowser < Rod::Browser
+  def call(context : HTTP::Client::Context?, session_id : String?, method : String, params : JSON::Any) : Bytes
+    _ = context
+    _ = session_id
+    _ = method
+    _ = params
+    %({}).to_slice
+  end
+
+  def context(ctx : Rod::Context) : Rod::Browser
+    _ = ctx
+    self
+  end
+
+  def each_event(session_id : Rod::SessionID?, callbacks : Hash(String, Rod::Browser::CallbackInfo)) : Proc(Nil)
+    _ = session_id
+    _ = callbacks
+    -> { }
+  end
+end
+
+# The wait spans are logged by the page helpers themselves, so the delegated work
+# is stubbed out. `wait_dom_stable` and `wait_request_idle` stay real here (one
+# example per helper, since a stub of either would shadow the traced method).
+private class WaitTraceBasePage < TraceOverlayStubPage
+  def initialize(browser : Rod::Browser)
+    super(browser, Rod::TargetID.new("target-id"))
+  end
+
+  def capture_dom_snapshot : Cdp::DOMSnapshot::CaptureSnapshotResult
+    Cdp::DOMSnapshot::CaptureSnapshotResult.new(
+      [] of Cdp::DOMSnapshot::DocumentSnapshot,
+      ["stable"] of String
+    )
+  end
+
+  # `Element#wait` polls through `Page#wait`; answer `true` without touching CDP.
+  def evaluate(opts : Rod::EvalOptions) : Cdp::Runtime::RemoteObject
+    _ = opts
+    Cdp::Runtime::RemoteObject.from_json(%({"type":"boolean","value":true}))
+  end
+end
+
+private class WaitTraceStablePage < WaitTraceBasePage
+  def wait_load : Nil
+  end
+
+  def wait_request_idle(
+    d : Time::Span,
+    includes : Array(String)? = nil,
+    excludes : Array(String)? = nil,
+    exclude_types : Array(Cdp::Network::ResourceType)? = nil,
+  ) : Proc(Nil)
+    _ = d
+    _ = includes
+    _ = excludes
+    _ = exclude_types
+    -> { }
+  end
+
+  def wait_dom_stable(d : Time::Span, diff : Float64) : Nil
+    _ = d
+    _ = diff
+  end
+end
+
 private class OverlayRecordPage < Rod::Page
   getter evals = [] of Rod::EvalOptions
 
@@ -298,5 +364,83 @@ describe "Dev helpers parity" do
     wait_for_overlay_removal(page)
 
     page.evals.any? { |opts| helper_name(opts) == "removeOverlay" }.should be_true
+  end
+end
+
+private class WaitTraceStubElement < Rod::Element
+  def initialize(page : Rod::Page)
+    object = Cdp::Runtime::RemoteObject.from_json(%({"type":"object","objectId":"obj-wait","description":"div"}))
+    super(object, page)
+  end
+
+  def scroll_into_view : Nil
+  end
+end
+
+describe "page wait trace spans parity" do
+  # `try_trace` prefers the trace logger, so a recording `Utils::Log` captures the
+  # span lines without touching a page.
+  it "logs go's wait spans for the waits that trace on creation" do
+    lines = [] of String
+    browser = WaitTraceStubBrowser.new
+    browser.logger(Rod::Util::Utils::Log.new { |vs| lines << vs.join(" ") })
+    browser.trace(true)
+
+    page = WaitTraceBasePage.new(browser)
+    page.wait_event(Cdp::Page::LoadEventFiredEvent.new(1.5))
+    page.wait_dom_stable(0.milliseconds, 0.0)
+
+    # Each helper runs on the page stub that leaves it real, so the traced method
+    # is never shadowed (the returned waits are not called, so nothing blocks).
+    plain = TraceOverlayStubPage.new(browser, Rod::TargetID.new("target-id"))
+    plain.wait_request_idle(10.milliseconds)
+    stable = WaitTraceStablePage.new(browser)
+    stable.wait_stable(0.milliseconds)
+
+    # go defers `p.tryTrace(TraceTypeWait, ...)()` at the top of each helper
+    # (`page.go:688-691`, `718`, `784`, `822`), so the span is logged when the
+    # helper runs.
+    lines.any? { |l| l.includes?("[wait]") && l.includes?(" event ") && l.includes?("Page.loadEventFired") }.should be_true
+    lines.any? { |l| l.includes?("[wait]") && l.includes?("request-idle") }.should be_true
+    lines.any? { |l| l.includes?("[wait]") && l.includes?("dom-stable") }.should be_true
+    lines.any? { |l| l.includes?("[wait]") && l.includes?(" stable ") }.should be_true
+  end
+
+  it "logs go's wait spans when the returned wait runs" do
+    lines = [] of String
+    browser = WaitTraceStubBrowser.new
+    browser.logger(Rod::Util::Utils::Log.new { |vs| lines << vs.join(" ") })
+    browser.trace(true)
+    page = WaitTraceBasePage.new(browser)
+
+    # go defers the span inside the returned closures (`page.go:661-665`,
+    # `702-705`), so it is logged when the wait is called. This stub never
+    # captures a target, so `wait_open`'s wait raises after logging.
+    expect_raises(Exception, "target ID not captured") { page.wait_open.call }
+    lines.last.should contain("[wait]")
+    lines.last.should contain("wait open")
+
+    page.wait_navigation("networkAlmostIdle").call
+    lines.last.should contain("[wait]")
+    lines.last.should contain("navigation networkAlmostIdle")
+  end
+
+  it "traces only go's Wait* wrappers, not Element#wait" do
+    lines = [] of String
+    browser = WaitTraceStubBrowser.new
+    browser.logger(Rod::Util::Utils::Log.new { |vs| lines << vs.join(" ") })
+    browser.trace(true)
+    page = WaitTraceBasePage.new(browser)
+    element = WaitTraceStubElement.new(page)
+
+    # go's `Element.Wait` has no span (`element.go:608-610`): only the Wait*
+    # wrappers add one, so a bare wait stays out of the trace log.
+    element.wait(Rod::EvalOptions.new(js: "() => true"))
+    lines.should be_empty
+
+    element.wait_visible
+    lines.size.should eq(1)
+    lines.last.should contain("[wait]")
+    lines.last.should contain("visible")
   end
 end
