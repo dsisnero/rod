@@ -340,6 +340,29 @@ describe "live browser parity" do
     end
   end
 
+  it "matches TestElementScreenshot with the always-present quality" do
+    with_live_browser do |browser|
+      page = browser.must_page(fixture_url("click.html"))
+      page.must_wait_load
+
+      button = page.must_element("button")
+
+      # go's `&proto.PageCaptureScreenshot{Quality: gson.Int(quality), ...}`
+      # (`element.go:681-684`) always sends `quality`, so the default png capture
+      # carries `quality: 0`; this proves Chrome accepts it and the crop works.
+      png = button.must_screenshot
+      width, height = parse_png_size(png)
+      width.should be > 0
+      height.should be > 0
+
+      jpeg = button.screenshot(Cdp::Page::CaptureScreenshotFormatJpeg, 0)
+      jpeg[0, 2].should eq(Bytes[0xFF_u8, 0xD8_u8])
+      Pluto::ImageRGBA.from_jpeg(IO::Memory.new(jpeg)).width.should eq(width)
+
+      page.must_close
+    end
+  end
+
   it "matches TestScrollScreenshot behavior with real browser" do
     with_live_browser do |browser|
       page = browser.must_page(fixture_url("scroll-y.html"))

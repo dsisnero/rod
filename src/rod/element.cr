@@ -328,8 +328,13 @@ module Rod
       scroll_into_view
 
       opts = Cdp::Page::CaptureScreenshot.new
-      opts.format = format
-      opts.quality = quality == 0 ? nil : quality.to_i64
+      # go builds `&proto.PageCaptureScreenshot{Quality: gson.Int(quality),
+      # Format: format}` (`element.go:681-684`): `gson.Int` is a non-nil pointer,
+      # so the quality is always transmitted (even `0`), while `Format` keeps its
+      # `json:"format,omitempty"` tag, so an empty format is never sent and Chrome
+      # keeps its `png` default.
+      opts.format = format.empty? ? nil : format
+      opts.quality = quality.to_i64
 
       bin = @page.context(@ctx).screenshot(false, opts)
 

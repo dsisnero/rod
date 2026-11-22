@@ -510,6 +510,8 @@ private class ScreenshotStubPage < Rod::Page
   # `Element#screenshot` re-contexts the page like go (`el.page.Context(el.ctx)`),
   # which dups this stub, so the call log has to be a shared object.
   getter screenshot_contexts = [] of Rod::Context
+  getter screenshot_requests = [] of Cdp::Page::CaptureScreenshot?
+  property screenshot_bytes : Bytes = "png".to_slice
   property screenshot_error : Exception? = nil
 
   def initialize
@@ -522,13 +524,27 @@ private class ScreenshotStubPage < Rod::Page
 
   def screenshot(full_page : Bool = false, req : Cdp::Page::CaptureScreenshot? = nil) : Bytes
     _ = full_page
-    _ = req
     @screenshot_contexts << get_context
+    @screenshot_requests << req
     if ex = @screenshot_error
       raise ex
     end
-    "png".to_slice
+    @screenshot_bytes
   end
+end
+
+# A real PNG so the post-capture `Utils.crop_image` step runs instead of raising.
+private def screenshot_stub_png(width : Int32 = 20, height : Int32 = 20) : Bytes
+  pixels = width * height
+  image = Pluto::ImageRGBA.new(
+    Array(UInt8).new(pixels, 255_u8),
+    Array(UInt8).new(pixels, 255_u8),
+    Array(UInt8).new(pixels, 255_u8),
+    Array(UInt8).new(pixels, 255_u8),
+    width,
+    height
+  )
+  Rod::Util::Utils::PngProcessor.new.encode(image, nil)
 end
 
 private class FnErrStubPage < Rod::Page
@@ -1454,6 +1470,37 @@ describe Rod::Element do
 
       expect_raises(Exception, "shape failed") { element.screenshot }
       page.screenshot_calls.should eq(1)
+    end
+
+    it "sends quality like go's gson.Int, including a zero value" do
+      page = ScreenshotStubPage.new
+      page.screenshot_bytes = screenshot_stub_png
+      element = InteractableStubElement.new(page)
+
+      # go: `&proto.PageCaptureScreenshot{Quality: gson.Int(quality), Format: format}`
+      # (`element.go:681-684`); `gson.Int` always yields a non-nil pointer, so a
+      # zero quality is transmitted instead of being omitted.
+      element.screenshot
+      request = page.screenshot_requests.last.not_nil!
+      request.quality.should eq(0)
+      request.format.should eq(Cdp::Page::CaptureScreenshotFormatPng)
+
+      element.screenshot(Cdp::Page::CaptureScreenshotFormatJpeg, 80)
+      request = page.screenshot_requests.last.not_nil!
+      request.quality.should eq(80)
+      request.format.should eq(Cdp::Page::CaptureScreenshotFormatJpeg)
+    end
+
+    it "omits an empty format like go's omitempty tag" do
+      page = ScreenshotStubPage.new
+      page.screenshot_bytes = screenshot_stub_png
+      element = InteractableStubElement.new(page)
+
+      element.screenshot("", 0)
+
+      # go's `Format` is `json:"format,omitempty"`, so an empty format never
+      # reaches the browser and Chrome keeps its `png` default.
+      page.screenshot_requests.last.not_nil!.format.should be_nil
     end
   end
 

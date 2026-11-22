@@ -117,7 +117,7 @@ element.go::method::Element.Property	method	ported	src/rod/element.cr,spec/eleme
 element.go::method::Element.Release	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
 element.go::method::Element.Remove	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
 element.go::method::Element.Resource	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
-element.go::method::Element.Screenshot	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_context_parity_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered; runs in the element's context like go's `el.page.Context(el.ctx)` (element.go:88-734)
+element.go::method::Element.Screenshot	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/live_browser_parity_spec.cr	builds `Page.captureScreenshot` like go's struct literal: `Quality: gson.Int(quality)` is always sent (even 0) and an empty `Format` is omitted (`element.go:676-707`, Phase 64); also runs in the element's context
 element.go::method::Element.ScrollIntoView	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/live_browser_parity_spec.cr,spec/element_shadow_root_parity_spec.cr	waits for a stable RAF then issues DOM.scrollIntoViewIfNeeded on the element's context (element.go:68-78, Phase 62)
 element.go::method::Element.Select	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr	element API parity covered
 element.go::method::Element.SelectAllText	method	ported	src/rod/element.cr,spec/element_spec.cr,spec/element_lifecycle_parity_spec.cr,spec/live_browser_parity_spec.cr,spec/element_select_all_text_parity_spec.cr	evaluates go's js.SelectAllText as a user gesture so input/textarea contents are selected (element.go:241-254)
@@ -5305,7 +5305,7 @@ must.go::method::Element.MustProperty	method	ported	src/rod/must.cr,spec/must_pa
 must.go::method::Element.MustRelease	method	ported	src/rod/must.cr,spec/must_panic_parity_spec.cr	must wrapper APIs ported with panic-hook behavior parity
 must.go::method::Element.MustRemove	method	ported	src/rod/must.cr,spec/must_panic_parity_spec.cr	must wrapper APIs ported with panic-hook behavior parity
 must.go::method::Element.MustResource	method	ported	src/rod/must.cr,spec/must_panic_parity_spec.cr	must wrapper APIs ported with panic-hook behavior parity
-must.go::method::Element.MustScreenshot	method	ported	src/rod/must.cr,spec/must_panic_parity_spec.cr	must wrapper APIs ported with panic-hook behavior parity
+must.go::method::Element.MustScreenshot	method	ported	src/rod/must.cr,spec/must_panic_parity_spec.cr,spec/live_browser_parity_spec.cr	must wrapper APIs ported with panic-hook behavior parity; the png/quality-0 path is covered live (Phase 64)
 must.go::method::Element.MustScrollIntoView	method	ported	src/rod/must.cr,spec/must_panic_parity_spec.cr	must wrapper APIs ported with panic-hook behavior parity
 must.go::method::Element.MustSelect	method	ported	src/rod/must.cr,spec/must_panic_parity_spec.cr	must wrapper APIs ported with panic-hook behavior parity
 must.go::method::Element.MustSelectAllText	method	ported	src/rod/must.cr,spec/must_panic_parity_spec.cr	must wrapper APIs ported with panic-hook behavior parity

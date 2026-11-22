@@ -3,16 +3,15 @@
 **Source of truth**: `vendor/rod` (go-rod) at `d38c753`
 **Target**: Crystal port under `src/`, specs under `spec/`
 **Language**: `go` · **Manifests**: `plans/inventory/go_*`
-**Last evaluated**: 2026-11-21
+**Last evaluated**: 2026-11-22
 
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 63 (`refresh_iframe_element` rebuilds
-a stale iframe element on the parent page through `ElementFromObject`, so its
-helpers land in the parent's JS world). The element-context audit that started in
-Phase 56 is now complete: the explicit `Context(el.ctx)` sites (56), the implicit
-`Call(el)`/`Contextable` sites (62) and the iframe refresh (63) all match Go.
+green, and the last feature commit is Phase 64 (`Element#screenshot` always sends
+`quality` like go's `gson.Int` and omits an empty `format` like its `omitempty`
+tag). The element-context audit (Phases 56/62/63) and the `gson.Int` pointer sweep
+are both closed.
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~2m30s). Before a full run, clear stray headless browsers left
@@ -23,17 +22,17 @@ test` runs: it fails `spec/launcher_launch_parity_spec.cr:18`,
 `spec/live_browser_parity_spec.cr:1464` and `spec/live_browser_pool_spec.cr:144`
 on a busy machine, none of which are real failures.
 
-Phases 23-63 all came from *auditing `vendor/rod` area by area*: both ledgers
+Phases 23-64 all came from *auditing `vendor/rod` area by area*: both ledgers
 are 100% `ported` (inventory 5607/54/15, tests 297 with four upstream `t.Skip`s),
 so new work has to be found by comparing behaviour. Next up item 1 keeps the
-recipes that found those 41 phases, plus the list of areas already swept, so a
+recipes that found those 42 phases, plus the list of areas already swept, so a
 fresh session can pick up without re-deriving any of it.
 
-**Last commit:** `port: keep the iframe element on the parent page when refreshed`
-(Phase 63; `git log -1` for the hash).
+**Last commit:** `port: send the element screenshot quality like go's gson.Int`
+(Phase 64; `git log -1` for the hash).
 
-**Gates (2026-11-21, after Phase 63):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (742 examples, 0 failures) · parity checks pass
+**Gates (2026-11-22, after Phase 64):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (745 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -49,10 +48,11 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    - **Class sweep.** Pick one Go construct and grep both trees for it:
      `defer <restore>()`, `select {`, `Unwrap()`, `<domain>.enable`,
      `Context(el.ctx)`, `gson.Int(0)`, `json:\",omitempty\"`,
-     `evalHelper(js.X)`, `EnableDomain(`, `.Call(el)`. Phases 23/24 (closed
-     channels), 27/28 (`Unwrap`/`errors.Is`), 54/55 (`bool` + `omitempty`), 56
-     (`Context(el.ctx)`), 57/58 (`EnableDomain`), 59 (helper vs hand-written JS)
-     and 62 (`Contextable`, i.e. `.Call(el)` vs `.call(@page)`) all came from it.
+     `evalHelper(js.X)`, `EnableDomain(`, `.Call(el)`, `gson.(Int|Str|Bool)(`.
+     Phases 23/24 (closed channels), 27/28 (`Unwrap`/`errors.Is`), 54/55 (`bool`
+     + `omitempty`), 56 (`Context(el.ctx)`), 57/58 (`EnableDomain`), 59 (helper
+     vs hand-written JS), 62 (`Contextable`, i.e. `.Call(el)` vs `.call(@page)`)
+     and 64 (`gson.Int` forces a field present) all came from it.
    - **Ported-test audit.** For every `vendor/rod/*_test.go` function, check the
      Crystal spec drives the same path. Stub-only ports hide real bugs: Phase 43
      (`TestHandleAuth` -> `Fetch domain is not enabled`), Phase 47
@@ -79,8 +79,9 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      `cleanupStates` + `reload`/`close` (59), `CaptureDOMSnapshot` + every
      `*: true` proto flag in `vendor/rod/*.go` (60), every `evalHelper(js.X)`
      call site / all 33 `lib/js` helpers (39, 59, 61), element CDP requests /
-     `Element.Call` + `Contextable` + the iframe-element refresh (56, 62, 63).
-     `Key.Encode` payloads match (Phase 38).
+     `Element.Call` + `Contextable` + the iframe-element refresh (56, 62, 63),
+     every `gson.(Int|Str|Bool)` payload site (64). `Key.Encode` payloads match
+     (Phase 38).
 2. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
    parity scripts instead of the repo's copied ones (whose `tree-sitter` branch
    is a placeholder), and decide curated-status preservation. Native tree-sitter
@@ -115,7 +116,7 @@ authority):
 
 1. red-green: the new spec fails for the intended reason before the fix (stash
    the src change and watch it fail, or write the spec first);
-2. `make format`, `make lint`, `make test` (~2m30s, 742 examples) and
+2. `make format`, `make lint`, `make test` (~2m30s, 745 examples) and
    `make check-go-port-inventory` / `check-go-source-parity` /
    `check-go-test-parity`;
 3. `plans/parity.md`: new Phase entry + **Where we are** + **Next up** updated;
@@ -220,7 +221,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 107 files, 742 examples, 0 failures (2026-11-21, Chromium `158.0.8127.37`) |
+| Crystal specs | 107 files, 745 examples, 0 failures (2026-11-22, Chromium `158.0.8127.37`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -1992,6 +1993,37 @@ events, and a dialog handled while someone held the Page domain disabled it).
       `FetchDisable` unconditionally (`hijack.go:189-192`), so the port matches.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (729 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 64 — `Element#screenshot` sends the quality go always transmits ✅
+
+`Element.Screenshot` builds `&proto.PageCaptureScreenshot{Quality: gson.Int(quality),
+Format: format}` (`element.go:676-707`). `gson.Int` returns a non-nil `*int`
+(`gson/read.go:249-251`), so the `json:"quality,omitempty"` tag never drops it:
+Chrome always receives `quality`, including `0`. The port sent
+`quality == 0 ? nil : quality`, so the default capture omitted the field, and it
+passed `format` straight through, so an empty format reached Chrome as
+`"format":""` (go omits it through `omitempty` and Chrome keeps its `png`
+default — the port's payload is rejected instead).
+
+Found with the `gson.Int(0)` class-sweep recipe; the other nine `gson.Int` sites
+(`Describe` depth, the four mouse `Buttons`, `MaxTouchPoints`, `Key.Encode`
+location, `MustSetWindow` bounds) already matched.
+
+- [x] Red-green `spec/element_spec.cr`: `ScreenshotStubPage` now records the
+      `PageCaptureScreenshot` it is handed, and two examples assert the payload —
+      defaults produce `quality: 0` + `format: png`, an explicit `(jpeg, 80)`
+      produces `quality: 80`, and `("", 0)` omits the format. Red before:
+      `quality` was `nil` and `format` was `""`.
+- [x] `src/rod/element.cr`: `opts.format = format.empty? ? nil : format`,
+      `opts.quality = quality.to_i64`.
+- [x] `spec/live_browser_parity_spec.cr`: live `TestElementScreenshot` coverage —
+      `Element#must_screenshot` (png, quality 0) parses as a PNG of the element's
+      box, and `screenshot(jpeg, 0)` returns a JPEG of the same width, so Chrome
+      accepting the always-present quality is proven against a real browser.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (745 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

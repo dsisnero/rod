@@ -37,6 +37,11 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Element#screenshot` builds `Page.captureScreenshot` like go's struct literal
+  (`element.go:681-684`): the `quality` is always transmitted, even `0`, because
+  go's `gson.Int` returns a non-nil pointer and the `omitempty` tag therefore
+  never drops it; and an empty `format` is omitted like its `omitempty` tag, so
+  Chrome keeps its `png` default instead of rejecting `"format": ""`.
 - The iframe element refresh keeps the parent page's JS context: when Chrome
   answers a stale-node error while an iframe page resolves its JS context,
   `refresh_iframe_element` now rebuilds the `<iframe>` element through
