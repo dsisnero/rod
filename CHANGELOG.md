@@ -64,6 +64,17 @@ below describe the Crystal port, not upstream changes.
 
 ### Changed
 
+- Parity tooling now runs the installed `cross-language-crystal-parity` skill
+  instead of a copied snapshot: `scripts/*.sh` are forwarding wrappers and the
+  `Makefile` pins `PORT_PARSER=tree-sitter` through the skill's verified Chiasmus
+  toolchain. The curated ledger and both parity snapshots were re-based from the
+  regex id vocabulary to the native labels (`struct`→`class`, `func`→`function`,
+  `type`→`interface`); 9 template/string artifacts were dropped and the 233
+  unexported helpers tree-sitter discovers are `intentional_divergence`
+  (`utils.go::NewPool` is `ported`). The checker now validates every
+  `crystal_refs` file, which also fixed 207 stale `src/rod/lib/*` refs and 4
+  `N/A` cells. `make generate-go-port-inventory` now writes a candidate under
+  `temp/`; the curated ledger is re-based by hand, never regenerated in place.
 - `examples/` call the browser/page/element DSL through the `!` aliases now
   (`connect!`, `page!`, `element!`, `click!`, `text!`, …) instead of the explicit
   `must_*` names, matching the style the README advertises. Behavior is

@@ -10,7 +10,7 @@
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
 green. The last *feature* commit is Phase 69 (`Browser#page` accepts go's
 `Target.createTarget` options, so `newWindow`/`background`/`forTab` and the
-browser context are forwarded instead of being hard-coded to nil); the five
+browser context are forwarded instead of being hard-coded to nil); the six
 commits after it are repo hygiene, not phases:
 
 - `docs: repair the examples and document the recent port work` — 7 of 29
@@ -34,6 +34,13 @@ commits after it are repo hygiene, not phases:
   `Rod::Util::Launcher.resolve_url!`/`new_managed!`/`client!` and
   `Pool#get!` were added as explicit one-line delegates so the launcher and pool
   call sites convert too.
+- `build: adopt the parity skill's scripts and tree-sitter ids` — `scripts/` now
+  forwards to the installed skill (no copied implementation), `make` pins
+  `PORT_PARSER=tree-sitter`, and the curated ledger plus both snapshots were
+  re-based from the regex id vocabulary to Chiasmus' native labels
+  (`struct`→`class`, `func`→`function`, `type`→`interface`). The checker now
+  validates every `crystal_refs` file, which surfaced 207 stale `src/rod/lib/*`
+  refs (remapped to `src/rod/util/*`) and 4 `N/A` cells (now `-`).
 
 The element-context audit (56/62/63), the `gson.Int` sweep (64), the trace-site
 sweep (65), the `Element.Wait*` timing sweep (66), the swallowed element errors
@@ -52,30 +59,33 @@ and `spec/live_browser_pool_spec.cr:144` on a busy machine (plus
 example, which errored once under a full-suite run and passes in isolation),
 none of which are real failures.
 
-Phases 23-69 all came from *auditing `vendor/rod` area by area*: both ledgers
-are 100% `ported` (inventory 5607/54/15, tests 297 with four upstream `t.Skip`s),
-so new work has to be found by comparing behaviour. Next up item 1 keeps the
-recipes that found those 47 phases, plus the list of areas already swept, so a
-fresh session can pick up without re-deriving any of it.
+Phases 23-69 all came from *auditing `vendor/rod` area by area*: every exported
+Go API is `ported` (inventory 5603 `ported` / 54 `skipped` legacy protocol rows /
+244 `intentional_divergence`, of which 233 are unexported helpers tree-sitter now
+discovers), and the only four `N/A` test rows are upstream `t.Skip`s, so new
+work has to be found by comparing behaviour. Next up item 1 keeps the recipes
+that found those 47 phases, plus the list of areas already swept, so a fresh
+session can pick up without re-deriving any of it.
 
 **Last commit:** the last *feature* commit is Phase 69 (`port: forward page
-creation options like go`), followed by the five hygiene commits listed above;
-`git log --oneline -6` shows the current head. This block is current as of that
+creation options like go`), followed by the six hygiene commits listed above;
+`git log --oneline -7` shows the current head. This block is current as of that
 head — no work is in flight.
 
-**Gates (2026-11-22, after the examples pass):** `make format` pass · `make lint`
-pass (241 files) · `make check-examples` pass (30 example files) · `make test`
-pass (757 examples, 0 failures) · parity checks pass (5665 inventory rows with 10
-documented divergences and 54 `skipped` legacy protocol rows, 5368 API items, 297
-tests) · upstream Go suite: 8/9 packages pass, `go-rod/rod` main package has
-browser-timing failures (see Next up).
+**Gates (2026-11-23, after the tree-sitter migration):** `make format` pass ·
+`make lint` pass (241 files) · `make check-examples` pass (30 example files) ·
+`make test` pass (761 examples, 0 failures) · parity checks pass under
+tree-sitter (5604 source items in the inventory, 5604 API items, 1489 test-scope
+items, 297 curated `test` rows) · upstream Go suite: 8/9 packages pass,
+`go-rod/rod` main package has browser-timing failures (see Next up).
 
 **Next up:**
 
 1. **[code, red-green] Next parity phase — the audit queue is empty; use these
-   recipes.** Both ledgers are 100% `ported` (inventory: 5607 `ported` / 54
-   `skipped` / 15 `intentional_divergence`; tests: 297 `ported`, the only four
-   `N/A` rows are upstream `t.Skip`s), so the next phase comes from a behaviour
+   recipes.** Every exported symbol is `ported` (inventory: 5603 `ported` / 54
+   `skipped` / 244 `intentional_divergence` — of which 233 are unexported
+   helpers tree-sitter now discovers; tests: 297 `ported`, the only four `N/A`
+   rows are upstream `t.Skip`s), so the next phase comes from a behaviour
    diff, not from a missing symbol. Each recipe below produced at least one
    Phase; they are ranked by hit rate:
    - **Class sweep.** Pick one Go construct and grep both trees for it:
@@ -137,30 +147,21 @@ browser-timing failures (see Next up).
    message` to stdout, with a spec pinning a rendered line. Do it together with a
    decision on the bracketed `[wait]` label (`Rod.trace_type_label`) versus go's
    bare `wait`.
-4. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
-   parity scripts instead of the repo's copied ones (whose `tree-sitter` branch
-   is a placeholder), and decide curated-status preservation. Native tree-sitter
-   discovery already works via the verified Chiasmus toolchain, but its
-   vocabulary (`class`/`function`/`definition.*` plus merged `const`/`type`
-   declarations) cannot be mapped onto the curated ids by a kind rename, so the
-   gate stays `PORT_PARSER=regex` until a reviewed id migration lands. (The last
-   Phase 2 checklist bullet, `Page.cleanupStates`, is closed in Phase 59, so this
-   is now tooling-only work.)
-5. **[verify] Upstream Go suite flakiness:** `github.com/go-rod/rod` failed
+4. **[verify] Upstream Go suite flakiness:** `github.com/go-rod/rod` failed
    `TestPageElements` and `Example_basic` on 2026-11-17 while the other eight
    packages passed. Re-run before reading anything into a failure — these are
    browser-timing issues in the vendored project, not port gaps. Run with
    `GODEBUG=tracebackancestors=1000`.
-6. **[verify] Generation no-op gate:** `make check-generate-crystal` regenerates
+5. **[verify] Generation no-op gate:** `make check-generate-crystal` regenerates
    the pinned vintage (`CDP_CHROMIUM=160.0.8168.1`, `CDP_V8=16.0.61`) into
    `temp/cdp_generated/` and diffs it against `src/cdp`; it passes with a warm
    cache and needs network on a cold one (PDL files come from googlesource.com).
    Re-run it after any template edit — Phase 30 and 59 both hand-edited generated
    output alongside its template.
-7. **[optional cleanup]** The repo tracks built binaries (`rod`, `bin/pdlgen*`,
+6. **[optional cleanup]** The repo tracks built binaries (`rod`, `bin/pdlgen*`,
    `pdlgen*`), so local builds keep showing up as modified files. Decide whether
    to untrack them.
-8. **[optional follow-up]** `spec/cdp_client_parity_spec.cr` and
+7. **[optional follow-up]** `spec/cdp_client_parity_spec.cr` and
    `spec/launcher_parity_spec.cr` still launch their own browsers. That is
    deliberate — they exercise the CDP client and the launcher itself
    (`TestLaunchClient`, `Browser.close` handling) — so only revisit it if a
@@ -171,7 +172,7 @@ authority):
 
 1. red-green: the new spec fails for the intended reason before the fix (stash
    the src change and watch it fail, or write the spec first);
-2. `make format`, `make lint`, `make test` (~2m30s, 757 examples),
+2. `make format`, `make lint`, `make test` (~2m30s, 761 examples),
    `make check-examples` (every example compiles) and
    `make check-go-port-inventory` / `check-go-source-parity` /
    `check-go-test-parity`;
@@ -182,12 +183,14 @@ authority):
 6. one `port: ...` commit (what changed, divergences, gate results, upstream
    `d38c753`) and `git push` — never leave a finished phase for the next loop.
 
-**Gotchas:** the 63 tree-sitter "missing" items and the 3422 kind-rename
-"stale" rows are tooling vocabulary drift, not port gaps — see Phase 1 and the
-"Parity tooling" section of `AGENTS.md`. Phase 2's last checklist bullet
-(`states.go::method::Page.cleanupStates` ledger row) is also waiting on that
-reconciliation. `make generate-crystal` is not reproducible by default
-(`--latest`); pin `CDP_CHROMIUM`/`CDP_V8` (Phase 8 records the working pair).
+**Gotchas:** parity discovery runs tree-sitter through the installed
+`cross-language-crystal-parity` skill (see AGENTS.md > Parity tooling). A
+manifest-vs-discovery mismatch is a real gate failure now: refresh the
+source/test snapshots with `make generate-go-source-parity` /
+`generate-go-test-parity`, or re-base the curated ledger by hand — never hide a
+failure with `PORT_PARSER=regex`. `make generate-crystal` is not reproducible by
+default (`--latest`); pin `CDP_CHROMIUM`/`CDP_V8` (Phase 8 records the working
+pair).
 Chrome dropped the `console`, `database` and `schema` domains, so those
 inventory rows are `skipped` and `spec/cdp_legacy_proto_parity_spec.cr` is gone.
 The upstream Go suite panics in its leak detector unless
@@ -281,67 +284,46 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 
 | Metric | Value |
 |---|---|
-| Port inventory rows | 5665 discovered + 10 documented divergences (5,601 `ported` + 54 `skipped` + 10 `intentional_divergence`) |
-| Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
-| Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
-| Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 108 files, 757 examples, 0 failures (2026-11-22, Chromium `158.0.8127.37`) |
+| Port inventory rows | 5901 curated rows: 5603 `ported` + 54 `skipped` + 244 `intentional_divergence`; discovery tracks 5604 source items |
+| Source parity (tree-sitter, authoritative) | 5604 API items, check PASS |
+| Test parity (tree-sitter) | 1489 test-scope items (the curated ledger tracks the 297 `test`-kind rows) |
+| Crystal specs | 109 files, 761 examples, 0 failures (2026-11-23, Chromium `158.0.8127.37`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
-The tree-sitter backend (new in the parity skill) discovers Go **unexported**
-methods, but it also uses a **different kind vocabulary** than the regex backend
-that generated the curated manifests:
+The curated ledger is keyed on Chiasmus' native labels. The regex vocabulary it
+used before 2026-11-23 is retired:
 
-| regex kind (manifests) | tree-sitter kind | example id change |
+| retired regex label | tree-sitter label | example id change |
 |---|---|---|
 | `func` | `function` | `browser.go::func::New` → `browser.go::function::New` |
 | `struct` | `class` | `browser.go::struct::Browser` → `browser.go::class::Browser` |
-| `const` / `type` | `definition.type`, `field` | `...::const::X` → `...::definition.type::X` |
-| `method` | `method` | matches (only unexported extras differ) |
+| `type` (interfaces) | `interface` | `lib/cdp/client.go::type::WebSocketable` → `...::interface::WebSocketable` |
+| `const` / `type` / `method` / `test` | unchanged | — |
 
-Consequence with `PORT_PARSER=tree-sitter` on the current curated manifests:
-**63 "missing"** (unexported methods the regex backend never emitted) **plus
-3422 "stale"** (every regex `func`/`struct`/`const`/`type` row, which
-tree-sitter renames). The checker exits on "missing" first, so the 63 masked the
-larger mismatch. The regex backend therefore remains **authoritative** for the
-curated manifests until the tooling normalizes kinds.
+The vocabulary mismatch is resolved: the ledger was re-based on 2026-11-23 (see
+below). `PORT_PARSER=tree-sitter` is now authoritative, and the checker requires
+the manifest to match discovery exactly — including unexported helpers.
 
 ---
 
-## Evaluation of the 63 tree-sitter findings
+## Tree-sitter vocabulary migration (2026-11-23)
 
-The 63 items are the tree-sitter `missing` set (the check exits before it would
-report the 3422 `stale` kind-rename rows above). All 63 are unexported
-implementation details, code-generation tooling, or platform shims. **62 map to
-an existing Crystal equivalent** (renamed, restructured, or inlined); **1 is a
-genuine minor gap**. Full list:
-`plans/inventory/go_tree_sitter_drift_notes.txt`.
+`scripts/` now forwards to the installed skill and `make` pins
+`PORT_PARSER=tree-sitter`, so the curated ledger and both snapshots use the
+native labels. Identity is (file, name), so `status`/`crystal_refs`/`notes`
+carried over: 1393 `struct`→`class`, 68 `func`→`function`, 10
+`type`→`interface`; 5667 rows matched, and 9 regex artifacts were dropped
+(constants inside Go template strings in `lib/assets/generate/main.go` and
+`lib/launcher/revision/main.go`, plus the `{{.name}}` pseudo-methods that
+`lib/proto/generate/main.go` only emits as text).
 
-| Category | Count | Verdict |
-|---|---|---|
-| Browser / page / element unexported helpers | 8 | False positive — snake_case equivalents |
-| `page_eval.go` internals | 9 | False positive — `page.cr` equivalents |
-| `dev_helpers.go` tracers | 7 | False positive — `dev_helpers.cr` equivalents |
-| `input.go` keyboard/mouse/touch internals | 6 | False positive — renamed accessors |
-| `states.go` browser state cache | 4 | False positive — restructured (`@targets` / `set_state`) |
-| `states.go` `Page.cleanupStates` | 1 | Ported — cache eviction on close (Phase 2) |
-| `lib/launcher` internals | 10 | False positive — inlined / renamed / platform flags |
-| `lib/cdp` client + websocket internals | 5 | False positive — `util/cdp/*` equivalents |
-| `lib/utils` `IdleCounter.reset` | 1 | False positive — inlined in `done` / `wait` |
-| `lib/docker` release tooling | 5 | Intentional divergence — recorded in the ledger (Phase 4) |
-| `lib/proto/generate` codegen tooling | 5 | Intentional divergence — recorded in the ledger (Phase 4); Crystal `pdlgen` |
-| `page.go` `getWindowID` / `initEvents` | 2 | `get_window_id`; `initEvents` -> `Page#init_events` (Phase 3) |
-
-### Genuine missing functionality
-
-1. **`Page.cleanupStates` — target-cache eviction on page close.** ✅ resolved
-   Go `Page.Close` calls `cleanupStates()` → `Browser.RemoveState(TargetID)`,
-   evicting the cached `*Page`. Crystal caches pages in `@targets`
-   (`src/rod/browser.cr:36`). Ported in Phase 2: `Browser#remove_cached_page`
-   (`src/rod/browser.cr:413`) is called from `Page#close` only on success
-   (`src/rod/page.cr:1400`), matching Go's `if success { cleanupStates() }`.
-   Covered by specs in `spec/page_settings_parity_spec.cr`.
+The 233 unexported helpers that tree-sitter newly discovers are recorded as
+`intentional_divergence` (they have no public Crystal API surface), and the one
+previously-missed exported symbol — `utils.go::function::NewPool` — is `ported`
+to `Rod::Pool(T)` (`src/rod/types.cr`, `spec/pool_spec.cr`). The earlier
+"63 missing / 3422 stale" numbers came from comparing native ids against the
+regex manifests and are obsolete.
 
 ### Structural divergences (accepted idioms, no action)
 
@@ -386,35 +368,31 @@ genuine minor gap**. Full list:
 
 Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
 
-### Phase 1 — Tree-sitter discovery: exploratory overlay, not a gate ⚠️
-- [x] Diagnosed the original "63 missing / 3422 stale" numbers: they come from
+### Phase 1 — Tree-sitter discovery: authoritative backend ✅
+- [x] Diagnosed the original "63 missing / 3422 stale" numbers: they came from
       `chiasmus-discover` (native tree-sitter labels) compared against the curated
       regex-vocabulary manifests, not from `make check-go-*`.
 - [x] Corrected the earlier "blocked on the Ruby `tree_sitter` gem" note. The gem
-      only feeds the placeholder tree-sitter branch in the repo's copied
-      `scripts/parity_inventory_lib.rb`, which still calls `discover_with_regex`;
-      `PORT_PARSER=tree-sitter` therefore warns and exits 0 by falling back to
-      regex. Installing the gem changes the warning, not extraction.
+      only fed the placeholder tree-sitter branch in the repo's old copied
+      `parity_inventory_lib.rb` (since removed), which still called
+      `discover_with_regex`.
 - [x] Verified a real tree-sitter backend *is* available here:
       `verify_skill_install.sh . go tree-sitter` resolves a verified Chiasmus
       toolchain and reports `PARITY_DISCOVERY_BACKEND=chiasmus-tree-sitter`.
 - [x] Measured the native vocabulary over `vendor/rod` with that verified binary:
       1416 `class`, 551 `function`, 2841 `method`, 1689 `const`, plus auxiliary
       `definition.method`/`field`/`params`/`return_type`/`reference.class` kinds.
-      The curated ledger uses `func`/`struct`/`const`/`type`/`method`, and Go
-      native discovery also merges standalone `const`/`type` declarations, so a
-      kind rename alone cannot reconstruct the curated ids.
-- [x] Decision (per the cross-language parity skill): keep `PORT_PARSER=regex`
-      authoritative for the curated ledger (green: 5368 API items) and treat
-      native discovery as an exploratory overlay. Never copy native ids or
-      statuses into `go_port_inventory.tsv`.
-- [ ] Optional tooling migration (Next up): adopt the installed skill's canonical
-      scripts as forwarding wrappers. The canonical generator refuses to
-      overwrite an existing manifest and emits `baseline`/`missing` rows, while
-      the repo's copy forked to preserve curated status/refs/notes, so the
-      refresh semantics have to be decided explicitly before switching. A
-      tree-sitter *gate* additionally needs a reviewed id migration plus
-      source-aware classification/dedup — not a gem install.
+- [x] Decision (superseded 2026-11-23): tree-sitter was first treated as an
+      exploratory overlay while the regex ledger stayed authoritative.
+- [x] Tooling migration landed: `scripts/` are forwarding wrappers over the
+      installed skill (no copies), `make` pins `PORT_PARSER=tree-sitter`, and the
+      ledger + snapshots were re-based by identity (file + name, `status`/refs/
+      notes carried). The curated generator is never run in place
+      (`make generate-go-port-inventory` writes a candidate under `temp/`); the
+      two parity snapshots are disposable canonical baselines.
+- [x] Gates: `make check-go-port-inventory` (5604 items),
+      `make check-go-source-parity` (5604), `make check-go-test-parity` (1489)
+      all pass with `PARITY_DISCOVERY_BACKEND=chiasmus-tree-sitter`.
 
 ### Phase 2 — Page target-cache lifecycle parity ✅
 - [x] Port `Page.cleanupStates`: evict the page's `@targets` entry on successful
@@ -456,7 +434,7 @@ Legend: `[ ]` open · `[x]` done · `[~]` in progress · `[-]` not applicable
       `lib/docker` release-tooling helpers, 5 `lib/proto/generate` codegen
       internals, 4 generator template strings). Notes point at `src/pdlgen/`
       and `make generate-crystal`.
-- [x] `scripts/check_port_inventory.rb` accepts `intentional_divergence` as a
+- [x] `the skill inventory check (`make check-go-port-inventory`)` accepts `intentional_divergence` as a
       status, requires an explanatory note for it (and for `skipped`), and
       allows divergence rows that discovery never reports to stay in the ledger
       instead of failing as stale. Any other undiscovered row still fails.
@@ -1206,7 +1184,7 @@ lookup, and `query.go` classifies with `errors.Is(err, &ElementNotFoundError{})`
 `ElementNotFoundError`, which nothing raised outside specs — so go-rod code
 matching `Rod.is?(err, Rod::ElementNotFoundError)` never fired.
 
-- [x] Ring-fenced as Next up item 6 in Phase 27 and landed here with its own
+- [x] Ring-fenced as Next up item 5 in Phase 27 and landed here with its own
       red-green pass, because the change moves the exception type every miss
       raises.
 - [x] `src/rod/types.cr`: `ElementNotFoundError` moved next to `RodError` with a
@@ -2466,7 +2444,7 @@ Phase 39) was never reused.
 - Do not weaken Go tests or fixtures to make Crystal green.
 - Do not add ledger rows for Go-only tooling as `ported`; use
   `intentional_divergence` or `skipped` with a note.
-- Ledger statuses accepted by `scripts/check_port_inventory.rb`: `missing`,
+- Ledger statuses accepted by `the skill inventory check (`make check-go-port-inventory`)`: `missing`,
   `in_progress`, `ported`, `partial`, `skipped`, `intentional_divergence`.
   `skipped` and `intentional_divergence` require a note, and their rows may name
   Go items that discovery never reports (documented divergences do not fail the

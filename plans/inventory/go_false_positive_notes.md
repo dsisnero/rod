@@ -1,9 +1,10 @@
 # Go → Crystal False Positive Notes
 
-The `go_port_remaining_heuristic.tsv` file lists 3600 Go items as "missing" (status=missing,
-notes=heuristic-filter). These are **nearly all false positives** caused by naming-convention
-mismatches between Go's CamelCase and Crystal's snake_case, plus structural differences in
-how the two languages handle method dispatch and code generation.
+Historical naming/structural notes for rows that automated discovery reports but
+the Crystal port covers under another name. They still explain the
+`intentional_divergence` rows in `go_port_inventory.tsv` (unexported helpers that
+tree-sitter discovers). The old `go_port_remaining_heuristic.tsv` snapshot was a
+regex-era heuristic and has been removed.
 
 ## Naming Convention Mappings
 
@@ -114,6 +115,7 @@ All Go error `Is(err error) bool` methods are ported as Crystal `is?(err : Excep
 
 ## Verification
 
-All 569 Crystal specs pass (0 failures, 0 errors, 0 pending).
-Parity plan validates (5665 items tracked, 5368 API items, 297 tests).
-Build clean, formatting clean, ameba shows only pre-existing cyclomatic complexity warnings.
+`make test` passes (109 files, 761 examples), and `make check-go-*` passes under
+tree-sitter discovery (5604 source items, 5604 API items, 1489 test-scope items).
+Build clean, formatting clean, ameba shows only pre-existing cyclomatic
+complexity warnings.

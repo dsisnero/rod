@@ -83,22 +83,31 @@ list, and per-symbol port status lives in
 
 ### Parity tooling
 
-- Parser mode for the curated ledger: **`regex`** (`PORT_PARSER=regex`). It is
-  the authoritative gate; `tree-sitter` is an exploratory overlay only.
-- Inventory command: `make check-go-port-inventory` (plus `make
-  check-go-source-parity` / `make check-go-test-parity`).
-- The repo's `scripts/` are copied from the installed
-  `cross-language-crystal-parity` skill (currently
-  `/Users/dominic/.config/opencode/skills/cross-language-crystal-parity`) and
-  have drifted: their `tree-sitter` branch is a placeholder that still calls
-  `discover_with_regex`, so `PORT_PARSER=tree-sitter` warns and exits 0 without
-  ever using tree-sitter. Do not report that gate as blocked, and do not install
-  the Ruby `tree_sitter` gem expecting a different result.
-- A real tree-sitter backend needs the skill's verified Chiasmus toolchain
-  (`verify_skill_install.sh . go tree-sitter`) *and* a reviewed id migration,
-  because native labels (`class`/`function`/`definition.*`, plus merged
-  `const`/`type` declarations) do not match the curated vocabulary. See Phase 1
-  in `plans/parity.md` before touching either.
+- Parser mode for the curated ledger: **`tree-sitter`** (`PORT_PARSER=tree-sitter`,
+  pinned in the `Makefile`). Discovery runs through the installed
+  `cross-language-crystal-parity` skill's verified Chiasmus toolchain
+  (`chiasmus-discover`; resolved from `~/.cache/chiasmus/toolchains`). `auto`
+  would also pick tree-sitter, but pin it so a machine without the toolchain
+  fails loudly instead of silently falling back to regex.
+- Inventory commands: `make check-go-port-inventory` (plus `make
+  check-go-source-parity` / `make check-go-test-parity`). All three must pass.
+- `scripts/` holds only forwarding wrappers over the installed skill plus
+  repo-specific helpers (`check_generate_crystal.sh`, `stress_live_specs.sh`).
+  The skill lives at
+  `/Users/dominic/.config/opencode/skills/cross-language-crystal-parity`
+  (override with `PARITY_SKILL_DIR`); update this path in `AGENTS.md` and the
+  `Makefile` when the install moves. Never copy the skill's implementation into
+  this repo.
+- `plans/inventory/go_port_inventory.tsv` is curated and is **never**
+  regenerated in place. `make generate-go-port-inventory` writes a candidate to
+  `temp/`; a re-base matches identity (file + name) and carries
+  `status`/`crystal_refs`/`notes` over by hand. The source/test parity snapshots
+  are disposable baselines (`missing`/`baseline`) refreshed with
+  `make generate-go-source-parity` / `make generate-go-test-parity`.
+- Ledger ids use the native labels (`class`, `function`, `method`, `const`,
+  `type`, `interface`, `test`); `func`/`struct` are retired regex labels. The
+  checker validates every `crystal_refs` file, so a file move needs the refs
+  updated in the same commit.
 
 ## Session continuity (read this first)
 

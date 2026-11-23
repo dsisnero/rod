@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Forwarding wrapper; the implementation lives in the installed
+# cross-language-crystal-parity skill (see AGENTS.md > Parity tooling).
 set -euo pipefail
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-"${SCRIPT_DIR}/generate_source_parity_manifest.sh" "${1:-$(pwd)}" "${2:-}" "${3:-${GO_PORT_SOURCE_DIR:-}}" go
+SKILL_DIR="${PARITY_SKILL_DIR:-/Users/dominic/.config/opencode/skills/cross-language-crystal-parity}"
+exec "${SKILL_DIR}/scripts/$(basename "$0")" "$@"

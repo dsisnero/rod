@@ -69,7 +69,8 @@ Build just one with `make example EXAMPLE=compare-chromedp/click`, and run it
 from `temp/examples/compare-chromedp/click/main`. A first full build takes a few
 minutes; `make check-examples` is the fast, timestamp-independent typecheck.
 
-Parity gates:
+Parity gates (tree-sitter discovery through the installed
+`cross-language-crystal-parity` skill; `scripts/*.sh` are forwarding wrappers):
 
 ```bash
 make check-go-port-inventory
@@ -77,20 +78,22 @@ make check-go-source-parity
 make check-go-test-parity
 ```
 
-Refreshing the generated snapshots (`go_source_parity.tsv`, `go_test_parity.tsv`)
-is safe: the generators preserve the curated `status`/`crystal_refs`/`notes`
-columns and row order for ids they already know, drop ids discovery no longer
-reports, and append genuinely new ids as `missing` baseline rows. Re-running
-them on an in-sync tree produces no diff. Use `--reset` only to rebuild a
-manifest from scratch:
+`make` pins `PORT_PARSER=tree-sitter`; the first run resolves the skill's
+verified Chiasmus toolchain into `~/.cache/chiasmus/toolchains` (override the
+skill location with `PARITY_SKILL_DIR` if it moves). The source/test parity
+files are disposable discovery snapshots: the canonical generators write
+baseline rows (`status=missing`, refs `-`) and overwrite in place, which is why
+the Makefile passes `PORT_FORCE_OVERWRITE=1`:
 
 ```bash
 make generate-go-source-parity
 make generate-go-test-parity
-./scripts/generate_go_source_parity_manifest.sh . plans/inventory/go_source_parity.tsv vendor/rod --reset
 ```
 
-Never regenerate `go_port_inventory.tsv` in place: it is the hand-curated ledger.
+Never regenerate `go_port_inventory.tsv` in place: it is the hand-curated
+ledger. `make generate-go-port-inventory` writes a candidate to
+`temp/go_port_inventory.candidate.tsv`; a re-base matches identity (file + name)
+and carries `status`/`crystal_refs`/`notes` over by hand.
 
 Live browser checks need a local Chrome/Chromium binary. The suite borrows one
 pooled Chrome (`spec/support/live_browser_pool.cr`), so a full `make test` run

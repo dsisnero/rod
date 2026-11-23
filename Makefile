@@ -4,6 +4,17 @@
 
 GO_PORT_SOURCE_DIR ?= vendor/rod
 
+# Parity discovery/checks live in the installed cross-language-crystal-parity
+# skill; `scripts/*.sh` are forwarding wrappers (see AGENTS.md > Parity tooling).
+# Tree-sitter is authoritative for the curated ledger and is resolved through
+# the skill's verified Chiasmus toolchain (~/.cache/chiasmus/toolchains). Pin it
+# so a machine without the toolchain fails loudly instead of silently using
+# regex; override with `make ... PORT_PARSER=regex` only for triage.
+PARITY_SKILL_DIR ?= /Users/dominic/.config/opencode/skills/cross-language-crystal-parity
+export PARITY_SKILL_DIR
+PORT_PARSER ?= tree-sitter
+export PORT_PARSER
+
 # Pin the Crystal compiler cache to this workspace. Crystal writes one
 # `crystal-run-<program>.tmp` per program name into the cache directory, so with
 # the shared default (`~/.cache/crystal`) a concurrent `crystal spec` from a
@@ -113,14 +124,19 @@ check-go-source-parity:
 check-go-test-parity:
 	./scripts/check_go_test_parity.sh . plans/inventory/go_test_parity.tsv $(GO_PORT_SOURCE_DIR)
 
+# Candidate only: the curated ledger is re-based by hand (identity = file +
+# name, status/refs/notes carried over), never regenerated in place. The
+# canonical generator refuses to overwrite a live ledger for the same reason.
 generate-go-port-inventory:
-	./scripts/generate_go_port_inventory.sh . plans/inventory/go_port_inventory.tsv $(GO_PORT_SOURCE_DIR)
+	./scripts/generate_go_port_inventory.sh . temp/go_port_inventory.candidate.tsv $(GO_PORT_SOURCE_DIR)
 
+# Disposable discovery snapshots: the canonical generator writes baseline rows
+# (status=missing, refs=-). Curated status lives in go_port_inventory.tsv.
 generate-go-source-parity:
-	./scripts/generate_go_source_parity_manifest.sh . plans/inventory/go_source_parity.tsv $(GO_PORT_SOURCE_DIR)
+	PORT_FORCE_OVERWRITE=1 ./scripts/generate_go_source_parity_manifest.sh . plans/inventory/go_source_parity.tsv $(GO_PORT_SOURCE_DIR)
 
 generate-go-test-parity:
-	./scripts/generate_go_test_parity_manifest.sh . plans/inventory/go_test_parity.tsv $(GO_PORT_SOURCE_DIR)
+	PORT_FORCE_OVERWRITE=1 ./scripts/generate_go_test_parity_manifest.sh . plans/inventory/go_test_parity.tsv $(GO_PORT_SOURCE_DIR)
 
 clean:
 	rm -rf ./temp/*
