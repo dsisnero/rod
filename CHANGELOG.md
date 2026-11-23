@@ -41,6 +41,11 @@ below describe the Crystal port, not upstream changes.
   `crystal build --no-codegen`. `make test` never loads them and `make format`
   only parses them, so seven examples had silently stopped compiling while still
   referencing the pre-port `Rod::Lib` namespace.
+- `make examples` (and `make example EXAMPLE=...`): builds one binary per example
+  entry point under the git-ignored `temp/examples/`, incrementally — a binary is
+  rebuilt only when its own source, any `src/**/*.cr` file, or the shard manifest
+  is newer, so a `src/rod` change refreshes everything, an example change
+  refreshes just that one, and a repeat run does nothing.
 - `examples/page-options/main.cr`: opening a new window and a background tab
   through `Browser#page(opts : Cdp::Target::CreateTarget)`.
 - `Browser#page(opts : Cdp::Target::CreateTarget)`: the go-shaped page creation

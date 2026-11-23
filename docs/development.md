@@ -44,6 +44,7 @@ make format      # crystal tool format --check src spec examples bin
 make lint        # ameba --fix, then ameba
 make test        # crystal spec
 make check-examples  # compile every example with `crystal build --no-codegen`
+make examples        # build example binaries into temp/examples, incrementally
 make clean       # rm -rf ./temp/*
 ```
 
@@ -52,6 +53,15 @@ make clean       # rm -rf ./temp/*
 used the pre-port `Rod::Lib` namespace and had silently stopped compiling. Each
 example under `examples/` mirrors a file in `vendor/rod/lib/examples`, so port
 them together with their upstream counterpart.
+
+`make examples` builds one binary per entry point (`*/main.cr` plus
+`e2e-testing/calculator.cr`) under the git-ignored `temp/examples/`, and only
+rebuilds a binary when its own source, any `src/**/*.cr` file, or `shard.yml` /
+`shard.lock` is newer. After a `src/rod` change every example rebuilds; after an
+example change only that one does; a repeat run does nothing. Build just one with
+`make example EXAMPLE=compare-chromedp/click`, and run it from
+`temp/examples/compare-chromedp/click/main`. A first full build takes a few
+minutes; `make check-examples` is the fast, timestamp-independent typecheck.
 
 Parity gates:
 

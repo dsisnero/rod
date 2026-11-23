@@ -98,6 +98,7 @@ make format    # crystal tool format --check
 make lint      # ameba
 make test      # crystal spec
 make check-examples  # compile every example (they are not part of `make test`)
+make examples  # build example binaries into temp/examples, incrementally
 ```
 
 Specs that drive a browser borrow one pooled Chrome

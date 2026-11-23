@@ -1,4 +1,4 @@
-.PHONY: install update format lint test check-examples clean generate generate-crystal generate-crystal-scratch generate-go-ref build-pdlgen-crystal build-pdlgen-go \
+.PHONY: install update format lint test check-examples examples example clean generate generate-crystal generate-crystal-scratch generate-go-ref build-pdlgen-crystal build-pdlgen-go \
 	check-generate-crystal check-go-port-inventory check-go-source-parity check-go-test-parity \
 	generate-go-port-inventory generate-go-source-parity generate-go-test-parity
 
@@ -47,6 +47,44 @@ check-examples:
 		crystal build --no-codegen "$$f" >/dev/null || { echo "FAIL $$f"; status=1; }; \
 	done; \
 	if [ $$status -eq 0 ]; then echo "All examples compile."; else exit 1; fi
+
+# Incremental example binaries under temp/examples/, one per entry point. A
+# binary is rebuilt only when the example's own source, any `src/` file, or the
+# shard manifest is newer than it: `make examples` after a `src/rod` edit
+# rebuilds everything, after an example edit rebuilds just that one, and a
+# repeat run does nothing.
+#
+#   make examples                                  # build/refresh all binaries
+#   make example EXAMPLE=compare-chromedp/click    # build just one
+#   make check-examples                            # fast typecheck, no binaries
+#
+# Binaries land in temp/examples/ (git-ignored) and `make clean` removes them.
+# Builds are real (no `--no-codegen`): a typecheck-only pass emits no file, so it
+# could never be tracked by timestamp. This checkout is on exFAT, whose
+# timestamps have 2-second granularity, so an edit made within the same 2-second
+# window as a build may not be noticed; `make check-examples` is the
+# timestamp-independent gate.
+EXAMPLE_ENTRY ?= $(shell find examples -name 'main.cr' | sort) examples/e2e-testing/calculator.cr
+EXAMPLE_DEPENDS ?= $(shell find src -name '*.cr' | sort) shard.yml shard.lock
+EXAMPLE_BUILD_FLAGS ?=
+example_bin = temp/examples/$(patsubst examples/%.cr,%,$(1))
+
+# A failed build must not leave a binary that make then treats as up to date.
+.DELETE_ON_ERROR:
+
+.PHONY: examples example
+examples: $(foreach e,$(EXAMPLE_ENTRY),$(call example_bin,$(e)))
+
+example:
+	@test -n "$(EXAMPLE)" || { echo "usage: make example EXAMPLE=<path under examples/ without .cr>"; exit 2; }
+	@$(MAKE) --no-print-directory $(call example_bin,examples/$(EXAMPLE).cr)
+
+define EXAMPLE_RULE
+$(call example_bin,$(1)): $(1) $(EXAMPLE_DEPENDS)
+	@mkdir -p $$(dir $$@)
+	crystal build $(EXAMPLE_BUILD_FLAGS) $(1) -o $$@
+endef
+$(foreach e,$(EXAMPLE_ENTRY),$(eval $(call EXAMPLE_RULE,$(e))))
 
 # Gate: the committed src/cdp must still be exactly what the pinned protocol
 # generates (Chromium CDP_CHROMIUM / V8 CDP_V8).

@@ -19,6 +19,7 @@ make format    # crystal tool format --check src spec examples bin
 make lint      # ameba --fix, then ameba
 make test      # crystal spec
 make check-examples  # compile every example (they are not part of `make test`)
+make examples        # build example binaries into temp/examples, incrementally
 make clean     # rm -rf ./temp/*
 ```
 
