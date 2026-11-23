@@ -41,9 +41,9 @@ def upload_server : String
 end
 
 host = upload_server
-page = Rod::Browser.new.must_connect.must_page(host)
+page = Rod::Browser.new.connect!.page!(host)
 path = "vendor/rod/lib/examples/compare-chromedp/upload/main.go"
-page.must_element("input[name=\"upload\"]").must_set_files([path])
-page.must_element("input[name=\"submit\"]").must_click
+page.element!("input[name=\"upload\"]").set_files!([path])
+page.element!("input[name=\"submit\"]").click!
 
-puts "original size: #{size(path)}, upload size: #{page.must_element("#result").must_text}"
+puts "original size: #{size(path)}, upload size: #{page.element!("#result").text!}"

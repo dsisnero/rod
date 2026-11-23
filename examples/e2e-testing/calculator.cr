@@ -8,25 +8,25 @@ APP_URL = "https://go-rod.github.io/calculator/"
 def test_add(ctx : E2EContext) : Bool
   page = ctx.page(APP_URL)
   begin
-    page.must_element_r("button", "1").must_click
-    page.must_element_r("button", "^\\+$").must_click
-    page.must_element_r("button", "2").must_click
-    page.must_element_r("button", "=").must_click
+    page.element_r!("button", "1").click!
+    page.element_r!("button", "^\\+$").click!
+    page.element_r!("button", "2").click!
+    page.element_r!("button", "=").click!
 
-    page.must_element(".component-display").must_text == "3"
+    page.element!(".component-display").text! == "3"
   ensure
-    page.must_close
+    page.close!
   end
 end
 
 def test_multiple(ctx : E2EContext) : Bool
   page = ctx.page(APP_URL)
   begin
-    ["2", "x", "3", "="].each { |regex| page.must_element_r("button", regex).must_click }
+    ["2", "x", "3", "="].each { |regex| page.element_r!("button", regex).click! }
 
-    page.must_element(".component-display").must_text == "6"
+    page.element!(".component-display").text! == "6"
   ensure
-    page.must_close
+    page.close!
   end
 end
 

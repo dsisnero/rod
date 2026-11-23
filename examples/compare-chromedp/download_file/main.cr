@@ -1,10 +1,10 @@
 require "../../../src/rod"
 
 wd = Dir.current
-browser = Rod::Browser.new.must_connect
-page = browser.must_page("https://github.com/chromedp/examples")
+browser = Rod::Browser.new.connect!
+page = browser.page!("https://github.com/chromedp/examples")
 
-code_toggle = page.must_element_by_js <<-JS
+code_toggle = page.element_by_js! <<-JS
 () => {
   const norm = s => (s || "").replace(/\\s+/g, " ").trim().toLowerCase();
   return Array.from(document.querySelectorAll("button,summary")).find(el => {
@@ -14,7 +14,7 @@ code_toggle = page.must_element_by_js <<-JS
   }) || null;
 }
 JS
-code_toggle.must_click
+code_toggle.click!
 
 wait = page.browser.wait_download(wd)
 
@@ -34,7 +34,7 @@ callbacks[Cdp::Browser::DownloadProgressEvent.proto_event] = Rod::Browser::Callb
 )
 spawn { browser.each_event(nil, callbacks).call }
 
-download = page.must_element_by_js <<-JS
+download = page.element_by_js! <<-JS
 () => {
   const norm = s => (s || "").replace(/\\s+/g, " ").trim().toLowerCase();
 
@@ -50,7 +50,7 @@ download = page.must_element_by_js <<-JS
   ) || null;
 }
 JS
-download.must_click
+download.click!
 
 res = wait.call
 if res

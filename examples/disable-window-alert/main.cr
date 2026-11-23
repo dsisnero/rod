@@ -11,8 +11,8 @@ end
 
 spawn { serve }
 
-browser = Rod::Browser.new.must_connect
-page = browser.must_page
-page.must_eval_on_new_document("window.alert = () => {}")
-page.must_navigate("http://localhost:8080")
-puts page.must_element("script").must_text
+browser = Rod::Browser.new.connect!
+page = browser.page!
+page.eval_on_new_document!("window.alert = () => {}")
+page.navigate!("http://localhost:8080")
+puts page.element!("script").text!

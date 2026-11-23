@@ -57,6 +57,17 @@ below describe the Crystal port, not upstream changes.
   `about:blank` and navigates afterwards when the requested URL is non-empty. The
   string overload keeps its convenience semantics.
 
+### Changed
+
+- `examples/` call the browser/page/element DSL through the `!` aliases now
+  (`connect!`, `page!`, `element!`, `click!`, `text!`, …) instead of the explicit
+  `must_*` names, matching the style the README advertises. Behavior is
+  unchanged: every alias routes through `method_missing` to the same `must_*`
+  helper. The helpers without an alias keep their explicit spelling
+  (`Rod::Util::Launcher.must_resolve_url` / `must_new_managed`,
+  `Launcher#must_client`, and `Pool#must_get`, which takes a block that
+  `method_missing` cannot forward).
+
 ### Fixed
 
 - Example output prints plainly again: the 12 examples that used Crystal's

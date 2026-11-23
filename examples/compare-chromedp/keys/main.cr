@@ -26,11 +26,11 @@ def test_server : String
   "http://127.0.0.1:#{addr.port}"
 end
 
-page = Rod::Browser.new.must_connect.must_page(test_server)
-val1 = page.must_element("#input1").must_text
-val2 = page.must_element("#textarea1").must_input("\b\b\n\naoeu\n\ntest1\n\nblah2\n\n\t\t\t\b\bother box!\t\ntest4").must_text
-val3 = page.must_element("#input2").must_input("test3").must_text
-val4 = page.must_element("#select1").must_type(Rod::Input::ARROW_DOWN, Rod::Input::ARROW_DOWN).must_property("value").to_s
+page = Rod::Browser.new.connect!.page!(test_server)
+val1 = page.element!("#input1").text!
+val2 = page.element!("#textarea1").input!("\b\b\n\naoeu\n\ntest1\n\nblah2\n\n\t\t\t\b\bother box!\t\ntest4").text!
+val3 = page.element!("#input2").input!("test3").text!
+val4 = page.element!("#select1").type!(Rod::Input::ARROW_DOWN, Rod::Input::ARROW_DOWN).property!("value").to_s
 
 puts "#input1 value: #{val1}"
 puts "#textarea1 value: #{val2}"

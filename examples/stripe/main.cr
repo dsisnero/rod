@@ -21,10 +21,10 @@ def get_redirect_url : String
   )["next_action"]["redirect_to_url"]["url"].as_s
 end
 
-page = Rod::Browser.new.must_connect.must_page(get_redirect_url)
-frame01 = page.must_element("div iframe").must_frame
-frame02 = frame01.must_element("#challengeFrame").must_frame
-btn = frame02.must_element_r("button", "COMPLETE").must_wait_stable
-wait = frame02.must_wait_request_idle
-btn.must_click
+page = Rod::Browser.new.connect!.page!(get_redirect_url)
+frame01 = page.element!("div iframe").frame!
+frame02 = frame01.element!("#challengeFrame").frame!
+btn = frame02.element_r!("button", "COMPLETE").wait_stable!
+wait = frame02.wait_request_idle!
+btn.click!
 wait.call

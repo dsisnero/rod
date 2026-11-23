@@ -17,16 +17,16 @@ launcher.set("disable-gpu").delete("disable-gpu")
 # Launch with headful mode behind Xvfb.
 launcher.headless(false).xvfb("--server-num=5", "--server-args=-screen 0 1600x900x16")
 
-browser = Rod::Browser.new.client(launcher.must_client).must_connect
+browser = Rod::Browser.new.client(launcher.must_client).connect!
 
 # Start a server to watch the remote browser's screenshots.
 Rod::Util::Launcher.open(browser.serve_monitor(""))
-puts browser.must_page("https://developer.mozilla.org").must_eval("() => document.title")
+puts browser.page!("https://developer.mozilla.org").eval!("() => document.title")
 
 # Launch another browser from the same container with different flags.
 another_launcher = Rod::Util::Launcher.must_new_managed("")
 another_launcher.set("disable-sync").delete("disable-sync")
-another = Rod::Browser.new.client(another_launcher.must_client).must_connect
-puts another.must_page("https://go-rod.github.io").must_eval("() => document.title")
+another = Rod::Browser.new.client(another_launcher.must_client).connect!
+puts another.page!("https://go-rod.github.io").eval!("() => document.title")
 
 Rod::Util::Utils.pause

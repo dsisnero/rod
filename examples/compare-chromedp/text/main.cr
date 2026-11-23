@@ -1,5 +1,5 @@
 require "../../../src/rod"
 
-page = Rod::Browser.new.must_connect.must_page("https://pkg.go.dev/time")
-res = page.must_element("#pkg-overview").must_parent.must_text
+page = Rod::Browser.new.connect!.page!("https://pkg.go.dev/time")
+res = page.element!("#pkg-overview").parent!.text!
 puts res.strip

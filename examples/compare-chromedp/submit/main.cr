@@ -1,6 +1,6 @@
 require "../../../src/rod"
 
-page = Rod::Browser.new.must_connect.must_page("https://github.com/search")
-page.must_element("input[name=q]").must_wait_visible.must_input("chromedp").must_type(Rod::Input::ENTER)
-res = page.must_element_r("a", "chromedp").must_parent.must_parent.must_next.must_text
+page = Rod::Browser.new.connect!.page!("https://github.com/search")
+page.element!("input[name=q]").wait_visible!.input!("chromedp").type!(Rod::Input::ENTER)
+res = page.element_r!("a", "chromedp").parent!.parent!.next!.text!
 puts "got: `#{res.strip}`"

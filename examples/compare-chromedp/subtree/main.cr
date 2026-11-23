@@ -38,6 +38,6 @@ server = HTTP::Server.new(&.response.print(HTML))
 addr = server.bind_tcp("127.0.0.1", 0)
 spawn { server.listen }
 
-page = Rod::Browser.new.must_connect.must_page("http://127.0.0.1:#{addr.port}")
-node = page.must_element("body").describe(-1, true)
+page = Rod::Browser.new.connect!.page!("http://127.0.0.1:#{addr.port}")
+node = page.element!("body").describe(-1, true)
 print_nodes(STDOUT, node.children, "", "  ")

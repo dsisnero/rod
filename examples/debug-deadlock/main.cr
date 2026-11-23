@@ -3,8 +3,8 @@ require "../../src/rod"
 # Crystal analogue of go-rod's `lib/examples/debug-deadlock` example: it shows
 # where a blocked CDP call surfaces once the operation is unblocked.
 def your_code_here
-  page = Rod::Browser.new.must_connect.must_page("http://mdn.dev")
-  spawn { page.must_element("not-exists") }
+  page = Rod::Browser.new.connect!.page!("http://mdn.dev")
+  spawn { page.element!("not-exists") }
 end
 
 def check_lock

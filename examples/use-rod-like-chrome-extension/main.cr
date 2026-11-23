@@ -9,12 +9,12 @@ require "http/client"
 # Make sure the browser is fully closed first: user mode can only control a
 # browser it launched itself.
 ws_url = Rod::Util::Launcher.new_user_mode.launch
-browser = Rod::Browser.new.control_url(ws_url).must_connect.no_default_device
+browser = Rod::Browser.new.control_url(ws_url).connect!.no_default_device
 
 # A headless browser renders the previews in the background and shares the
 # user-mode cookies.
-previewer = Rod::Browser.new.must_connect
-previewer.must_set_cookies(browser.must_get_cookies)
+previewer = Rod::Browser.new.connect!
+previewer.set_cookies!(browser.get_cookies!)
 pool = Rod.new_page_pool(5)
 
 js_lib = HTTP::Client.get("https://unpkg.com/@popperjs/core@2").body +
@@ -45,16 +45,16 @@ callbacks[Cdp::Target::TargetCreatedEvent.proto_event] = Rod::Browser::CallbackI
   ->(event : Cdp::Event, _sid : Rod::SessionID?) do
     created = event.as(Cdp::Target::TargetCreatedEvent)
     if created.target_info.type == "page"
-      page = browser.must_page_from_target_id(Rod::TargetID.new(created.target_info.target_id))
+      page = browser.page_from_target_id!(Rod::TargetID.new(created.target_info.target_id))
       # Inject the extension into every new page.
-      page.must_eval_on_new_document(js)
+      page.eval_on_new_document!(js)
 
       # Expose the preview generator the injected script calls.
-      page.must_expose("getPreview", ->(url : JSON::Any) do
-        preview_page = pool.must_get { previewer.must_page }
+      page.expose!("getPreview", ->(url : JSON::Any) do
+        preview_page = pool.must_get { previewer.page! }
         begin
-          preview_page.must_navigate(url.as_s)
-          {JSON::Any.new(Base64.strict_encode(preview_page.must_screenshot)), nil}
+          preview_page.navigate!(url.as_s)
+          {JSON::Any.new(Base64.strict_encode(preview_page.screenshot!)), nil}
         ensure
           pool.put(preview_page)
         end
@@ -65,6 +65,6 @@ callbacks[Cdp::Target::TargetCreatedEvent.proto_event] = Rod::Browser::CallbackI
 )
 spawn { browser.each_event(nil, callbacks).call }
 
-browser.must_page
+browser.page!
 puts "Press Enter to exit..."
 STDIN.gets

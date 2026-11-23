@@ -7,9 +7,9 @@ launcher = Rod::Util::Launcher.new
 url = launcher.launch
 
 begin
-  browser = Rod::Browser.new.control_url(url).must_connect
-  page = browser.must_page("http://example.com").must_wait_stable
-  puts page.must_info.title
+  browser = Rod::Browser.new.control_url(url).connect!
+  page = browser.page!("http://example.com").wait_stable!
+  puts page.info!.title
 ensure
   launcher.cleanup
 end

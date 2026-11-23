@@ -22,8 +22,8 @@ def header_server : String
 end
 
 host = header_server
-page = Rod::Browser.new.must_connect.must_page(host)
-cleanup = page.must_set_extra_headers(["X-Header", "my request header"])
-page.must_navigate(host)
-puts "received headers: #{page.must_element("#result").must_text}"
+page = Rod::Browser.new.connect!.page!(host)
+cleanup = page.set_extra_headers!(["X-Header", "my request header"])
+page.navigate!(host)
+puts "received headers: #{page.element!("#result").text!}"
 cleanup.call

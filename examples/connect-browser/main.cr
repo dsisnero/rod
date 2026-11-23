@@ -10,6 +10,6 @@ require "../../src/rod"
 #
 #     docker run -p 9222:9222 ghcr.io/go-rod/rod chrome --headless --no-sandbox --remote-debugging-port=9222 --remote-debugging-address=0.0.0.0
 url = Rod::Util::Launcher.must_resolve_url("")
-browser = Rod::Browser.new.control_url(url).must_connect
+browser = Rod::Browser.new.control_url(url).connect!
 
-puts browser.must_page("https://mdn.dev/").must_eval("() => document.title")
+puts browser.page!("https://mdn.dev/").eval!("() => document.title")

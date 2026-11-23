@@ -29,8 +29,8 @@ url = launcher.launch
 begin
   ws = StdlibWebSocket.new(url)
   client = Rod::Util::Cdp::Client.new.start(ws)
-  page = Rod::Browser.new.client(client).must_connect.must_page("http://example.com")
-  puts page.must_info.title
+  page = Rod::Browser.new.client(client).connect!.page!("http://example.com")
+  puts page.info!.title
 ensure
   launcher.cleanup
 end

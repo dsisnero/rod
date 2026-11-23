@@ -1,7 +1,7 @@
 require "../../../src/rod"
 
-browser = Rod::Browser.new.must_connect
-browser.must_page("https://google.com").must_element("body div").must_screenshot("elementScreenshot.png")
+browser = Rod::Browser.new.connect!
+browser.page!("https://google.com").element!("body div").screenshot!("elementScreenshot.png")
 
 req = Cdp::Page::CaptureScreenshot.new(
   format: Cdp::Page::CaptureScreenshotFormatJpeg,
@@ -11,5 +11,5 @@ req = Cdp::Page::CaptureScreenshot.new(
   capture_beyond_viewport: true,
   optimize_for_speed: false
 )
-buf = browser.must_page("https://brank.as/").screenshot(true, req)
+buf = browser.page!("https://brank.as/").screenshot(true, req)
 File.write("fullScreenshot.png", buf)

@@ -8,13 +8,13 @@ class E2EContext
   getter browser : Rod::Browser
 
   def initialize
-    @browser = Rod::Browser.new.must_connect
+    @browser = Rod::Browser.new.connect!
   end
 
   # `page` mirrors the Go helper `G.page`. Like Go's `g.Cleanup(page.MustClose)`,
   # callers must close the page they get back once the test case is done.
   def page(url : String) : Rod::Page
-    @browser.must_incognito.must_page(url)
+    @browser.incognito!.page!(url)
   end
 
   # Close the shared browser; this also drops the incognito contexts the pages

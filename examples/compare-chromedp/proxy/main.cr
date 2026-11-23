@@ -33,14 +33,14 @@ launcher = Rod::Util::Launcher.new
 launcher.proxy("http://127.0.0.1:#{proxy_address.port}")
 url = launcher.launch
 
-browser = Rod::Browser.new.control_url(url).must_connect
+browser = Rod::Browser.new.control_url(url).connect!
 begin
   # The challenge blocks the navigation, so answer it from another fiber.
-  spawn { browser.must_handle_auth("u", "p").call }
+  spawn { browser.handle_auth!("u", "p").call }
 
-  page = browser.must_page("http://proxy-test.invalid/")
-  page.must_navigate("http://proxy-test.invalid/tab")
-  puts page.must_element("body").must_text
+  page = browser.page!("http://proxy-test.invalid/")
+  page.navigate!("http://proxy-test.invalid/tab")
+  puts page.element!("body").text!
 ensure
   browser.close
   launcher.cleanup

@@ -51,11 +51,11 @@ cookie2 = Cdp::Network::CookieParam.from_json({
   "expires"  => expires,
 }.to_json)
 
-page = Rod::Browser.new.must_connect.must_page
-page.must_set_cookies([cookie1, cookie2])
+page = Rod::Browser.new.connect!.page!
+page.set_cookies!([cookie1, cookie2])
 
-page.must_navigate(cookie_server)
-page.must_cookies.each_with_index do |cookie, i|
+page.navigate!(cookie_server)
+page.cookies!.each_with_index do |cookie, i|
   puts "chrome cookie #{i}: #{cookie}"
 end
-puts "chrome received cookies: #{page.must_element("#result").must_text}"
+puts "chrome received cookies: #{page.element!("#result").text!}"

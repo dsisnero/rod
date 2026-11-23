@@ -24,10 +24,10 @@ def test_server : String
   "http://127.0.0.1:#{addr.port}"
 end
 
-page = Rod::Browser.new.must_connect.must_page(test_server)
-page.must_eval(MAKE_VISIBLE_SCRIPT)
+page = Rod::Browser.new.connect!.page!(test_server)
+page.eval!(MAKE_VISIBLE_SCRIPT)
 puts "waiting 3s for box to become visible"
-page.must_element("#box1").must_wait_visible
+page.element!("#box1").wait_visible!
 puts ">>>>>>>>>>>>>>>>>>>> BOX1 IS VISIBLE"
-page.must_element("#box2").must_wait_visible
+page.element!("#box2").wait_visible!
 puts ">>>>>>>>>>>>>>>>>>>> BOX2 IS VISIBLE"

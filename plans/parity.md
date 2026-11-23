@@ -10,7 +10,7 @@
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
 green. The last *feature* commit is Phase 69 (`Browser#page` accepts go's
 `Target.createTarget` options, so `newWindow`/`background`/`forTab` and the
-browser context are forwarded instead of being hard-coded to nil); the four
+browser context are forwarded instead of being hard-coded to nil); the five
 commits after it are repo hygiene, not phases:
 
 - `docs: repair the examples and document the recent port work` — 7 of 29
@@ -28,6 +28,11 @@ commits after it are repo hygiene, not phases:
   only when that example's own `.cr` files or any `src/**/*.cr` file is newer;
   the shard manifest no longer forces a full rebuild, and
   `e2e-testing/setup.cr` now rebuilds the `calculator` example that requires it.
+- `examples: spell calls with the bang aliases` — all 30 example files call the
+  browser/page/element DSL as `connect!`/`page!`/`element!`/`click!` instead of
+  `must_*` (same `method_missing` route, so behavior and tracing are unchanged);
+  `Rod::Util::Launcher.must_*` and the block-taking `Pool#must_get` keep the
+  explicit spelling because they have no alias.
 
 The element-context audit (56/62/63), the `gson.Int` sweep (64), the trace-site
 sweep (65), the `Element.Wait*` timing sweep (66), the swallowed element errors
@@ -53,8 +58,8 @@ recipes that found those 47 phases, plus the list of areas already swept, so a
 fresh session can pick up without re-deriving any of it.
 
 **Last commit:** the last *feature* commit is Phase 69 (`port: forward page
-creation options like go`), followed by the three hygiene commits listed above;
-`git log --oneline -5` shows the current head. This block is current as of that
+creation options like go`), followed by the five hygiene commits listed above;
+`git log --oneline -6` shows the current head. This block is current as of that
 head — no work is in flight.
 
 **Gates (2026-11-22, after the examples pass):** `make format` pass · `make lint`

@@ -6,7 +6,7 @@ require "../../src/rod"
 # a non-empty `url` is navigated afterwards.
 #
 # The plain `page`/`page(url)` form is the convenience overload.
-browser = Rod::Browser.new.must_connect
+browser = Rod::Browser.new.connect!
 
 begin
   # A new window instead of a tab.
@@ -17,9 +17,9 @@ begin
     )
   )
   begin
-    puts window.must_eval("() => document.title").as_s
+    puts window.eval!("() => document.title").as_s
   ensure
-    window.must_close
+    window.close!
   end
 
   # A background tab that loads while the current page keeps running.
@@ -30,10 +30,10 @@ begin
     )
   )
   begin
-    tab.must_wait_load
-    puts tab.must_eval("() => document.title").as_s
+    tab.wait_load!
+    puts tab.eval!("() => document.title").as_s
   ensure
-    tab.must_close
+    tab.close!
   end
 ensure
   browser.close

@@ -1,10 +1,10 @@
 require "../../../src/rod"
 
-page = Rod::Browser.new.must_connect.timeout(15.seconds).must_page("https://github.com/avelino/awesome-go")
-section = page.must_element_r("p", "Selenium and browser control tools").must_next
-projects = section.must_elements("li")
+page = Rod::Browser.new.connect!.timeout(15.seconds).page!("https://github.com/avelino/awesome-go")
+section = page.element_r!("p", "Selenium and browser control tools").next!
+projects = section.elements!("li")
 
 projects.each do |project|
-  link = project.must_element("a")
-  puts "project #{link.must_text} (#{link.must_property("href")}): '#{project.must_text}'"
+  link = project.element!("a")
+  puts "project #{link.text!} (#{link.property!("href")}): '#{project.text!}'"
 end
