@@ -37,6 +37,13 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Element#interactable` returns the `ContainsElement` error like go's
+  `Interactable` (`element.go:392-400`). The port swallowed Chrome's "Argument
+  should belong to the same JavaScript world as target object" and treated the
+  element as *not covered*, so it reported a click point it could not verify and
+  `wait_interactable` accepted it (only `CoveredError` retries). That message
+  was a symptom of the wrong-JS-world requests fixed in Phases 62/63, and the
+  live click/hover/tap/iframe specs pass without the workaround.
 - `Element#wait_stable` waits on go's ticker race instead of a plain sleep: it
   `select`s between the interval and the element context (`element.go:519-550`),
   so an `Element#timeout`/`#context` clone stops the loop as soon as its deadline

@@ -402,18 +402,10 @@ module Rod
 
       begin
         el_at_point = @page.context(@ctx).element_from_point(x, y)
-        covered = begin
-          !contains_element(el_at_point)
-        rescue ex
-          # Cross-world object checks can happen in nested frame contexts.
-          msg = ex.message.to_s
-          if msg.includes?("same JavaScript world")
-            false
-          else
-            raise ex
-          end
-        end
-        raise CoveredError.new(el_at_point) if covered
+        # go returns the `ContainsElement` error as-is (`element.go:392-400`), so
+        # a cross-world check surfaces instead of being read as "not covered",
+        # which would report an unverifiable element as interactable.
+        raise CoveredError.new(el_at_point) unless contains_element(el_at_point)
       rescue ex
         msg = ex.message.to_s
         if msg.includes?(::Cdp::ErrNodeNotFoundAtPos.message)

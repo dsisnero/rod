@@ -156,6 +156,7 @@ end
 private class InteractableStubElement < StubElement
   property pointer_blocked = false
   property contains_target = true
+  property contains_error : Exception? = nil
   property shape_error : Exception? = nil
   property quad_payload = Cdp::DOM::GetContentQuadsResult.new(
     [JSON.parse("[0,0,10,0,10,10,0,10]")] of Cdp::DOM::Quad
@@ -188,6 +189,9 @@ private class InteractableStubElement < StubElement
 
   def contains_element(target : Rod::Element) : Bool
     _ = target
+    if ex = @contains_error
+      raise ex
+    end
     @contains_target
   end
 end
@@ -1301,6 +1305,18 @@ describe Rod::Element do
       element.quad_payload = Cdp::DOM::GetContentQuadsResult.new([] of Cdp::DOM::Quad)
 
       expect_raises(Rod::InvisibleShapeError) { element.interactable }
+    end
+
+    it "surfaces a cross-world containsElement error like go's Interactable" do
+      page = InteractableStubPage.new
+      element = InteractableStubElement.new(page)
+      page.next_element_from_point = element
+      element.contains_error = Exception.new("Argument should belong to the same JavaScript world as target object")
+
+      # go: `isParent, err := el.ContainsElement(elAtPoint)` returns the error
+      # (`element.go:392-400`); it is not read as "not covered", which would
+      # report an unverifiable element as interactable.
+      expect_raises(Exception, /same JavaScript world/) { element.interactable }
     end
 
     it "supports wrapped elements represented by multiple quads" do

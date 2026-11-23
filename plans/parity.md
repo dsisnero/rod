@@ -8,11 +8,12 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 66 (`Element#wait_stable` traces after
-`WaitVisible` like go and races its tick against the element context, so a
-deadline or cancel stops the loop immediately). The element-context audit
-(56/62/63), the `gson.Int` sweep (64), the trace-site sweep (65) and the
-`Element.Wait*` timing sweep (66) are closed.
+green, and the last feature commit is Phase 67 (`Element#interactable` returns the
+`ContainsElement` error like go instead of reporting an unverifiable element as
+interactable; the `same JavaScript world` band-aid from the pre-Phase-62 era is
+gone). The element-context audit (56/62/63), the `gson.Int` sweep (64), the
+trace-site sweep (65), the `Element.Wait*` timing sweep (66) and the swallowed
+element errors (67) are closed.
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~2m30s). Before a full run, clear stray headless browsers left
@@ -23,17 +24,17 @@ test` runs: it fails `spec/launcher_launch_parity_spec.cr:18`,
 `spec/live_browser_parity_spec.cr:1464` and `spec/live_browser_pool_spec.cr:144`
 on a busy machine, none of which are real failures.
 
-Phases 23-66 all came from *auditing `vendor/rod` area by area*: both ledgers
+Phases 23-67 all came from *auditing `vendor/rod` area by area*: both ledgers
 are 100% `ported` (inventory 5607/54/15, tests 297 with four upstream `t.Skip`s),
 so new work has to be found by comparing behaviour. Next up item 1 keeps the
-recipes that found those 44 phases, plus the list of areas already swept, so a
+recipes that found those 45 phases, plus the list of areas already swept, so a
 fresh session can pick up without re-deriving any of it.
 
-**Last commit:** `port: race the element stable wait with its context`
-(Phase 66; `git log -1` for the hash).
+**Last commit:** `port: surface the interactable covered-check error`
+(Phase 67; `git log -1` for the hash).
 
-**Gates (2026-11-22, after Phase 66):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (751 examples, 0 failures) · parity checks pass
+**Gates (2026-11-22, after Phase 67):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (752 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -50,11 +51,12 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      `defer <restore>()`, `select {`, `Unwrap()`, `<domain>.enable`,
      `Context(el.ctx)`, `gson.Int(0)`, `json:\",omitempty\"`,
      `evalHelper(js.X)`, `EnableDomain(`, `.Call(el)`, `gson.(Int|Str|Bool)(`,
-     `tryTrace(`. Phases 23/24 (closed channels), 27/28 (`Unwrap`/`errors.Is`),
-     54/55 (`bool` + `omitempty`), 56 (`Context(el.ctx)`), 57/58 (`EnableDomain`),
-     59 (helper vs hand-written JS), 62 (`Contextable`, i.e. `.Call(el)` vs
-     `.call(@page)`), 64 (`gson.Int` forces a field present) and 65 (trace sites)
-     all came from it.
+     `tryTrace(`, `rescue` (where go returns the error). Phases 23/24 (closed
+     channels), 27/28 (`Unwrap`/`errors.Is`), 54/55 (`bool` + `omitempty`), 56
+     (`Context(el.ctx)`), 57/58 (`EnableDomain`), 59 (helper vs hand-written JS),
+     62 (`Contextable`, i.e. `.Call(el)` vs `.call(@page)`), 64 (`gson.Int`
+     forces a field present), 65 (trace sites) and 67 (a `rescue` that swallowed
+     an error go propagates) all came from it.
    - **Ported-test audit.** For every `vendor/rod/*_test.go` function, check the
      Crystal spec drives the same path. Stub-only ports hide real bugs: Phase 43
      (`TestHandleAuth` -> `Fetch domain is not enabled`), Phase 47
@@ -83,8 +85,9 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      call site / all 33 `lib/js` helpers (39, 59, 61), element CDP requests /
      `Element.Call` + `Contextable` + the iframe-element refresh (56, 62, 63),
      every `gson.(Int|Str|Bool)` payload site (64), every `tryTrace`/`tryTraceQuery`/
-     `tryTraceReq` site (65), the `Element.Wait*` ticker/`select` timing (66).
-     `Key.Encode` payloads match (Phase 38).
+     `tryTraceReq` site (65), the `Element.Wait*` ticker/`select` timing (66),
+     `interactable`'s swallowed covered-check error (67). `Key.Encode` payloads
+     match (Phase 38).
 2. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
    parity scripts instead of the repo's copied ones (whose `tree-sitter` branch
    is a placeholder), and decide curated-status preservation. Native tree-sitter
@@ -119,7 +122,7 @@ authority):
 
 1. red-green: the new spec fails for the intended reason before the fix (stash
    the src change and watch it fail, or write the spec first);
-2. `make format`, `make lint`, `make test` (~2m30s, 751 examples) and
+2. `make format`, `make lint`, `make test` (~2m30s, 752 examples) and
    `make check-go-port-inventory` / `check-go-source-parity` /
    `check-go-test-parity`;
 3. `plans/parity.md`: new Phase entry + **Where we are** + **Next up** updated;
@@ -224,7 +227,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 108 files, 751 examples, 0 failures (2026-11-22, Chromium `158.0.8127.37`) |
+| Crystal specs | 108 files, 752 examples, 0 failures (2026-11-22, Chromium `158.0.8127.37`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -1996,6 +1999,49 @@ events, and a dialog handled while someone held the Page domain disabled it).
       `FetchDisable` unconditionally (`hijack.go:189-192`), so the port matches.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (729 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 67 — `Element#interactable` surfaces go's covered-check error ✅
+
+go's `Interactable` (`element.go:378-408`) ends with
+
+```go
+isParent, err := el.ContainsElement(elAtPoint)
+if err != nil { return }
+if !isParent { err = &CoveredError{elAtPoint} }
+```
+
+so a failing coverage check stops the caller. The port special-cased one message:
+
+```crystal
+covered = begin !contains_element(el_at_point)
+          rescue ex
+            msg.includes?("same JavaScript world") ? false : raise ex
+          end
+```
+
+which turned a real CDP failure into "not covered" — i.e. `interactable`
+**returned a click point it could not verify**, and `wait_interactable` (which
+only retries `CoveredError`) accepted it. That message is what Chrome answers
+when a `callFunctionOn` mixes objects from two JS worlds, which is exactly the
+bug Phases 62/63 fixed (element requests now carry the element's context and a
+refreshed iframe element is built on the parent page), so the band-aid outlived
+its cause.
+
+- [x] Red-green `spec/element_spec.cr`: `InteractableStubElement` gained a
+      `contains_error`; the new example asserts `interactable` re-raises the
+      cross-world error. Red before (no raise — it returned the point), green
+      after.
+- [x] `src/rod/element.cr`: the covered-check is
+      `raise CoveredError.new(el_at_point) unless contains_element(el_at_point)`,
+      with only go's `ErrNodeNotFoundAtPos` → `InvisibleShapeError` translation
+      kept around it.
+- [x] Verified the rescue is no longer needed: `spec/live_browser_parity_spec.cr`
+      (59 examples: click/hover/tap/iframe/interactable), the interactable
+      parity spec and the iframe reload spec all pass without it.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (752 examples, 0 failures), `make check-go-*` pass.
 
 ---
 
