@@ -37,6 +37,13 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `StreamReader#close` surfaces the CDP `IO.close` error instead of swallowing it
+  (`utils.go:178-181`; upstream `TestPagePDF` asserts `g.Nil(s.Close())`), keeps
+  the handle open after a failure so a retry works, and stays idempotent after a
+  successful close. `StreamReader#read` serves buffered data before honouring
+  `eof`, so a chunk that arrives together with `eof: true` is no longer truncated
+  to the caller's first slice. `Page#must_pdf` still closes the reader but ignores
+  a close failure, since go's `MustPDF` never closes at all.
 - `Element#interactable` returns the `ContainsElement` error like go's
   `Interactable` (`element.go:392-400`). The port swallowed Chrome's "Argument
   should belong to the same JavaScript world as target object" and treated the

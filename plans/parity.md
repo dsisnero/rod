@@ -8,12 +8,11 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 67 (`Element#interactable` returns the
-`ContainsElement` error like go instead of reporting an unverifiable element as
-interactable; the `same JavaScript world` band-aid from the pre-Phase-62 era is
-gone). The element-context audit (56/62/63), the `gson.Int` sweep (64), the
-trace-site sweep (65), the `Element.Wait*` timing sweep (66) and the swallowed
-element errors (67) are closed.
+green, and the last feature commit is Phase 68 (`StreamReader.Close` surfaces the
+CDP error like go, and a chunk that arrives with `eof` is no longer truncated).
+The element-context audit (56/62/63), the `gson.Int` sweep (64), the trace-site
+sweep (65), the `Element.Wait*` timing sweep (66), the swallowed element errors
+(67) and the stream-reader error flow (68) are closed.
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~2m30s). Before a full run, clear stray headless browsers left
@@ -22,19 +21,21 @@ live specs into their documented load flake (see Gotchas). Do not run any other
 browser work (a scratch `crystal run`, another checkout's specs) while `make
 test` runs: it fails `spec/launcher_launch_parity_spec.cr:18`,
 `spec/live_browser_parity_spec.cr:1464` and `spec/live_browser_pool_spec.cr:144`
-on a busy machine, none of which are real failures.
+on a busy machine (plus `spec/live_browser_parity_spec.cr:1457`, the
+`TestHijackMockWholeResponse` example, which errored once under a full-suite run
+and passes in isolation), none of which are real failures.
 
-Phases 23-67 all came from *auditing `vendor/rod` area by area*: both ledgers
+Phases 23-68 all came from *auditing `vendor/rod` area by area*: both ledgers
 are 100% `ported` (inventory 5607/54/15, tests 297 with four upstream `t.Skip`s),
 so new work has to be found by comparing behaviour. Next up item 1 keeps the
-recipes that found those 45 phases, plus the list of areas already swept, so a
+recipes that found those 46 phases, plus the list of areas already swept, so a
 fresh session can pick up without re-deriving any of it.
 
-**Last commit:** `port: surface the interactable covered-check error`
-(Phase 67; `git log -1` for the hash).
+**Last commit:** `port: surface stream close errors and keep the last chunk`
+(Phase 68; `git log -1` for the hash).
 
-**Gates (2026-11-22, after Phase 67):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (752 examples, 0 failures) · parity checks pass
+**Gates (2026-11-22, after Phase 68):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (754 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -86,7 +87,8 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      `Element.Call` + `Contextable` + the iframe-element refresh (56, 62, 63),
      every `gson.(Int|Str|Bool)` payload site (64), every `tryTrace`/`tryTraceQuery`/
      `tryTraceReq` site (65), the `Element.Wait*` ticker/`select` timing (66),
-     `interactable`'s swallowed covered-check error (67). `Key.Encode` payloads
+     `interactable`'s swallowed covered-check error (67), `StreamReader`'s
+     swallowed close error / truncated `eof` chunk (68). `Key.Encode` payloads
      match (Phase 38).
 2. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
    parity scripts instead of the repo's copied ones (whose `tree-sitter` branch
@@ -122,7 +124,7 @@ authority):
 
 1. red-green: the new spec fails for the intended reason before the fix (stash
    the src change and watch it fail, or write the spec first);
-2. `make format`, `make lint`, `make test` (~2m30s, 752 examples) and
+2. `make format`, `make lint`, `make test` (~2m30s, 754 examples) and
    `make check-go-port-inventory` / `check-go-source-parity` /
    `check-go-test-parity`;
 3. `plans/parity.md`: new Phase entry + **Where we are** + **Next up** updated;
@@ -227,7 +229,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 108 files, 752 examples, 0 failures (2026-11-22, Chromium `158.0.8127.37`) |
+| Crystal specs | 108 files, 754 examples, 0 failures (2026-11-22, Chromium `158.0.8127.37`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -302,6 +304,15 @@ genuine minor gap**. Full list:
   port has its own generator (`src/pdlgen/`) and no Docker release script.
   Recorded as `intentional_divergence` in `go_port_inventory.tsv` (Phase 4),
   not ported.
+- Go `StreamReader` exposes a public `Offset *int` field that `Read` forwards but
+  never advances, and `Read` **discards** a chunk whose `IO.read` response also
+  reports `eof`. The port takes the offset in the constructor and advances it per
+  chunk, and keeps an `eof` chunk's data (serving the buffered tail before
+  honouring `eof`), because dropping it can truncate a stream. Chrome never
+  answers `eof` with data today (`IO.read` without a size returns the whole
+  payload with `eof: false`, then an empty `eof: true`), so the difference is
+  defensive. `MustPDF` differs too: go never closes the reader, the port closes
+  it and ignores a close failure (`must.cr`). Recorded in the ledger (Phase 68).
 - go-rod sends `Network.setUserAgentOverride` from `Page.SetUserAgent` /
   `devices.Device.UserAgentEmulation` (`page.go:150-157`), but Chromium's
   protocol marks that command `redirect Emulation`
@@ -1999,6 +2010,38 @@ events, and a dialog handled while someone held the Page domain disabled it).
       `FetchDisable` unconditionally (`hijack.go:189-192`), so the port matches.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (729 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 68 — `StreamReader` surfaces close errors and never truncates a chunk ✅
+
+go's `StreamReader.Close` is `return proto.IOClose{...}.Call(sr.c)` (`utils.go:178-181`)
+and `TestPagePDF` asserts `g.Nil(s.Close())`; the port wrapped the call in a bare
+`rescue` and returned success for a failed close. The same class as Phase 67
+found with the `rescue` sweep.
+
+Its `Read` also checked `@eof` **before** serving the buffered chunk, so a chunk
+that arrived together with `eof: true` lost its tail when the caller's slice was
+smaller than the chunk.
+
+- [x] Red-green `spec/screenshot_spec.cr`: a `FakeStreamClient` close failure must
+      raise `IO::Error` and leave the handle usable (red: nothing raised), and a
+      `{data: "abcdef", eof: true}` chunk read through a 3-byte slice must yield
+      `abc`, `def`, then `0` (red: `abc`, then `0`).
+- [x] `src/rod/util/utils.cr`: `close` raises `IO::Error` on a CDP failure, marks
+      the handle closed only after success (so a retry works) and stays idempotent
+      after success; `read` serves buffered data before honouring `@eof`.
+- [x] `src/rod/must.cr`: `must_pdf` closes the reader but ignores a close failure,
+      because go's `MustPDF` never closes at all (`must.go:407-415`) — a close
+      error must not fail a document that was already read.
+- [x] Divergences documented (structural section + ledger): no public `Offset`
+      field (constructor argument, advanced per chunk), and an `eof` chunk keeps
+      its data instead of being dropped as in go. Chrome's `IO.read` never
+      reports `eof` with data today, so both are defensive.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (754 examples, 0 failures), `make check-go-*` pass. (One full-suite run
+      errored in the live hijack example under load; it passes in isolation and
+      on the re-run — recorded in the Gotchas.)
 
 ---
 

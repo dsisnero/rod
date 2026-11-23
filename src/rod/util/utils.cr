@@ -497,10 +497,14 @@ module Rod::Util::Utils
 
     def close : Nil
       return if @closed
-      @closed = true
+      # go's `StreamReader.Close` returns the `IO.close` error (`utils.go:178-181`)
+      # and `TestPagePDF` asserts `g.Nil(s.Close())`, so a failure must surface
+      # instead of being swallowed. The handle stays open so a caller can retry,
+      # and a successful close is idempotent (Crystal's `IO#close` contract).
       ::Cdp::IO::Close.new(@handle).call(@client)
-    rescue
-      # Ignore errors on close
+      @closed = true
+    rescue ex
+      raise IO::Error.new("Stream close error: #{ex.message}", ex)
     end
 
     def closed? : Bool
@@ -509,15 +513,18 @@ module Rod::Util::Utils
 
     def read(slice : Bytes) : Int32
       raise IO::Error.new("Closed stream") if @closed
-      return 0 if @eof
 
-      # If we have data in buffer, serve from there
+      # Serve buffered data before honouring `@eof`: Chrome can report `eof`
+      # together with the last chunk, and dropping the remainder of that chunk
+      # would truncate the stream.
       if @buffer_pos < @buffer.size
         to_copy = Math.min(slice.size, @buffer.size - @buffer_pos)
         slice[0, to_copy].copy_from(@buffer[@buffer_pos, to_copy])
         @buffer_pos += to_copy
         return to_copy
       end
+
+      return 0 if @eof
 
       # Read more data from CDP
       res = ::Cdp::IO::Read.new(@handle, @offset, nil).call(@client)

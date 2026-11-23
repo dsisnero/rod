@@ -415,7 +415,13 @@ module Rod
       begin
         bin = IO::Memory.new.tap { |io| IO.copy(r, io) }.to_slice
       ensure
-        r.close if r.responds_to?(:close)
+        # go's `MustPDF` never closes the stream (`must.go:407-415`), so a close
+        # failure must not fail a document that was already read; the port closes
+        # it only to free the handle.
+        begin
+          r.close if r.responds_to?(:close)
+        rescue
+        end
       end
       must_try { save_file(SaveFileType::PDF, bin, to_file) }
       bin

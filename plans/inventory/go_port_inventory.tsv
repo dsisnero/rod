@@ -5648,16 +5648,16 @@ states.go::method::Page.EnableDomain	method	ported	src/rod/page.cr,spec/page_set
 states.go::method::Page.LoadState	method	ported	src/rod/page.cr,spec/page_settings_parity_spec.cr,spec/state_management_spec.cr	delegates to Browser.LoadState and returns the loaded request (go fills it in place)
 utils.go::func::NewBrowserPool	func	ported	src/rod/types.cr,spec/pool_spec.cr	new_browser_pool constructor parity covered
 utils.go::func::NewPagePool	func	ported	src/rod/types.cr,spec/pool_spec.cr	new_page_pool constructor parity covered
-utils.go::func::NewStreamReader	func	ported	src/rod/lib/utils.cr,spec/screenshot_spec.cr	stream reader constructor parity covered
+utils.go::func::NewStreamReader	func	ported	src/rod/lib/utils.cr,spec/screenshot_spec.cr	stream reader constructor parity covered; unlike go's `NewStreamReader(client, handle)` the port also accepts an initial offset (Phase 68)
 utils.go::func::Try	func	ported	src/rod/error.cr,spec/try_parity_spec.cr	try/recover wrapper parity covered
 utils.go::method::Message.Load	method	ported	src/rod/browser.cr,spec/browser_parity_spec.cr	message.load parity covered (typed load + boolean match semantics)
 utils.go::method::Pool[T].Cleanup	method	ported	src/rod/types.cr,spec/pool_spec.cr	pool cleanup parity covered
 utils.go::method::Pool[T].Get	method	ported	src/rod/types.cr,spec/pool_spec.cr	pool get/create parity covered
 utils.go::method::Pool[T].Put	method	ported	src/rod/types.cr,spec/pool_spec.cr	pool put parity covered
-utils.go::method::StreamReader.Close	method	ported	src/rod/lib/utils.cr,spec/screenshot_spec.cr	stream reader close parity covered
-utils.go::method::StreamReader.Read	method	ported	src/rod/lib/utils.cr,spec/screenshot_spec.cr	stream reader read/base64/error parity covered
+utils.go::method::StreamReader.Close	method	ported	src/rod/lib/utils.cr,spec/screenshot_spec.cr	surfaces the `IO.close` CDP error like go (`utils.go:178-181`) instead of swallowing it, keeps the handle open on failure, and is idempotent after success (Phase 68)
+utils.go::method::StreamReader.Read	method	ported	src/rod/lib/utils.cr,spec/screenshot_spec.cr	serves buffered data before honouring `eof`, so a chunk that arrives with `eof: true` is never truncated; read/base64/error parity otherwise covered (Phase 68)
 utils.go::struct::Message	struct	ported	src/rod/browser.cr	message event container parity covered
-utils.go::struct::StreamReader	struct	ported	src/rod/lib/utils.cr	stream reader struct parity covered
+utils.go::struct::StreamReader	struct	ported	src/rod/lib/utils.cr	no public `Offset` field: the port takes the offset in the constructor and advances it per chunk (go's field is never advanced by `Read`); documented divergence (Phase 68)
 utils.go::type::CDPClient	type	ported	src/rod.cr,src/cdp/cdp.cr	rod CDPClient alias parity covered via abstract Cdp::Client
 lib/proto/generate/main.go::const::Version	const	intentional_divergence	-	Go generator template string only; the Crystal protocol version constant is generated into src/cdp/cdp.cr by src/pdlgen (make generate-crystal)
 lib/proto/generate/main.go::method::{{.name}}.Call	method	intentional_divergence	-	Go generator template string only; Crystal command structs get call(c : Cdp::Client) from src/pdlgen/gen/crystal_templates/domain_module.ecr

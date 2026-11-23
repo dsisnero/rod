@@ -435,6 +435,39 @@ describe Rod::Util::Utils::StreamReader do
       reader.read(Bytes.new(1))
     end
   end
+
+  it "#close surfaces the CDP close error like go's StreamReader.Close" do
+    client = FakeStreamClient.new
+    reader = Rod::Util::Utils::StreamReader.new(client, "handle-1")
+    client.enqueue_error(Exception.new("close failed"))
+
+    # go: `func (sr *StreamReader) Close() error { return proto.IOClose{...}.Call(sr.c) }`
+    # (`utils.go:178-181`), and `TestPagePDF` asserts `g.Nil(s.Close())`.
+    expect_raises(IO::Error, /close failed/) { reader.close }
+
+    # A failed close keeps the handle usable, like go (which never marks it).
+    client.enqueue_response(%({}))
+    reader.close
+    reader.closed?.should be_true
+  end
+
+  it "#read serves the whole chunk when the stream reports eof with data" do
+    client = FakeStreamClient.new
+    reader = Rod::Util::Utils::StreamReader.new(client, "handle-2")
+    client.enqueue_response(%({"data":"abcdef","eof":true}))
+
+    first = Bytes.new(3)
+    reader.read(first).should eq(3)
+    String.new(first).should eq("abc")
+
+    # The remainder of the final chunk must still be readable; dropping it would
+    # truncate a stream whose last CDP read also reported eof.
+    second = Bytes.new(3)
+    reader.read(second).should eq(3)
+    String.new(second).should eq("def")
+
+    reader.read(Bytes.new(3)).should eq(0)
+  end
 end
 
 describe "Image utilities" do
