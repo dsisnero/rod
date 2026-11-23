@@ -57,6 +57,13 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- Example output prints plainly again: the 12 examples that used Crystal's
+  `Log.info { ... }` (21 sites) now `puts`, so a run no longer prefixes its output
+  with `2026-11-23T04:30:11Z INFO -` (upstream uses `log.Printf`/`fmt.Println`),
+  and `compare-chromedp/click` chains `trace(true)` like upstream's `Trace(true)`
+  so it shows the `[wait]`/`[input]` spans. `make example EXAMPLE=…` also accepts
+  the `main.cr` directory form now instead of resolving it to a directory target
+  and reporting "Nothing to be done".
 - The `examples/` tree compiles again. Seven examples
   (`connect-browser`, `custom-launch`, `custom-websocket`, `launch-managed`,
   `use-rod-like-chrome-extension`, `compare-chromedp/emulate` and

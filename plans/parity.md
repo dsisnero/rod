@@ -8,23 +8,38 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 69 (`Browser#page` accepts go's
+green. The last *feature* commit is Phase 69 (`Browser#page` accepts go's
 `Target.createTarget` options, so `newWindow`/`background`/`forTab` and the
-browser context are forwarded instead of being hard-coded to nil). The
-element-context audit (56/62/63), the `gson.Int` sweep (64), the trace-site sweep
-(65), the `Element.Wait*` timing sweep (66), the swallowed element errors (67),
-the stream-reader error flow (68) and the page-creation options (69) are closed.
+browser context are forwarded instead of being hard-coded to nil); the three
+commits after it are repo hygiene, not phases:
+
+- `docs: repair the examples and document the recent port work` — 7 of 29
+  examples still used the pre-port `Rod::Lib` namespace and had not compiled in a
+  long time; added `examples/page-options/main.cr` and the `make check-examples`
+  gate, plus docs for the element-context and tracing rules.
+- `build: add an incremental make examples target` — per-example binaries under
+  `temp/examples/`, rebuilt only when the example, any `src/**/*.cr` file or the
+  shard manifest is newer (`make example EXAMPLE=compare-chromedp/click` for one).
+- `examples: print plain output and restore the click trace` — examples print
+  with `puts` instead of Crystal `Log` (`INFO - …` prefixes), and the click
+  example chains `trace(true)` like upstream.
+
+The element-context audit (56/62/63), the `gson.Int` sweep (64), the trace-site
+sweep (65), the `Element.Wait*` timing sweep (66), the swallowed element errors
+(67), the stream-reader error flow (68), the page-creation options (69) and the
+examples/docs/builder pass are closed.
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
-then `make test` (~2m30s). Before a full run, clear stray headless browsers left
-by an aborted run — `pgrep -f "rod/user-data" | xargs -r kill -9`; they push the
-live specs into their documented load flake (see Gotchas). Do not run any other
-browser work (a scratch `crystal run`, another checkout's specs) while `make
-test` runs: it fails `spec/launcher_launch_parity_spec.cr:18`,
-`spec/live_browser_parity_spec.cr:1464` and `spec/live_browser_pool_spec.cr:144`
-on a busy machine (plus `spec/live_browser_parity_spec.cr:1457`, the
-`TestHijackMockWholeResponse` example, which errored once under a full-suite run
-and passes in isolation), none of which are real failures.
+`make check-examples` (~40 s, no browser), then `make test` (~2m). Before a full
+run, clear stray headless browsers left by an aborted run —
+`pgrep -f "rod/user-data" | xargs -r kill -9`; they push the live specs into
+their documented load flake (see Gotchas). Do not run any other browser work (a
+scratch `crystal run`, another checkout's specs) while `make test` runs: it fails
+`spec/launcher_launch_parity_spec.cr:18`, `spec/live_browser_parity_spec.cr:1464`
+and `spec/live_browser_pool_spec.cr:144` on a busy machine (plus
+`spec/live_browser_parity_spec.cr:1457`, the `TestHijackMockWholeResponse`
+example, which errored once under a full-suite run and passes in isolation),
+none of which are real failures.
 
 Phases 23-69 all came from *auditing `vendor/rod` area by area*: both ledgers
 are 100% `ported` (inventory 5607/54/15, tests 297 with four upstream `t.Skip`s),
@@ -32,14 +47,15 @@ so new work has to be found by comparing behaviour. Next up item 1 keeps the
 recipes that found those 47 phases, plus the list of areas already swept, so a
 fresh session can pick up without re-deriving any of it.
 
-**Last commit:** `port: forward page creation options like go`
-(Phase 69; `git log -1` for the hash).
+**Last commit:** `examples: print plain output and restore the click trace`
+(`git log -1` for the hash; `git log --oneline -4` shows the hygiene commits).
 
-**Gates (2026-11-22, after Phase 69):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (757 examples, 0 failures) · parity checks pass
-(5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
-protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
-`go-rod/rod` main package has browser-timing failures (see Next up).
+**Gates (2026-11-22, after the examples pass):** `make format` pass · `make lint`
+pass (241 files) · `make check-examples` pass (30 example files) · `make test`
+pass (757 examples, 0 failures) · parity checks pass (5665 inventory rows with 10
+documented divergences and 54 `skipped` legacy protocol rows, 5368 API items, 297
+tests) · upstream Go suite: 8/9 packages pass, `go-rod/rod` main package has
+browser-timing failures (see Next up).
 
 **Next up:**
 
@@ -98,7 +114,17 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    `http://host/path`; the port takes a single `String`. A variadic overload
    (`must_page(*url : String)`) keeps the current calls working and matches the
    upstream signature.
-3. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
+3. **[code, small] Default browser logger format.** go's `DefaultLogger` is
+   `log.New(os.Stdout, "[rod] ", log.LstdFlags)` (`utils.go:67`), so a traced run
+   prints `2026/11/23 04:34:41 [rod] wait load <Page …>`; the port's
+   `Util::Defaults.logger` is Crystal's `::Log.for("rod")`, which renders
+   `2026-11-23T04:34:41Z   INFO - rod: [wait] visible <…>` (timestamp, severity,
+   source, bracketed span). The information is the same, the shape is not;
+   aligning means a small `Log::Backend` that writes `"<date> <time> [rod] " +
+   message` to stdout, with a spec pinning a rendered line. Do it together with a
+   decision on the bracketed `[wait]` label (`Rod.trace_type_label`) versus go's
+   bare `wait`.
+4. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
    parity scripts instead of the repo's copied ones (whose `tree-sitter` branch
    is a placeholder), and decide curated-status preservation. Native tree-sitter
    discovery already works via the verified Chiasmus toolchain, but its
@@ -107,21 +133,21 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    gate stays `PORT_PARSER=regex` until a reviewed id migration lands. (The last
    Phase 2 checklist bullet, `Page.cleanupStates`, is closed in Phase 59, so this
    is now tooling-only work.)
-4. **[verify] Upstream Go suite flakiness:** `github.com/go-rod/rod` failed
+5. **[verify] Upstream Go suite flakiness:** `github.com/go-rod/rod` failed
    `TestPageElements` and `Example_basic` on 2026-11-17 while the other eight
    packages passed. Re-run before reading anything into a failure — these are
    browser-timing issues in the vendored project, not port gaps. Run with
    `GODEBUG=tracebackancestors=1000`.
-5. **[verify] Generation no-op gate:** `make check-generate-crystal` regenerates
+6. **[verify] Generation no-op gate:** `make check-generate-crystal` regenerates
    the pinned vintage (`CDP_CHROMIUM=160.0.8168.1`, `CDP_V8=16.0.61`) into
    `temp/cdp_generated/` and diffs it against `src/cdp`; it passes with a warm
    cache and needs network on a cold one (PDL files come from googlesource.com).
    Re-run it after any template edit — Phase 30 and 59 both hand-edited generated
    output alongside its template.
-6. **[optional cleanup]** The repo tracks built binaries (`rod`, `bin/pdlgen*`,
+7. **[optional cleanup]** The repo tracks built binaries (`rod`, `bin/pdlgen*`,
    `pdlgen*`), so local builds keep showing up as modified files. Decide whether
    to untrack them.
-7. **[optional follow-up]** `spec/cdp_client_parity_spec.cr` and
+8. **[optional follow-up]** `spec/cdp_client_parity_spec.cr` and
    `spec/launcher_parity_spec.cr` still launch their own browsers. That is
    deliberate — they exercise the CDP client and the launcher itself
    (`TestLaunchClient`, `Browser.close` handling) — so only revisit it if a
@@ -167,7 +193,12 @@ Chrome itself drop connections mid-example, which looks like a port bug. On
 2026-11-17 three `chiasmus` runs from another checkout kept the load average
 above 12 for hours; a full suite then took 12 minutes and
 `TestScrollScreenshot` exhausted its compositor retries even though it passes in
-isolation. Re-run before blaming a change. A killed or aborted spec run can also
+isolation. Chrome also bypasses a proxy for loopback targets even with
+`--proxy-bypass-list=<-loopback>`, so a proxy example or spec that must see a
+`127.0.0.1` request has to make the proxy serve the origin (an unresolvable host
+such as `proxy-test.invalid`), which is what
+`examples/compare-chromedp/proxy/main.cr` does. Re-run before blaming a change. A
+killed or aborted spec run can also
 leave its headless browsers behind (`pgrep -f "rod/user-data"`); they keep the
 machine busy, and `TestScrollScreenshot` then fails with `-32000 Unable to
 capture screenshot` even on a pristine tree — `pgrep -f "rod/user-data" | xargs
@@ -176,7 +207,10 @@ browser profiles out of `./temp`: on the exFAT checkout Chrome's AppleDouble
 `._*` sidecars appear in `readdir` but `FileUtils.rm_rf` cannot unlink them, so
 `Launcher#cleanup` silently leaves the profile behind (use `Dir.tempdir`). The
 same sidecars break naive directory traversals: `strip_first_dir` has to ignore
-`._*`/`.DS_Store` or a managed download leaves `bin_path` dangling (Phase 22).
+`._*`/`.DS_Store` or a managed download leaves `bin_path` dangling (Phase 22), and
+the Makefile's `check-examples`/`examples` rules filter them out of their `find`
+calls (they also fool `find`: the phantom `._main.cr` entries are listed and even
+`crystal build --no-codegen` on them exits 0).
 A live spec that starts a CDP flow in a detached fiber (`spawn { ... }`) must
 await it before the example ends (e.g. `done.receive`), otherwise the pooled
 browser can go back with a domain still enabled and the next example's

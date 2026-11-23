@@ -43,7 +43,7 @@ test:
 # `make test`, so without this they rot silently (7 of them referenced the
 # pre-port `Rod::Lib` namespace and had not compiled for a long time).
 check-examples:
-	@status=0; for f in $$(find examples -name '*.cr' | sort); do \
+	@status=0; for f in $$(find examples -name '*.cr' ! -name '._*' ! -name '.DS_Store' | sort); do \
 		crystal build --no-codegen "$$f" >/dev/null || { echo "FAIL $$f"; status=1; }; \
 	done; \
 	if [ $$status -eq 0 ]; then echo "All examples compile."; else exit 1; fi
@@ -63,9 +63,10 @@ check-examples:
 # could never be tracked by timestamp. This checkout is on exFAT, whose
 # timestamps have 2-second granularity, so an edit made within the same 2-second
 # window as a build may not be noticed; `make check-examples` is the
-# timestamp-independent gate.
-EXAMPLE_ENTRY ?= $(shell find examples -name 'main.cr' | sort) examples/e2e-testing/calculator.cr
-EXAMPLE_DEPENDS ?= $(shell find src -name '*.cr' | sort) shard.yml shard.lock
+# timestamp-independent gate. The `find` calls skip `._*`/`.DS_Store` because the
+# exFAT checkout surfaces AppleDouble sidecars in `readdir`.
+EXAMPLE_ENTRY ?= $(shell find examples -name 'main.cr' ! -name '._*' | sort) examples/e2e-testing/calculator.cr
+EXAMPLE_DEPENDS ?= $(shell find src -name '*.cr' ! -name '._*' | sort) shard.yml shard.lock
 EXAMPLE_BUILD_FLAGS ?=
 example_bin = temp/examples/$(patsubst examples/%.cr,%,$(1))
 
