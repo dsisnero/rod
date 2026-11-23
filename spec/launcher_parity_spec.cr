@@ -204,6 +204,13 @@ describe "launcher parity" do
     end
   end
 
+  it "resolve_url! aliases must_resolve_url" do
+    with_version_server do |port|
+      Rod::Util::Launcher.resolve_url!(":#{port}")
+        .should eq("ws://127.0.0.1:#{port}/devtools/browser/id")
+    end
+  end
+
   it "matches TestLaunch live launch behavior" do
     l = Rod::Util::Launcher.new
       .bin(CHROME_BIN)
@@ -293,6 +300,16 @@ describe "launcher parity" do
     body = %({"flags":{"headless":null}})
     with_managed_defaults_server(body) do |port|
       l = Rod::Util::Launcher.must_new_managed("http://127.0.0.1:#{port}")
+      l.has("disable-http2").should be_true
+    end
+  end
+
+  it "new_managed! aliases must_new_managed" do
+    body = %({"flags":{"headless":null}})
+    with_managed_defaults_server(body) do |port|
+      l = Rod::Util::Launcher.new_managed!("http://127.0.0.1:#{port}")
+      l.managed.should be_true
+      l.service_url.should eq("ws://127.0.0.1:#{port}")
       l.has("disable-http2").should be_true
     end
   end

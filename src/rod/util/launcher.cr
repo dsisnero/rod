@@ -155,6 +155,12 @@ module Rod::Util::Launcher
     resolve_url(url)
   end
 
+  # `resolve_url!` aliases `must_resolve_url`, matching the bang spelling the
+  # examples use for the must helpers.
+  def self.resolve_url!(url : String) : String
+    must_resolve_url(url)
+  end
+
   # Revision constants from revision.go
   REVISION_DEFAULT    = 1321438
   REVISION_PLAYWRIGHT =    1124
@@ -548,6 +554,11 @@ module Rod::Util::Launcher
     launcher
   end
 
+  # `new_managed!` aliases `must_new_managed`.
+  def self.new_managed!(service_url : String = "") : Launcher
+    must_new_managed(service_url)
+  end
+
   # NewManager creates a launcher manager HTTP handler.
   def self.new_manager : Manager
     Manager.new
@@ -845,6 +856,11 @@ module Rod::Util::Launcher
     # MustClient variant.
     def must_client : Rod::Util::Cdp::Client
       client
+    end
+
+    # `client!` aliases `must_client`.
+    def client! : Rod::Util::Cdp::Client
+      must_client
     end
 
     # Format flags as command line arguments.

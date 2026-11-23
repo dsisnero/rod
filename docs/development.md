@@ -53,10 +53,9 @@ make clean       # rm -rf ./temp/*
 used the pre-port `Rod::Lib` namespace and had silently stopped compiling. Each
 example under `examples/` mirrors a file in `vendor/rod/lib/examples`, so port
 them together with their upstream counterpart. Example call sites use the `!`
-aliases of the `must_*` helpers (`connect!`, `page!`, `element!`, `click!`), so
-they read shorter than the Go source while calling the same ported helpers;
-`Rod::Util::Launcher.must_*` and the block-taking `Pool#must_get` keep the
-explicit form because they have no alias.
+aliases of the `must_*` helpers (`connect!`, `page!`, `element!`, `click!`,
+`Rod::Util::Launcher.new_managed!`, `pool.get! { … }`), so they read shorter
+than the Go source while calling the same ported helpers.
 
 `make examples` builds one binary per entry point (`*/main.cr` plus
 `e2e-testing/calculator.cr`) under the git-ignored `temp/examples/`, and only

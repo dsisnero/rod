@@ -6,12 +6,11 @@
 - Keep API shape and error behavior aligned with `vendor/rod` contracts.
 - Use Crystal idioms only when they do not change observable behavior.
 - `must_*` helpers and their `!` aliases must stay behaviorally equivalent
-  (`page!` ↔ `must_page`, `element!` ↔ `must_element`). Examples spell the
-  fluent browser/page/element calls with the alias (`page.element!("…").click!`);
-  helpers with no alias keep `must_*` (`Rod::Util::Launcher.must_new_managed`,
-  `Launcher#must_client`, `Pool#must_get`, which takes a block that
-  `method_missing` cannot forward). Specs keep the explicit `must_*` spelling so
-  a failure points at the helper under test.
+  (`page!` ↔ `must_page`, `element!` ↔ `must_element`,
+  `Rod::Util::Launcher.new_managed!` ↔ `must_new_managed`, `Pool#get!` ↔
+  `must_get`). Examples spell the fluent calls with the alias
+  (`page.element!("…").click!`); specs keep the explicit `must_*` spelling so a
+  failure points at the helper under test.
 - For query methods, make timeout/cancellation behavior explicit and tested.
 - `<-ch` in Go is an immediately-ready branch once `ch` is *closed*, and the
   receive just returns. Crystal's `Channel#receive` raises `Channel::ClosedError`

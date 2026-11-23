@@ -1192,5 +1192,11 @@ module Rod
       raise "pool create returned nil element without error" unless elem
       elem
     end
+
+    # `get!` aliases `must_get`, forwarding the creation block that
+    # `method_missing` cannot forward.
+    def get!(&create : -> T) : T
+      must_get { create.call }
+    end
   end
 end

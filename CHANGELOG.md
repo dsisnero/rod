@@ -56,17 +56,19 @@ below describe the Crystal port, not upstream changes.
   sizing, `hidden`/`focus` — plus the browser context, forces the creation URL to
   `about:blank` and navigates afterwards when the requested URL is non-empty. The
   string overload keeps its convenience semantics.
+- `!` aliases for the remaining helpers the examples call:
+  `Rod::Util::Launcher.resolve_url!` / `new_managed!` (module functions, which
+  cannot use `method_missing`), `Launcher#client!`, and `Pool#get!`, which
+  forwards the creation block that `method_missing` cannot. Each is a one-line
+  delegate to its `must_*` helper.
 
 ### Changed
 
 - `examples/` call the browser/page/element DSL through the `!` aliases now
   (`connect!`, `page!`, `element!`, `click!`, `text!`, …) instead of the explicit
   `must_*` names, matching the style the README advertises. Behavior is
-  unchanged: every alias routes through `method_missing` to the same `must_*`
-  helper. The helpers without an alias keep their explicit spelling
-  (`Rod::Util::Launcher.must_resolve_url` / `must_new_managed`,
-  `Launcher#must_client`, and `Pool#must_get`, which takes a block that
-  `method_missing` cannot forward).
+  unchanged: every alias routes to the same `must_*` helper, and no example
+  contains a `must_*` call site any more.
 
 ### Fixed
 

@@ -51,6 +51,15 @@ private class BangAliasBrowser < Rod::Browser
   end
 end
 
+private class BangAliasLauncher < Rod::Util::Launcher::Launcher
+  getter calls = [] of String
+
+  def must_client : Rod::Util::Cdp::Client
+    @calls << "must_client"
+    Rod::Util::Cdp::Client.new
+  end
+end
+
 describe "must bang aliases" do
   it "routes browser bang methods to must_ methods" do
     browser = BangAliasBrowser.new
@@ -81,5 +90,23 @@ describe "must bang aliases" do
     element.calls.should eq(["must_click", "must_text"])
     clicked.should be(element)
     text.should eq("bang-text")
+  end
+
+  it "routes launcher bang methods to must_ methods" do
+    launcher = BangAliasLauncher.new
+    client = launcher.client!
+
+    launcher.calls.should eq(["must_client"])
+    client.should be_a(Rod::Util::Cdp::Client)
+  end
+
+  it "routes pool bang methods to must_get and forwards the block" do
+    pool = Rod::Pool(Int32).new(1)
+
+    pool.get! { 7 }.should eq(7)
+
+    # Once an element is returned, `get!` reuses it instead of calling the block.
+    pool.put(3)
+    pool.get! { 9 }.should eq(3)
   end
 end

@@ -31,8 +31,9 @@ commits after it are repo hygiene, not phases:
 - `examples: spell calls with the bang aliases` — all 30 example files call the
   browser/page/element DSL as `connect!`/`page!`/`element!`/`click!` instead of
   `must_*` (same `method_missing` route, so behavior and tracing are unchanged);
-  `Rod::Util::Launcher.must_*` and the block-taking `Pool#must_get` keep the
-  explicit spelling because they have no alias.
+  `Rod::Util::Launcher.resolve_url!`/`new_managed!`/`client!` and
+  `Pool#get!` were added as explicit one-line delegates so the launcher and pool
+  call sites convert too.
 
 The element-context audit (56/62/63), the `gson.Int` sweep (64), the trace-site
 sweep (65), the `Element.Wait*` timing sweep (66), the swallowed element errors

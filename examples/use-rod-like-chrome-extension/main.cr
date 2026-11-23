@@ -51,7 +51,7 @@ callbacks[Cdp::Target::TargetCreatedEvent.proto_event] = Rod::Browser::CallbackI
 
       # Expose the preview generator the injected script calls.
       page.expose!("getPreview", ->(url : JSON::Any) do
-        preview_page = pool.must_get { previewer.page! }
+        preview_page = pool.get! { previewer.page! }
         begin
           preview_page.navigate!(url.as_s)
           {JSON::Any.new(Base64.strict_encode(preview_page.screenshot!)), nil}
