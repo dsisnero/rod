@@ -599,10 +599,12 @@ module Rod
 
     # WaitStableRAF waits for no shape changes across consecutive animation frames.
     def wait_stable_raf : Nil
+      wait_visible
+
+      # go only defers the span once `WaitVisible` succeeded
+      # (`element.go:556-570`).
       cleanup = try_trace(Rod::TraceTypeWait, "stable RAF")
       begin
-        wait_visible
-
         shape_json : String? = nil
         loop do
           @page.context(@ctx).wait_repaint
@@ -617,20 +619,21 @@ module Rod
 
     # WaitStable waits until no shape or position change for d duration.
     def wait_stable(duration : Time::Span = 100.milliseconds) : Nil
+      wait_visible
+
+      # go defers the span after `WaitVisible` and races a ticker with the
+      # element context (`element.go:519-550`), so a deadline or cancel stops the
+      # loop immediately instead of sleeping out the interval.
       cleanup = try_trace(Rod::TraceTypeWait, "stable")
       begin
-        wait_visible
-
         last_shape = shape.to_json
         loop do
-          if @ctx.cancelled?
-            if err = @ctx.err
-              raise err
-            end
-            raise ContextCanceledError.new("context cancelled")
+          select
+          when @ctx.done.receive?
+            raise @ctx.err || ContextCanceledError.new("context cancelled")
+          when timeout(duration)
           end
 
-          sleep(duration) if duration > Time::Span::ZERO
           current_shape = shape.to_json
           break if current_shape == last_shape
           last_shape = current_shape

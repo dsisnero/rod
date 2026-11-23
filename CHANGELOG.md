@@ -37,6 +37,12 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- `Element#wait_stable` waits on go's ticker race instead of a plain sleep: it
+  `select`s between the interval and the element context (`element.go:519-550`),
+  so an `Element#timeout`/`#context` clone stops the loop as soon as its deadline
+  or cancellation fires instead of sleeping out the whole interval, and it traces
+  `stable` only after `WaitVisible` succeeds. `Element#wait_stable_raf` got the
+  same span placement (`element.go:556-570`).
 - `Browser#trace(true)` now emits go's spans for the page waits: `wait open`,
   `event <protoEvent>`, `navigation <name>`, `request-idle`, `dom-stable` and
   `stable` (`page.go:661-705`, `718`, `784`, `822`), each placed where go's

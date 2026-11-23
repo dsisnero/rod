@@ -8,11 +8,11 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 65 (the page wait helpers emit go's
-`[wait]` trace spans and `Element#wait` no longer invents one, so all 31 upstream
-`tryTrace`/`tryTraceQuery`/`tryTraceReq` sites are wired). The element-context
-audit (56/62/63), the `gson.Int` sweep (64) and the trace-site sweep (65) are
-closed.
+green, and the last feature commit is Phase 66 (`Element#wait_stable` traces after
+`WaitVisible` like go and races its tick against the element context, so a
+deadline or cancel stops the loop immediately). The element-context audit
+(56/62/63), the `gson.Int` sweep (64), the trace-site sweep (65) and the
+`Element.Wait*` timing sweep (66) are closed.
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~2m30s). Before a full run, clear stray headless browsers left
@@ -23,17 +23,17 @@ test` runs: it fails `spec/launcher_launch_parity_spec.cr:18`,
 `spec/live_browser_parity_spec.cr:1464` and `spec/live_browser_pool_spec.cr:144`
 on a busy machine, none of which are real failures.
 
-Phases 23-65 all came from *auditing `vendor/rod` area by area*: both ledgers
+Phases 23-66 all came from *auditing `vendor/rod` area by area*: both ledgers
 are 100% `ported` (inventory 5607/54/15, tests 297 with four upstream `t.Skip`s),
 so new work has to be found by comparing behaviour. Next up item 1 keeps the
-recipes that found those 43 phases, plus the list of areas already swept, so a
+recipes that found those 44 phases, plus the list of areas already swept, so a
 fresh session can pick up without re-deriving any of it.
 
-**Last commit:** `port: trace the page waits like go's tryTrace sites`
-(Phase 65; `git log -1` for the hash).
+**Last commit:** `port: race the element stable wait with its context`
+(Phase 66; `git log -1` for the hash).
 
-**Gates (2026-11-22, after Phase 65):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (748 examples, 0 failures) · parity checks pass
+**Gates (2026-11-22, after Phase 66):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (751 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -83,7 +83,8 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      call site / all 33 `lib/js` helpers (39, 59, 61), element CDP requests /
      `Element.Call` + `Contextable` + the iframe-element refresh (56, 62, 63),
      every `gson.(Int|Str|Bool)` payload site (64), every `tryTrace`/`tryTraceQuery`/
-     `tryTraceReq` site (65). `Key.Encode` payloads match (Phase 38).
+     `tryTraceReq` site (65), the `Element.Wait*` ticker/`select` timing (66).
+     `Key.Encode` payloads match (Phase 38).
 2. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
    parity scripts instead of the repo's copied ones (whose `tree-sitter` branch
    is a placeholder), and decide curated-status preservation. Native tree-sitter
@@ -118,7 +119,7 @@ authority):
 
 1. red-green: the new spec fails for the intended reason before the fix (stash
    the src change and watch it fail, or write the spec first);
-2. `make format`, `make lint`, `make test` (~2m30s, 748 examples) and
+2. `make format`, `make lint`, `make test` (~2m30s, 751 examples) and
    `make check-go-port-inventory` / `check-go-source-parity` /
    `check-go-test-parity`;
 3. `plans/parity.md`: new Phase entry + **Where we are** + **Next up** updated;
@@ -223,7 +224,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 107 files, 748 examples, 0 failures (2026-11-22, Chromium `158.0.8127.37`) |
+| Crystal specs | 108 files, 751 examples, 0 failures (2026-11-22, Chromium `158.0.8127.37`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -1995,6 +1996,29 @@ events, and a dialog handled while someone held the Page domain disabled it).
       `FetchDisable` unconditionally (`hijack.go:189-192`), so the port matches.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (729 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 66 — `Element#wait_stable` races its tick with the element context ✅
+
+go's `Element.WaitStable` (`element.go:519-550`) waits for `WaitVisible()` first,
+defers the `stable` span only after that succeeded, and then `select`s between a
+`time.NewTicker(d)` and `el.ctx.Done()`. The port traced `stable` *before*
+`wait_visible` (so a failing visible wait still produced a span, in the wrong
+order) and slept with a plain `sleep(duration)`, checking `@ctx.cancelled?` only
+on the next iteration: an element cloned with `#timeout`/`#context` kept sleeping
+after its deadline. `WaitStableRAF` had the same span-placement difference.
+
+- [x] Red-green `spec/element_wait_stable_parity_spec.cr` (new): a stub element
+      whose `wait` raises proves the `visible` span is logged and the
+      `stable`/`stable RAF` span is not (red: `[wait] stable` came first), and a
+      `with_cancel` clone whose tick is `5.seconds` must abort on a cancel issued
+      after 50 ms (red: it took 5.003 s, green: ~50 ms).
+- [x] `src/rod/element.cr`: `wait_visible` runs before the trace in both methods,
+      and `wait_stable` uses `select` between `@ctx.done.receive?` and
+      `timeout(duration)`, raising `@ctx.err` exactly like go's `el.ctx.Err()`.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (751 examples, 0 failures), `make check-go-*` pass.
 
 ---
 
