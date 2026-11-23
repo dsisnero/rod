@@ -46,4 +46,4 @@ path = "vendor/rod/lib/examples/compare-chromedp/upload/main.go"
 page.must_element("input[name=\"upload\"]").must_set_files([path])
 page.must_element("input[name=\"submit\"]").must_click
 
-Log.info { "original size: #{size(path)}, upload size: #{page.must_element("#result").must_text}" }
+puts "original size: #{size(path)}, upload size: #{page.must_element("#result").must_text}"

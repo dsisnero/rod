@@ -26,8 +26,8 @@ end
 
 page = Rod::Browser.new.must_connect.must_page(test_server)
 page.must_eval(MAKE_VISIBLE_SCRIPT)
-Log.info { "waiting 3s for box to become visible" }
+puts "waiting 3s for box to become visible"
 page.must_element("#box1").must_wait_visible
-Log.info { ">>>>>>>>>>>>>>>>>>>> BOX1 IS VISIBLE" }
+puts ">>>>>>>>>>>>>>>>>>>> BOX1 IS VISIBLE"
 page.must_element("#box2").must_wait_visible
-Log.info { ">>>>>>>>>>>>>>>>>>>> BOX2 IS VISIBLE" }
+puts ">>>>>>>>>>>>>>>>>>>> BOX2 IS VISIBLE"

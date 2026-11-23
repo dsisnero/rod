@@ -32,7 +32,7 @@ val2 = page.must_element("#textarea1").must_input("\b\b\n\naoeu\n\ntest1\n\nblah
 val3 = page.must_element("#input2").must_input("test3").must_text
 val4 = page.must_element("#select1").must_type(Rod::Input::ARROW_DOWN, Rod::Input::ARROW_DOWN).must_property("value").to_s
 
-Log.info { "#input1 value: #{val1}" }
-Log.info { "#textarea1 value: #{val2}" }
-Log.info { "#input2 value: #{val3}" }
-Log.info { "#select1 value: #{val4}" }
+puts "#input1 value: #{val1}"
+puts "#textarea1 value: #{val2}"
+puts "#input2 value: #{val3}"
+puts "#select1 value: #{val4}"

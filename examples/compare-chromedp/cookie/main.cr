@@ -15,7 +15,7 @@ def cookie_server : String
   server = HTTP::Server.new do |context|
     cookies = context.request.cookies
     cookies.each_with_index do |cookie, i|
-      Log.info { "from #{context.request.remote_address}, server received cookie #{i}: #{cookie}" }
+      puts "from #{context.request.remote_address}, server received cookie #{i}: #{cookie}"
     end
     cookie_data = cookies.map do |cookie|
       {
@@ -56,6 +56,6 @@ page.must_set_cookies([cookie1, cookie2])
 
 page.must_navigate(cookie_server)
 page.must_cookies.each_with_index do |cookie, i|
-  Log.info { "chrome cookie #{i}: #{cookie}" }
+  puts "chrome cookie #{i}: #{cookie}"
 end
-Log.info { "chrome received cookies: #{page.must_element("#result").must_text}" }
+puts "chrome received cookies: #{page.must_element("#result").must_text}"

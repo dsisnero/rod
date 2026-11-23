@@ -6,5 +6,5 @@ projects = section.must_elements("li")
 
 projects.each do |project|
   link = project.must_element("a")
-  Log.info { "project #{link.must_text} (#{link.must_property("href")}): '#{project.must_text}'" }
+  puts "project #{link.must_text} (#{link.must_property("href")}): '#{project.must_text}'"
 end

@@ -75,9 +75,14 @@ example_bin = temp/examples/$(patsubst examples/%.cr,%,$(1))
 .PHONY: examples example
 examples: $(foreach e,$(EXAMPLE_ENTRY),$(call example_bin,$(e)))
 
+# `EXAMPLE` is a path under examples/: either the directory of a `main.cr` or a
+# `.cr` entry point like `e2e-testing/calculator`.
 example:
-	@test -n "$(EXAMPLE)" || { echo "usage: make example EXAMPLE=<path under examples/ without .cr>"; exit 2; }
-	@$(MAKE) --no-print-directory $(call example_bin,examples/$(EXAMPLE).cr)
+	@test -n "$(EXAMPLE)" || { echo "usage: make example EXAMPLE=<path under examples/, e.g. compare-chromedp/click>" >&2; exit 2; }
+	@src="$(or $(firstword $(wildcard examples/$(EXAMPLE)/main.cr)),examples/$(EXAMPLE).cr)"; \
+	 if [ ! -f "$$src" ]; then echo "no such example: $(EXAMPLE)" >&2; exit 2; fi; \
+	 bin="temp/examples/$${src#examples/}"; bin="$${bin%.cr}"; \
+	 $(MAKE) --no-print-directory "$$bin"
 
 define EXAMPLE_RULE
 $(call example_bin,$(1)): $(1) $(EXAMPLE_DEPENDS)

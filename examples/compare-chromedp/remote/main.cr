@@ -7,5 +7,5 @@ page = Rod::Browser.new.control_url(ws_url).must_connect.must_page("https://duck
 page.must_element("#logo_homepage_link").must_wait_visible
 
 html = page.must_html
-Log.info { "Body of duckduckgo.com starts with:" }
-Log.info { html[0, Math.min(100, html.size)] }
+puts "Body of duckduckgo.com starts with:"
+puts html[0, Math.min(100, html.size)]

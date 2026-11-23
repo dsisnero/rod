@@ -5,4 +5,4 @@ res = Rod::Browser.new.must_connect
   .must_element("input")
   .must_eval("() => Object.keys(window)")
 
-Log.info { "window object keys: #{res}" }
+puts "window object keys: #{res}"

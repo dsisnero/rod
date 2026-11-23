@@ -28,7 +28,7 @@ callbacks[Cdp::Browser::DownloadProgressEvent.proto_event] = Rod::Browser::Callb
                 else
                   "#{(progress.received_bytes / progress.total_bytes * 100.0).round(2)}%"
                 end
-    Log.info { "state: #{progress.state}, completed: #{completed}" }
+    puts "state: #{progress.state}, completed: #{completed}"
     progress.state == Cdp::Browser::DownloadProgressStateCompleted
   end
 )
@@ -54,5 +54,5 @@ download.must_click
 
 res = wait.call
 if res
-  Log.info { "wrote #{File.join(wd, res.guid)}" }
+  puts "wrote #{File.join(wd, res.guid)}"
 end

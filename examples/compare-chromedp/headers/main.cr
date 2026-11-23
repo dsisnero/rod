@@ -25,5 +25,5 @@ host = header_server
 page = Rod::Browser.new.must_connect.must_page(host)
 cleanup = page.must_set_extra_headers(["X-Header", "my request header"])
 page.must_navigate(host)
-Log.info { "received headers: #{page.must_element("#result").must_text}" }
+puts "received headers: #{page.must_element("#result").must_text}"
 cleanup.call
