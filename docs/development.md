@@ -56,11 +56,14 @@ them together with their upstream counterpart.
 
 `make examples` builds one binary per entry point (`*/main.cr` plus
 `e2e-testing/calculator.cr`) under the git-ignored `temp/examples/`, and only
-rebuilds a binary when its own source, any `src/**/*.cr` file, or `shard.yml` /
-`shard.lock` is newer. After a `src/rod` change every example rebuilds; after an
-example change only that one does; a repeat run does nothing. Build just one with
-`make example EXAMPLE=compare-chromedp/click`, and run it from
-`temp/examples/compare-chromedp/click/main`. A first full build takes a few
+rebuilds a binary when that example's own `.cr` files or any `src/**/*.cr` file
+is newer. After a `src/rod` change every example rebuilds; after an example
+change only that one does, including `e2e-testing/calculator.cr` when its shared
+`setup.cr` helper changes; a repeat run does nothing. The shard manifest and
+`lib/` are not prerequisites, so `shards install`/`update` does not force a
+rebuild — `make clean` first when a dependency change needs fresh binaries.
+Build just one with `make example EXAMPLE=compare-chromedp/click`, and run it
+from `temp/examples/compare-chromedp/click/main`. A first full build takes a few
 minutes; `make check-examples` is the fast, timestamp-independent typecheck.
 
 Parity gates:

@@ -43,9 +43,11 @@ below describe the Crystal port, not upstream changes.
   referencing the pre-port `Rod::Lib` namespace.
 - `make examples` (and `make example EXAMPLE=...`): builds one binary per example
   entry point under the git-ignored `temp/examples/`, incrementally — a binary is
-  rebuilt only when its own source, any `src/**/*.cr` file, or the shard manifest
-  is newer, so a `src/rod` change refreshes everything, an example change
-  refreshes just that one, and a repeat run does nothing.
+  rebuilt only when its own `.cr` files or any `src/**/*.cr` file is newer, so a
+  `src/rod` change refreshes everything, an example change refreshes just that
+  one (including `e2e-testing/calculator` when its `setup.cr` helper changes),
+  and a repeat run does nothing. `shard.yml`/`shard.lock` are not prerequisites,
+  so `shards install`/`update` does not force a full rebuild.
 - `examples/page-options/main.cr`: opening a new window and a background tab
   through `Browser#page(opts : Cdp::Target::CreateTarget)`.
 - `Browser#page(opts : Cdp::Target::CreateTarget)`: the go-shaped page creation

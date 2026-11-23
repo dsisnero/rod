@@ -49,10 +49,12 @@ check-examples:
 	if [ $$status -eq 0 ]; then echo "All examples compile."; else exit 1; fi
 
 # Incremental example binaries under temp/examples/, one per entry point. A
-# binary is rebuilt only when the example's own source, any `src/` file, or the
-# shard manifest is newer than it: `make examples` after a `src/rod` edit
-# rebuilds everything, after an example edit rebuilds just that one, and a
-# repeat run does nothing.
+# binary is rebuilt only when the example's own `.cr` files or any `src/**/*.cr`
+# file is newer than it: `make examples` after a `src/rod` edit rebuilds
+# everything, after an example edit rebuilds just that one, and a repeat run does
+# nothing. The shard manifest and `lib/` are deliberately not prerequisites, so
+# `shards install`/`update` does not force a full rebuild; run `make clean` first
+# if a dependency change needs fresh binaries.
 #
 #   make examples                                  # build/refresh all binaries
 #   make example EXAMPLE=compare-chromedp/click    # build just one
@@ -65,10 +67,15 @@ check-examples:
 # window as a build may not be noticed; `make check-examples` is the
 # timestamp-independent gate. The `find` calls skip `._*`/`.DS_Store` because the
 # exFAT checkout surfaces AppleDouble sidecars in `readdir`.
+#
+# An entry point's own sources are every `.cr` file in its directory, so a shared
+# helper such as `examples/e2e-testing/setup.cr` rebuilds the example requiring
+# it (`calculator.cr`), not every example.
 EXAMPLE_ENTRY ?= $(shell find examples -name 'main.cr' ! -name '._*' | sort) examples/e2e-testing/calculator.cr
-EXAMPLE_DEPENDS ?= $(shell find src -name '*.cr' ! -name '._*' | sort) shard.yml shard.lock
+EXAMPLE_SRC_DEPENDS ?= $(shell find src -name '*.cr' ! -name '._*' | sort)
 EXAMPLE_BUILD_FLAGS ?=
 example_bin = temp/examples/$(patsubst examples/%.cr,%,$(1))
+example_sources = $(shell find $(dir $(1)) -name '*.cr' ! -name '._*' | sort)
 
 # A failed build must not leave a binary that make then treats as up to date.
 .DELETE_ON_ERROR:
@@ -86,7 +93,7 @@ example:
 	 $(MAKE) --no-print-directory "$$bin"
 
 define EXAMPLE_RULE
-$(call example_bin,$(1)): $(1) $(EXAMPLE_DEPENDS)
+$(call example_bin,$(1)): $(call example_sources,$(1)) $(EXAMPLE_SRC_DEPENDS)
 	@mkdir -p $$(dir $$@)
 	crystal build $(EXAMPLE_BUILD_FLAGS) $(1) -o $$@
 endef

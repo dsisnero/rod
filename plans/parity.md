@@ -10,7 +10,7 @@
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
 green. The last *feature* commit is Phase 69 (`Browser#page` accepts go's
 `Target.createTarget` options, so `newWindow`/`background`/`forTab` and the
-browser context are forwarded instead of being hard-coded to nil); the three
+browser context are forwarded instead of being hard-coded to nil); the four
 commits after it are repo hygiene, not phases:
 
 - `docs: repair the examples and document the recent port work` — 7 of 29
@@ -18,11 +18,16 @@ commits after it are repo hygiene, not phases:
   long time; added `examples/page-options/main.cr` and the `make check-examples`
   gate, plus docs for the element-context and tracing rules.
 - `build: add an incremental make examples target` — per-example binaries under
-  `temp/examples/`, rebuilt only when the example, any `src/**/*.cr` file or the
-  shard manifest is newer (`make example EXAMPLE=compare-chromedp/click` for one).
+  `temp/examples/`, rebuilt only when the example's own `.cr` files or any
+  `src/**/*.cr` file is newer (`make example EXAMPLE=compare-chromedp/click` for
+  one).
 - `examples: print plain output and restore the click trace` — examples print
   with `puts` instead of Crystal `Log` (`INFO - …` prefixes), and the click
   example chains `trace(true)` like upstream.
+- `build: narrow example rebuild triggers` — `make examples` rebuilds a binary
+  only when that example's own `.cr` files or any `src/**/*.cr` file is newer;
+  the shard manifest no longer forces a full rebuild, and
+  `e2e-testing/setup.cr` now rebuilds the `calculator` example that requires it.
 
 The element-context audit (56/62/63), the `gson.Int` sweep (64), the trace-site
 sweep (65), the `Element.Wait*` timing sweep (66), the swallowed element errors
