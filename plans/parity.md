@@ -8,11 +8,12 @@
 ## Where we are
 
 **Current focus:** nothing in flight. The tree is clean and pushed, every gate is
-green, and the last feature commit is Phase 68 (`StreamReader.Close` surfaces the
-CDP error like go, and a chunk that arrives with `eof` is no longer truncated).
-The element-context audit (56/62/63), the `gson.Int` sweep (64), the trace-site
-sweep (65), the `Element.Wait*` timing sweep (66), the swallowed element errors
-(67) and the stream-reader error flow (68) are closed.
+green, and the last feature commit is Phase 69 (`Browser#page` accepts go's
+`Target.createTarget` options, so `newWindow`/`background`/`forTab` and the
+browser context are forwarded instead of being hard-coded to nil). The
+element-context audit (56/62/63), the `gson.Int` sweep (64), the trace-site sweep
+(65), the `Element.Wait*` timing sweep (66), the swallowed element errors (67),
+the stream-reader error flow (68) and the page-creation options (69) are closed.
 
 To confirm the baseline in a new session: `make format && make lint` (seconds),
 then `make test` (~2m30s). Before a full run, clear stray headless browsers left
@@ -25,17 +26,17 @@ on a busy machine (plus `spec/live_browser_parity_spec.cr:1457`, the
 `TestHijackMockWholeResponse` example, which errored once under a full-suite run
 and passes in isolation), none of which are real failures.
 
-Phases 23-68 all came from *auditing `vendor/rod` area by area*: both ledgers
+Phases 23-69 all came from *auditing `vendor/rod` area by area*: both ledgers
 are 100% `ported` (inventory 5607/54/15, tests 297 with four upstream `t.Skip`s),
 so new work has to be found by comparing behaviour. Next up item 1 keeps the
-recipes that found those 46 phases, plus the list of areas already swept, so a
+recipes that found those 47 phases, plus the list of areas already swept, so a
 fresh session can pick up without re-deriving any of it.
 
-**Last commit:** `port: surface stream close errors and keep the last chunk`
-(Phase 68; `git log -1` for the hash).
+**Last commit:** `port: forward page creation options like go`
+(Phase 69; `git log -1` for the hash).
 
-**Gates (2026-11-22, after Phase 68):** `make format` pass · `make lint` pass
-(240 files) · `make test` pass (754 examples, 0 failures) · parity checks pass
+**Gates (2026-11-22, after Phase 69):** `make format` pass · `make lint` pass
+(240 files) · `make test` pass (757 examples, 0 failures) · parity checks pass
 (5665 inventory rows with 10 documented divergences and 54 `skipped` legacy
 protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pass,
 `go-rod/rod` main package has browser-timing failures (see Next up).
@@ -88,8 +89,9 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      every `gson.(Int|Str|Bool)` payload site (64), every `tryTrace`/`tryTraceQuery`/
      `tryTraceReq` site (65), the `Element.Wait*` ticker/`select` timing (66),
      `interactable`'s swallowed covered-check error (67), `StreamReader`'s
-     swallowed close error / truncated `eof` chunk (68). `Key.Encode` payloads
-     match (Phase 38).
+     swallowed close error / truncated `eof` chunk (68), `Browser#page`'s
+     hard-coded `Target.createTarget` options (69). `Key.Encode` payloads match
+     (Phase 38).
 2. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
    parity scripts instead of the repo's copied ones (whose `tree-sitter` branch
    is a placeholder), and decide curated-status preservation. Native tree-sitter
@@ -124,7 +126,7 @@ authority):
 
 1. red-green: the new spec fails for the intended reason before the fix (stash
    the src change and watch it fail, or write the spec first);
-2. `make format`, `make lint`, `make test` (~2m30s, 754 examples) and
+2. `make format`, `make lint`, `make test` (~2m30s, 757 examples) and
    `make check-go-port-inventory` / `check-go-source-parity` /
    `check-go-test-parity`;
 3. `plans/parity.md`: new Phase entry + **Where we are** + **Next up** updated;
@@ -229,7 +231,7 @@ This is a curated feature roadmap, not a generated dump. Generated manifests
 | Source parity (regex backend) | 5368 API items, check PASS (authoritative) |
 | Source parity (tree-sitter backend) | incompatible with curated manifests: 63 missing + 3422 stale (kind vocab mismatch) |
 | Test parity | 297 tests tracked, check PASS |
-| Crystal specs | 108 files, 754 examples, 0 failures (2026-11-22, Chromium `158.0.8127.37`) |
+| Crystal specs | 108 files, 757 examples, 0 failures (2026-11-22, Chromium `158.0.8127.37`) |
 
 The port is at **functional parity** for all exported Go APIs and all Go tests.
 
@@ -2010,6 +2012,35 @@ events, and a dialog handled while someone held the Page domain disabled it).
       `FetchDisable` unconditionally (`hijack.go:189-192`), so the port matches.
 - [x] Gates: `make format`, `make lint` (240 files), full `make test`
       (729 examples, 0 failures), `make check-go-*` pass.
+
+---
+
+### Phase 69 — `Browser#page` accepts go's `Target.createTarget` options ✅
+
+go's entry point is `func (b *Browser) Page(opts proto.TargetCreateTarget)`
+(`browser.go:267-316`): it forwards the caller's options, forces the creation URL
+to `about:blank`, pins the browser context, then navigates when `opts.URL` is
+non-empty. The port only had `page(url : String)`, which built a
+`Target.createTarget` request with **every option nil**, so go-rod's
+`Page(proto.TargetCreateTarget{NewWindow: true})` — open a new window instead of a
+tab — had no equivalent: users had to drop to raw CDP and hand-build the target
+and page.
+
+- [x] Red-green `spec/browser_page_creation_parity_spec.cr`: the new overload is
+      driven against `PageCreationBrowser`, asserting the wire payload
+      (`url: "about:blank"`, `newWindow: true`, `background: true`,
+      `browserContextId`) and that a non-empty URL navigates afterwards — for
+      `about:blank` too, since go only skips an *empty* URL. Red as an API gap
+      (`undefined method 'page' for PageCreationBrowser`), green after.
+- [x] `src/rod/browser.cr`: `page(opts : Cdp::Target::CreateTarget)` plus a private
+      `create_page` shared with the string overload (which keeps its documented
+      convenience semantics: `page()`/`page("about:blank")` do not re-navigate,
+      pinned by the existing example).
+- [x] Live `spec/browser_page_creation_parity_spec.cr` example:
+      `browser.page(CreateTarget.new("", new_window: true))` opens a usable page
+      at `about:blank` on real Chrome.
+- [x] Gates: `make format`, `make lint` (240 files), full `make test`
+      (757 examples, 0 failures), `make check-go-*` pass.
 
 ---
 

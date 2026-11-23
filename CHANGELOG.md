@@ -35,6 +35,15 @@ below describe the Crystal port, not upstream changes.
   shared JS-context state (`docs/testing.md`, `docs/architecture.md`,
   `docs/development.md`, `docs/resuming.md`).
 
+### Added
+
+- `Browser#page(opts : Cdp::Target::CreateTarget)`: the go-shaped page creation
+  entry point (`browser.go:267-316`). It forwards every `Target.createTarget`
+  option — `newWindow` (open a window instead of a tab), `background`, `forTab`,
+  sizing, `hidden`/`focus` — plus the browser context, forces the creation URL to
+  `about:blank` and navigates afterwards when the requested URL is non-empty. The
+  string overload keeps its convenience semantics.
+
 ### Fixed
 
 - `StreamReader#close` surfaces the CDP `IO.close` error instead of swallowing it

@@ -175,29 +175,35 @@ module Rod
 
     # Page creates a new tab with optional navigation.
     def page(url : String = "about:blank") : Page
-      req = Cdp::Target::CreateTarget.new(
-        "about:blank",
-        nil,
-        nil,
-        nil,
-        nil,
-        nil,
-        @browser_context_id.try(&.value),
-        nil,
-        nil,
-        nil,
-        nil,
-        nil,
-        nil
-      )
+      # Convenience overload: CDP already opens the target at `about:blank`, so
+      # navigating there again would only add a request.
+      create_page(Cdp::Target::CreateTarget.new(url), navigate_url: !(url.empty? || url == "about:blank"))
+    end
+
+    # Page creates a new tab — or a new window when `newWindow` is set — like go's
+    # `Browser.Page` (`browser.go:267-316`): every `Target.createTarget` option is
+    # forwarded, the creation URL is forced to `about:blank`, and a non-empty
+    # `url` navigates afterwards.
+    def page(opts : Cdp::Target::CreateTarget) : Page
+      create_page(opts, navigate_url: !opts.url.empty?)
+    end
+
+    private def create_page(opts : Cdp::Target::CreateTarget, navigate_url : Bool) : Page
+      requested_url = opts.url
+      req = opts
+      req.browser_context_id = @browser_context_id.try(&.value)
+      req.url = "about:blank"
+
       target = req.call(self)
       target_id = TargetID.new(target.target_id)
 
       begin
         p = page_from_target(target_id)
-        p.navigate(url) unless url.empty? || url == "about:blank"
+        p.navigate(requested_url) if navigate_url
         p
       rescue ex
+        # go closes the target when `PageFromTarget` or `Navigate` fails, to
+        # prevent a leak (`browser.go:283-289`).
         Cdp::Target::CloseTarget.new(target.target_id).call(self) rescue nil
         raise ex
       end

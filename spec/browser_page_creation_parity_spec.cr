@@ -13,9 +13,11 @@ private class PageCreationBrowser < Rod::Browser
   property next_page : Rod::Page? = nil
   getter closed_target_ids = [] of String
   getter method_calls = [] of String
+  getter method_params = {} of String => JSON::Any
 
   def call(context : HTTP::Client::Context?, session_id : String?, method : String, params : JSON::Any) : Bytes
     @method_calls << method
+    @method_params[method] = params
     case method
     when "Target.createTarget"
       %({"targetId":"target-1"}).to_slice
@@ -90,5 +92,50 @@ describe "browser page creation parity" do
     browser.method_calls.should_not contain("Emulation.setDeviceMetricsOverride")
     browser.method_calls.should_not contain("Emulation.setTouchEmulationEnabled")
     browser.method_calls.should_not contain("Emulation.setUserAgentOverride")
+  end
+
+  it "forwards go's Target.createTarget options like Browser.Page" do
+    browser = PageCreationBrowser.new
+    browser.browser_context_id = Rod::BrowserContextID.new("ctx-1")
+    page = PageCreationStubPage.new(browser, Rod::TargetID.new("target-1"))
+    browser.next_page = page
+
+    # go: `func (b *Browser) Page(opts proto.TargetCreateTarget)` forwards the
+    # caller's options, forces the creation URL to `about:blank` and adds the
+    # browser context (`browser.go:267-316`).
+    created = browser.page(Cdp::Target::CreateTarget.new("https://example.test", new_window: true, background: true))
+
+    created.should eq(page)
+    params = browser.method_params["Target.createTarget"]
+    params["url"].as_s.should eq("about:blank")
+    params["newWindow"].as_bool.should be_true
+    params["background"].as_bool.should be_true
+    params["browserContextId"].as_s.should eq("ctx-1")
+    page.navigated_to.should eq("https://example.test")
+  end
+
+  it "navigates an options-created page even for about:blank like go" do
+    browser = PageCreationBrowser.new
+    page = PageCreationStubPage.new(browser, Rod::TargetID.new("target-1"))
+    browser.next_page = page
+
+    browser.page(Cdp::Target::CreateTarget.new("about:blank"))
+
+    # go only skips the navigation for an *empty* URL (`if opts.URL == "" { return }`).
+    page.navigated_to.should eq("about:blank")
+  end
+end
+
+describe "browser page creation with a real browser" do
+  it "opens a new window through go's Target.createTarget options" do
+    RodSpec.with_live_browser do |browser|
+      page = browser.page(Cdp::Target::CreateTarget.new("", new_window: true))
+      begin
+        page.must_eval("() => location.href").as_s.should eq("about:blank")
+        page.must_eval("() => 1 + 1").should eq(JSON.parse("2"))
+      ensure
+        page.must_close
+      end
+    end
   end
 end
