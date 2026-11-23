@@ -47,8 +47,10 @@ so new work has to be found by comparing behaviour. Next up item 1 keeps the
 recipes that found those 47 phases, plus the list of areas already swept, so a
 fresh session can pick up without re-deriving any of it.
 
-**Last commit:** `examples: print plain output and restore the click trace`
-(`git log -1` for the hash; `git log --oneline -4` shows the hygiene commits).
+**Last commit:** the last *feature* commit is Phase 69 (`port: forward page
+creation options like go`), followed by the three hygiene commits listed above;
+`git log --oneline -5` shows the current head. This block is current as of that
+head — no work is in flight.
 
 **Gates (2026-11-22, after the examples pass):** `make format` pass · `make lint`
 pass (241 files) · `make check-examples` pass (30 example files) · `make test`
