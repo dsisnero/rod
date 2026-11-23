@@ -1,15 +1,32 @@
 require "../../src/rod"
 
-launcher = Rod::Lib::Launcher.must_new_managed("")
+# Ported from `vendor/rod/lib/examples/launch-managed/main.go`.
+#
+# This launches a browser *remotely* through a `launcher manager` service, not a
+# browser that is already running (for that see `../connect-browser`):
+#
+#     docker run --rm -p 7317:7317 ghcr.io/go-rod/rod
+#
+# For the available CLI flags run `docker run --rm ghcr.io/go-rod/rod rod-manager -h`.
+launcher = Rod::Util::Launcher.must_new_managed("")
+
+# Flags can be set remotely before the browser starts.
+# Available flags: https://peter.sh/experiments/chromium-command-line-switches
 launcher.set("disable-gpu").delete("disable-gpu")
+
+# Launch with headful mode behind Xvfb.
 launcher.headless(false).xvfb("--server-num=5", "--server-args=-screen 0 1600x900x16")
 
 browser = Rod::Browser.new.client(launcher.must_client).must_connect
-Rod::Lib::Launcher.open(browser.serve_monitor(""))
+
+# Start a server to watch the remote browser's screenshots.
+Rod::Util::Launcher.open(browser.serve_monitor(""))
 puts browser.must_page("https://developer.mozilla.org").must_eval("() => document.title")
 
-launcher2 = Rod::Lib::Launcher.must_new_managed("")
-launcher2.set("disable-sync").delete("disable-sync")
-another = Rod::Browser.new.client(launcher2.must_client).must_connect
+# Launch another browser from the same container with different flags.
+another_launcher = Rod::Util::Launcher.must_new_managed("")
+another_launcher.set("disable-sync").delete("disable-sync")
+another = Rod::Browser.new.client(another_launcher.must_client).must_connect
 puts another.must_page("https://go-rod.github.io").must_eval("() => document.title")
-Rod::Lib::Utils.pause
+
+Rod::Util::Utils.pause

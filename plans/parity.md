@@ -92,7 +92,13 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
      swallowed close error / truncated `eof` chunk (68), `Browser#page`'s
      hard-coded `Target.createTarget` options (69). `Key.Encode` payloads match
      (Phase 38).
-2. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
+2. **[code, small] `must_page` ignores the variadic URL join.** go's
+   `Browser.MustPage(url ...string)` joins the parts with `/`
+   (`must.go:69-73`), so `MustPage("http://host", "path")` targets
+   `http://host/path`; the port takes a single `String`. A variadic overload
+   (`must_page(*url : String)`) keeps the current calls working and matches the
+   upstream signature.
+3. **[tooling] Phase 1 tooling migration:** wrap the installed skill's canonical
    parity scripts instead of the repo's copied ones (whose `tree-sitter` branch
    is a placeholder), and decide curated-status preservation. Native tree-sitter
    discovery already works via the verified Chiasmus toolchain, but its
@@ -101,21 +107,21 @@ protocol rows, 5368 API items, 297 tests) · upstream Go suite: 8/9 packages pas
    gate stays `PORT_PARSER=regex` until a reviewed id migration lands. (The last
    Phase 2 checklist bullet, `Page.cleanupStates`, is closed in Phase 59, so this
    is now tooling-only work.)
-3. **[verify] Upstream Go suite flakiness:** `github.com/go-rod/rod` failed
+4. **[verify] Upstream Go suite flakiness:** `github.com/go-rod/rod` failed
    `TestPageElements` and `Example_basic` on 2026-11-17 while the other eight
    packages passed. Re-run before reading anything into a failure — these are
    browser-timing issues in the vendored project, not port gaps. Run with
    `GODEBUG=tracebackancestors=1000`.
-4. **[verify] Generation no-op gate:** `make check-generate-crystal` regenerates
+5. **[verify] Generation no-op gate:** `make check-generate-crystal` regenerates
    the pinned vintage (`CDP_CHROMIUM=160.0.8168.1`, `CDP_V8=16.0.61`) into
    `temp/cdp_generated/` and diffs it against `src/cdp`; it passes with a warm
    cache and needs network on a cold one (PDL files come from googlesource.com).
    Re-run it after any template edit — Phase 30 and 59 both hand-edited generated
    output alongside its template.
-5. **[optional cleanup]** The repo tracks built binaries (`rod`, `bin/pdlgen*`,
+6. **[optional cleanup]** The repo tracks built binaries (`rod`, `bin/pdlgen*`,
    `pdlgen*`), so local builds keep showing up as modified files. Decide whether
    to untrack them.
-6. **[optional follow-up]** `spec/cdp_client_parity_spec.cr` and
+7. **[optional follow-up]** `spec/cdp_client_parity_spec.cr` and
    `spec/launcher_parity_spec.cr` still launch their own browsers. That is
    deliberate — they exercise the CDP client and the launcher itself
    (`TestLaunchClient`, `Browser.close` handling) — so only revisit it if a
@@ -126,7 +132,8 @@ authority):
 
 1. red-green: the new spec fails for the intended reason before the fix (stash
    the src change and watch it fail, or write the spec first);
-2. `make format`, `make lint`, `make test` (~2m30s, 757 examples) and
+2. `make format`, `make lint`, `make test` (~2m30s, 757 examples),
+   `make check-examples` (every example compiles) and
    `make check-go-port-inventory` / `check-go-source-parity` /
    `check-go-test-parity`;
 3. `plans/parity.md`: new Phase entry + **Where we are** + **Next up** updated;

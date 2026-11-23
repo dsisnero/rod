@@ -37,6 +37,12 @@ below describe the Crystal port, not upstream changes.
 
 ### Added
 
+- `make check-examples`: compiles every file under `examples/` with
+  `crystal build --no-codegen`. `make test` never loads them and `make format`
+  only parses them, so seven examples had silently stopped compiling while still
+  referencing the pre-port `Rod::Lib` namespace.
+- `examples/page-options/main.cr`: opening a new window and a background tab
+  through `Browser#page(opts : Cdp::Target::CreateTarget)`.
 - `Browser#page(opts : Cdp::Target::CreateTarget)`: the go-shaped page creation
   entry point (`browser.go:267-316`). It forwards every `Target.createTarget`
   option — `newWindow` (open a window instead of a tab), `background`, `forTab`,
@@ -46,6 +52,15 @@ below describe the Crystal port, not upstream changes.
 
 ### Fixed
 
+- The `examples/` tree compiles again. Seven examples
+  (`connect-browser`, `custom-launch`, `custom-websocket`, `launch-managed`,
+  `use-rod-like-chrome-extension`, `compare-chromedp/emulate` and
+  `compare-chromedp/proxy`) still referenced the pre-port `Rod::Lib` namespace
+  (`Rod::Lib::Launcher`, `Rod::Lib::Devices`, a nonexistent
+  `Examples::CustomWebsocket`/`CompareChromedpProxy`), and the extension example
+  used the pool API with the wrong shape. They now use `Rod::Util::*` and the
+  real harness APIs, and the proxy example runs a local auth-requiring proxy
+  against a `proxy-test.invalid` host so it works offline like upstream.
 - `StreamReader#close` surfaces the CDP `IO.close` error instead of swallowing it
   (`utils.go:178-181`; upstream `TestPagePDF` asserts `g.Nil(s.Close())`), keeps
   the handle open after a failure so a retry works, and stays idempotent after a

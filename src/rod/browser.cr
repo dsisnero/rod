@@ -287,7 +287,10 @@ module Rod
     end
 
     # Headless detection mirrors Go rod: prefer command-line switches.
-    # Fallback to product string when Browser.getBrowserCommandLine is unavailable.
+    # Divergence: go's `isHeadless` only inspects the command line
+    # (`browser.go:464-472`) and reports "not headless" when the call fails;
+    # the port falls back to the product string, which keeps
+    # `Page#trigger_favicon` usable on browsers whose command line is hidden.
     def headless? : Bool
       begin
         args = Cdp::Browser::GetBrowserCommandLine.new.call(self).arguments

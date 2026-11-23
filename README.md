@@ -52,6 +52,26 @@ title = page.element!("h1").text!
 
 `page!` is an alias for `must_page`, `element!` for `must_element`, etc.
 
+### Opening pages
+
+`page` creates a tab. Pass a `Target.createTarget` request for everything
+go-rod's [`Browser.Page`](https://pkg.go.dev/github.com/go-rod/rod#Browser.Page)
+supports — a new window instead of a tab, a background tab, or a non-default
+size:
+
+```crystal
+# A new window instead of a tab (go's `TargetCreateTarget{NewWindow: true}`)
+window = browser.page(Cdp::Target::CreateTarget.new("", new_window: true))
+
+# A background tab that loads while the current page keeps running
+tab = browser.page(Cdp::Target::CreateTarget.new("https://example.com", background: true))
+```
+
+The creation URL is always `about:blank`; a non-empty `url` is navigated
+afterwards. The plain `page` / `page("about:blank")` form does not re-navigate a
+target that CDP already opened there. See
+`examples/page-options/main.cr`.
+
 ### Query Timeout Behavior
 
 `element_r` / `must_element_r` follow page/query timeout settings the same way
@@ -77,6 +97,7 @@ make install   # shards install
 make format    # crystal tool format --check
 make lint      # ameba
 make test      # crystal spec
+make check-examples  # compile every example (they are not part of `make test`)
 ```
 
 Specs that drive a browser borrow one pooled Chrome

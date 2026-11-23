@@ -1,15 +1,16 @@
 require "../../src/rod"
 
-# Crystal analogue of the Go deadlock-debug example.
+# Crystal analogue of go-rod's `lib/examples/debug-deadlock` example: it shows
+# where a blocked CDP call surfaces once the operation is unblocked.
 def your_code_here
   page = Rod::Browser.new.must_connect.must_page("http://mdn.dev")
   spawn { page.must_element("not-exists") }
 end
 
 def check_lock
-  start = Time.monotonic
+  start = Time.instant
   -> do
-    elapsed = Time.monotonic - start
+    elapsed = Time.instant - start
     puts "Potential hang window elapsed: #{elapsed.total_seconds.round(2)}s"
   end
 end

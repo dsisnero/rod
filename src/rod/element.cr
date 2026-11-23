@@ -452,6 +452,9 @@ module Rod
     end
 
     # Get element HTML
+    # go reads it through `DOM.getOuterHTML` (`element.go:491-498`); the port
+    # evaluates `this.outerHTML`, which is byte-identical to the DOM serializer
+    # for elements, attributes, `<template>`, SVG and script/textarea content.
     def html : String
       result = evaluate("() => this.outerHTML")
       result.value.to_s

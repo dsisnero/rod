@@ -18,6 +18,7 @@ make update    # shards update
 make format    # crystal tool format --check src spec examples bin
 make lint      # ameba --fix, then ameba
 make test      # crystal spec
+make check-examples  # compile every example (they are not part of `make test`)
 make clean     # rm -rf ./temp/*
 ```
 

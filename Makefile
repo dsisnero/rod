@@ -1,4 +1,4 @@
-.PHONY: install update format lint test clean generate generate-crystal generate-crystal-scratch generate-go-ref build-pdlgen-crystal build-pdlgen-go \
+.PHONY: install update format lint test check-examples clean generate generate-crystal generate-crystal-scratch generate-go-ref build-pdlgen-crystal build-pdlgen-go \
 	check-generate-crystal check-go-port-inventory check-go-source-parity check-go-test-parity \
 	generate-go-port-inventory generate-go-source-parity generate-go-test-parity
 
@@ -38,6 +38,15 @@ lint:
 
 test:
 	crystal spec spec
+
+# Gate: every example must at least compile. Examples are not part of
+# `make test`, so without this they rot silently (7 of them referenced the
+# pre-port `Rod::Lib` namespace and had not compiled for a long time).
+check-examples:
+	@status=0; for f in $$(find examples -name '*.cr' | sort); do \
+		crystal build --no-codegen "$$f" >/dev/null || { echo "FAIL $$f"; status=1; }; \
+	done; \
+	if [ $$status -eq 0 ]; then echo "All examples compile."; else exit 1; fi
 
 # Gate: the committed src/cdp must still be exactly what the pinned protocol
 # generates (Chromium CDP_CHROMIUM / V8 CDP_V8).

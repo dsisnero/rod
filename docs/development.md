@@ -43,8 +43,15 @@ make update      # shards update
 make format      # crystal tool format --check src spec examples bin
 make lint        # ameba --fix, then ameba
 make test        # crystal spec
+make check-examples  # compile every example with `crystal build --no-codegen`
 make clean       # rm -rf ./temp/*
 ```
+
+`make test` does not load `examples/`, and `make format` only parses them, so
+`make check-examples` is the gate that keeps them compiling: seven examples still
+used the pre-port `Rod::Lib` namespace and had silently stopped compiling. Each
+example under `examples/` mirrors a file in `vendor/rod/lib/examples`, so port
+them together with their upstream counterpart.
 
 Parity gates:
 

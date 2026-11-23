@@ -90,6 +90,13 @@ Recent example: un-gating `TestPageIframeReload` exposed a stale document root
 did not recognize; the fix has its own spec in
 `spec/page_stale_node_retry_parity_spec.cr`.
 
+A *load* flake is different from a product bug: while another browser run is
+active, a full `make test` can fail `spec/launcher_launch_parity_spec.cr:18`,
+`spec/live_browser_parity_spec.cr:1457` (the hijack example), `:1464` and
+`spec/live_browser_pool_spec.cr:144` on a pristine tree. Each passes in
+isolation; the canonical list and the leftover-browser cleanup are in
+`plans/parity.md`'s Gotchas.
+
 ## Parity manifests
 
 ```bash

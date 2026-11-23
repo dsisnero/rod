@@ -653,6 +653,7 @@ module Rod
     end
 
     # HTML of the page.
+    # go's `Page.HTML` is `p.Element("html")` then `el.HTML()` (`page.go:105-111`).
     def html : String
       element("html").html
     end
@@ -702,7 +703,10 @@ module Rod
       extra_headers(dict)
     end
 
-    # Sets user agent override; defaults to LaptopWithMDPIScreen emulation when nil.
+    # Gets user agent override; defaults to LaptopWithMDPIScreen emulation when nil.
+    # go calls `Network.setUserAgentOverride` (`page.go:150-157`); the pinned
+    # protocol marks that command `redirect Emulation` (Chromium 160), so the
+    # port calls the `Emulation` command it redirects to, with the same params.
     def user_agent=(req : Cdp::Emulation::SetUserAgentOverride?)
       request = req || Rod::Util::Devices::LaptopWithMDPIScreen.user_agent_emulation
       request.try(&.call(self))
